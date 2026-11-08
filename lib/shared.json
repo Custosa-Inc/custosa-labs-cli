@@ -1,7 +1,7 @@
 {
   "_about": "One source for what the setup page on custosa.com and `npx custosa setup` both say. Prices mirror the evaluator's billing settings (unit price, minimum top-up, sign-up credit and the units per 1,000 characters for guidance and fix): change them there first, then here. The database SQL is the evaluator's client setup guide's, with -v ON_ERROR_STOP=1 on the printed psql lines, the PG14 step in a transaction, the Supabase bucket grants and policy, and the read check excluding storage.buckets as the inspector's preflight does. inspectorVersion is the version the setup page pins in its by-hand entries; it must equal package.json's version (test/setup.test.mjs and the release workflow check it).",
   "name": "custosa-phi-schema-check",
-  "inspectorVersion": "0.1.1",
+  "inspectorVersion": "0.1.2",
   "guide": "https://custosa.com/labs/setup",
   "billing": "https://custosa.com/billing",
   "tryPrompt": "Use PHI Schema Check to review how this app handles patient data. Run the check through to the end on your own and answer the questions you can from the code. Then show me the readiness score, the findings and the decisions only I can make, and ask me before you change any code or database.",

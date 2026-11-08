@@ -833,7 +833,7 @@ test("shares its prompt and price with the setup page", async () => {
   assert.equal(NAME, shared.name);
   assert.equal(shared.server, undefined, "the hosted address is gone: setup registers the local inspector");
   const pkg = JSON.parse(readFileSync(new URL("../package.json", import.meta.url), "utf8"));
-  assert.equal(pkg.version, "0.1.1");
+  assert.equal(pkg.version, "0.1.2");
   assert.equal(shared.inspectorVersion, pkg.version, "the setup page's pinned entry is this package's version");
   assert.ok(pkg.files.includes("lib"), "shared.json ships inside lib/");
 });
