@@ -1,0 +1,1541 @@
+# inbound-webhooks-verified (T23 B32, design v3 2.2.2). Written by scripts/gen_webhook_rules.py: edit that script,
+# never this file. The rule id's last part is the form (items-sdk, items-hmac, violation, webhook-route,
+# replay-dedupe), which the practice function reads, since a match carries only one has_control. replay-dedupe matches
+# the items-sdk handler itself, so the function joins the two on path and line.
+
+# items-sdk: a handler that reads a provider signature header (by name or through $_SERVER) or calls a provider SDK's
+# verifying parse (\Stripe\Webhook::constructEvent), and computes no HMAC itself. The control is the SDK's verify call
+# with the raw body read (file_get_contents('php://input') or $request->getContent()), or a call the provider signs
+# without it (Twilio's form check). No control: fail. The control holds only when no data call (a data-layer receiver
+# or ORM model) comes before the verify call in the handler's text.
+id: inbound-webhooks-verified.php-generic.items-sdk
+practice_id: inbound-webhooks-verified
+language: php
+frameworks:
+- generic
+kind: items
+rule:
+  all:
+  - any:
+    - kind: function_definition
+    - kind: method_declaration
+    - kind: anonymous_function
+    - kind: arrow_function
+    - kind: program
+      has:
+        stopBy: end
+        any:
+        - kind: string
+          regex: (?i)^['"](stripe-signature|x-twilio-signature|svix-signature|x-hub-signature-256|x-hub-signature|webhook-signature|HTTP_STRIPE_SIGNATURE|HTTP_X_TWILIO_SIGNATURE|HTTP_SVIX_SIGNATURE|HTTP_X_HUB_SIGNATURE_256|HTTP_X_HUB_SIGNATURE|HTTP_WEBHOOK_SIGNATURE)['"]$
+        - kind: encapsed_string
+          regex: (?i)^['"](stripe-signature|x-twilio-signature|svix-signature|x-hub-signature-256|x-hub-signature|webhook-signature|HTTP_STRIPE_SIGNATURE|HTTP_X_TWILIO_SIGNATURE|HTTP_SVIX_SIGNATURE|HTTP_X_HUB_SIGNATURE_256|HTTP_X_HUB_SIGNATURE|HTTP_WEBHOOK_SIGNATURE)['"]$
+        not:
+          inside:
+            stopBy: end
+            any:
+            - kind: function_definition
+            - kind: method_declaration
+            - kind: anonymous_function
+            - kind: arrow_function
+  - any:
+    - has:
+        stopBy: end
+        any:
+        - kind: string
+          regex: (?i)^['"](stripe-signature|x-twilio-signature|svix-signature|x-hub-signature-256|x-hub-signature|webhook-signature|HTTP_STRIPE_SIGNATURE|HTTP_X_TWILIO_SIGNATURE|HTTP_SVIX_SIGNATURE|HTTP_X_HUB_SIGNATURE_256|HTTP_X_HUB_SIGNATURE|HTTP_WEBHOOK_SIGNATURE)['"]$
+        - kind: encapsed_string
+          regex: (?i)^['"](stripe-signature|x-twilio-signature|svix-signature|x-hub-signature-256|x-hub-signature|webhook-signature|HTTP_STRIPE_SIGNATURE|HTTP_X_TWILIO_SIGNATURE|HTTP_SVIX_SIGNATURE|HTTP_X_HUB_SIGNATURE_256|HTTP_X_HUB_SIGNATURE|HTTP_WEBHOOK_SIGNATURE)['"]$
+    - has:
+        stopBy: end
+        any:
+        - kind: scoped_call_expression
+          has:
+            field: name
+            kind: name
+            regex: ^(constructEvent)$
+  - not:
+      has:
+        stopBy: end
+        kind: function_call_expression
+        has:
+          field: function
+          kind: name
+          regex: ^hash_hmac$
+control:
+  all:
+  - any:
+    - all:
+      - has:
+          stopBy:
+            any:
+            - kind: anonymous_function
+            - kind: arrow_function
+            inside:
+              kind: argument
+              inside:
+                kind: arguments
+                inside:
+                  kind: scoped_call_expression
+                  all:
+                  - has:
+                      field: scope
+                      kind: name
+                      regex: ^Route$
+                  - has:
+                      field: name
+                      kind: name
+                      regex: ^(get|post|put|patch|delete|any|match)$
+          any:
+          - all:
+            - all:
+              - any:
+                - any:
+                  - kind: scoped_call_expression
+                    has:
+                      field: name
+                      kind: name
+                      regex: ^(constructEvent)$
+                - all:
+                  - any:
+                    - kind: member_call_expression
+                      all:
+                      - has:
+                          field: object
+                          kind: variable_name
+                          regex: (?i)^\$\w*(wh|webhooks?|svix|hook|validator)\w*$
+                      - has:
+                          field: name
+                          kind: name
+                          regex: ^(verify)$
+                  - inside:
+                      stopBy: end
+                      kind: program
+                      has:
+                        stopBy: end
+                        any:
+                        - kind: namespace_use_declaration
+                          regex: (?i)^use\s+\\?(Svix|Svix)\\
+                        - kind: qualified_name
+                          regex: (?i)^\\?(Svix|Svix)\\
+              - not:
+                  any:
+                  - inside:
+                      stopBy: end
+                      kind: compound_statement
+                      inside:
+                        kind: try_statement
+                        has:
+                          kind: catch_clause
+                          not:
+                            has:
+                              kind: compound_statement
+                              has:
+                                any:
+                                - kind: return_statement
+                                - kind: exit_statement
+                                - kind: expression_statement
+                                  regex: ^(throw|abort|die)\b
+            - not:
+                inside:
+                  stopBy: end
+                  any:
+                  - kind: anonymous_function
+                  - kind: arrow_function
+                  not:
+                    inside:
+                      kind: argument
+                      inside:
+                        kind: arguments
+                        inside:
+                          kind: scoped_call_expression
+                          all:
+                          - has:
+                              field: scope
+                              kind: name
+                              regex: ^Route$
+                          - has:
+                              field: name
+                              kind: name
+                              regex: ^(get|post|put|patch|delete|any|match)$
+                  inside:
+                    stopBy: end
+                    any:
+                    - kind: function_definition
+                    - kind: method_declaration
+                    - kind: anonymous_function
+                    - kind: arrow_function
+      - has:
+          stopBy:
+            any:
+            - kind: anonymous_function
+            - kind: arrow_function
+            inside:
+              kind: argument
+              inside:
+                kind: arguments
+                inside:
+                  kind: scoped_call_expression
+                  all:
+                  - has:
+                      field: scope
+                      kind: name
+                      regex: ^Route$
+                  - has:
+                      field: name
+                      kind: name
+                      regex: ^(get|post|put|patch|delete|any|match)$
+          any:
+          - kind: function_call_expression
+            regex: ^file_get_contents\(\s*['\"]php://input['\"]
+          - kind: member_call_expression
+            has:
+              field: name
+              kind: name
+              regex: ^getContent$
+    - has:
+        stopBy:
+          any:
+          - kind: anonymous_function
+          - kind: arrow_function
+          inside:
+            kind: argument
+            inside:
+              kind: arguments
+              inside:
+                kind: scoped_call_expression
+                all:
+                - has:
+                    field: scope
+                    kind: name
+                    regex: ^Route$
+                - has:
+                    field: name
+                    kind: name
+                    regex: ^(get|post|put|patch|delete|any|match)$
+        any:
+        - all:
+          - all:
+            - any:
+              - all:
+                - any:
+                  - kind: member_call_expression
+                    all:
+                    - has:
+                        field: object
+                        kind: variable_name
+                        regex: (?i)^\$\w*(wh|webhooks?|svix|hook|validator)\w*$
+                    - has:
+                        field: name
+                        kind: name
+                        regex: ^(validate)$
+                - inside:
+                    stopBy: end
+                    kind: program
+                    has:
+                      stopBy: end
+                      any:
+                      - kind: namespace_use_declaration
+                        regex: (?i)^use\s+\\?(Twilio|Twilio)\\
+                      - kind: qualified_name
+                        regex: (?i)^\\?(Twilio|Twilio)\\
+            - any:
+              - inside:
+                  stopBy: end
+                  kind: unary_op_expression
+                  regex: ^!
+                  inside:
+                    kind: parenthesized_expression
+                    inside:
+                      kind: if_statement
+                      has:
+                        any:
+                        - kind: return_statement
+                        - kind: exit_statement
+                        - kind: expression_statement
+                          regex: ^(throw|abort|die)\b
+                        - kind: compound_statement
+                          has:
+                            any:
+                            - kind: return_statement
+                            - kind: exit_statement
+                            - kind: expression_statement
+                              regex: ^(throw|abort|die)\b
+              - all:
+                - inside:
+                    kind: assignment_expression
+                - any:
+                  - inside:
+                      stopBy: end
+                      kind: expression_statement
+                      has:
+                        kind: assignment_expression
+                        pattern:
+                          context: <?php $OK = $V;
+                          selector: assignment_expression
+                      precedes:
+                        kind: if_statement
+                        has:
+                          any:
+                          - kind: return_statement
+                          - kind: exit_statement
+                          - kind: expression_statement
+                            regex: ^(throw|abort|die)\b
+                          - kind: compound_statement
+                            has:
+                              any:
+                              - kind: return_statement
+                              - kind: exit_statement
+                              - kind: expression_statement
+                                regex: ^(throw|abort|die)\b
+                        all:
+                        - has:
+                            kind: parenthesized_expression
+                            has:
+                              kind: unary_op_expression
+                              pattern:
+                                context: <?php !$OK;
+                                selector: unary_op_expression
+          - not:
+              inside:
+                stopBy: end
+                any:
+                - kind: anonymous_function
+                - kind: arrow_function
+                not:
+                  inside:
+                    kind: argument
+                    inside:
+                      kind: arguments
+                      inside:
+                        kind: scoped_call_expression
+                        all:
+                        - has:
+                            field: scope
+                            kind: name
+                            regex: ^Route$
+                        - has:
+                            field: name
+                            kind: name
+                            regex: ^(get|post|put|patch|delete|any|match)$
+                inside:
+                  stopBy: end
+                  any:
+                  - kind: function_definition
+                  - kind: method_declaration
+                  - kind: anonymous_function
+                  - kind: arrow_function
+  - not:
+      any:
+      - kind: function_definition
+        regex: (?s)(\$(pdo|db|conn|connection|mysqli|wpdb|dbh|database)\s*->\s*\w+\s*\(|\bDB::\w+\s*\(|\b(mysqli|pg|sqlite)_\w+\s*\(|\b[A-Z]\w*::(create|insert\w*|update\w*|upsert|where\w*|find\w*|firstOrCreate|updateOrCreate|query)\s*\().*\b(constructEvent|validate|verify)\b
+      - kind: method_declaration
+        regex: (?s)(\$(pdo|db|conn|connection|mysqli|wpdb|dbh|database)\s*->\s*\w+\s*\(|\bDB::\w+\s*\(|\b(mysqli|pg|sqlite)_\w+\s*\(|\b[A-Z]\w*::(create|insert\w*|update\w*|upsert|where\w*|find\w*|firstOrCreate|updateOrCreate|query)\s*\().*\b(constructEvent|validate|verify)\b
+      - kind: anonymous_function
+        regex: (?s)(\$(pdo|db|conn|connection|mysqli|wpdb|dbh|database)\s*->\s*\w+\s*\(|\bDB::\w+\s*\(|\b(mysqli|pg|sqlite)_\w+\s*\(|\b[A-Z]\w*::(create|insert\w*|update\w*|upsert|where\w*|find\w*|firstOrCreate|updateOrCreate|query)\s*\().*\b(constructEvent|validate|verify)\b
+      - kind: arrow_function
+        regex: (?s)(\$(pdo|db|conn|connection|mysqli|wpdb|dbh|database)\s*->\s*\w+\s*\(|\bDB::\w+\s*\(|\b(mysqli|pg|sqlite)_\w+\s*\(|\b[A-Z]\w*::(create|insert\w*|update\w*|upsert|where\w*|find\w*|firstOrCreate|updateOrCreate|query)\s*\().*\b(constructEvent|validate|verify)\b
+      - kind: program
+        regex: (?s)(\$(pdo|db|conn|connection|mysqli|wpdb|dbh|database)\s*->\s*\w+\s*\(|\bDB::\w+\s*\(|\b(mysqli|pg|sqlite)_\w+\s*\(|\b[A-Z]\w*::(create|insert\w*|update\w*|upsert|where\w*|find\w*|firstOrCreate|updateOrCreate|query)\s*\().*\b(constructEvent|validate|verify)\b
+min_engine: 0.45.3
+---
+# items-hmac: a handler that reads a provider signature header and computes an HMAC itself (hash_hmac). The control is
+# a constant-time compare (hash_equals). With it, needs_review; without, fail.
+id: inbound-webhooks-verified.php-generic.items-hmac
+practice_id: inbound-webhooks-verified
+language: php
+frameworks:
+- generic
+kind: items
+rule:
+  all:
+  - any:
+    - kind: function_definition
+    - kind: method_declaration
+    - kind: anonymous_function
+    - kind: arrow_function
+    - kind: program
+      has:
+        stopBy: end
+        any:
+        - kind: string
+          regex: (?i)^['"](stripe-signature|x-twilio-signature|svix-signature|x-hub-signature-256|x-hub-signature|webhook-signature|HTTP_STRIPE_SIGNATURE|HTTP_X_TWILIO_SIGNATURE|HTTP_SVIX_SIGNATURE|HTTP_X_HUB_SIGNATURE_256|HTTP_X_HUB_SIGNATURE|HTTP_WEBHOOK_SIGNATURE)['"]$
+        - kind: encapsed_string
+          regex: (?i)^['"](stripe-signature|x-twilio-signature|svix-signature|x-hub-signature-256|x-hub-signature|webhook-signature|HTTP_STRIPE_SIGNATURE|HTTP_X_TWILIO_SIGNATURE|HTTP_SVIX_SIGNATURE|HTTP_X_HUB_SIGNATURE_256|HTTP_X_HUB_SIGNATURE|HTTP_WEBHOOK_SIGNATURE)['"]$
+        not:
+          inside:
+            stopBy: end
+            any:
+            - kind: function_definition
+            - kind: method_declaration
+            - kind: anonymous_function
+            - kind: arrow_function
+  - has:
+      stopBy: end
+      any:
+      - kind: string
+        regex: (?i)^['"](stripe-signature|x-twilio-signature|svix-signature|x-hub-signature-256|x-hub-signature|webhook-signature|HTTP_STRIPE_SIGNATURE|HTTP_X_TWILIO_SIGNATURE|HTTP_SVIX_SIGNATURE|HTTP_X_HUB_SIGNATURE_256|HTTP_X_HUB_SIGNATURE|HTTP_WEBHOOK_SIGNATURE)['"]$
+      - kind: encapsed_string
+        regex: (?i)^['"](stripe-signature|x-twilio-signature|svix-signature|x-hub-signature-256|x-hub-signature|webhook-signature|HTTP_STRIPE_SIGNATURE|HTTP_X_TWILIO_SIGNATURE|HTTP_SVIX_SIGNATURE|HTTP_X_HUB_SIGNATURE_256|HTTP_X_HUB_SIGNATURE|HTTP_WEBHOOK_SIGNATURE)['"]$
+  - has:
+      stopBy: end
+      kind: function_call_expression
+      has:
+        field: function
+        kind: name
+        regex: ^hash_hmac$
+control:
+  has:
+    stopBy:
+      any:
+      - kind: anonymous_function
+      - kind: arrow_function
+      inside:
+        kind: argument
+        inside:
+          kind: arguments
+          inside:
+            kind: scoped_call_expression
+            all:
+            - has:
+                field: scope
+                kind: name
+                regex: ^Route$
+            - has:
+                field: name
+                kind: name
+                regex: ^(get|post|put|patch|delete|any|match)$
+    kind: function_call_expression
+    has:
+      field: function
+      kind: name
+      regex: ^hash_equals$
+min_engine: 0.45.3
+---
+# violation: in a signature-reading handler: a signature compared with ==, ===, != or strcmp, or constructEvent given
+# a tolerance. Fail.
+id: inbound-webhooks-verified.php-generic.violation
+practice_id: inbound-webhooks-verified
+language: php
+frameworks:
+- generic
+kind: violation
+rule:
+  any:
+  - all:
+    - kind: binary_expression
+      regex: (?i)sig
+    - kind: binary_expression
+      regex: '[!=]=|<>'
+    inside:
+      stopBy: end
+      all:
+      - any:
+        - kind: function_definition
+        - kind: method_declaration
+        - kind: anonymous_function
+        - kind: arrow_function
+        - kind: program
+          has:
+            stopBy: end
+            any:
+            - kind: string
+              regex: (?i)^['"](stripe-signature|x-twilio-signature|svix-signature|x-hub-signature-256|x-hub-signature|webhook-signature|HTTP_STRIPE_SIGNATURE|HTTP_X_TWILIO_SIGNATURE|HTTP_SVIX_SIGNATURE|HTTP_X_HUB_SIGNATURE_256|HTTP_X_HUB_SIGNATURE|HTTP_WEBHOOK_SIGNATURE)['"]$
+            - kind: encapsed_string
+              regex: (?i)^['"](stripe-signature|x-twilio-signature|svix-signature|x-hub-signature-256|x-hub-signature|webhook-signature|HTTP_STRIPE_SIGNATURE|HTTP_X_TWILIO_SIGNATURE|HTTP_SVIX_SIGNATURE|HTTP_X_HUB_SIGNATURE_256|HTTP_X_HUB_SIGNATURE|HTTP_WEBHOOK_SIGNATURE)['"]$
+            not:
+              inside:
+                stopBy: end
+                any:
+                - kind: function_definition
+                - kind: method_declaration
+                - kind: anonymous_function
+                - kind: arrow_function
+      - any:
+        - has:
+            stopBy: end
+            any:
+            - kind: string
+              regex: (?i)^['"](stripe-signature|x-twilio-signature|svix-signature|x-hub-signature-256|x-hub-signature|webhook-signature|HTTP_STRIPE_SIGNATURE|HTTP_X_TWILIO_SIGNATURE|HTTP_SVIX_SIGNATURE|HTTP_X_HUB_SIGNATURE_256|HTTP_X_HUB_SIGNATURE|HTTP_WEBHOOK_SIGNATURE)['"]$
+            - kind: encapsed_string
+              regex: (?i)^['"](stripe-signature|x-twilio-signature|svix-signature|x-hub-signature-256|x-hub-signature|webhook-signature|HTTP_STRIPE_SIGNATURE|HTTP_X_TWILIO_SIGNATURE|HTTP_SVIX_SIGNATURE|HTTP_X_HUB_SIGNATURE_256|HTTP_X_HUB_SIGNATURE|HTTP_WEBHOOK_SIGNATURE)['"]$
+        - has:
+            stopBy: end
+            any:
+            - kind: scoped_call_expression
+              has:
+                field: name
+                kind: name
+                regex: ^(constructEvent)$
+  - kind: function_call_expression
+    has:
+      field: function
+      kind: name
+      regex: ^strcmp$
+    all:
+    - kind: function_call_expression
+      regex: (?i)sig
+    inside:
+      stopBy: end
+      all:
+      - any:
+        - kind: function_definition
+        - kind: method_declaration
+        - kind: anonymous_function
+        - kind: arrow_function
+        - kind: program
+          has:
+            stopBy: end
+            any:
+            - kind: string
+              regex: (?i)^['"](stripe-signature|x-twilio-signature|svix-signature|x-hub-signature-256|x-hub-signature|webhook-signature|HTTP_STRIPE_SIGNATURE|HTTP_X_TWILIO_SIGNATURE|HTTP_SVIX_SIGNATURE|HTTP_X_HUB_SIGNATURE_256|HTTP_X_HUB_SIGNATURE|HTTP_WEBHOOK_SIGNATURE)['"]$
+            - kind: encapsed_string
+              regex: (?i)^['"](stripe-signature|x-twilio-signature|svix-signature|x-hub-signature-256|x-hub-signature|webhook-signature|HTTP_STRIPE_SIGNATURE|HTTP_X_TWILIO_SIGNATURE|HTTP_SVIX_SIGNATURE|HTTP_X_HUB_SIGNATURE_256|HTTP_X_HUB_SIGNATURE|HTTP_WEBHOOK_SIGNATURE)['"]$
+            not:
+              inside:
+                stopBy: end
+                any:
+                - kind: function_definition
+                - kind: method_declaration
+                - kind: anonymous_function
+                - kind: arrow_function
+      - any:
+        - has:
+            stopBy: end
+            any:
+            - kind: string
+              regex: (?i)^['"](stripe-signature|x-twilio-signature|svix-signature|x-hub-signature-256|x-hub-signature|webhook-signature|HTTP_STRIPE_SIGNATURE|HTTP_X_TWILIO_SIGNATURE|HTTP_SVIX_SIGNATURE|HTTP_X_HUB_SIGNATURE_256|HTTP_X_HUB_SIGNATURE|HTTP_WEBHOOK_SIGNATURE)['"]$
+            - kind: encapsed_string
+              regex: (?i)^['"](stripe-signature|x-twilio-signature|svix-signature|x-hub-signature-256|x-hub-signature|webhook-signature|HTTP_STRIPE_SIGNATURE|HTTP_X_TWILIO_SIGNATURE|HTTP_SVIX_SIGNATURE|HTTP_X_HUB_SIGNATURE_256|HTTP_X_HUB_SIGNATURE|HTTP_WEBHOOK_SIGNATURE)['"]$
+        - has:
+            stopBy: end
+            any:
+            - kind: scoped_call_expression
+              has:
+                field: name
+                kind: name
+                regex: ^(constructEvent)$
+  - kind: scoped_call_expression
+    inside:
+      stopBy: end
+      all:
+      - any:
+        - kind: function_definition
+        - kind: method_declaration
+        - kind: anonymous_function
+        - kind: arrow_function
+        - kind: program
+          has:
+            stopBy: end
+            any:
+            - kind: string
+              regex: (?i)^['"](stripe-signature|x-twilio-signature|svix-signature|x-hub-signature-256|x-hub-signature|webhook-signature|HTTP_STRIPE_SIGNATURE|HTTP_X_TWILIO_SIGNATURE|HTTP_SVIX_SIGNATURE|HTTP_X_HUB_SIGNATURE_256|HTTP_X_HUB_SIGNATURE|HTTP_WEBHOOK_SIGNATURE)['"]$
+            - kind: encapsed_string
+              regex: (?i)^['"](stripe-signature|x-twilio-signature|svix-signature|x-hub-signature-256|x-hub-signature|webhook-signature|HTTP_STRIPE_SIGNATURE|HTTP_X_TWILIO_SIGNATURE|HTTP_SVIX_SIGNATURE|HTTP_X_HUB_SIGNATURE_256|HTTP_X_HUB_SIGNATURE|HTTP_WEBHOOK_SIGNATURE)['"]$
+            not:
+              inside:
+                stopBy: end
+                any:
+                - kind: function_definition
+                - kind: method_declaration
+                - kind: anonymous_function
+                - kind: arrow_function
+      - any:
+        - has:
+            stopBy: end
+            any:
+            - kind: string
+              regex: (?i)^['"](stripe-signature|x-twilio-signature|svix-signature|x-hub-signature-256|x-hub-signature|webhook-signature|HTTP_STRIPE_SIGNATURE|HTTP_X_TWILIO_SIGNATURE|HTTP_SVIX_SIGNATURE|HTTP_X_HUB_SIGNATURE_256|HTTP_X_HUB_SIGNATURE|HTTP_WEBHOOK_SIGNATURE)['"]$
+            - kind: encapsed_string
+              regex: (?i)^['"](stripe-signature|x-twilio-signature|svix-signature|x-hub-signature-256|x-hub-signature|webhook-signature|HTTP_STRIPE_SIGNATURE|HTTP_X_TWILIO_SIGNATURE|HTTP_SVIX_SIGNATURE|HTTP_X_HUB_SIGNATURE_256|HTTP_X_HUB_SIGNATURE|HTTP_WEBHOOK_SIGNATURE)['"]$
+        - has:
+            stopBy: end
+            any:
+            - kind: scoped_call_expression
+              has:
+                field: name
+                kind: name
+                regex: ^(constructEvent)$
+    all:
+    - has:
+        field: name
+        kind: name
+        regex: ^(constructEvent)$
+    - has:
+        field: arguments
+        kind: arguments
+        regex: ^\((?:[^,()]|\((?:[^()]|\([^()]*\))*\))*,(?:[^,()]|\((?:[^()]|\([^()]*\))*\))*,(?:[^,()]|\((?:[^()]|\([^()]*\))*\))*,
+min_engine: 0.45.3
+---
+# webhook-route: a route whose path names a webhook, hook, callback or notify endpoint, or a handler (or its class,
+# controller or module) named for one, that reads no provider signature. Evidence: needs_review naming it.
+id: inbound-webhooks-verified.php-generic.webhook-route
+practice_id: inbound-webhooks-verified
+language: php
+frameworks:
+- generic
+kind: evidence
+rule:
+  all:
+  - all:
+    - any:
+      - kind: function_definition
+      - kind: method_declaration
+      - kind: anonymous_function
+      - kind: arrow_function
+      - kind: program
+        has:
+          stopBy: end
+          any:
+          - kind: string
+            regex: (?i)^['"](stripe-signature|x-twilio-signature|svix-signature|x-hub-signature-256|x-hub-signature|webhook-signature|HTTP_STRIPE_SIGNATURE|HTTP_X_TWILIO_SIGNATURE|HTTP_SVIX_SIGNATURE|HTTP_X_HUB_SIGNATURE_256|HTTP_X_HUB_SIGNATURE|HTTP_WEBHOOK_SIGNATURE)['"]$
+          - kind: encapsed_string
+            regex: (?i)^['"](stripe-signature|x-twilio-signature|svix-signature|x-hub-signature-256|x-hub-signature|webhook-signature|HTTP_STRIPE_SIGNATURE|HTTP_X_TWILIO_SIGNATURE|HTTP_SVIX_SIGNATURE|HTTP_X_HUB_SIGNATURE_256|HTTP_X_HUB_SIGNATURE|HTTP_WEBHOOK_SIGNATURE)['"]$
+          not:
+            inside:
+              stopBy: end
+              any:
+              - kind: function_definition
+              - kind: method_declaration
+              - kind: anonymous_function
+              - kind: arrow_function
+    - any:
+      - kind: function_definition
+        has:
+          field: name
+          kind: name
+          regex: (?i)(webhooks?|hooks?|callbacks?|notify)
+      - kind: method_declaration
+        has:
+          field: name
+          kind: name
+          regex: (?i)(webhooks?|hooks?|callbacks?|notify)
+      - kind: method_declaration
+        inside:
+          stopBy: end
+          kind: class_declaration
+          has:
+            field: name
+            kind: name
+            regex: (?i)(webhooks?|hooks?|callbacks?|notify)
+        not:
+          has:
+            field: name
+            kind: name
+            regex: ^(index|show|create|edit)$
+  - not:
+      any:
+      - has:
+          stopBy: end
+          any:
+          - kind: string
+            regex: (?i)^['"](stripe-signature|x-twilio-signature|svix-signature|x-hub-signature-256|x-hub-signature|webhook-signature|HTTP_STRIPE_SIGNATURE|HTTP_X_TWILIO_SIGNATURE|HTTP_SVIX_SIGNATURE|HTTP_X_HUB_SIGNATURE_256|HTTP_X_HUB_SIGNATURE|HTTP_WEBHOOK_SIGNATURE)['"]$
+          - kind: encapsed_string
+            regex: (?i)^['"](stripe-signature|x-twilio-signature|svix-signature|x-hub-signature-256|x-hub-signature|webhook-signature|HTTP_STRIPE_SIGNATURE|HTTP_X_TWILIO_SIGNATURE|HTTP_SVIX_SIGNATURE|HTTP_X_HUB_SIGNATURE_256|HTTP_X_HUB_SIGNATURE|HTTP_WEBHOOK_SIGNATURE)['"]$
+      - has:
+          stopBy: end
+          any:
+          - kind: scoped_call_expression
+            has:
+              field: name
+              kind: name
+              regex: ^(constructEvent)$
+min_engine: 0.45.3
+---
+# webhook-folder: a script that reads no provider signature anywhere, in a file whose path has a webhook or webhooks
+# folder, or is named webhook (path_regex). One match, on its first <?php tag. Evidence: needs_review naming it.
+id: inbound-webhooks-verified.php-generic.webhook-folder
+practice_id: inbound-webhooks-verified
+language: php
+frameworks:
+- generic
+kind: evidence
+rule:
+  kind: php_tag
+  inside:
+    kind: program
+    not:
+      any:
+      - has:
+          stopBy: end
+          any:
+          - kind: string
+            regex: (?i)^['"](stripe-signature|x-twilio-signature|svix-signature|x-hub-signature-256|x-hub-signature|webhook-signature|HTTP_STRIPE_SIGNATURE|HTTP_X_TWILIO_SIGNATURE|HTTP_SVIX_SIGNATURE|HTTP_X_HUB_SIGNATURE_256|HTTP_X_HUB_SIGNATURE|HTTP_WEBHOOK_SIGNATURE)['"]$
+          - kind: encapsed_string
+            regex: (?i)^['"](stripe-signature|x-twilio-signature|svix-signature|x-hub-signature-256|x-hub-signature|webhook-signature|HTTP_STRIPE_SIGNATURE|HTTP_X_TWILIO_SIGNATURE|HTTP_SVIX_SIGNATURE|HTTP_X_HUB_SIGNATURE_256|HTTP_X_HUB_SIGNATURE|HTTP_WEBHOOK_SIGNATURE)['"]$
+      - has:
+          stopBy: end
+          any:
+          - kind: scoped_call_expression
+            has:
+              field: name
+              kind: name
+              regex: ^(constructEvent)$
+path_regex: (^|/)(([Ww]eb)?[Hh]ooks?|[Cc]allbacks?)(/|\.[a-z]+$)
+min_engine: 0.45.3
+---
+# replay-dedupe: an items-sdk handler (the same match, so the same path and line) that rejects a repeated event: a
+# data call inserting the event id with ON CONFLICT, INSERT IGNORE, ON DUPLICATE KEY, upsert, onConflict or the like,
+# whose result is tested right after (or in the condition) by an if that returns or throws; or a try around an insert
+# of the event id whose catch names a unique violation (23505, 1062, P2002, IntegrityError, RecordNotUnique,
+# DuplicateKey) and returns. No data call may come before it. A table name or a log line alone never counts. Evidence:
+# with the SDK control, it allows the pass once Q6 is ruled.
+id: inbound-webhooks-verified.php-generic.replay-dedupe
+practice_id: inbound-webhooks-verified
+language: php
+frameworks:
+- generic
+kind: evidence
+rule:
+  all:
+  - any:
+    - kind: function_definition
+    - kind: method_declaration
+    - kind: anonymous_function
+    - kind: arrow_function
+    - kind: program
+      has:
+        stopBy: end
+        any:
+        - kind: string
+          regex: (?i)^['"](stripe-signature|x-twilio-signature|svix-signature|x-hub-signature-256|x-hub-signature|webhook-signature|HTTP_STRIPE_SIGNATURE|HTTP_X_TWILIO_SIGNATURE|HTTP_SVIX_SIGNATURE|HTTP_X_HUB_SIGNATURE_256|HTTP_X_HUB_SIGNATURE|HTTP_WEBHOOK_SIGNATURE)['"]$
+        - kind: encapsed_string
+          regex: (?i)^['"](stripe-signature|x-twilio-signature|svix-signature|x-hub-signature-256|x-hub-signature|webhook-signature|HTTP_STRIPE_SIGNATURE|HTTP_X_TWILIO_SIGNATURE|HTTP_SVIX_SIGNATURE|HTTP_X_HUB_SIGNATURE_256|HTTP_X_HUB_SIGNATURE|HTTP_WEBHOOK_SIGNATURE)['"]$
+        not:
+          inside:
+            stopBy: end
+            any:
+            - kind: function_definition
+            - kind: method_declaration
+            - kind: anonymous_function
+            - kind: arrow_function
+  - any:
+    - has:
+        stopBy: end
+        any:
+        - kind: string
+          regex: (?i)^['"](stripe-signature|x-twilio-signature|svix-signature|x-hub-signature-256|x-hub-signature|webhook-signature|HTTP_STRIPE_SIGNATURE|HTTP_X_TWILIO_SIGNATURE|HTTP_SVIX_SIGNATURE|HTTP_X_HUB_SIGNATURE_256|HTTP_X_HUB_SIGNATURE|HTTP_WEBHOOK_SIGNATURE)['"]$
+        - kind: encapsed_string
+          regex: (?i)^['"](stripe-signature|x-twilio-signature|svix-signature|x-hub-signature-256|x-hub-signature|webhook-signature|HTTP_STRIPE_SIGNATURE|HTTP_X_TWILIO_SIGNATURE|HTTP_SVIX_SIGNATURE|HTTP_X_HUB_SIGNATURE_256|HTTP_X_HUB_SIGNATURE|HTTP_WEBHOOK_SIGNATURE)['"]$
+    - has:
+        stopBy: end
+        any:
+        - kind: scoped_call_expression
+          has:
+            field: name
+            kind: name
+            regex: ^(constructEvent)$
+  - not:
+      has:
+        stopBy: end
+        kind: function_call_expression
+        has:
+          field: function
+          kind: name
+          regex: ^hash_hmac$
+  - has:
+      stopBy: end
+      any:
+      - all:
+        - any:
+          - all:
+            - kind: member_call_expression
+              regex: (?i)(\bON\s+CONFLICT\b|\bINSERT\s+IGNORE\b|\bON\s+DUPLICATE\s+KEY\b|\bon_?conflict|\bupsert|\binsert_?or_?ignore|\bignore_?duplicates|\bskip_?duplicates|\bunique_by\b)
+            - kind: member_call_expression
+              regex: (?i)(\b(event|evt)\s*(\?\.|\.|->)\s*(id\b|getId\(\))|\b(event|evt)\s*\[\s*:?['\"]?id['\"]?\s*\]|\bevent_?id\b)
+            - kind: member_call_expression
+              any:
+              - has:
+                  field: name
+                  kind: name
+                  regex: (?i)(^|\.)(insert|create|save|add|put|persist|exec|execute|query|update|upsert|run|raw|sql|on_?conflict|ignore|merge)\w*[!?]?$
+              - has:
+                  field: function
+                  any:
+                  - kind: name
+                    regex: (?i)(^|\.)(insert|create|save|add|put|persist|exec|execute|query|update|upsert|run|raw|sql|on_?conflict|ignore|merge)\w*[!?]?$
+                  - kind: qualified_name
+                    regex: (?i)(^|\.)(insert|create|save|add|put|persist|exec|execute|query|update|upsert|run|raw|sql|on_?conflict|ignore|merge)\w*[!?]?$
+          - all:
+            - kind: scoped_call_expression
+              regex: (?i)(\bON\s+CONFLICT\b|\bINSERT\s+IGNORE\b|\bON\s+DUPLICATE\s+KEY\b|\bon_?conflict|\bupsert|\binsert_?or_?ignore|\bignore_?duplicates|\bskip_?duplicates|\bunique_by\b)
+            - kind: scoped_call_expression
+              regex: (?i)(\b(event|evt)\s*(\?\.|\.|->)\s*(id\b|getId\(\))|\b(event|evt)\s*\[\s*:?['\"]?id['\"]?\s*\]|\bevent_?id\b)
+            - kind: scoped_call_expression
+              any:
+              - has:
+                  field: name
+                  kind: name
+                  regex: (?i)(^|\.)(insert|create|save|add|put|persist|exec|execute|query|update|upsert|run|raw|sql|on_?conflict|ignore|merge)\w*[!?]?$
+              - has:
+                  field: function
+                  any:
+                  - kind: name
+                    regex: (?i)(^|\.)(insert|create|save|add|put|persist|exec|execute|query|update|upsert|run|raw|sql|on_?conflict|ignore|merge)\w*[!?]?$
+                  - kind: qualified_name
+                    regex: (?i)(^|\.)(insert|create|save|add|put|persist|exec|execute|query|update|upsert|run|raw|sql|on_?conflict|ignore|merge)\w*[!?]?$
+          - all:
+            - kind: function_call_expression
+              regex: (?i)(\bON\s+CONFLICT\b|\bINSERT\s+IGNORE\b|\bON\s+DUPLICATE\s+KEY\b|\bon_?conflict|\bupsert|\binsert_?or_?ignore|\bignore_?duplicates|\bskip_?duplicates|\bunique_by\b)
+            - kind: function_call_expression
+              regex: (?i)(\b(event|evt)\s*(\?\.|\.|->)\s*(id\b|getId\(\))|\b(event|evt)\s*\[\s*:?['\"]?id['\"]?\s*\]|\bevent_?id\b)
+            - kind: function_call_expression
+              any:
+              - has:
+                  field: name
+                  kind: name
+                  regex: (?i)(^|\.)(insert|create|save|add|put|persist|exec|execute|query|update|upsert|run|raw|sql|on_?conflict|ignore|merge)\w*[!?]?$
+              - has:
+                  field: function
+                  any:
+                  - kind: name
+                    regex: (?i)(^|\.)(insert|create|save|add|put|persist|exec|execute|query|update|upsert|run|raw|sql|on_?conflict|ignore|merge)\w*[!?]?$
+                  - kind: qualified_name
+                    regex: (?i)(^|\.)(insert|create|save|add|put|persist|exec|execute|query|update|upsert|run|raw|sql|on_?conflict|ignore|merge)\w*[!?]?$
+        - any:
+          - inside:
+              stopBy: end
+              any:
+              - kind: expression_statement
+              precedes:
+                kind: if_statement
+                has:
+                  any:
+                  - kind: return_statement
+                  - kind: exit_statement
+                  - kind: expression_statement
+                    regex: ^(throw|abort|die)\b
+                  - kind: compound_statement
+                    has:
+                      any:
+                      - kind: return_statement
+                      - kind: exit_statement
+                      - kind: expression_statement
+                        regex: ^(throw|abort|die)\b
+          - inside:
+              stopBy: end
+              any:
+              - kind: parenthesized_expression
+              inside:
+                kind: if_statement
+                has:
+                  any:
+                  - kind: return_statement
+                  - kind: exit_statement
+                  - kind: expression_statement
+                    regex: ^(throw|abort|die)\b
+                  - kind: compound_statement
+                    has:
+                      any:
+                      - kind: return_statement
+                      - kind: exit_statement
+                      - kind: expression_statement
+                        regex: ^(throw|abort|die)\b
+      - kind: try_statement
+        all:
+        - has:
+            kind: catch_clause
+            regex: (?is)(\b23505\b|\b1062\b|ER_DUP_ENTRY|\bP2002\b|unique_?violation|UniqueConstraintViolation|IntegrityError|RecordNotUnique|DuplicateKey|SQLIntegrityConstraintViolation|duplicate key).{0,160}?\breturn\b
+        - has:
+            stopBy: end
+            any:
+            - all:
+              - kind: member_call_expression
+                regex: (?i)\b(insert|create|save|add|put|persist|exec|execute|query|update)\w*\s*[!?]?\s*\(
+              - kind: member_call_expression
+                regex: (?i)(\b(event|evt)\s*(\?\.|\.|->)\s*(id\b|getId\(\))|\b(event|evt)\s*\[\s*:?['\"]?id['\"]?\s*\]|\bevent_?id\b)
+            - all:
+              - kind: scoped_call_expression
+                regex: (?i)\b(insert|create|save|add|put|persist|exec|execute|query|update)\w*\s*[!?]?\s*\(
+              - kind: scoped_call_expression
+                regex: (?i)(\b(event|evt)\s*(\?\.|\.|->)\s*(id\b|getId\(\))|\b(event|evt)\s*\[\s*:?['\"]?id['\"]?\s*\]|\bevent_?id\b)
+            - all:
+              - kind: function_call_expression
+                regex: (?i)\b(insert|create|save|add|put|persist|exec|execute|query|update)\w*\s*[!?]?\s*\(
+              - kind: function_call_expression
+                regex: (?i)(\b(event|evt)\s*(\?\.|\.|->)\s*(id\b|getId\(\))|\b(event|evt)\s*\[\s*:?['\"]?id['\"]?\s*\]|\bevent_?id\b)
+            not:
+              inside:
+                stopBy: end
+                kind: catch_clause
+  - not:
+      any:
+      - kind: function_definition
+        regex: (?s)(\$(pdo|db|conn|connection|mysqli|wpdb|dbh|database)\s*->\s*\w+\s*\(|\bDB::\w+\s*\(|\b(mysqli|pg|sqlite)_\w+\s*\(|\b[A-Z]\w*::(create|insert\w*|update\w*|upsert|where\w*|find\w*|firstOrCreate|updateOrCreate|query)\s*\().*(\$(pdo|db|conn|connection|mysqli|wpdb|dbh|database)\s*->\s*\w+\s*\(|\bDB::\w+\s*\(|\b(mysqli|pg|sqlite)_\w+\s*\(|\b[A-Z]\w*::(create|insert\w*|update\w*|upsert|where\w*|find\w*|firstOrCreate|updateOrCreate|query)\s*\().{0,400}?((\bON\s+CONFLICT\b|\bINSERT\s+IGNORE\b|\bON\s+DUPLICATE\s+KEY\b|\bon_?conflict|\bupsert|\binsert_?or_?ignore|\bignore_?duplicates|\bskip_?duplicates|\bunique_by\b))
+      - kind: method_declaration
+        regex: (?s)(\$(pdo|db|conn|connection|mysqli|wpdb|dbh|database)\s*->\s*\w+\s*\(|\bDB::\w+\s*\(|\b(mysqli|pg|sqlite)_\w+\s*\(|\b[A-Z]\w*::(create|insert\w*|update\w*|upsert|where\w*|find\w*|firstOrCreate|updateOrCreate|query)\s*\().*(\$(pdo|db|conn|connection|mysqli|wpdb|dbh|database)\s*->\s*\w+\s*\(|\bDB::\w+\s*\(|\b(mysqli|pg|sqlite)_\w+\s*\(|\b[A-Z]\w*::(create|insert\w*|update\w*|upsert|where\w*|find\w*|firstOrCreate|updateOrCreate|query)\s*\().{0,400}?((\bON\s+CONFLICT\b|\bINSERT\s+IGNORE\b|\bON\s+DUPLICATE\s+KEY\b|\bon_?conflict|\bupsert|\binsert_?or_?ignore|\bignore_?duplicates|\bskip_?duplicates|\bunique_by\b))
+      - kind: anonymous_function
+        regex: (?s)(\$(pdo|db|conn|connection|mysqli|wpdb|dbh|database)\s*->\s*\w+\s*\(|\bDB::\w+\s*\(|\b(mysqli|pg|sqlite)_\w+\s*\(|\b[A-Z]\w*::(create|insert\w*|update\w*|upsert|where\w*|find\w*|firstOrCreate|updateOrCreate|query)\s*\().*(\$(pdo|db|conn|connection|mysqli|wpdb|dbh|database)\s*->\s*\w+\s*\(|\bDB::\w+\s*\(|\b(mysqli|pg|sqlite)_\w+\s*\(|\b[A-Z]\w*::(create|insert\w*|update\w*|upsert|where\w*|find\w*|firstOrCreate|updateOrCreate|query)\s*\().{0,400}?((\bON\s+CONFLICT\b|\bINSERT\s+IGNORE\b|\bON\s+DUPLICATE\s+KEY\b|\bon_?conflict|\bupsert|\binsert_?or_?ignore|\bignore_?duplicates|\bskip_?duplicates|\bunique_by\b))
+      - kind: arrow_function
+        regex: (?s)(\$(pdo|db|conn|connection|mysqli|wpdb|dbh|database)\s*->\s*\w+\s*\(|\bDB::\w+\s*\(|\b(mysqli|pg|sqlite)_\w+\s*\(|\b[A-Z]\w*::(create|insert\w*|update\w*|upsert|where\w*|find\w*|firstOrCreate|updateOrCreate|query)\s*\().*(\$(pdo|db|conn|connection|mysqli|wpdb|dbh|database)\s*->\s*\w+\s*\(|\bDB::\w+\s*\(|\b(mysqli|pg|sqlite)_\w+\s*\(|\b[A-Z]\w*::(create|insert\w*|update\w*|upsert|where\w*|find\w*|firstOrCreate|updateOrCreate|query)\s*\().{0,400}?((\bON\s+CONFLICT\b|\bINSERT\s+IGNORE\b|\bON\s+DUPLICATE\s+KEY\b|\bon_?conflict|\bupsert|\binsert_?or_?ignore|\bignore_?duplicates|\bskip_?duplicates|\bunique_by\b))
+      - kind: program
+        regex: (?s)(\$(pdo|db|conn|connection|mysqli|wpdb|dbh|database)\s*->\s*\w+\s*\(|\bDB::\w+\s*\(|\b(mysqli|pg|sqlite)_\w+\s*\(|\b[A-Z]\w*::(create|insert\w*|update\w*|upsert|where\w*|find\w*|firstOrCreate|updateOrCreate|query)\s*\().*(\$(pdo|db|conn|connection|mysqli|wpdb|dbh|database)\s*->\s*\w+\s*\(|\bDB::\w+\s*\(|\b(mysqli|pg|sqlite)_\w+\s*\(|\b[A-Z]\w*::(create|insert\w*|update\w*|upsert|where\w*|find\w*|firstOrCreate|updateOrCreate|query)\s*\().{0,400}?((\bON\s+CONFLICT\b|\bINSERT\s+IGNORE\b|\bON\s+DUPLICATE\s+KEY\b|\bon_?conflict|\bupsert|\binsert_?or_?ignore|\bignore_?duplicates|\bskip_?duplicates|\bunique_by\b))
+min_engine: 0.45.3
+---
+# payload-before-verify: an items-sdk handler (the same match, so the same path and line) whose text has a helper (a
+# bare call, or one on self, this or $this) given the body, event or payload, then later a verify call (B32p 5.2).
+# Evidence: no pass while it is seen, until the stem reads what the helper does; never an object of its own.
+id: inbound-webhooks-verified.php-generic.payload-before-verify
+practice_id: inbound-webhooks-verified
+language: php
+frameworks:
+- generic
+kind: evidence
+rule:
+  all:
+  - all:
+    - any:
+      - kind: function_definition
+      - kind: method_declaration
+      - kind: anonymous_function
+      - kind: arrow_function
+      - kind: program
+        has:
+          stopBy: end
+          any:
+          - kind: string
+            regex: (?i)^['"](stripe-signature|x-twilio-signature|svix-signature|x-hub-signature-256|x-hub-signature|webhook-signature|HTTP_STRIPE_SIGNATURE|HTTP_X_TWILIO_SIGNATURE|HTTP_SVIX_SIGNATURE|HTTP_X_HUB_SIGNATURE_256|HTTP_X_HUB_SIGNATURE|HTTP_WEBHOOK_SIGNATURE)['"]$
+          - kind: encapsed_string
+            regex: (?i)^['"](stripe-signature|x-twilio-signature|svix-signature|x-hub-signature-256|x-hub-signature|webhook-signature|HTTP_STRIPE_SIGNATURE|HTTP_X_TWILIO_SIGNATURE|HTTP_SVIX_SIGNATURE|HTTP_X_HUB_SIGNATURE_256|HTTP_X_HUB_SIGNATURE|HTTP_WEBHOOK_SIGNATURE)['"]$
+          not:
+            inside:
+              stopBy: end
+              any:
+              - kind: function_definition
+              - kind: method_declaration
+              - kind: anonymous_function
+              - kind: arrow_function
+    - any:
+      - has:
+          stopBy: end
+          any:
+          - kind: string
+            regex: (?i)^['"](stripe-signature|x-twilio-signature|svix-signature|x-hub-signature-256|x-hub-signature|webhook-signature|HTTP_STRIPE_SIGNATURE|HTTP_X_TWILIO_SIGNATURE|HTTP_SVIX_SIGNATURE|HTTP_X_HUB_SIGNATURE_256|HTTP_X_HUB_SIGNATURE|HTTP_WEBHOOK_SIGNATURE)['"]$
+          - kind: encapsed_string
+            regex: (?i)^['"](stripe-signature|x-twilio-signature|svix-signature|x-hub-signature-256|x-hub-signature|webhook-signature|HTTP_STRIPE_SIGNATURE|HTTP_X_TWILIO_SIGNATURE|HTTP_SVIX_SIGNATURE|HTTP_X_HUB_SIGNATURE_256|HTTP_X_HUB_SIGNATURE|HTTP_WEBHOOK_SIGNATURE)['"]$
+      - has:
+          stopBy: end
+          any:
+          - kind: scoped_call_expression
+            has:
+              field: name
+              kind: name
+              regex: ^(constructEvent)$
+    - not:
+        has:
+          stopBy: end
+          kind: function_call_expression
+          has:
+            field: function
+            kind: name
+            regex: ^hash_hmac$
+  - any:
+    - kind: function_definition
+      regex: (?s)(\n[ \t]*|=\s*|[(,]\s*|\b(return|await|yield|go|defer)\s+)(\$this\s*->\s*)?[A-Za-z_]\w*\s*\(\s*(\$(body|event|evt|payload|data)\b|\$request\s*->\s*(getContent|all|input|json)\s*\().*\b(constructEvent|validate|verify)\b
+    - kind: method_declaration
+      regex: (?s)(\n[ \t]*|=\s*|[(,]\s*|\b(return|await|yield|go|defer)\s+)(\$this\s*->\s*)?[A-Za-z_]\w*\s*\(\s*(\$(body|event|evt|payload|data)\b|\$request\s*->\s*(getContent|all|input|json)\s*\().*\b(constructEvent|validate|verify)\b
+    - kind: anonymous_function
+      regex: (?s)(\n[ \t]*|=\s*|[(,]\s*|\b(return|await|yield|go|defer)\s+)(\$this\s*->\s*)?[A-Za-z_]\w*\s*\(\s*(\$(body|event|evt|payload|data)\b|\$request\s*->\s*(getContent|all|input|json)\s*\().*\b(constructEvent|validate|verify)\b
+    - kind: arrow_function
+      regex: (?s)(\n[ \t]*|=\s*|[(,]\s*|\b(return|await|yield|go|defer)\s+)(\$this\s*->\s*)?[A-Za-z_]\w*\s*\(\s*(\$(body|event|evt|payload|data)\b|\$request\s*->\s*(getContent|all|input|json)\s*\().*\b(constructEvent|validate|verify)\b
+    - kind: program
+      regex: (?s)(\n[ \t]*|=\s*|[(,]\s*|\b(return|await|yield|go|defer)\s+)(\$this\s*->\s*)?[A-Za-z_]\w*\s*\(\s*(\$(body|event|evt|payload|data)\b|\$request\s*->\s*(getContent|all|input|json)\s*\().*\b(constructEvent|validate|verify)\b
+min_engine: 0.45.3
+---
+# header-unread: a request header read by a name that is no literal: a variable, a member or a constant (B32p C6), so
+# it can't be checked against the providers' signature headers. Evidence: no pass while it is seen; never an object of
+# its own.
+id: inbound-webhooks-verified.php-generic.header-unread
+practice_id: inbound-webhooks-verified
+language: php
+frameworks:
+- generic
+kind: evidence
+rule:
+  any:
+  - kind: member_call_expression
+    regex: ^\$\w+\s*->\s*(header|headers\s*->\s*get)\s*\(\s*(\$|[A-Za-z_\\]+\s*::)
+  - kind: subscript_expression
+    regex: ^\$_SERVER\s*\[\s*\$
+min_engine: 0.45.3
+---
+# provider-stripe: an import of stripe's SDK (the practice's providers table). Evidence: the pass needs a verified
+# items-sdk handler for stripe (Q6).
+id: inbound-webhooks-verified.php-generic.provider-stripe
+practice_id: inbound-webhooks-verified
+language: php
+frameworks:
+- generic
+kind: evidence
+rule:
+  any:
+  - kind: namespace_use_declaration
+    regex: (?i)^use\s+\\?(Stripe)\\
+  - kind: qualified_name
+    regex: (?i)^\\?(Stripe)\\
+min_engine: 0.45.3
+---
+# verified-stripe: an items-sdk handler (the same match, so the same path and line) whose control calls stripe's own
+# verify call; an instance call counts only beside a literal naming one of stripe's headers. Evidence: with the SDK
+# control, it shows stripe verified for the pass (Q6).
+id: inbound-webhooks-verified.php-generic.verified-stripe
+practice_id: inbound-webhooks-verified
+language: php
+frameworks:
+- generic
+kind: evidence
+rule:
+  all:
+  - all:
+    - any:
+      - kind: function_definition
+      - kind: method_declaration
+      - kind: anonymous_function
+      - kind: arrow_function
+      - kind: program
+        has:
+          stopBy: end
+          any:
+          - kind: string
+            regex: (?i)^['"](stripe-signature|x-twilio-signature|svix-signature|x-hub-signature-256|x-hub-signature|webhook-signature|HTTP_STRIPE_SIGNATURE|HTTP_X_TWILIO_SIGNATURE|HTTP_SVIX_SIGNATURE|HTTP_X_HUB_SIGNATURE_256|HTTP_X_HUB_SIGNATURE|HTTP_WEBHOOK_SIGNATURE)['"]$
+          - kind: encapsed_string
+            regex: (?i)^['"](stripe-signature|x-twilio-signature|svix-signature|x-hub-signature-256|x-hub-signature|webhook-signature|HTTP_STRIPE_SIGNATURE|HTTP_X_TWILIO_SIGNATURE|HTTP_SVIX_SIGNATURE|HTTP_X_HUB_SIGNATURE_256|HTTP_X_HUB_SIGNATURE|HTTP_WEBHOOK_SIGNATURE)['"]$
+          not:
+            inside:
+              stopBy: end
+              any:
+              - kind: function_definition
+              - kind: method_declaration
+              - kind: anonymous_function
+              - kind: arrow_function
+    - any:
+      - has:
+          stopBy: end
+          any:
+          - kind: string
+            regex: (?i)^['"](stripe-signature|x-twilio-signature|svix-signature|x-hub-signature-256|x-hub-signature|webhook-signature|HTTP_STRIPE_SIGNATURE|HTTP_X_TWILIO_SIGNATURE|HTTP_SVIX_SIGNATURE|HTTP_X_HUB_SIGNATURE_256|HTTP_X_HUB_SIGNATURE|HTTP_WEBHOOK_SIGNATURE)['"]$
+          - kind: encapsed_string
+            regex: (?i)^['"](stripe-signature|x-twilio-signature|svix-signature|x-hub-signature-256|x-hub-signature|webhook-signature|HTTP_STRIPE_SIGNATURE|HTTP_X_TWILIO_SIGNATURE|HTTP_SVIX_SIGNATURE|HTTP_X_HUB_SIGNATURE_256|HTTP_X_HUB_SIGNATURE|HTTP_WEBHOOK_SIGNATURE)['"]$
+      - has:
+          stopBy: end
+          any:
+          - kind: scoped_call_expression
+            has:
+              field: name
+              kind: name
+              regex: ^(constructEvent)$
+    - not:
+        has:
+          stopBy: end
+          kind: function_call_expression
+          has:
+            field: function
+            kind: name
+            regex: ^hash_hmac$
+  - any:
+    - has:
+        stopBy:
+          any:
+          - kind: anonymous_function
+          - kind: arrow_function
+          inside:
+            kind: argument
+            inside:
+              kind: arguments
+              inside:
+                kind: scoped_call_expression
+                all:
+                - has:
+                    field: scope
+                    kind: name
+                    regex: ^Route$
+                - has:
+                    field: name
+                    kind: name
+                    regex: ^(get|post|put|patch|delete|any|match)$
+        any:
+        - all:
+          - all:
+            - any:
+              - any:
+                - kind: scoped_call_expression
+                  has:
+                    field: name
+                    kind: name
+                    regex: ^(constructEvent)$
+            - not:
+                any:
+                - inside:
+                    stopBy: end
+                    kind: compound_statement
+                    inside:
+                      kind: try_statement
+                      has:
+                        kind: catch_clause
+                        not:
+                          has:
+                            kind: compound_statement
+                            has:
+                              any:
+                              - kind: return_statement
+                              - kind: exit_statement
+                              - kind: expression_statement
+                                regex: ^(throw|abort|die)\b
+          - not:
+              inside:
+                stopBy: end
+                any:
+                - kind: anonymous_function
+                - kind: arrow_function
+                not:
+                  inside:
+                    kind: argument
+                    inside:
+                      kind: arguments
+                      inside:
+                        kind: scoped_call_expression
+                        all:
+                        - has:
+                            field: scope
+                            kind: name
+                            regex: ^Route$
+                        - has:
+                            field: name
+                            kind: name
+                            regex: ^(get|post|put|patch|delete|any|match)$
+                inside:
+                  stopBy: end
+                  any:
+                  - kind: function_definition
+                  - kind: method_declaration
+                  - kind: anonymous_function
+                  - kind: arrow_function
+min_engine: 0.45.3
+---
+# provider-twilio: an import of twilio's SDK (the practice's providers table). Evidence: the pass needs a verified
+# items-sdk handler for twilio (Q6).
+id: inbound-webhooks-verified.php-generic.provider-twilio
+practice_id: inbound-webhooks-verified
+language: php
+frameworks:
+- generic
+kind: evidence
+rule:
+  any:
+  - kind: namespace_use_declaration
+    regex: (?i)^use\s+\\?(Twilio)\\
+  - kind: qualified_name
+    regex: (?i)^\\?(Twilio)\\
+min_engine: 0.45.3
+---
+# verified-twilio: an items-sdk handler (the same match, so the same path and line) whose control calls twilio's own
+# verify call; an instance call counts only beside a literal naming one of twilio's headers. Evidence: with the SDK
+# control, it shows twilio verified for the pass (Q6).
+id: inbound-webhooks-verified.php-generic.verified-twilio
+practice_id: inbound-webhooks-verified
+language: php
+frameworks:
+- generic
+kind: evidence
+rule:
+  all:
+  - all:
+    - any:
+      - kind: function_definition
+      - kind: method_declaration
+      - kind: anonymous_function
+      - kind: arrow_function
+      - kind: program
+        has:
+          stopBy: end
+          any:
+          - kind: string
+            regex: (?i)^['"](stripe-signature|x-twilio-signature|svix-signature|x-hub-signature-256|x-hub-signature|webhook-signature|HTTP_STRIPE_SIGNATURE|HTTP_X_TWILIO_SIGNATURE|HTTP_SVIX_SIGNATURE|HTTP_X_HUB_SIGNATURE_256|HTTP_X_HUB_SIGNATURE|HTTP_WEBHOOK_SIGNATURE)['"]$
+          - kind: encapsed_string
+            regex: (?i)^['"](stripe-signature|x-twilio-signature|svix-signature|x-hub-signature-256|x-hub-signature|webhook-signature|HTTP_STRIPE_SIGNATURE|HTTP_X_TWILIO_SIGNATURE|HTTP_SVIX_SIGNATURE|HTTP_X_HUB_SIGNATURE_256|HTTP_X_HUB_SIGNATURE|HTTP_WEBHOOK_SIGNATURE)['"]$
+          not:
+            inside:
+              stopBy: end
+              any:
+              - kind: function_definition
+              - kind: method_declaration
+              - kind: anonymous_function
+              - kind: arrow_function
+    - any:
+      - has:
+          stopBy: end
+          any:
+          - kind: string
+            regex: (?i)^['"](stripe-signature|x-twilio-signature|svix-signature|x-hub-signature-256|x-hub-signature|webhook-signature|HTTP_STRIPE_SIGNATURE|HTTP_X_TWILIO_SIGNATURE|HTTP_SVIX_SIGNATURE|HTTP_X_HUB_SIGNATURE_256|HTTP_X_HUB_SIGNATURE|HTTP_WEBHOOK_SIGNATURE)['"]$
+          - kind: encapsed_string
+            regex: (?i)^['"](stripe-signature|x-twilio-signature|svix-signature|x-hub-signature-256|x-hub-signature|webhook-signature|HTTP_STRIPE_SIGNATURE|HTTP_X_TWILIO_SIGNATURE|HTTP_SVIX_SIGNATURE|HTTP_X_HUB_SIGNATURE_256|HTTP_X_HUB_SIGNATURE|HTTP_WEBHOOK_SIGNATURE)['"]$
+      - has:
+          stopBy: end
+          any:
+          - kind: scoped_call_expression
+            has:
+              field: name
+              kind: name
+              regex: ^(constructEvent)$
+    - not:
+        has:
+          stopBy: end
+          kind: function_call_expression
+          has:
+            field: function
+            kind: name
+            regex: ^hash_hmac$
+  - any:
+    - all:
+      - has:
+          stopBy:
+            any:
+            - kind: anonymous_function
+            - kind: arrow_function
+            inside:
+              kind: argument
+              inside:
+                kind: arguments
+                inside:
+                  kind: scoped_call_expression
+                  all:
+                  - has:
+                      field: scope
+                      kind: name
+                      regex: ^Route$
+                  - has:
+                      field: name
+                      kind: name
+                      regex: ^(get|post|put|patch|delete|any|match)$
+          any:
+          - all:
+            - all:
+              - any:
+                - all:
+                  - any:
+                    - kind: member_call_expression
+                      all:
+                      - has:
+                          field: object
+                          kind: variable_name
+                          regex: (?i)^\$\w*(wh|webhooks?|svix|hook|validator)\w*$
+                      - has:
+                          field: name
+                          kind: name
+                          regex: ^(validate)$
+                  - inside:
+                      stopBy: end
+                      kind: program
+                      has:
+                        stopBy: end
+                        any:
+                        - kind: namespace_use_declaration
+                          regex: (?i)^use\s+\\?(Twilio|Twilio)\\
+                        - kind: qualified_name
+                          regex: (?i)^\\?(Twilio|Twilio)\\
+              - any:
+                - inside:
+                    stopBy: end
+                    kind: unary_op_expression
+                    regex: ^!
+                    inside:
+                      kind: parenthesized_expression
+                      inside:
+                        kind: if_statement
+                        has:
+                          any:
+                          - kind: return_statement
+                          - kind: exit_statement
+                          - kind: expression_statement
+                            regex: ^(throw|abort|die)\b
+                          - kind: compound_statement
+                            has:
+                              any:
+                              - kind: return_statement
+                              - kind: exit_statement
+                              - kind: expression_statement
+                                regex: ^(throw|abort|die)\b
+                - all:
+                  - inside:
+                      kind: assignment_expression
+                  - any:
+                    - inside:
+                        stopBy: end
+                        kind: expression_statement
+                        has:
+                          kind: assignment_expression
+                          pattern:
+                            context: <?php $OK = $V;
+                            selector: assignment_expression
+                        precedes:
+                          kind: if_statement
+                          has:
+                            any:
+                            - kind: return_statement
+                            - kind: exit_statement
+                            - kind: expression_statement
+                              regex: ^(throw|abort|die)\b
+                            - kind: compound_statement
+                              has:
+                                any:
+                                - kind: return_statement
+                                - kind: exit_statement
+                                - kind: expression_statement
+                                  regex: ^(throw|abort|die)\b
+                          all:
+                          - has:
+                              kind: parenthesized_expression
+                              has:
+                                kind: unary_op_expression
+                                pattern:
+                                  context: <?php !$OK;
+                                  selector: unary_op_expression
+            - not:
+                inside:
+                  stopBy: end
+                  any:
+                  - kind: anonymous_function
+                  - kind: arrow_function
+                  not:
+                    inside:
+                      kind: argument
+                      inside:
+                        kind: arguments
+                        inside:
+                          kind: scoped_call_expression
+                          all:
+                          - has:
+                              field: scope
+                              kind: name
+                              regex: ^Route$
+                          - has:
+                              field: name
+                              kind: name
+                              regex: ^(get|post|put|patch|delete|any|match)$
+                  inside:
+                    stopBy: end
+                    any:
+                    - kind: function_definition
+                    - kind: method_declaration
+                    - kind: anonymous_function
+                    - kind: arrow_function
+      - has:
+          stopBy:
+            any:
+            - kind: anonymous_function
+            - kind: arrow_function
+            inside:
+              kind: argument
+              inside:
+                kind: arguments
+                inside:
+                  kind: scoped_call_expression
+                  all:
+                  - has:
+                      field: scope
+                      kind: name
+                      regex: ^Route$
+                  - has:
+                      field: name
+                      kind: name
+                      regex: ^(get|post|put|patch|delete|any|match)$
+          any:
+          - kind: string
+            regex: (?i)(X-Twilio-Signature)
+          - kind: encapsed_string
+            regex: (?i)(X-Twilio-Signature)
+min_engine: 0.45.3
+---
+# provider-svix: an import of svix's SDK (the practice's providers table). Evidence: the pass needs a verified
+# items-sdk handler for svix (Q6).
+id: inbound-webhooks-verified.php-generic.provider-svix
+practice_id: inbound-webhooks-verified
+language: php
+frameworks:
+- generic
+kind: evidence
+rule:
+  any:
+  - kind: namespace_use_declaration
+    regex: (?i)^use\s+\\?(Svix)\\
+  - kind: qualified_name
+    regex: (?i)^\\?(Svix)\\
+min_engine: 0.45.3
+---
+# verified-svix: an items-sdk handler (the same match, so the same path and line) whose control calls svix's own
+# verify call; an instance call counts only beside a literal naming one of svix's headers. Evidence: with the SDK
+# control, it shows svix verified for the pass (Q6).
+id: inbound-webhooks-verified.php-generic.verified-svix
+practice_id: inbound-webhooks-verified
+language: php
+frameworks:
+- generic
+kind: evidence
+rule:
+  all:
+  - all:
+    - any:
+      - kind: function_definition
+      - kind: method_declaration
+      - kind: anonymous_function
+      - kind: arrow_function
+      - kind: program
+        has:
+          stopBy: end
+          any:
+          - kind: string
+            regex: (?i)^['"](stripe-signature|x-twilio-signature|svix-signature|x-hub-signature-256|x-hub-signature|webhook-signature|HTTP_STRIPE_SIGNATURE|HTTP_X_TWILIO_SIGNATURE|HTTP_SVIX_SIGNATURE|HTTP_X_HUB_SIGNATURE_256|HTTP_X_HUB_SIGNATURE|HTTP_WEBHOOK_SIGNATURE)['"]$
+          - kind: encapsed_string
+            regex: (?i)^['"](stripe-signature|x-twilio-signature|svix-signature|x-hub-signature-256|x-hub-signature|webhook-signature|HTTP_STRIPE_SIGNATURE|HTTP_X_TWILIO_SIGNATURE|HTTP_SVIX_SIGNATURE|HTTP_X_HUB_SIGNATURE_256|HTTP_X_HUB_SIGNATURE|HTTP_WEBHOOK_SIGNATURE)['"]$
+          not:
+            inside:
+              stopBy: end
+              any:
+              - kind: function_definition
+              - kind: method_declaration
+              - kind: anonymous_function
+              - kind: arrow_function
+    - any:
+      - has:
+          stopBy: end
+          any:
+          - kind: string
+            regex: (?i)^['"](stripe-signature|x-twilio-signature|svix-signature|x-hub-signature-256|x-hub-signature|webhook-signature|HTTP_STRIPE_SIGNATURE|HTTP_X_TWILIO_SIGNATURE|HTTP_SVIX_SIGNATURE|HTTP_X_HUB_SIGNATURE_256|HTTP_X_HUB_SIGNATURE|HTTP_WEBHOOK_SIGNATURE)['"]$
+          - kind: encapsed_string
+            regex: (?i)^['"](stripe-signature|x-twilio-signature|svix-signature|x-hub-signature-256|x-hub-signature|webhook-signature|HTTP_STRIPE_SIGNATURE|HTTP_X_TWILIO_SIGNATURE|HTTP_SVIX_SIGNATURE|HTTP_X_HUB_SIGNATURE_256|HTTP_X_HUB_SIGNATURE|HTTP_WEBHOOK_SIGNATURE)['"]$
+      - has:
+          stopBy: end
+          any:
+          - kind: scoped_call_expression
+            has:
+              field: name
+              kind: name
+              regex: ^(constructEvent)$
+    - not:
+        has:
+          stopBy: end
+          kind: function_call_expression
+          has:
+            field: function
+            kind: name
+            regex: ^hash_hmac$
+  - any:
+    - all:
+      - has:
+          stopBy:
+            any:
+            - kind: anonymous_function
+            - kind: arrow_function
+            inside:
+              kind: argument
+              inside:
+                kind: arguments
+                inside:
+                  kind: scoped_call_expression
+                  all:
+                  - has:
+                      field: scope
+                      kind: name
+                      regex: ^Route$
+                  - has:
+                      field: name
+                      kind: name
+                      regex: ^(get|post|put|patch|delete|any|match)$
+          any:
+          - all:
+            - all:
+              - any:
+                - all:
+                  - any:
+                    - kind: member_call_expression
+                      all:
+                      - has:
+                          field: object
+                          kind: variable_name
+                          regex: (?i)^\$\w*(wh|webhooks?|svix|hook|validator)\w*$
+                      - has:
+                          field: name
+                          kind: name
+                          regex: ^(verify)$
+                  - inside:
+                      stopBy: end
+                      kind: program
+                      has:
+                        stopBy: end
+                        any:
+                        - kind: namespace_use_declaration
+                          regex: (?i)^use\s+\\?(Svix|Svix)\\
+                        - kind: qualified_name
+                          regex: (?i)^\\?(Svix|Svix)\\
+              - not:
+                  any:
+                  - inside:
+                      stopBy: end
+                      kind: compound_statement
+                      inside:
+                        kind: try_statement
+                        has:
+                          kind: catch_clause
+                          not:
+                            has:
+                              kind: compound_statement
+                              has:
+                                any:
+                                - kind: return_statement
+                                - kind: exit_statement
+                                - kind: expression_statement
+                                  regex: ^(throw|abort|die)\b
+            - not:
+                inside:
+                  stopBy: end
+                  any:
+                  - kind: anonymous_function
+                  - kind: arrow_function
+                  not:
+                    inside:
+                      kind: argument
+                      inside:
+                        kind: arguments
+                        inside:
+                          kind: scoped_call_expression
+                          all:
+                          - has:
+                              field: scope
+                              kind: name
+                              regex: ^Route$
+                          - has:
+                              field: name
+                              kind: name
+                              regex: ^(get|post|put|patch|delete|any|match)$
+                  inside:
+                    stopBy: end
+                    any:
+                    - kind: function_definition
+                    - kind: method_declaration
+                    - kind: anonymous_function
+                    - kind: arrow_function
+      - has:
+          stopBy:
+            any:
+            - kind: anonymous_function
+            - kind: arrow_function
+            inside:
+              kind: argument
+              inside:
+                kind: arguments
+                inside:
+                  kind: scoped_call_expression
+                  all:
+                  - has:
+                      field: scope
+                      kind: name
+                      regex: ^Route$
+                  - has:
+                      field: name
+                      kind: name
+                      regex: ^(get|post|put|patch|delete|any|match)$
+          any:
+          - kind: string
+            regex: (?i)(svix-signature)
+          - kind: encapsed_string
+            regex: (?i)(svix-signature)
+min_engine: 0.45.3

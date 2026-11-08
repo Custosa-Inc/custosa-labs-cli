@@ -1,0 +1,2041 @@
+# NestJS controller methods under @Get, @Post, @Put, @Patch, @Delete or @All that use a client skipping row-level
+# security, one item each (T23 B47). Elevated is createClient with the service role or secret key (matched by the key,
+# never the variable's name), made in the method, at the top of its file, or kept on the class by a field or a
+# constructor assignment in the same class. The route shape is authz-every-handler's.
+#
+# The control is one of: every query of the elevated client in the method (from, storage.from, rpc) filtered with
+# .eq on the owner, user or tenant column against the caller read from the request (req.user, req.auth), at least
+# one of them; or a direct statement of the method, with no return before it, that compares the owner field of a
+# record the method read with an elevated query (const x = await ..., or const { x } = await ...) with that caller
+# and throws; or, for a route with no per-user record, a direct statement that throws when a secret from the
+# environment (never a public key name) is unset or differs from a request header (`!process.env.X || h !==
+# process.env.X`, or `!timingSafeEqual(...)` of the two), the header read from a @Headers() parameter or from
+# req.headers, req.header() or req.get() (T23-P1-C67). A guard says who may call, never which record, so it is never
+# the control; a value from @Param(), @Body() or @Query() is never the caller, nor is an app decorator such as
+# @CurrentUser() (T23-P1-C57). A client injected from another module is not seen (no dataflow): no item, and the
+# practice's max_state keeps that from passing.
+id: elevated-routes-check-ownership.typescript-nestjs.elevated-handler
+practice_id: elevated-routes-check-ownership
+language: typescript
+frameworks:
+- nestjs
+kind: items
+rule:
+  kind: method_definition
+  all:
+  - follows:
+      any:
+      - kind: decorator
+        regex: ^@(Get|Post|Put|Patch|Delete|All)\b
+      - any:
+        - kind: decorator
+        - kind: comment
+        follows:
+          any:
+          - kind: decorator
+            regex: ^@(Get|Post|Put|Patch|Delete|All)\b
+          - any:
+            - kind: decorator
+            - kind: comment
+            follows:
+              any:
+              - kind: decorator
+                regex: ^@(Get|Post|Put|Patch|Delete|All)\b
+              - any:
+                - kind: decorator
+                - kind: comment
+                follows:
+                  any:
+                  - kind: decorator
+                    regex: ^@(Get|Post|Put|Patch|Delete|All)\b
+                  - any:
+                    - kind: decorator
+                    - kind: comment
+                    follows:
+                      any:
+                      - kind: decorator
+                        regex: ^@(Get|Post|Put|Patch|Delete|All)\b
+                      - any:
+                        - kind: decorator
+                        - kind: comment
+                        follows:
+                          any:
+                          - kind: decorator
+                            regex: ^@(Get|Post|Put|Patch|Delete|All)\b
+                          - any:
+                            - kind: decorator
+                            - kind: comment
+                            follows:
+                              any:
+                              - kind: decorator
+                                regex: ^@(Get|Post|Put|Patch|Delete|All)\b
+                              - any:
+                                - kind: decorator
+                                - kind: comment
+                                follows:
+                                  any:
+                                  - kind: decorator
+                                    regex: ^@(Get|Post|Put|Patch|Delete|All)\b
+                                  - any:
+                                    - kind: decorator
+                                    - kind: comment
+                                    follows:
+                                      any:
+                                      - kind: decorator
+                                        regex: ^@(Get|Post|Put|Patch|Delete|All)\b
+                                      - any:
+                                        - kind: decorator
+                                        - kind: comment
+                                        follows:
+                                          any:
+                                          - kind: decorator
+                                            regex: ^@(Get|Post|Put|Patch|Delete|All)\b
+                                          - any:
+                                            - kind: decorator
+                                            - kind: comment
+                                            follows:
+                                              any:
+                                              - kind: decorator
+                                                regex: ^@(Get|Post|Put|Patch|Delete|All)\b
+                                              - any:
+                                                - kind: decorator
+                                                - kind: comment
+                                                follows:
+                                                  any:
+                                                  - kind: decorator
+                                                    regex: ^@(Get|Post|Put|Patch|Delete|All)\b
+                                                  - any:
+                                                    - kind: decorator
+                                                    - kind: comment
+                                                    follows:
+                                                      kind: decorator
+                                                      regex: ^@(Get|Post|Put|Patch|Delete|All)\b
+  - has:
+      field: body
+      kind: statement_block
+      has:
+        stopBy: end
+        any:
+        - kind: call_expression
+          any:
+          - all:
+            - pattern: $A.from($$$)
+            - inside:
+                kind: program
+                stopBy: end
+                has:
+                  kind: lexical_declaration
+                  has:
+                    kind: variable_declarator
+                    pattern:
+                      context: const $A = createClient($$$)
+                      selector: variable_declarator
+                    has:
+                      field: value
+                      kind: call_expression
+                      pattern: createClient($$$)
+                      has:
+                        field: arguments
+                        kind: arguments
+                        regex: (?i)(service_?role|secret_?key|sb_secret_|SUPABASE_SECRET)
+          - all:
+            - pattern: this.$F.from($$$)
+            - inside:
+                kind: class_body
+                stopBy: end
+                has:
+                  stopBy: end
+                  any:
+                  - kind: public_field_definition
+                    pattern:
+                      context: class X { $F = createClient($$$) }
+                      selector: public_field_definition
+                    has:
+                      field: value
+                      kind: call_expression
+                      pattern: createClient($$$)
+                      has:
+                        field: arguments
+                        kind: arguments
+                        regex: (?i)(service_?role|secret_?key|sb_secret_|SUPABASE_SECRET)
+                  - kind: public_field_definition
+                    pattern:
+                      context: class X { private $F = createClient($$$) }
+                      selector: public_field_definition
+                    has:
+                      field: value
+                      kind: call_expression
+                      pattern: createClient($$$)
+                      has:
+                        field: arguments
+                        kind: arguments
+                        regex: (?i)(service_?role|secret_?key|sb_secret_|SUPABASE_SECRET)
+                  - kind: public_field_definition
+                    pattern:
+                      context: class X { private readonly $F = createClient($$$) }
+                      selector: public_field_definition
+                    has:
+                      field: value
+                      kind: call_expression
+                      pattern: createClient($$$)
+                      has:
+                        field: arguments
+                        kind: arguments
+                        regex: (?i)(service_?role|secret_?key|sb_secret_|SUPABASE_SECRET)
+                  - kind: public_field_definition
+                    pattern:
+                      context: class X { readonly $F = createClient($$$) }
+                      selector: public_field_definition
+                    has:
+                      field: value
+                      kind: call_expression
+                      pattern: createClient($$$)
+                      has:
+                        field: arguments
+                        kind: arguments
+                        regex: (?i)(service_?role|secret_?key|sb_secret_|SUPABASE_SECRET)
+                  - kind: public_field_definition
+                    pattern:
+                      context: class X { public $F = createClient($$$) }
+                      selector: public_field_definition
+                    has:
+                      field: value
+                      kind: call_expression
+                      pattern: createClient($$$)
+                      has:
+                        field: arguments
+                        kind: arguments
+                        regex: (?i)(service_?role|secret_?key|sb_secret_|SUPABASE_SECRET)
+                  - kind: public_field_definition
+                    pattern:
+                      context: class X { protected $F = createClient($$$) }
+                      selector: public_field_definition
+                    has:
+                      field: value
+                      kind: call_expression
+                      pattern: createClient($$$)
+                      has:
+                        field: arguments
+                        kind: arguments
+                        regex: (?i)(service_?role|secret_?key|sb_secret_|SUPABASE_SECRET)
+                  - kind: public_field_definition
+                    pattern:
+                      context: class X { protected readonly $F = createClient($$$) }
+                      selector: public_field_definition
+                    has:
+                      field: value
+                      kind: call_expression
+                      pattern: createClient($$$)
+                      has:
+                        field: arguments
+                        kind: arguments
+                        regex: (?i)(service_?role|secret_?key|sb_secret_|SUPABASE_SECRET)
+                  - kind: public_field_definition
+                    pattern:
+                      context: class X { public readonly $F = createClient($$$) }
+                      selector: public_field_definition
+                    has:
+                      field: value
+                      kind: call_expression
+                      pattern: createClient($$$)
+                      has:
+                        field: arguments
+                        kind: arguments
+                        regex: (?i)(service_?role|secret_?key|sb_secret_|SUPABASE_SECRET)
+                  - kind: assignment_expression
+                    pattern: this.$F = createClient($$$)
+                    has:
+                      field: right
+                      kind: call_expression
+                      pattern: createClient($$$)
+                      has:
+                        field: arguments
+                        kind: arguments
+                        regex: (?i)(service_?role|secret_?key|sb_secret_|SUPABASE_SECRET)
+          - all:
+            - pattern: $C.from($$$)
+            - inside:
+                stopBy: end
+                kind: statement_block
+                has:
+                  stopBy: end
+                  kind: variable_declarator
+                  pattern:
+                    context: const $C = createClient($$$)
+                    selector: variable_declarator
+                  has:
+                    field: value
+                    kind: call_expression
+                    pattern: createClient($$$)
+                    has:
+                      field: arguments
+                      kind: arguments
+                      regex: (?i)(service_?role|secret_?key|sb_secret_|SUPABASE_SECRET)
+          - all:
+            - pattern: $A.storage.from($$$)
+            - inside:
+                kind: program
+                stopBy: end
+                has:
+                  kind: lexical_declaration
+                  has:
+                    kind: variable_declarator
+                    pattern:
+                      context: const $A = createClient($$$)
+                      selector: variable_declarator
+                    has:
+                      field: value
+                      kind: call_expression
+                      pattern: createClient($$$)
+                      has:
+                        field: arguments
+                        kind: arguments
+                        regex: (?i)(service_?role|secret_?key|sb_secret_|SUPABASE_SECRET)
+          - all:
+            - pattern: this.$F.storage.from($$$)
+            - inside:
+                kind: class_body
+                stopBy: end
+                has:
+                  stopBy: end
+                  any:
+                  - kind: public_field_definition
+                    pattern:
+                      context: class X { $F = createClient($$$) }
+                      selector: public_field_definition
+                    has:
+                      field: value
+                      kind: call_expression
+                      pattern: createClient($$$)
+                      has:
+                        field: arguments
+                        kind: arguments
+                        regex: (?i)(service_?role|secret_?key|sb_secret_|SUPABASE_SECRET)
+                  - kind: public_field_definition
+                    pattern:
+                      context: class X { private $F = createClient($$$) }
+                      selector: public_field_definition
+                    has:
+                      field: value
+                      kind: call_expression
+                      pattern: createClient($$$)
+                      has:
+                        field: arguments
+                        kind: arguments
+                        regex: (?i)(service_?role|secret_?key|sb_secret_|SUPABASE_SECRET)
+                  - kind: public_field_definition
+                    pattern:
+                      context: class X { private readonly $F = createClient($$$) }
+                      selector: public_field_definition
+                    has:
+                      field: value
+                      kind: call_expression
+                      pattern: createClient($$$)
+                      has:
+                        field: arguments
+                        kind: arguments
+                        regex: (?i)(service_?role|secret_?key|sb_secret_|SUPABASE_SECRET)
+                  - kind: public_field_definition
+                    pattern:
+                      context: class X { readonly $F = createClient($$$) }
+                      selector: public_field_definition
+                    has:
+                      field: value
+                      kind: call_expression
+                      pattern: createClient($$$)
+                      has:
+                        field: arguments
+                        kind: arguments
+                        regex: (?i)(service_?role|secret_?key|sb_secret_|SUPABASE_SECRET)
+                  - kind: public_field_definition
+                    pattern:
+                      context: class X { public $F = createClient($$$) }
+                      selector: public_field_definition
+                    has:
+                      field: value
+                      kind: call_expression
+                      pattern: createClient($$$)
+                      has:
+                        field: arguments
+                        kind: arguments
+                        regex: (?i)(service_?role|secret_?key|sb_secret_|SUPABASE_SECRET)
+                  - kind: public_field_definition
+                    pattern:
+                      context: class X { protected $F = createClient($$$) }
+                      selector: public_field_definition
+                    has:
+                      field: value
+                      kind: call_expression
+                      pattern: createClient($$$)
+                      has:
+                        field: arguments
+                        kind: arguments
+                        regex: (?i)(service_?role|secret_?key|sb_secret_|SUPABASE_SECRET)
+                  - kind: public_field_definition
+                    pattern:
+                      context: class X { protected readonly $F = createClient($$$) }
+                      selector: public_field_definition
+                    has:
+                      field: value
+                      kind: call_expression
+                      pattern: createClient($$$)
+                      has:
+                        field: arguments
+                        kind: arguments
+                        regex: (?i)(service_?role|secret_?key|sb_secret_|SUPABASE_SECRET)
+                  - kind: public_field_definition
+                    pattern:
+                      context: class X { public readonly $F = createClient($$$) }
+                      selector: public_field_definition
+                    has:
+                      field: value
+                      kind: call_expression
+                      pattern: createClient($$$)
+                      has:
+                        field: arguments
+                        kind: arguments
+                        regex: (?i)(service_?role|secret_?key|sb_secret_|SUPABASE_SECRET)
+                  - kind: assignment_expression
+                    pattern: this.$F = createClient($$$)
+                    has:
+                      field: right
+                      kind: call_expression
+                      pattern: createClient($$$)
+                      has:
+                        field: arguments
+                        kind: arguments
+                        regex: (?i)(service_?role|secret_?key|sb_secret_|SUPABASE_SECRET)
+          - all:
+            - pattern: $C.storage.from($$$)
+            - inside:
+                stopBy: end
+                kind: statement_block
+                has:
+                  stopBy: end
+                  kind: variable_declarator
+                  pattern:
+                    context: const $C = createClient($$$)
+                    selector: variable_declarator
+                  has:
+                    field: value
+                    kind: call_expression
+                    pattern: createClient($$$)
+                    has:
+                      field: arguments
+                      kind: arguments
+                      regex: (?i)(service_?role|secret_?key|sb_secret_|SUPABASE_SECRET)
+          - all:
+            - pattern: $A.rpc($$$)
+            - inside:
+                kind: program
+                stopBy: end
+                has:
+                  kind: lexical_declaration
+                  has:
+                    kind: variable_declarator
+                    pattern:
+                      context: const $A = createClient($$$)
+                      selector: variable_declarator
+                    has:
+                      field: value
+                      kind: call_expression
+                      pattern: createClient($$$)
+                      has:
+                        field: arguments
+                        kind: arguments
+                        regex: (?i)(service_?role|secret_?key|sb_secret_|SUPABASE_SECRET)
+          - all:
+            - pattern: this.$F.rpc($$$)
+            - inside:
+                kind: class_body
+                stopBy: end
+                has:
+                  stopBy: end
+                  any:
+                  - kind: public_field_definition
+                    pattern:
+                      context: class X { $F = createClient($$$) }
+                      selector: public_field_definition
+                    has:
+                      field: value
+                      kind: call_expression
+                      pattern: createClient($$$)
+                      has:
+                        field: arguments
+                        kind: arguments
+                        regex: (?i)(service_?role|secret_?key|sb_secret_|SUPABASE_SECRET)
+                  - kind: public_field_definition
+                    pattern:
+                      context: class X { private $F = createClient($$$) }
+                      selector: public_field_definition
+                    has:
+                      field: value
+                      kind: call_expression
+                      pattern: createClient($$$)
+                      has:
+                        field: arguments
+                        kind: arguments
+                        regex: (?i)(service_?role|secret_?key|sb_secret_|SUPABASE_SECRET)
+                  - kind: public_field_definition
+                    pattern:
+                      context: class X { private readonly $F = createClient($$$) }
+                      selector: public_field_definition
+                    has:
+                      field: value
+                      kind: call_expression
+                      pattern: createClient($$$)
+                      has:
+                        field: arguments
+                        kind: arguments
+                        regex: (?i)(service_?role|secret_?key|sb_secret_|SUPABASE_SECRET)
+                  - kind: public_field_definition
+                    pattern:
+                      context: class X { readonly $F = createClient($$$) }
+                      selector: public_field_definition
+                    has:
+                      field: value
+                      kind: call_expression
+                      pattern: createClient($$$)
+                      has:
+                        field: arguments
+                        kind: arguments
+                        regex: (?i)(service_?role|secret_?key|sb_secret_|SUPABASE_SECRET)
+                  - kind: public_field_definition
+                    pattern:
+                      context: class X { public $F = createClient($$$) }
+                      selector: public_field_definition
+                    has:
+                      field: value
+                      kind: call_expression
+                      pattern: createClient($$$)
+                      has:
+                        field: arguments
+                        kind: arguments
+                        regex: (?i)(service_?role|secret_?key|sb_secret_|SUPABASE_SECRET)
+                  - kind: public_field_definition
+                    pattern:
+                      context: class X { protected $F = createClient($$$) }
+                      selector: public_field_definition
+                    has:
+                      field: value
+                      kind: call_expression
+                      pattern: createClient($$$)
+                      has:
+                        field: arguments
+                        kind: arguments
+                        regex: (?i)(service_?role|secret_?key|sb_secret_|SUPABASE_SECRET)
+                  - kind: public_field_definition
+                    pattern:
+                      context: class X { protected readonly $F = createClient($$$) }
+                      selector: public_field_definition
+                    has:
+                      field: value
+                      kind: call_expression
+                      pattern: createClient($$$)
+                      has:
+                        field: arguments
+                        kind: arguments
+                        regex: (?i)(service_?role|secret_?key|sb_secret_|SUPABASE_SECRET)
+                  - kind: public_field_definition
+                    pattern:
+                      context: class X { public readonly $F = createClient($$$) }
+                      selector: public_field_definition
+                    has:
+                      field: value
+                      kind: call_expression
+                      pattern: createClient($$$)
+                      has:
+                        field: arguments
+                        kind: arguments
+                        regex: (?i)(service_?role|secret_?key|sb_secret_|SUPABASE_SECRET)
+                  - kind: assignment_expression
+                    pattern: this.$F = createClient($$$)
+                    has:
+                      field: right
+                      kind: call_expression
+                      pattern: createClient($$$)
+                      has:
+                        field: arguments
+                        kind: arguments
+                        regex: (?i)(service_?role|secret_?key|sb_secret_|SUPABASE_SECRET)
+          - all:
+            - pattern: $C.rpc($$$)
+            - inside:
+                stopBy: end
+                kind: statement_block
+                has:
+                  stopBy: end
+                  kind: variable_declarator
+                  pattern:
+                    context: const $C = createClient($$$)
+                    selector: variable_declarator
+                  has:
+                    field: value
+                    kind: call_expression
+                    pattern: createClient($$$)
+                    has:
+                      field: arguments
+                      kind: arguments
+                      regex: (?i)(service_?role|secret_?key|sb_secret_|SUPABASE_SECRET)
+        - kind: call_expression
+          pattern: createClient($$$)
+          has:
+            field: arguments
+            kind: arguments
+            regex: (?i)(service_?role|secret_?key|sb_secret_|SUPABASE_SECRET)
+control:
+  any:
+  - all:
+    - has:
+        field: body
+        kind: statement_block
+        has:
+          stopBy: end
+          kind: call_expression
+          pattern: $Q.eq($COL, $V)
+          has:
+            field: arguments
+            kind: arguments
+            all:
+            - has:
+                kind: string
+                regex: (?i)^['"`](user_?id|owner_?id|patient_?id|tenant_?id|org_?id|account_?id|created_?by|author_?id|clinic_?id)['"`]$
+            - has:
+                kind: member_expression
+                regex: ^(req|request)\.(user|auth)\??\.[A-Za-z_]+$
+    - not:
+        has:
+          field: body
+          kind: statement_block
+          has:
+            stopBy: end
+            kind: call_expression
+            any:
+            - all:
+              - pattern: $A2.from($$$)
+              - inside:
+                  kind: program
+                  stopBy: end
+                  has:
+                    kind: lexical_declaration
+                    has:
+                      kind: variable_declarator
+                      pattern:
+                        context: const $A2 = createClient($$$)
+                        selector: variable_declarator
+                      has:
+                        field: value
+                        kind: call_expression
+                        pattern: createClient($$$)
+                        has:
+                          field: arguments
+                          kind: arguments
+                          regex: (?i)(service_?role|secret_?key|sb_secret_|SUPABASE_SECRET)
+            - all:
+              - pattern: this.$F2.from($$$)
+              - inside:
+                  kind: class_body
+                  stopBy: end
+                  has:
+                    stopBy: end
+                    any:
+                    - kind: public_field_definition
+                      pattern:
+                        context: class X { $F2 = createClient($$$) }
+                        selector: public_field_definition
+                      has:
+                        field: value
+                        kind: call_expression
+                        pattern: createClient($$$)
+                        has:
+                          field: arguments
+                          kind: arguments
+                          regex: (?i)(service_?role|secret_?key|sb_secret_|SUPABASE_SECRET)
+                    - kind: public_field_definition
+                      pattern:
+                        context: class X { private $F2 = createClient($$$) }
+                        selector: public_field_definition
+                      has:
+                        field: value
+                        kind: call_expression
+                        pattern: createClient($$$)
+                        has:
+                          field: arguments
+                          kind: arguments
+                          regex: (?i)(service_?role|secret_?key|sb_secret_|SUPABASE_SECRET)
+                    - kind: public_field_definition
+                      pattern:
+                        context: class X { private readonly $F2 = createClient($$$) }
+                        selector: public_field_definition
+                      has:
+                        field: value
+                        kind: call_expression
+                        pattern: createClient($$$)
+                        has:
+                          field: arguments
+                          kind: arguments
+                          regex: (?i)(service_?role|secret_?key|sb_secret_|SUPABASE_SECRET)
+                    - kind: public_field_definition
+                      pattern:
+                        context: class X { readonly $F2 = createClient($$$) }
+                        selector: public_field_definition
+                      has:
+                        field: value
+                        kind: call_expression
+                        pattern: createClient($$$)
+                        has:
+                          field: arguments
+                          kind: arguments
+                          regex: (?i)(service_?role|secret_?key|sb_secret_|SUPABASE_SECRET)
+                    - kind: public_field_definition
+                      pattern:
+                        context: class X { public $F2 = createClient($$$) }
+                        selector: public_field_definition
+                      has:
+                        field: value
+                        kind: call_expression
+                        pattern: createClient($$$)
+                        has:
+                          field: arguments
+                          kind: arguments
+                          regex: (?i)(service_?role|secret_?key|sb_secret_|SUPABASE_SECRET)
+                    - kind: public_field_definition
+                      pattern:
+                        context: class X { protected $F2 = createClient($$$) }
+                        selector: public_field_definition
+                      has:
+                        field: value
+                        kind: call_expression
+                        pattern: createClient($$$)
+                        has:
+                          field: arguments
+                          kind: arguments
+                          regex: (?i)(service_?role|secret_?key|sb_secret_|SUPABASE_SECRET)
+                    - kind: public_field_definition
+                      pattern:
+                        context: class X { protected readonly $F2 = createClient($$$) }
+                        selector: public_field_definition
+                      has:
+                        field: value
+                        kind: call_expression
+                        pattern: createClient($$$)
+                        has:
+                          field: arguments
+                          kind: arguments
+                          regex: (?i)(service_?role|secret_?key|sb_secret_|SUPABASE_SECRET)
+                    - kind: public_field_definition
+                      pattern:
+                        context: class X { public readonly $F2 = createClient($$$) }
+                        selector: public_field_definition
+                      has:
+                        field: value
+                        kind: call_expression
+                        pattern: createClient($$$)
+                        has:
+                          field: arguments
+                          kind: arguments
+                          regex: (?i)(service_?role|secret_?key|sb_secret_|SUPABASE_SECRET)
+                    - kind: assignment_expression
+                      pattern: this.$F2 = createClient($$$)
+                      has:
+                        field: right
+                        kind: call_expression
+                        pattern: createClient($$$)
+                        has:
+                          field: arguments
+                          kind: arguments
+                          regex: (?i)(service_?role|secret_?key|sb_secret_|SUPABASE_SECRET)
+            - all:
+              - pattern: $C2.from($$$)
+              - inside:
+                  stopBy: end
+                  kind: statement_block
+                  has:
+                    stopBy: end
+                    kind: variable_declarator
+                    pattern:
+                      context: const $C2 = createClient($$$)
+                      selector: variable_declarator
+                    has:
+                      field: value
+                      kind: call_expression
+                      pattern: createClient($$$)
+                      has:
+                        field: arguments
+                        kind: arguments
+                        regex: (?i)(service_?role|secret_?key|sb_secret_|SUPABASE_SECRET)
+            - all:
+              - pattern: $A2.storage.from($$$)
+              - inside:
+                  kind: program
+                  stopBy: end
+                  has:
+                    kind: lexical_declaration
+                    has:
+                      kind: variable_declarator
+                      pattern:
+                        context: const $A2 = createClient($$$)
+                        selector: variable_declarator
+                      has:
+                        field: value
+                        kind: call_expression
+                        pattern: createClient($$$)
+                        has:
+                          field: arguments
+                          kind: arguments
+                          regex: (?i)(service_?role|secret_?key|sb_secret_|SUPABASE_SECRET)
+            - all:
+              - pattern: this.$F2.storage.from($$$)
+              - inside:
+                  kind: class_body
+                  stopBy: end
+                  has:
+                    stopBy: end
+                    any:
+                    - kind: public_field_definition
+                      pattern:
+                        context: class X { $F2 = createClient($$$) }
+                        selector: public_field_definition
+                      has:
+                        field: value
+                        kind: call_expression
+                        pattern: createClient($$$)
+                        has:
+                          field: arguments
+                          kind: arguments
+                          regex: (?i)(service_?role|secret_?key|sb_secret_|SUPABASE_SECRET)
+                    - kind: public_field_definition
+                      pattern:
+                        context: class X { private $F2 = createClient($$$) }
+                        selector: public_field_definition
+                      has:
+                        field: value
+                        kind: call_expression
+                        pattern: createClient($$$)
+                        has:
+                          field: arguments
+                          kind: arguments
+                          regex: (?i)(service_?role|secret_?key|sb_secret_|SUPABASE_SECRET)
+                    - kind: public_field_definition
+                      pattern:
+                        context: class X { private readonly $F2 = createClient($$$) }
+                        selector: public_field_definition
+                      has:
+                        field: value
+                        kind: call_expression
+                        pattern: createClient($$$)
+                        has:
+                          field: arguments
+                          kind: arguments
+                          regex: (?i)(service_?role|secret_?key|sb_secret_|SUPABASE_SECRET)
+                    - kind: public_field_definition
+                      pattern:
+                        context: class X { readonly $F2 = createClient($$$) }
+                        selector: public_field_definition
+                      has:
+                        field: value
+                        kind: call_expression
+                        pattern: createClient($$$)
+                        has:
+                          field: arguments
+                          kind: arguments
+                          regex: (?i)(service_?role|secret_?key|sb_secret_|SUPABASE_SECRET)
+                    - kind: public_field_definition
+                      pattern:
+                        context: class X { public $F2 = createClient($$$) }
+                        selector: public_field_definition
+                      has:
+                        field: value
+                        kind: call_expression
+                        pattern: createClient($$$)
+                        has:
+                          field: arguments
+                          kind: arguments
+                          regex: (?i)(service_?role|secret_?key|sb_secret_|SUPABASE_SECRET)
+                    - kind: public_field_definition
+                      pattern:
+                        context: class X { protected $F2 = createClient($$$) }
+                        selector: public_field_definition
+                      has:
+                        field: value
+                        kind: call_expression
+                        pattern: createClient($$$)
+                        has:
+                          field: arguments
+                          kind: arguments
+                          regex: (?i)(service_?role|secret_?key|sb_secret_|SUPABASE_SECRET)
+                    - kind: public_field_definition
+                      pattern:
+                        context: class X { protected readonly $F2 = createClient($$$) }
+                        selector: public_field_definition
+                      has:
+                        field: value
+                        kind: call_expression
+                        pattern: createClient($$$)
+                        has:
+                          field: arguments
+                          kind: arguments
+                          regex: (?i)(service_?role|secret_?key|sb_secret_|SUPABASE_SECRET)
+                    - kind: public_field_definition
+                      pattern:
+                        context: class X { public readonly $F2 = createClient($$$) }
+                        selector: public_field_definition
+                      has:
+                        field: value
+                        kind: call_expression
+                        pattern: createClient($$$)
+                        has:
+                          field: arguments
+                          kind: arguments
+                          regex: (?i)(service_?role|secret_?key|sb_secret_|SUPABASE_SECRET)
+                    - kind: assignment_expression
+                      pattern: this.$F2 = createClient($$$)
+                      has:
+                        field: right
+                        kind: call_expression
+                        pattern: createClient($$$)
+                        has:
+                          field: arguments
+                          kind: arguments
+                          regex: (?i)(service_?role|secret_?key|sb_secret_|SUPABASE_SECRET)
+            - all:
+              - pattern: $C2.storage.from($$$)
+              - inside:
+                  stopBy: end
+                  kind: statement_block
+                  has:
+                    stopBy: end
+                    kind: variable_declarator
+                    pattern:
+                      context: const $C2 = createClient($$$)
+                      selector: variable_declarator
+                    has:
+                      field: value
+                      kind: call_expression
+                      pattern: createClient($$$)
+                      has:
+                        field: arguments
+                        kind: arguments
+                        regex: (?i)(service_?role|secret_?key|sb_secret_|SUPABASE_SECRET)
+            - all:
+              - pattern: $A2.rpc($$$)
+              - inside:
+                  kind: program
+                  stopBy: end
+                  has:
+                    kind: lexical_declaration
+                    has:
+                      kind: variable_declarator
+                      pattern:
+                        context: const $A2 = createClient($$$)
+                        selector: variable_declarator
+                      has:
+                        field: value
+                        kind: call_expression
+                        pattern: createClient($$$)
+                        has:
+                          field: arguments
+                          kind: arguments
+                          regex: (?i)(service_?role|secret_?key|sb_secret_|SUPABASE_SECRET)
+            - all:
+              - pattern: this.$F2.rpc($$$)
+              - inside:
+                  kind: class_body
+                  stopBy: end
+                  has:
+                    stopBy: end
+                    any:
+                    - kind: public_field_definition
+                      pattern:
+                        context: class X { $F2 = createClient($$$) }
+                        selector: public_field_definition
+                      has:
+                        field: value
+                        kind: call_expression
+                        pattern: createClient($$$)
+                        has:
+                          field: arguments
+                          kind: arguments
+                          regex: (?i)(service_?role|secret_?key|sb_secret_|SUPABASE_SECRET)
+                    - kind: public_field_definition
+                      pattern:
+                        context: class X { private $F2 = createClient($$$) }
+                        selector: public_field_definition
+                      has:
+                        field: value
+                        kind: call_expression
+                        pattern: createClient($$$)
+                        has:
+                          field: arguments
+                          kind: arguments
+                          regex: (?i)(service_?role|secret_?key|sb_secret_|SUPABASE_SECRET)
+                    - kind: public_field_definition
+                      pattern:
+                        context: class X { private readonly $F2 = createClient($$$) }
+                        selector: public_field_definition
+                      has:
+                        field: value
+                        kind: call_expression
+                        pattern: createClient($$$)
+                        has:
+                          field: arguments
+                          kind: arguments
+                          regex: (?i)(service_?role|secret_?key|sb_secret_|SUPABASE_SECRET)
+                    - kind: public_field_definition
+                      pattern:
+                        context: class X { readonly $F2 = createClient($$$) }
+                        selector: public_field_definition
+                      has:
+                        field: value
+                        kind: call_expression
+                        pattern: createClient($$$)
+                        has:
+                          field: arguments
+                          kind: arguments
+                          regex: (?i)(service_?role|secret_?key|sb_secret_|SUPABASE_SECRET)
+                    - kind: public_field_definition
+                      pattern:
+                        context: class X { public $F2 = createClient($$$) }
+                        selector: public_field_definition
+                      has:
+                        field: value
+                        kind: call_expression
+                        pattern: createClient($$$)
+                        has:
+                          field: arguments
+                          kind: arguments
+                          regex: (?i)(service_?role|secret_?key|sb_secret_|SUPABASE_SECRET)
+                    - kind: public_field_definition
+                      pattern:
+                        context: class X { protected $F2 = createClient($$$) }
+                        selector: public_field_definition
+                      has:
+                        field: value
+                        kind: call_expression
+                        pattern: createClient($$$)
+                        has:
+                          field: arguments
+                          kind: arguments
+                          regex: (?i)(service_?role|secret_?key|sb_secret_|SUPABASE_SECRET)
+                    - kind: public_field_definition
+                      pattern:
+                        context: class X { protected readonly $F2 = createClient($$$) }
+                        selector: public_field_definition
+                      has:
+                        field: value
+                        kind: call_expression
+                        pattern: createClient($$$)
+                        has:
+                          field: arguments
+                          kind: arguments
+                          regex: (?i)(service_?role|secret_?key|sb_secret_|SUPABASE_SECRET)
+                    - kind: public_field_definition
+                      pattern:
+                        context: class X { public readonly $F2 = createClient($$$) }
+                        selector: public_field_definition
+                      has:
+                        field: value
+                        kind: call_expression
+                        pattern: createClient($$$)
+                        has:
+                          field: arguments
+                          kind: arguments
+                          regex: (?i)(service_?role|secret_?key|sb_secret_|SUPABASE_SECRET)
+                    - kind: assignment_expression
+                      pattern: this.$F2 = createClient($$$)
+                      has:
+                        field: right
+                        kind: call_expression
+                        pattern: createClient($$$)
+                        has:
+                          field: arguments
+                          kind: arguments
+                          regex: (?i)(service_?role|secret_?key|sb_secret_|SUPABASE_SECRET)
+            - all:
+              - pattern: $C2.rpc($$$)
+              - inside:
+                  stopBy: end
+                  kind: statement_block
+                  has:
+                    stopBy: end
+                    kind: variable_declarator
+                    pattern:
+                      context: const $C2 = createClient($$$)
+                      selector: variable_declarator
+                    has:
+                      field: value
+                      kind: call_expression
+                      pattern: createClient($$$)
+                      has:
+                        field: arguments
+                        kind: arguments
+                        regex: (?i)(service_?role|secret_?key|sb_secret_|SUPABASE_SECRET)
+            not:
+              inside:
+                stopBy:
+                  any:
+                  - kind: expression_statement
+                  - kind: lexical_declaration
+                  - kind: return_statement
+                kind: call_expression
+                pattern: $Q2.eq($COL2, $V2)
+                has:
+                  field: arguments
+                  kind: arguments
+                  all:
+                  - has:
+                      kind: string
+                      regex: (?i)^['"`](user_?id|owner_?id|patient_?id|tenant_?id|org_?id|account_?id|created_?by|author_?id|clinic_?id)['"`]$
+                  - has:
+                      kind: member_expression
+                      regex: ^(req|request)\.(user|auth)\??\.[A-Za-z_]+$
+  - has:
+      field: body
+      kind: statement_block
+      has:
+        kind: if_statement
+        all:
+        - has:
+            field: condition
+            kind: parenthesized_expression
+            any:
+            - all:
+              - has:
+                  stopBy: end
+                  kind: binary_expression
+                  regex: ^[^=]*!==?[^=]*$
+                  all:
+                  - has:
+                      kind: member_expression
+                      pattern: $REC.$FIELD
+                      regex: \.(user_?id|owner_?id|userId|ownerId|patient_?id|patientId|tenant_?id|tenantId|created_?by|createdBy|author_?id|authorId)$
+                  - has:
+                      kind: member_expression
+                      regex: ^(req|request)\.(user|auth)\??\.[A-Za-z_]+$
+              - inside:
+                  stopBy: end
+                  kind: method_definition
+                  has:
+                    field: body
+                    kind: statement_block
+                    has:
+                      stopBy: end
+                      kind: variable_declarator
+                      any:
+                      - pattern:
+                          context: const $REC = await $VAL
+                          selector: variable_declarator
+                      - pattern:
+                          context: const { $REC } = await $VAL
+                          selector: variable_declarator
+                      - pattern:
+                          context: const { $REC, $$$ } = await $VAL
+                          selector: variable_declarator
+                      - pattern:
+                          context: const { $$$, $REC } = await $VAL
+                          selector: variable_declarator
+                      - pattern:
+                          context: const { $$$, $REC, $$$ } = await $VAL
+                          selector: variable_declarator
+                      - pattern:
+                          context: let $REC = await $VAL
+                          selector: variable_declarator
+                      - pattern:
+                          context: let { $REC } = await $VAL
+                          selector: variable_declarator
+                      - pattern:
+                          context: let { $REC, $$$ } = await $VAL
+                          selector: variable_declarator
+                      - pattern:
+                          context: let { $$$, $REC } = await $VAL
+                          selector: variable_declarator
+                      - pattern:
+                          context: let { $$$, $REC, $$$ } = await $VAL
+                          selector: variable_declarator
+                      has:
+                        field: value
+                        stopBy: end
+                        kind: call_expression
+                        any:
+                        - all:
+                          - pattern: $A3.from($$$)
+                          - inside:
+                              kind: program
+                              stopBy: end
+                              has:
+                                kind: lexical_declaration
+                                has:
+                                  kind: variable_declarator
+                                  pattern:
+                                    context: const $A3 = createClient($$$)
+                                    selector: variable_declarator
+                                  has:
+                                    field: value
+                                    kind: call_expression
+                                    pattern: createClient($$$)
+                                    has:
+                                      field: arguments
+                                      kind: arguments
+                                      regex: (?i)(service_?role|secret_?key|sb_secret_|SUPABASE_SECRET)
+                        - all:
+                          - pattern: this.$F3.from($$$)
+                          - inside:
+                              kind: class_body
+                              stopBy: end
+                              has:
+                                stopBy: end
+                                any:
+                                - kind: public_field_definition
+                                  pattern:
+                                    context: class X { $F3 = createClient($$$) }
+                                    selector: public_field_definition
+                                  has:
+                                    field: value
+                                    kind: call_expression
+                                    pattern: createClient($$$)
+                                    has:
+                                      field: arguments
+                                      kind: arguments
+                                      regex: (?i)(service_?role|secret_?key|sb_secret_|SUPABASE_SECRET)
+                                - kind: public_field_definition
+                                  pattern:
+                                    context: class X { private $F3 = createClient($$$) }
+                                    selector: public_field_definition
+                                  has:
+                                    field: value
+                                    kind: call_expression
+                                    pattern: createClient($$$)
+                                    has:
+                                      field: arguments
+                                      kind: arguments
+                                      regex: (?i)(service_?role|secret_?key|sb_secret_|SUPABASE_SECRET)
+                                - kind: public_field_definition
+                                  pattern:
+                                    context: class X { private readonly $F3 = createClient($$$) }
+                                    selector: public_field_definition
+                                  has:
+                                    field: value
+                                    kind: call_expression
+                                    pattern: createClient($$$)
+                                    has:
+                                      field: arguments
+                                      kind: arguments
+                                      regex: (?i)(service_?role|secret_?key|sb_secret_|SUPABASE_SECRET)
+                                - kind: public_field_definition
+                                  pattern:
+                                    context: class X { readonly $F3 = createClient($$$) }
+                                    selector: public_field_definition
+                                  has:
+                                    field: value
+                                    kind: call_expression
+                                    pattern: createClient($$$)
+                                    has:
+                                      field: arguments
+                                      kind: arguments
+                                      regex: (?i)(service_?role|secret_?key|sb_secret_|SUPABASE_SECRET)
+                                - kind: public_field_definition
+                                  pattern:
+                                    context: class X { public $F3 = createClient($$$) }
+                                    selector: public_field_definition
+                                  has:
+                                    field: value
+                                    kind: call_expression
+                                    pattern: createClient($$$)
+                                    has:
+                                      field: arguments
+                                      kind: arguments
+                                      regex: (?i)(service_?role|secret_?key|sb_secret_|SUPABASE_SECRET)
+                                - kind: public_field_definition
+                                  pattern:
+                                    context: class X { protected $F3 = createClient($$$) }
+                                    selector: public_field_definition
+                                  has:
+                                    field: value
+                                    kind: call_expression
+                                    pattern: createClient($$$)
+                                    has:
+                                      field: arguments
+                                      kind: arguments
+                                      regex: (?i)(service_?role|secret_?key|sb_secret_|SUPABASE_SECRET)
+                                - kind: public_field_definition
+                                  pattern:
+                                    context: class X { protected readonly $F3 = createClient($$$) }
+                                    selector: public_field_definition
+                                  has:
+                                    field: value
+                                    kind: call_expression
+                                    pattern: createClient($$$)
+                                    has:
+                                      field: arguments
+                                      kind: arguments
+                                      regex: (?i)(service_?role|secret_?key|sb_secret_|SUPABASE_SECRET)
+                                - kind: public_field_definition
+                                  pattern:
+                                    context: class X { public readonly $F3 = createClient($$$) }
+                                    selector: public_field_definition
+                                  has:
+                                    field: value
+                                    kind: call_expression
+                                    pattern: createClient($$$)
+                                    has:
+                                      field: arguments
+                                      kind: arguments
+                                      regex: (?i)(service_?role|secret_?key|sb_secret_|SUPABASE_SECRET)
+                                - kind: assignment_expression
+                                  pattern: this.$F3 = createClient($$$)
+                                  has:
+                                    field: right
+                                    kind: call_expression
+                                    pattern: createClient($$$)
+                                    has:
+                                      field: arguments
+                                      kind: arguments
+                                      regex: (?i)(service_?role|secret_?key|sb_secret_|SUPABASE_SECRET)
+                        - all:
+                          - pattern: $C3.from($$$)
+                          - inside:
+                              stopBy: end
+                              kind: statement_block
+                              has:
+                                stopBy: end
+                                kind: variable_declarator
+                                pattern:
+                                  context: const $C3 = createClient($$$)
+                                  selector: variable_declarator
+                                has:
+                                  field: value
+                                  kind: call_expression
+                                  pattern: createClient($$$)
+                                  has:
+                                    field: arguments
+                                    kind: arguments
+                                    regex: (?i)(service_?role|secret_?key|sb_secret_|SUPABASE_SECRET)
+                        - all:
+                          - pattern: $A3.storage.from($$$)
+                          - inside:
+                              kind: program
+                              stopBy: end
+                              has:
+                                kind: lexical_declaration
+                                has:
+                                  kind: variable_declarator
+                                  pattern:
+                                    context: const $A3 = createClient($$$)
+                                    selector: variable_declarator
+                                  has:
+                                    field: value
+                                    kind: call_expression
+                                    pattern: createClient($$$)
+                                    has:
+                                      field: arguments
+                                      kind: arguments
+                                      regex: (?i)(service_?role|secret_?key|sb_secret_|SUPABASE_SECRET)
+                        - all:
+                          - pattern: this.$F3.storage.from($$$)
+                          - inside:
+                              kind: class_body
+                              stopBy: end
+                              has:
+                                stopBy: end
+                                any:
+                                - kind: public_field_definition
+                                  pattern:
+                                    context: class X { $F3 = createClient($$$) }
+                                    selector: public_field_definition
+                                  has:
+                                    field: value
+                                    kind: call_expression
+                                    pattern: createClient($$$)
+                                    has:
+                                      field: arguments
+                                      kind: arguments
+                                      regex: (?i)(service_?role|secret_?key|sb_secret_|SUPABASE_SECRET)
+                                - kind: public_field_definition
+                                  pattern:
+                                    context: class X { private $F3 = createClient($$$) }
+                                    selector: public_field_definition
+                                  has:
+                                    field: value
+                                    kind: call_expression
+                                    pattern: createClient($$$)
+                                    has:
+                                      field: arguments
+                                      kind: arguments
+                                      regex: (?i)(service_?role|secret_?key|sb_secret_|SUPABASE_SECRET)
+                                - kind: public_field_definition
+                                  pattern:
+                                    context: class X { private readonly $F3 = createClient($$$) }
+                                    selector: public_field_definition
+                                  has:
+                                    field: value
+                                    kind: call_expression
+                                    pattern: createClient($$$)
+                                    has:
+                                      field: arguments
+                                      kind: arguments
+                                      regex: (?i)(service_?role|secret_?key|sb_secret_|SUPABASE_SECRET)
+                                - kind: public_field_definition
+                                  pattern:
+                                    context: class X { readonly $F3 = createClient($$$) }
+                                    selector: public_field_definition
+                                  has:
+                                    field: value
+                                    kind: call_expression
+                                    pattern: createClient($$$)
+                                    has:
+                                      field: arguments
+                                      kind: arguments
+                                      regex: (?i)(service_?role|secret_?key|sb_secret_|SUPABASE_SECRET)
+                                - kind: public_field_definition
+                                  pattern:
+                                    context: class X { public $F3 = createClient($$$) }
+                                    selector: public_field_definition
+                                  has:
+                                    field: value
+                                    kind: call_expression
+                                    pattern: createClient($$$)
+                                    has:
+                                      field: arguments
+                                      kind: arguments
+                                      regex: (?i)(service_?role|secret_?key|sb_secret_|SUPABASE_SECRET)
+                                - kind: public_field_definition
+                                  pattern:
+                                    context: class X { protected $F3 = createClient($$$) }
+                                    selector: public_field_definition
+                                  has:
+                                    field: value
+                                    kind: call_expression
+                                    pattern: createClient($$$)
+                                    has:
+                                      field: arguments
+                                      kind: arguments
+                                      regex: (?i)(service_?role|secret_?key|sb_secret_|SUPABASE_SECRET)
+                                - kind: public_field_definition
+                                  pattern:
+                                    context: class X { protected readonly $F3 = createClient($$$) }
+                                    selector: public_field_definition
+                                  has:
+                                    field: value
+                                    kind: call_expression
+                                    pattern: createClient($$$)
+                                    has:
+                                      field: arguments
+                                      kind: arguments
+                                      regex: (?i)(service_?role|secret_?key|sb_secret_|SUPABASE_SECRET)
+                                - kind: public_field_definition
+                                  pattern:
+                                    context: class X { public readonly $F3 = createClient($$$) }
+                                    selector: public_field_definition
+                                  has:
+                                    field: value
+                                    kind: call_expression
+                                    pattern: createClient($$$)
+                                    has:
+                                      field: arguments
+                                      kind: arguments
+                                      regex: (?i)(service_?role|secret_?key|sb_secret_|SUPABASE_SECRET)
+                                - kind: assignment_expression
+                                  pattern: this.$F3 = createClient($$$)
+                                  has:
+                                    field: right
+                                    kind: call_expression
+                                    pattern: createClient($$$)
+                                    has:
+                                      field: arguments
+                                      kind: arguments
+                                      regex: (?i)(service_?role|secret_?key|sb_secret_|SUPABASE_SECRET)
+                        - all:
+                          - pattern: $C3.storage.from($$$)
+                          - inside:
+                              stopBy: end
+                              kind: statement_block
+                              has:
+                                stopBy: end
+                                kind: variable_declarator
+                                pattern:
+                                  context: const $C3 = createClient($$$)
+                                  selector: variable_declarator
+                                has:
+                                  field: value
+                                  kind: call_expression
+                                  pattern: createClient($$$)
+                                  has:
+                                    field: arguments
+                                    kind: arguments
+                                    regex: (?i)(service_?role|secret_?key|sb_secret_|SUPABASE_SECRET)
+                        - all:
+                          - pattern: $A3.rpc($$$)
+                          - inside:
+                              kind: program
+                              stopBy: end
+                              has:
+                                kind: lexical_declaration
+                                has:
+                                  kind: variable_declarator
+                                  pattern:
+                                    context: const $A3 = createClient($$$)
+                                    selector: variable_declarator
+                                  has:
+                                    field: value
+                                    kind: call_expression
+                                    pattern: createClient($$$)
+                                    has:
+                                      field: arguments
+                                      kind: arguments
+                                      regex: (?i)(service_?role|secret_?key|sb_secret_|SUPABASE_SECRET)
+                        - all:
+                          - pattern: this.$F3.rpc($$$)
+                          - inside:
+                              kind: class_body
+                              stopBy: end
+                              has:
+                                stopBy: end
+                                any:
+                                - kind: public_field_definition
+                                  pattern:
+                                    context: class X { $F3 = createClient($$$) }
+                                    selector: public_field_definition
+                                  has:
+                                    field: value
+                                    kind: call_expression
+                                    pattern: createClient($$$)
+                                    has:
+                                      field: arguments
+                                      kind: arguments
+                                      regex: (?i)(service_?role|secret_?key|sb_secret_|SUPABASE_SECRET)
+                                - kind: public_field_definition
+                                  pattern:
+                                    context: class X { private $F3 = createClient($$$) }
+                                    selector: public_field_definition
+                                  has:
+                                    field: value
+                                    kind: call_expression
+                                    pattern: createClient($$$)
+                                    has:
+                                      field: arguments
+                                      kind: arguments
+                                      regex: (?i)(service_?role|secret_?key|sb_secret_|SUPABASE_SECRET)
+                                - kind: public_field_definition
+                                  pattern:
+                                    context: class X { private readonly $F3 = createClient($$$) }
+                                    selector: public_field_definition
+                                  has:
+                                    field: value
+                                    kind: call_expression
+                                    pattern: createClient($$$)
+                                    has:
+                                      field: arguments
+                                      kind: arguments
+                                      regex: (?i)(service_?role|secret_?key|sb_secret_|SUPABASE_SECRET)
+                                - kind: public_field_definition
+                                  pattern:
+                                    context: class X { readonly $F3 = createClient($$$) }
+                                    selector: public_field_definition
+                                  has:
+                                    field: value
+                                    kind: call_expression
+                                    pattern: createClient($$$)
+                                    has:
+                                      field: arguments
+                                      kind: arguments
+                                      regex: (?i)(service_?role|secret_?key|sb_secret_|SUPABASE_SECRET)
+                                - kind: public_field_definition
+                                  pattern:
+                                    context: class X { public $F3 = createClient($$$) }
+                                    selector: public_field_definition
+                                  has:
+                                    field: value
+                                    kind: call_expression
+                                    pattern: createClient($$$)
+                                    has:
+                                      field: arguments
+                                      kind: arguments
+                                      regex: (?i)(service_?role|secret_?key|sb_secret_|SUPABASE_SECRET)
+                                - kind: public_field_definition
+                                  pattern:
+                                    context: class X { protected $F3 = createClient($$$) }
+                                    selector: public_field_definition
+                                  has:
+                                    field: value
+                                    kind: call_expression
+                                    pattern: createClient($$$)
+                                    has:
+                                      field: arguments
+                                      kind: arguments
+                                      regex: (?i)(service_?role|secret_?key|sb_secret_|SUPABASE_SECRET)
+                                - kind: public_field_definition
+                                  pattern:
+                                    context: class X { protected readonly $F3 = createClient($$$) }
+                                    selector: public_field_definition
+                                  has:
+                                    field: value
+                                    kind: call_expression
+                                    pattern: createClient($$$)
+                                    has:
+                                      field: arguments
+                                      kind: arguments
+                                      regex: (?i)(service_?role|secret_?key|sb_secret_|SUPABASE_SECRET)
+                                - kind: public_field_definition
+                                  pattern:
+                                    context: class X { public readonly $F3 = createClient($$$) }
+                                    selector: public_field_definition
+                                  has:
+                                    field: value
+                                    kind: call_expression
+                                    pattern: createClient($$$)
+                                    has:
+                                      field: arguments
+                                      kind: arguments
+                                      regex: (?i)(service_?role|secret_?key|sb_secret_|SUPABASE_SECRET)
+                                - kind: assignment_expression
+                                  pattern: this.$F3 = createClient($$$)
+                                  has:
+                                    field: right
+                                    kind: call_expression
+                                    pattern: createClient($$$)
+                                    has:
+                                      field: arguments
+                                      kind: arguments
+                                      regex: (?i)(service_?role|secret_?key|sb_secret_|SUPABASE_SECRET)
+                        - all:
+                          - pattern: $C3.rpc($$$)
+                          - inside:
+                              stopBy: end
+                              kind: statement_block
+                              has:
+                                stopBy: end
+                                kind: variable_declarator
+                                pattern:
+                                  context: const $C3 = createClient($$$)
+                                  selector: variable_declarator
+                                has:
+                                  field: value
+                                  kind: call_expression
+                                  pattern: createClient($$$)
+                                  has:
+                                    field: arguments
+                                    kind: arguments
+                                    regex: (?i)(service_?role|secret_?key|sb_secret_|SUPABASE_SECRET)
+            - all:
+              - all:
+                - has:
+                    stopBy: end
+                    kind: binary_expression
+                    any:
+                    - pattern: $HDR !== process.env.$SECRET
+                    - pattern: process.env.$SECRET !== $HDR
+                    - pattern: $HDR != process.env.$SECRET
+                    - pattern: process.env.$SECRET != $HDR
+                    - pattern: $HDR[$KEY] !== process.env.$SECRET
+                    - pattern: process.env.$SECRET !== $HDR[$KEY]
+                    - pattern: $HDR[$KEY] != process.env.$SECRET
+                    - pattern: process.env.$SECRET != $HDR[$KEY]
+                    - pattern: $HDR.$KEY !== process.env.$SECRET
+                    - pattern: process.env.$SECRET !== $HDR.$KEY
+                    - pattern: $HDR.$KEY != process.env.$SECRET
+                    - pattern: process.env.$SECRET != $HDR.$KEY
+                    has: &id001
+                      kind: member_expression
+                      pattern: process.env.$SECRET
+                      regex: ^process\.env\.[A-Z0-9_]*(SECRET|TOKEN|KEY)\b
+                      not: &id003
+                        kind: member_expression
+                        regex: (?i)(anon|publishable|public|_url\b)
+                - &id002
+                  has:
+                    stopBy: end
+                    kind: unary_expression
+                    pattern: '!process.env.$SECRET'
+              - &id004
+                inside:
+                  stopBy: end
+                  kind: method_definition
+                  has:
+                    field: parameters
+                    kind: formal_parameters
+                    has:
+                      kind: required_parameter
+                      any:
+                      - pattern:
+                          context: 'class X { m(@Headers($NAME) $HDR: $TYPE) {} }'
+                          selector: required_parameter
+                      - pattern:
+                          context: 'class X { m(@Headers() $HDR: $TYPE) {} }'
+                          selector: required_parameter
+            - all:
+              - has:
+                  stopBy: end
+                  kind: binary_expression
+                  any:
+                  - pattern: $REQ !== process.env.$SECRET
+                  - pattern: process.env.$SECRET !== $REQ
+                  - pattern: $REQ != process.env.$SECRET
+                  - pattern: process.env.$SECRET != $REQ
+                  has: *id001
+                  all:
+                  - has: &id005
+                      any:
+                      - kind: member_expression
+                        regex: ^(req|request)\.(headers\b|header\(|get\()
+                      - kind: subscript_expression
+                        regex: ^(req|request)\.(headers\b|header\(|get\()
+                      - kind: call_expression
+                        regex: ^(req|request)\.(headers\b|header\(|get\()
+              - *id002
+            - all:
+              - has:
+                  stopBy: end
+                  kind: unary_expression
+                  any:
+                  - pattern: '!timingSafeEqual($$$)'
+                  - pattern: '!crypto.timingSafeEqual($$$)'
+                  has:
+                    stopBy: end
+                    kind: arguments
+                    all:
+                    - has:
+                        kind: call_expression
+                        any:
+                        - pattern: Buffer.from($HDR)
+                        - pattern: Buffer.from($HDR[$KEY])
+                        - pattern: Buffer.from($HDR.$KEY)
+                        - pattern: Buffer.from($HDR, $ENC)
+                        - pattern: Buffer.from($HDR[$KEY], $ENC)
+                        - pattern: Buffer.from($HDR.$KEY, $ENC)
+                    - has:
+                        stopBy: end
+                        kind: member_expression
+                        pattern: process.env.$SECRET
+                        regex: ^process\.env\.[A-Z0-9_]*(SECRET|TOKEN|KEY)\b
+                        not: *id003
+              - *id004
+            - has:
+                stopBy: end
+                kind: unary_expression
+                any:
+                - pattern: '!timingSafeEqual($$$)'
+                - pattern: '!crypto.timingSafeEqual($$$)'
+                has:
+                  stopBy: end
+                  kind: arguments
+                  all:
+                  - has:
+                      kind: call_expression
+                      any:
+                      - pattern: Buffer.from($REQ)
+                      - pattern: Buffer.from($REQ, $ENC)
+                      has:
+                        field: arguments
+                        has: *id005
+                  - has:
+                      stopBy: end
+                      kind: member_expression
+                      pattern: process.env.$SECRET
+                      regex: ^process\.env\.[A-Z0-9_]*(SECRET|TOKEN|KEY)\b
+                      not: *id003
+        - has:
+            field: consequence
+            any:
+            - kind: throw_statement
+            - kind: statement_block
+              has:
+                kind: throw_statement
+        - any:
+          - not:
+              follows:
+                any:
+                - kind: lexical_declaration
+                - kind: variable_declaration
+                - kind: expression_statement
+                - kind: comment
+                - kind: if_statement
+                - kind: empty_statement
+                - kind: return_statement
+                - kind: throw_statement
+                - kind: try_statement
+                - kind: for_statement
+                - kind: for_in_statement
+                - kind: while_statement
+                - kind: do_statement
+                - kind: switch_statement
+                - kind: statement_block
+                - kind: function_declaration
+                - kind: class_declaration
+                - kind: labeled_statement
+          - follows:
+              any:
+              - not:
+                  follows:
+                    any:
+                    - kind: lexical_declaration
+                    - kind: variable_declaration
+                    - kind: expression_statement
+                    - kind: comment
+                    - kind: if_statement
+                    - kind: empty_statement
+                    - kind: return_statement
+                    - kind: throw_statement
+                    - kind: try_statement
+                    - kind: for_statement
+                    - kind: for_in_statement
+                    - kind: while_statement
+                    - kind: do_statement
+                    - kind: switch_statement
+                    - kind: statement_block
+                    - kind: function_declaration
+                    - kind: class_declaration
+                    - kind: labeled_statement
+              - follows:
+                  any:
+                  - not:
+                      follows:
+                        any:
+                        - kind: lexical_declaration
+                        - kind: variable_declaration
+                        - kind: expression_statement
+                        - kind: comment
+                        - kind: if_statement
+                        - kind: empty_statement
+                        - kind: return_statement
+                        - kind: throw_statement
+                        - kind: try_statement
+                        - kind: for_statement
+                        - kind: for_in_statement
+                        - kind: while_statement
+                        - kind: do_statement
+                        - kind: switch_statement
+                        - kind: statement_block
+                        - kind: function_declaration
+                        - kind: class_declaration
+                        - kind: labeled_statement
+                  - follows:
+                      any:
+                      - not:
+                          follows:
+                            any:
+                            - kind: lexical_declaration
+                            - kind: variable_declaration
+                            - kind: expression_statement
+                            - kind: comment
+                            - kind: if_statement
+                            - kind: empty_statement
+                            - kind: return_statement
+                            - kind: throw_statement
+                            - kind: try_statement
+                            - kind: for_statement
+                            - kind: for_in_statement
+                            - kind: while_statement
+                            - kind: do_statement
+                            - kind: switch_statement
+                            - kind: statement_block
+                            - kind: function_declaration
+                            - kind: class_declaration
+                            - kind: labeled_statement
+                      - follows:
+                          any:
+                          - not:
+                              follows:
+                                any:
+                                - kind: lexical_declaration
+                                - kind: variable_declaration
+                                - kind: expression_statement
+                                - kind: comment
+                                - kind: if_statement
+                                - kind: empty_statement
+                                - kind: return_statement
+                                - kind: throw_statement
+                                - kind: try_statement
+                                - kind: for_statement
+                                - kind: for_in_statement
+                                - kind: while_statement
+                                - kind: do_statement
+                                - kind: switch_statement
+                                - kind: statement_block
+                                - kind: function_declaration
+                                - kind: class_declaration
+                                - kind: labeled_statement
+                          - follows:
+                              any:
+                              - not:
+                                  follows:
+                                    any:
+                                    - kind: lexical_declaration
+                                    - kind: variable_declaration
+                                    - kind: expression_statement
+                                    - kind: comment
+                                    - kind: if_statement
+                                    - kind: empty_statement
+                                    - kind: return_statement
+                                    - kind: throw_statement
+                                    - kind: try_statement
+                                    - kind: for_statement
+                                    - kind: for_in_statement
+                                    - kind: while_statement
+                                    - kind: do_statement
+                                    - kind: switch_statement
+                                    - kind: statement_block
+                                    - kind: function_declaration
+                                    - kind: class_declaration
+                                    - kind: labeled_statement
+                              - follows:
+                                  any:
+                                  - not:
+                                      follows:
+                                        any:
+                                        - kind: lexical_declaration
+                                        - kind: variable_declaration
+                                        - kind: expression_statement
+                                        - kind: comment
+                                        - kind: if_statement
+                                        - kind: empty_statement
+                                        - kind: return_statement
+                                        - kind: throw_statement
+                                        - kind: try_statement
+                                        - kind: for_statement
+                                        - kind: for_in_statement
+                                        - kind: while_statement
+                                        - kind: do_statement
+                                        - kind: switch_statement
+                                        - kind: statement_block
+                                        - kind: function_declaration
+                                        - kind: class_declaration
+                                        - kind: labeled_statement
+                                  - follows:
+                                      any:
+                                      - not:
+                                          follows:
+                                            any:
+                                            - kind: lexical_declaration
+                                            - kind: variable_declaration
+                                            - kind: expression_statement
+                                            - kind: comment
+                                            - kind: if_statement
+                                            - kind: empty_statement
+                                            - kind: return_statement
+                                            - kind: throw_statement
+                                            - kind: try_statement
+                                            - kind: for_statement
+                                            - kind: for_in_statement
+                                            - kind: while_statement
+                                            - kind: do_statement
+                                            - kind: switch_statement
+                                            - kind: statement_block
+                                            - kind: function_declaration
+                                            - kind: class_declaration
+                                            - kind: labeled_statement
+                                      - follows:
+                                          any:
+                                          - not:
+                                              follows:
+                                                any:
+                                                - kind: lexical_declaration
+                                                - kind: variable_declaration
+                                                - kind: expression_statement
+                                                - kind: comment
+                                                - kind: if_statement
+                                                - kind: empty_statement
+                                                - kind: return_statement
+                                                - kind: throw_statement
+                                                - kind: try_statement
+                                                - kind: for_statement
+                                                - kind: for_in_statement
+                                                - kind: while_statement
+                                                - kind: do_statement
+                                                - kind: switch_statement
+                                                - kind: statement_block
+                                                - kind: function_declaration
+                                                - kind: class_declaration
+                                                - kind: labeled_statement
+                                          - follows:
+                                              any:
+                                              - not:
+                                                  follows:
+                                                    any:
+                                                    - kind: lexical_declaration
+                                                    - kind: variable_declaration
+                                                    - kind: expression_statement
+                                                    - kind: comment
+                                                    - kind: if_statement
+                                                    - kind: empty_statement
+                                                    - kind: return_statement
+                                                    - kind: throw_statement
+                                                    - kind: try_statement
+                                                    - kind: for_statement
+                                                    - kind: for_in_statement
+                                                    - kind: while_statement
+                                                    - kind: do_statement
+                                                    - kind: switch_statement
+                                                    - kind: statement_block
+                                                    - kind: function_declaration
+                                                    - kind: class_declaration
+                                                    - kind: labeled_statement
+                                              - follows:
+                                                  any:
+                                                  - kind: lexical_declaration
+                                                  - kind: variable_declaration
+                                                  - kind: expression_statement
+                                                  - kind: comment
+                                                  - kind: if_statement
+                                                  - kind: empty_statement
+                                                  not:
+                                                    follows:
+                                                      any:
+                                                      - kind: lexical_declaration
+                                                      - kind: variable_declaration
+                                                      - kind: expression_statement
+                                                      - kind: comment
+                                                      - kind: if_statement
+                                                      - kind: empty_statement
+                                                      - kind: return_statement
+                                                      - kind: throw_statement
+                                                      - kind: try_statement
+                                                      - kind: for_statement
+                                                      - kind: for_in_statement
+                                                      - kind: while_statement
+                                                      - kind: do_statement
+                                                      - kind: switch_statement
+                                                      - kind: statement_block
+                                                      - kind: function_declaration
+                                                      - kind: class_declaration
+                                                      - kind: labeled_statement
+                                              not:
+                                                has:
+                                                  stopBy: &id006
+                                                    any:
+                                                    - kind: arrow_function
+                                                    - kind: function_expression
+                                                    - kind: function_declaration
+                                                  kind: return_statement
+                                          not:
+                                            has:
+                                              stopBy: *id006
+                                              kind: return_statement
+                                      not:
+                                        has:
+                                          stopBy: *id006
+                                          kind: return_statement
+                                  not:
+                                    has:
+                                      stopBy: *id006
+                                      kind: return_statement
+                              not:
+                                has:
+                                  stopBy: *id006
+                                  kind: return_statement
+                          not:
+                            has:
+                              stopBy: *id006
+                              kind: return_statement
+                      not:
+                        has:
+                          stopBy: *id006
+                          kind: return_statement
+                  not:
+                    has:
+                      stopBy: *id006
+                      kind: return_statement
+              not:
+                has:
+                  stopBy: *id006
+                  kind: return_statement
+min_engine: 0.39.0

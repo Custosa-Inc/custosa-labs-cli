@@ -1,0 +1,1012 @@
+id: access-audit-log.javascript-nextjs.read-handler
+practice_id: access-audit-log
+language: javascript
+frameworks:
+- nextjs
+kind: items
+rule:
+  all:
+  - any:
+    - all:
+      - kind: function_declaration
+      - has:
+          field: name
+          kind: identifier
+          regex: '^(GET|HEAD)$'
+      - inside:
+          kind: export_statement
+    - all:
+      - kind: variable_declarator
+      - has:
+          field: name
+          kind: identifier
+          regex: '^(GET|HEAD)$'
+      - has:
+          field: value
+          any:
+          - &id011
+            kind: arrow_function
+          - &id012
+            kind: function_expression
+          - kind: call_expression
+      - not:
+          has:
+            field: value
+            kind: call_expression
+            has:
+              stopBy: end
+              kind: call_expression
+              has:
+                field: function
+                any:
+                - kind: identifier
+                  regex: '([Aa]udit|AUDIT|[Aa]ccess_?[Ll]ogs?|ACCESS_?LOGS?|[Ll]og_?[Aa]ccess|LOG_?ACCESS|[Rr]ecord_?[Aa]ccess|[Aa]ccess_?[Ee]vents?|ACCESS_?EVENTS?|[Pp]hi_?[Aa]ccess|PHI_?ACCESS|[Aa]ctivity_?[Ll]ogs?|ACTIVITY_?LOGS?)'
+                - kind: member_expression
+                  regex: '([Aa]udit|AUDIT|[Aa]ccess_?[Ll]ogs?|ACCESS_?LOGS?|[Ll]og_?[Aa]ccess|LOG_?ACCESS|[Rr]ecord_?[Aa]ccess|[Aa]ccess_?[Ee]vents?|ACCESS_?EVENTS?|[Pp]hi_?[Aa]ccess|PHI_?ACCESS|[Aa]ctivity_?[Ll]ogs?|ACTIVITY_?LOGS?)'
+      - inside:
+          kind: lexical_declaration
+          inside:
+            kind: export_statement
+  - not:
+      all:
+      - has:
+          stopBy: end
+          any:
+          - kind: new_expression
+            has:
+              field: constructor
+              any:
+              - kind: identifier
+                regex: '([Aa]udit|AUDIT|[Aa]ccess_?[Ll]ogs?|ACCESS_?LOGS?|[Ll]og_?[Aa]ccess|LOG_?ACCESS|[Rr]ecord_?[Aa]ccess|[Aa]ccess_?[Ee]vents?|ACCESS_?EVENTS?|[Pp]hi_?[Aa]ccess|PHI_?ACCESS|[Aa]ctivity_?[Ll]ogs?|ACTIVITY_?LOGS?)'
+              - kind: member_expression
+                regex: '([Aa]udit|AUDIT|[Aa]ccess_?[Ll]ogs?|ACCESS_?LOGS?|[Ll]og_?[Aa]ccess|LOG_?ACCESS|[Rr]ecord_?[Aa]ccess|[Aa]ccess_?[Ee]vents?|ACCESS_?EVENTS?|[Pp]hi_?[Aa]ccess|PHI_?ACCESS|[Aa]ctivity_?[Ll]ogs?|ACTIVITY_?LOGS?)'
+          - kind: call_expression
+            all:
+            - has:
+                field: function
+                any:
+                - kind: member_expression
+                  regex: '([Aa]udit|AUDIT|[Aa]ccess_?[Ll]ogs?|ACCESS_?LOGS?|[Ll]og_?[Aa]ccess|LOG_?ACCESS|[Rr]ecord_?[Aa]ccess|[Aa]ccess_?[Ee]vents?|ACCESS_?EVENTS?|[Pp]hi_?[Aa]ccess|PHI_?ACCESS|[Aa]ctivity_?[Ll]ogs?|ACTIVITY_?LOGS?)'
+                - kind: identifier
+                  regex: '([Aa]udit|AUDIT|[Aa]ccess_?[Ll]ogs?|ACCESS_?LOGS?|[Ll]og_?[Aa]ccess|LOG_?ACCESS|[Rr]ecord_?[Aa]ccess|[Aa]ccess_?[Ee]vents?|ACCESS_?EVENTS?|[Pp]hi_?[Aa]ccess|PHI_?ACCESS|[Aa]ctivity_?[Ll]ogs?|ACTIVITY_?LOGS?)'
+            - not:
+                has:
+                  field: function
+                  any:
+                  - kind: member_expression
+                    regex: '([Ss]kip|SKIP|[Dd]isable|DISABLE|[Ww]ithout|[Bb]ypass|[Nn]o_?[Aa]udit|NO_?AUDIT|[Nn]o_?[Ll]og|NO_?LOG)'
+                  - kind: identifier
+                    regex: '([Ss]kip|SKIP|[Dd]isable|DISABLE|[Ww]ithout|[Bb]ypass|[Nn]o_?[Aa]udit|NO_?AUDIT|[Nn]o_?[Ll]og|NO_?LOG)'
+                  - kind: member_expression
+                    regex: '(?-u)\.(count\w*|find\w*|select|aggregate|get\w*|list\w*|search\w*|groupBy|exists|is\w+|has\w+|set\w*|clear|remove\w*|disable\w*|enable\w*|invalidate\w*|flush|reset|toString|delete\w*|destroy\w*|update\w*|upsert|truncate|purge\w*|del|eq|in|lt|gt|lte|gte)$'
+                  - kind: identifier
+                    regex: '^(is|has|should|can|get|set)[A-Z]'
+      - not: &id035
+          any:
+          - has:
+              field: body
+              kind: statement_block
+              all:
+              - has:
+                  kind: expression_statement
+                  has:
+                    any:
+                    - &id010
+                      kind: call_expression
+                      all:
+                      - any:
+                        - has:
+                            field: function
+                            kind: member_expression
+                            regex: '\.([^.\s(]*([aA]udit|[aA]ccess_?[lL]ogs?|[aA]ccess_?[eE]vents?|[pP]hi_?[aA]ccess|[aA]ctivity_?[lL]ogs?)[^.\s(]*|securityEvents?)\.(create|createMany)$'
+                            not:
+                              kind: member_expression
+                              regex: '(Service|Svc|Client|Manager|Helper|Logger|Tracker)\.(create|createMany)$'
+                        - has:
+                            field: function
+                            kind: member_expression
+                            regex: '\.from\(\s*[''\x22`][^''\x22`]*(audit|access_log|access_event|phi_access|activity_log|security_event)[^''\x22`]*[''\x22`]\s*\)\s*\.insert$'
+                        - all:
+                          - has:
+                              field: function
+                              kind: member_expression
+                              regex: '\.insert$'
+                          - has:
+                              field: arguments
+                              kind: arguments
+                              has:
+                                kind: identifier
+                                regex: '(?-u)(?i)audit|access_?logs?'
+                        - has:
+                            field: function
+                            kind: member_expression
+                            regex: '^[A-Z]?[^.\s(]*(Audit|AccessLog|AccessEvent|PhiAccess|ActivityLog)[^.\s(]*\.(create|bulkCreate|insertMany)$'
+                        - has:
+                            field: function
+                            kind: member_expression
+                            regex: '^\(?new\s+[^.\s(]*(Audit|AccessLog|AccessEvent|PhiAccess|ActivityLog)[^.\s(]*\([\s\S]*\)\)?\.save$'
+                        - has:
+                            field: function
+                            kind: member_expression
+                            regex: '^\w+\(\s*[''\x22`][^''\x22`]*(audit|access_log)[^''\x22`]*[''\x22`]\s*\)\s*\.insert$'
+                        - has:
+                            field: function
+                            kind: member_expression
+                            regex: '[aA]udit[^.\s(]*(Repo|Repository)\.(save|insert)$'
+                        - has:
+                            field: function
+                            kind: member_expression
+                            regex: '\.insert\(\s*[\w.]*([aA]udit|[aA]ccess_?[lL]og)[\w.]*\s*\)\s*\.values$'
+                        - all:
+                          - has:
+                              field: function
+                              any:
+                              - kind: member_expression
+                                regex: '(?:^|\.)(?:query|execute|exec|none|one|any|raw|\$executeRaw|\$executeRawUnsafe|unsafe)$'
+                              - kind: identifier
+                                regex: '(?:^|\.)(?:query|execute|exec|none|one|any|raw|\$executeRaw|\$executeRawUnsafe|unsafe)$'
+                          - any:
+                            - has:
+                                field: arguments
+                                kind: arguments
+                                has:
+                                  any:
+                                  - kind: string
+                                    regex: '(?i)\binsert\s+into\s+[`\x22]?(?:\w+\.)?[`\x22]?[^\s(`\x22]*(audit|access_log|access_event|phi_access|activity_log|security_event)'
+                                  - kind: template_string
+                                    regex: '(?i)\binsert\s+into\s+[`\x22]?(?:\w+\.)?[`\x22]?[^\s(`\x22]*(audit|access_log|access_event|phi_access|activity_log|security_event)'
+                            - has:
+                                field: arguments
+                                kind: template_string
+                                regex: '(?i)\binsert\s+into\s+[`\x22]?(?:\w+\.)?[`\x22]?[^\s(`\x22]*(audit|access_log|access_event|phi_access|activity_log|security_event)'
+                      - all:
+                        - not:
+                            any:
+                            - inside: &id002
+                                any:
+                                - kind: expression_statement
+                                  inside:
+                                    kind: statement_block
+                                    inside: &id001
+                                      kind: if_statement
+                                - kind: expression_statement
+                                  inside: *id001
+                            - inside:
+                                kind: await_expression
+                                inside: *id002
+                            - inside: &id008
+                                kind: expression_statement
+                                any:
+                                - follows: &id003
+                                    kind: return_statement
+                                - follows:
+                                    any:
+                                    - &id004
+                                      kind: expression_statement
+                                    - &id005
+                                      kind: lexical_declaration
+                                    - &id006
+                                      kind: variable_declaration
+                                    - &id007
+                                      kind: comment
+                                    follows: *id003
+                                - follows:
+                                    any:
+                                    - *id004
+                                    - *id005
+                                    - *id006
+                                    - *id007
+                                    follows:
+                                      any:
+                                      - *id004
+                                      - *id005
+                                      - *id006
+                                      - *id007
+                                      follows: *id003
+                            - inside:
+                                kind: await_expression
+                                inside: *id008
+                        - not:
+                            all:
+                            - pattern: '$AFN($$$AARGS)'
+                            - any:
+                              - inside: &id009
+                                  kind: expression_statement
+                                  inside:
+                                    kind: statement_block
+                                    has:
+                                      any:
+                                      - kind: lexical_declaration
+                                      - kind: variable_declaration
+                                      has:
+                                        kind: variable_declarator
+                                        pattern:
+                                          context: 'const $AFN = $AVAL'
+                                          selector: variable_declarator
+                              - inside:
+                                  kind: await_expression
+                                  inside: *id009
+                    - kind: await_expression
+                      has: *id010
+              - not:
+                  has:
+                    kind: return_statement
+                    precedes:
+                      any:
+                      - kind: expression_statement
+                      - kind: lexical_declaration
+                      - kind: variable_declaration
+                      - kind: comment
+                      - kind: if_statement
+                      - kind: return_statement
+          - has:
+              field: value
+              any:
+              - *id011
+              - *id012
+              has:
+                field: body
+                kind: statement_block
+                all:
+                - has:
+                    kind: expression_statement
+                    has:
+                      any:
+                      - &id022
+                        kind: call_expression
+                        all:
+                        - any:
+                          - has:
+                              field: function
+                              kind: member_expression
+                              regex: '\.([^.\s(]*([aA]udit|[aA]ccess_?[lL]ogs?|[aA]ccess_?[eE]vents?|[pP]hi_?[aA]ccess|[aA]ctivity_?[lL]ogs?)[^.\s(]*|securityEvents?)\.(create|createMany)$'
+                              not:
+                                kind: member_expression
+                                regex: '(Service|Svc|Client|Manager|Helper|Logger|Tracker)\.(create|createMany)$'
+                          - has:
+                              field: function
+                              kind: member_expression
+                              regex: '\.from\(\s*[''\x22`][^''\x22`]*(audit|access_log|access_event|phi_access|activity_log|security_event)[^''\x22`]*[''\x22`]\s*\)\s*\.insert$'
+                          - all:
+                            - has:
+                                field: function
+                                kind: member_expression
+                                regex: '\.insert$'
+                            - has:
+                                field: arguments
+                                kind: arguments
+                                has:
+                                  kind: identifier
+                                  regex: '(?-u)(?i)audit|access_?logs?'
+                          - has:
+                              field: function
+                              kind: member_expression
+                              regex: '^[A-Z]?[^.\s(]*(Audit|AccessLog|AccessEvent|PhiAccess|ActivityLog)[^.\s(]*\.(create|bulkCreate|insertMany)$'
+                          - has:
+                              field: function
+                              kind: member_expression
+                              regex: '^\(?new\s+[^.\s(]*(Audit|AccessLog|AccessEvent|PhiAccess|ActivityLog)[^.\s(]*\([\s\S]*\)\)?\.save$'
+                          - has:
+                              field: function
+                              kind: member_expression
+                              regex: '^\w+\(\s*[''\x22`][^''\x22`]*(audit|access_log)[^''\x22`]*[''\x22`]\s*\)\s*\.insert$'
+                          - has:
+                              field: function
+                              kind: member_expression
+                              regex: '[aA]udit[^.\s(]*(Repo|Repository)\.(save|insert)$'
+                          - has:
+                              field: function
+                              kind: member_expression
+                              regex: '\.insert\(\s*[\w.]*([aA]udit|[aA]ccess_?[lL]og)[\w.]*\s*\)\s*\.values$'
+                          - all:
+                            - has:
+                                field: function
+                                any:
+                                - kind: member_expression
+                                  regex: '(?:^|\.)(?:query|execute|exec|none|one|any|raw|\$executeRaw|\$executeRawUnsafe|unsafe)$'
+                                - kind: identifier
+                                  regex: '(?:^|\.)(?:query|execute|exec|none|one|any|raw|\$executeRaw|\$executeRawUnsafe|unsafe)$'
+                            - any:
+                              - has:
+                                  field: arguments
+                                  kind: arguments
+                                  has:
+                                    any:
+                                    - kind: string
+                                      regex: '(?i)\binsert\s+into\s+[`\x22]?(?:\w+\.)?[`\x22]?[^\s(`\x22]*(audit|access_log|access_event|phi_access|activity_log|security_event)'
+                                    - kind: template_string
+                                      regex: '(?i)\binsert\s+into\s+[`\x22]?(?:\w+\.)?[`\x22]?[^\s(`\x22]*(audit|access_log|access_event|phi_access|activity_log|security_event)'
+                              - has:
+                                  field: arguments
+                                  kind: template_string
+                                  regex: '(?i)\binsert\s+into\s+[`\x22]?(?:\w+\.)?[`\x22]?[^\s(`\x22]*(audit|access_log|access_event|phi_access|activity_log|security_event)'
+                        - all:
+                          - not:
+                              any:
+                              - inside: &id014
+                                  any:
+                                  - kind: expression_statement
+                                    inside:
+                                      kind: statement_block
+                                      inside: &id013
+                                        kind: if_statement
+                                  - kind: expression_statement
+                                    inside: *id013
+                              - inside:
+                                  kind: await_expression
+                                  inside: *id014
+                              - inside: &id020
+                                  kind: expression_statement
+                                  any:
+                                  - follows: &id015
+                                      kind: return_statement
+                                  - follows:
+                                      any:
+                                      - &id016
+                                        kind: expression_statement
+                                      - &id017
+                                        kind: lexical_declaration
+                                      - &id018
+                                        kind: variable_declaration
+                                      - &id019
+                                        kind: comment
+                                      follows: *id015
+                                  - follows:
+                                      any:
+                                      - *id016
+                                      - *id017
+                                      - *id018
+                                      - *id019
+                                      follows:
+                                        any:
+                                        - *id016
+                                        - *id017
+                                        - *id018
+                                        - *id019
+                                        follows: *id015
+                              - inside:
+                                  kind: await_expression
+                                  inside: *id020
+                          - not:
+                              all:
+                              - pattern: '$AFN($$$AARGS)'
+                              - any:
+                                - inside: &id021
+                                    kind: expression_statement
+                                    inside:
+                                      kind: statement_block
+                                      has:
+                                        any:
+                                        - kind: lexical_declaration
+                                        - kind: variable_declaration
+                                        has:
+                                          kind: variable_declarator
+                                          pattern:
+                                            context: 'const $AFN = $AVAL'
+                                            selector: variable_declarator
+                                - inside:
+                                    kind: await_expression
+                                    inside: *id021
+                      - kind: await_expression
+                        has: *id022
+                - not:
+                    has:
+                      kind: return_statement
+                      precedes:
+                        any:
+                        - kind: expression_statement
+                        - kind: lexical_declaration
+                        - kind: variable_declaration
+                        - kind: comment
+                        - kind: if_statement
+                        - kind: return_statement
+  - not:
+      has:
+        stopBy: end
+        kind: call_expression
+        pattern: '$HELPER($$$HA)'
+        has:
+          field: function
+          kind: identifier
+        inside:
+          stopBy: end
+          kind: program
+          has:
+            any:
+            - &id033
+              kind: function_declaration
+              pattern:
+                context: 'function $HELPER($$$HP) { $$$HB }'
+                selector: function_declaration
+              has: &id032
+                stopBy: end
+                any:
+                - any:
+                  - kind: new_expression
+                    has:
+                      field: constructor
+                      any:
+                      - kind: identifier
+                        regex: '([Aa]udit|AUDIT|[Aa]ccess_?[Ll]ogs?|ACCESS_?LOGS?|[Ll]og_?[Aa]ccess|LOG_?ACCESS|[Rr]ecord_?[Aa]ccess|[Aa]ccess_?[Ee]vents?|ACCESS_?EVENTS?|[Pp]hi_?[Aa]ccess|PHI_?ACCESS|[Aa]ctivity_?[Ll]ogs?|ACTIVITY_?LOGS?)'
+                      - kind: member_expression
+                        regex: '([Aa]udit|AUDIT|[Aa]ccess_?[Ll]ogs?|ACCESS_?LOGS?|[Ll]og_?[Aa]ccess|LOG_?ACCESS|[Rr]ecord_?[Aa]ccess|[Aa]ccess_?[Ee]vents?|ACCESS_?EVENTS?|[Pp]hi_?[Aa]ccess|PHI_?ACCESS|[Aa]ctivity_?[Ll]ogs?|ACTIVITY_?LOGS?)'
+                  - kind: call_expression
+                    all:
+                    - has:
+                        field: function
+                        any:
+                        - kind: member_expression
+                          regex: '([Aa]udit|AUDIT|[Aa]ccess_?[Ll]ogs?|ACCESS_?LOGS?|[Ll]og_?[Aa]ccess|LOG_?ACCESS|[Rr]ecord_?[Aa]ccess|[Aa]ccess_?[Ee]vents?|ACCESS_?EVENTS?|[Pp]hi_?[Aa]ccess|PHI_?ACCESS|[Aa]ctivity_?[Ll]ogs?|ACTIVITY_?LOGS?)'
+                        - kind: identifier
+                          regex: '([Aa]udit|AUDIT|[Aa]ccess_?[Ll]ogs?|ACCESS_?LOGS?|[Ll]og_?[Aa]ccess|LOG_?ACCESS|[Rr]ecord_?[Aa]ccess|[Aa]ccess_?[Ee]vents?|ACCESS_?EVENTS?|[Pp]hi_?[Aa]ccess|PHI_?ACCESS|[Aa]ctivity_?[Ll]ogs?|ACTIVITY_?LOGS?)'
+                    - not:
+                        has:
+                          field: function
+                          any:
+                          - kind: member_expression
+                            regex: '([Ss]kip|SKIP|[Dd]isable|DISABLE|[Ww]ithout|[Bb]ypass|[Nn]o_?[Aa]udit|NO_?AUDIT|[Nn]o_?[Ll]og|NO_?LOG)'
+                          - kind: identifier
+                            regex: '([Ss]kip|SKIP|[Dd]isable|DISABLE|[Ww]ithout|[Bb]ypass|[Nn]o_?[Aa]udit|NO_?AUDIT|[Nn]o_?[Ll]og|NO_?LOG)'
+                          - kind: member_expression
+                            regex: '(?-u)\.(count\w*|find\w*|select|aggregate|get\w*|list\w*|search\w*|groupBy|exists|is\w+|has\w+|set\w*|clear|remove\w*|disable\w*|enable\w*|invalidate\w*|flush|reset|toString|delete\w*|destroy\w*|update\w*|upsert|truncate|purge\w*|del|eq|in|lt|gt|lte|gte)$'
+                          - kind: identifier
+                            regex: '^(is|has|should|can|get|set)[A-Z]'
+                - kind: call_expression
+                  all:
+                  - any:
+                    - has:
+                        field: function
+                        kind: member_expression
+                        regex: '\.([^.\s(]*([aA]udit|[aA]ccess_?[lL]ogs?|[aA]ccess_?[eE]vents?|[pP]hi_?[aA]ccess|[aA]ctivity_?[lL]ogs?)[^.\s(]*|securityEvents?)\.(create|createMany)$'
+                        not:
+                          kind: member_expression
+                          regex: '(Service|Svc|Client|Manager|Helper|Logger|Tracker)\.(create|createMany)$'
+                    - has:
+                        field: function
+                        kind: member_expression
+                        regex: '\.from\(\s*[''\x22`][^''\x22`]*(audit|access_log|access_event|phi_access|activity_log|security_event)[^''\x22`]*[''\x22`]\s*\)\s*\.insert$'
+                    - all:
+                      - has:
+                          field: function
+                          kind: member_expression
+                          regex: '\.insert$'
+                      - has:
+                          field: arguments
+                          kind: arguments
+                          has:
+                            kind: identifier
+                            regex: '(?i)audit|access_?logs?'
+                    - has:
+                        field: function
+                        kind: member_expression
+                        regex: '^[A-Z]?[^.\s(]*(Audit|AccessLog|AccessEvent|PhiAccess|ActivityLog)[^.\s(]*\.(create|bulkCreate|insertMany)$'
+                    - has:
+                        field: function
+                        kind: member_expression
+                        regex: '^\(?new\s+[^.\s(]*(Audit|AccessLog|AccessEvent|PhiAccess|ActivityLog)[^.\s(]*\([\s\S]*\)\)?\.save$'
+                    - has:
+                        field: function
+                        kind: member_expression
+                        regex: '^\w+\(\s*[''\x22`][^''\x22`]*(audit|access_log)[^''\x22`]*[''\x22`]\s*\)\s*\.insert$'
+                    - has:
+                        field: function
+                        kind: member_expression
+                        regex: '[aA]udit[^.\s(]*(Repo|Repository)\.(save|insert)$'
+                    - has:
+                        field: function
+                        kind: member_expression
+                        regex: '\.insert\(\s*[\w.]*([aA]udit|[aA]ccess_?[lL]og)[\w.]*\s*\)\s*\.values$'
+                    - all:
+                      - has:
+                          field: function
+                          any:
+                          - kind: member_expression
+                            regex: '(?:^|\.)(?:query|execute|exec|none|one|any|raw|\$executeRaw|\$executeRawUnsafe|unsafe)$'
+                          - kind: identifier
+                            regex: '(?:^|\.)(?:query|execute|exec|none|one|any|raw|\$executeRaw|\$executeRawUnsafe|unsafe)$'
+                      - any:
+                        - has:
+                            field: arguments
+                            kind: arguments
+                            has:
+                              any:
+                              - kind: string
+                                regex: '(?i)\binsert\s+into\s+[`\x22]?(?:\w+\.)?[`\x22]?[^\s(`\x22]*(audit|access_log|access_event|phi_access|activity_log|security_event)'
+                              - kind: template_string
+                                regex: '(?i)\binsert\s+into\s+[`\x22]?(?:\w+\.)?[`\x22]?[^\s(`\x22]*(audit|access_log|access_event|phi_access|activity_log|security_event)'
+                        - has:
+                            field: arguments
+                            kind: template_string
+                            regex: '(?i)\binsert\s+into\s+[`\x22]?(?:\w+\.)?[`\x22]?[^\s(`\x22]*(audit|access_log|access_event|phi_access|activity_log|security_event)'
+                  - all:
+                    - not:
+                        any:
+                        - inside: &id024
+                            any:
+                            - kind: expression_statement
+                              inside:
+                                kind: statement_block
+                                inside: &id023
+                                  kind: if_statement
+                            - kind: expression_statement
+                              inside: *id023
+                        - inside:
+                            kind: await_expression
+                            inside: *id024
+                        - inside: &id030
+                            kind: expression_statement
+                            any:
+                            - follows: &id025
+                                kind: return_statement
+                            - follows:
+                                any:
+                                - &id026
+                                  kind: expression_statement
+                                - &id027
+                                  kind: lexical_declaration
+                                - &id028
+                                  kind: variable_declaration
+                                - &id029
+                                  kind: comment
+                                follows: *id025
+                            - follows:
+                                any:
+                                - *id026
+                                - *id027
+                                - *id028
+                                - *id029
+                                follows:
+                                  any:
+                                  - *id026
+                                  - *id027
+                                  - *id028
+                                  - *id029
+                                  follows: *id025
+                        - inside:
+                            kind: await_expression
+                            inside: *id030
+                    - not:
+                        all:
+                        - pattern: '$AFN($$$AARGS)'
+                        - any:
+                          - inside: &id031
+                              kind: expression_statement
+                              inside:
+                                kind: statement_block
+                                has:
+                                  any:
+                                  - kind: lexical_declaration
+                                  - kind: variable_declaration
+                                  has:
+                                    kind: variable_declarator
+                                    pattern:
+                                      context: 'const $AFN = $AVAL'
+                                      selector: variable_declarator
+                          - inside:
+                              kind: await_expression
+                              inside: *id031
+            - &id034
+              any:
+              - kind: lexical_declaration
+              - kind: variable_declaration
+              has:
+                kind: variable_declarator
+                pattern:
+                  context: 'const $HELPER = $HVAL'
+                  selector: variable_declarator
+                has:
+                  field: value
+                  any:
+                  - kind: arrow_function
+                  - kind: function_expression
+                  has: *id032
+            - kind: export_statement
+              has:
+                any:
+                - *id033
+                - *id034
+control: *id035
+min_engine: 0.45.3
+---
+id: access-audit-log.javascript-nextjs.read-handler-reexport
+practice_id: access-audit-log
+language: javascript
+frameworks:
+- nextjs
+kind: items
+rule:
+  all:
+  - pattern:
+      context: 'function $H($$$P) { $$$B }'
+      selector: function_declaration
+  - inside:
+      kind: program
+      has:
+        kind: export_statement
+        has:
+          kind: export_clause
+          has:
+            pattern:
+              context: 'export { $H as GET }'
+              selector: export_specifier
+  - not:
+      all:
+      - has:
+          stopBy: end
+          any:
+          - kind: new_expression
+            has:
+              field: constructor
+              any:
+              - kind: identifier
+                regex: '([Aa]udit|AUDIT|[Aa]ccess_?[Ll]ogs?|ACCESS_?LOGS?|[Ll]og_?[Aa]ccess|LOG_?ACCESS|[Rr]ecord_?[Aa]ccess|[Aa]ccess_?[Ee]vents?|ACCESS_?EVENTS?|[Pp]hi_?[Aa]ccess|PHI_?ACCESS|[Aa]ctivity_?[Ll]ogs?|ACTIVITY_?LOGS?)'
+              - kind: member_expression
+                regex: '([Aa]udit|AUDIT|[Aa]ccess_?[Ll]ogs?|ACCESS_?LOGS?|[Ll]og_?[Aa]ccess|LOG_?ACCESS|[Rr]ecord_?[Aa]ccess|[Aa]ccess_?[Ee]vents?|ACCESS_?EVENTS?|[Pp]hi_?[Aa]ccess|PHI_?ACCESS|[Aa]ctivity_?[Ll]ogs?|ACTIVITY_?LOGS?)'
+          - kind: call_expression
+            all:
+            - has:
+                field: function
+                any:
+                - kind: member_expression
+                  regex: '([Aa]udit|AUDIT|[Aa]ccess_?[Ll]ogs?|ACCESS_?LOGS?|[Ll]og_?[Aa]ccess|LOG_?ACCESS|[Rr]ecord_?[Aa]ccess|[Aa]ccess_?[Ee]vents?|ACCESS_?EVENTS?|[Pp]hi_?[Aa]ccess|PHI_?ACCESS|[Aa]ctivity_?[Ll]ogs?|ACTIVITY_?LOGS?)'
+                - kind: identifier
+                  regex: '([Aa]udit|AUDIT|[Aa]ccess_?[Ll]ogs?|ACCESS_?LOGS?|[Ll]og_?[Aa]ccess|LOG_?ACCESS|[Rr]ecord_?[Aa]ccess|[Aa]ccess_?[Ee]vents?|ACCESS_?EVENTS?|[Pp]hi_?[Aa]ccess|PHI_?ACCESS|[Aa]ctivity_?[Ll]ogs?|ACTIVITY_?LOGS?)'
+            - not:
+                has:
+                  field: function
+                  any:
+                  - kind: member_expression
+                    regex: '([Ss]kip|SKIP|[Dd]isable|DISABLE|[Ww]ithout|[Bb]ypass|[Nn]o_?[Aa]udit|NO_?AUDIT|[Nn]o_?[Ll]og|NO_?LOG)'
+                  - kind: identifier
+                    regex: '([Ss]kip|SKIP|[Dd]isable|DISABLE|[Ww]ithout|[Bb]ypass|[Nn]o_?[Aa]udit|NO_?AUDIT|[Nn]o_?[Ll]og|NO_?LOG)'
+                  - kind: member_expression
+                    regex: '(?-u)\.(count\w*|find\w*|select|aggregate|get\w*|list\w*|search\w*|groupBy|exists|is\w+|has\w+|set\w*|clear|remove\w*|disable\w*|enable\w*|invalidate\w*|flush|reset|toString|delete\w*|destroy\w*|update\w*|upsert|truncate|purge\w*|del|eq|in|lt|gt|lte|gte)$'
+                  - kind: identifier
+                    regex: '^(is|has|should|can|get|set)[A-Z]'
+      - not:
+          has:
+            field: body
+            kind: statement_block
+            all:
+            - has:
+                kind: expression_statement
+                has:
+                  any:
+                  - &id010
+                    kind: call_expression
+                    all:
+                    - any:
+                      - has:
+                          field: function
+                          kind: member_expression
+                          regex: '\.([^.\s(]*([aA]udit|[aA]ccess_?[lL]ogs?|[aA]ccess_?[eE]vents?|[pP]hi_?[aA]ccess|[aA]ctivity_?[lL]ogs?)[^.\s(]*|securityEvents?)\.(create|createMany)$'
+                          not:
+                            kind: member_expression
+                            regex: '(Service|Svc|Client|Manager|Helper|Logger|Tracker)\.(create|createMany)$'
+                      - has:
+                          field: function
+                          kind: member_expression
+                          regex: '\.from\(\s*[''\x22`][^''\x22`]*(audit|access_log|access_event|phi_access|activity_log|security_event)[^''\x22`]*[''\x22`]\s*\)\s*\.insert$'
+                      - all:
+                        - has:
+                            field: function
+                            kind: member_expression
+                            regex: '\.insert$'
+                        - has:
+                            field: arguments
+                            kind: arguments
+                            has:
+                              kind: identifier
+                              regex: '(?i)audit|access_?logs?'
+                      - has:
+                          field: function
+                          kind: member_expression
+                          regex: '^[A-Z]?[^.\s(]*(Audit|AccessLog|AccessEvent|PhiAccess|ActivityLog)[^.\s(]*\.(create|bulkCreate|insertMany)$'
+                      - has:
+                          field: function
+                          kind: member_expression
+                          regex: '^\(?new\s+[^.\s(]*(Audit|AccessLog|AccessEvent|PhiAccess|ActivityLog)[^.\s(]*\([\s\S]*\)\)?\.save$'
+                      - has:
+                          field: function
+                          kind: member_expression
+                          regex: '^\w+\(\s*[''\x22`][^''\x22`]*(audit|access_log)[^''\x22`]*[''\x22`]\s*\)\s*\.insert$'
+                      - has:
+                          field: function
+                          kind: member_expression
+                          regex: '[aA]udit[^.\s(]*(Repo|Repository)\.(save|insert)$'
+                      - has:
+                          field: function
+                          kind: member_expression
+                          regex: '\.insert\(\s*[\w.]*([aA]udit|[aA]ccess_?[lL]og)[\w.]*\s*\)\s*\.values$'
+                      - all:
+                        - has:
+                            field: function
+                            any:
+                            - kind: member_expression
+                              regex: '(?:^|\.)(?:query|execute|exec|none|one|any|raw|\$executeRaw|\$executeRawUnsafe|unsafe)$'
+                            - kind: identifier
+                              regex: '(?:^|\.)(?:query|execute|exec|none|one|any|raw|\$executeRaw|\$executeRawUnsafe|unsafe)$'
+                        - any:
+                          - has:
+                              field: arguments
+                              kind: arguments
+                              has:
+                                any:
+                                - kind: string
+                                  regex: '(?i)\binsert\s+into\s+[`\x22]?(?:\w+\.)?[`\x22]?[^\s(`\x22]*(audit|access_log|access_event|phi_access|activity_log|security_event)'
+                                - kind: template_string
+                                  regex: '(?i)\binsert\s+into\s+[`\x22]?(?:\w+\.)?[`\x22]?[^\s(`\x22]*(audit|access_log|access_event|phi_access|activity_log|security_event)'
+                          - has:
+                              field: arguments
+                              kind: template_string
+                              regex: '(?i)\binsert\s+into\s+[`\x22]?(?:\w+\.)?[`\x22]?[^\s(`\x22]*(audit|access_log|access_event|phi_access|activity_log|security_event)'
+                    - all:
+                      - not:
+                          any:
+                          - inside: &id002
+                              any:
+                              - kind: expression_statement
+                                inside:
+                                  kind: statement_block
+                                  inside: &id001
+                                    kind: if_statement
+                              - kind: expression_statement
+                                inside: *id001
+                          - inside:
+                              kind: await_expression
+                              inside: *id002
+                          - inside: &id008
+                              kind: expression_statement
+                              any:
+                              - follows: &id003
+                                  kind: return_statement
+                              - follows:
+                                  any:
+                                  - &id004
+                                    kind: expression_statement
+                                  - &id005
+                                    kind: lexical_declaration
+                                  - &id006
+                                    kind: variable_declaration
+                                  - &id007
+                                    kind: comment
+                                  follows: *id003
+                              - follows:
+                                  any:
+                                  - *id004
+                                  - *id005
+                                  - *id006
+                                  - *id007
+                                  follows:
+                                    any:
+                                    - *id004
+                                    - *id005
+                                    - *id006
+                                    - *id007
+                                    follows: *id003
+                          - inside:
+                              kind: await_expression
+                              inside: *id008
+                      - not:
+                          all:
+                          - pattern: '$AFN($$$AARGS)'
+                          - any:
+                            - inside: &id009
+                                kind: expression_statement
+                                inside:
+                                  kind: statement_block
+                                  has:
+                                    any:
+                                    - kind: lexical_declaration
+                                    - kind: variable_declaration
+                                    has:
+                                      kind: variable_declarator
+                                      pattern:
+                                        context: 'const $AFN = $AVAL'
+                                        selector: variable_declarator
+                            - inside:
+                                kind: await_expression
+                                inside: *id009
+                  - kind: await_expression
+                    has: *id010
+            - not:
+                has:
+                  kind: return_statement
+                  precedes:
+                    any:
+                    - kind: expression_statement
+                    - kind: lexical_declaration
+                    - kind: variable_declaration
+                    - kind: comment
+                    - kind: if_statement
+                    - kind: return_statement
+control:
+  has:
+    field: body
+    kind: statement_block
+    all:
+    - has:
+        kind: expression_statement
+        has:
+          any:
+          - &id020
+            kind: call_expression
+            all:
+            - any:
+              - has:
+                  field: function
+                  kind: member_expression
+                  regex: '\.([^.\s(]*([aA]udit|[aA]ccess_?[lL]ogs?|[aA]ccess_?[eE]vents?|[pP]hi_?[aA]ccess|[aA]ctivity_?[lL]ogs?)[^.\s(]*|securityEvents?)\.(create|createMany)$'
+                  not:
+                    kind: member_expression
+                    regex: '(Service|Svc|Client|Manager|Helper|Logger|Tracker)\.(create|createMany)$'
+              - has:
+                  field: function
+                  kind: member_expression
+                  regex: '\.from\(\s*[''\x22`][^''\x22`]*(audit|access_log|access_event|phi_access|activity_log|security_event)[^''\x22`]*[''\x22`]\s*\)\s*\.insert$'
+              - all:
+                - has:
+                    field: function
+                    kind: member_expression
+                    regex: '\.insert$'
+                - has:
+                    field: arguments
+                    kind: arguments
+                    has:
+                      kind: identifier
+                      regex: '(?-u)(?i)audit|access_?logs?'
+              - has:
+                  field: function
+                  kind: member_expression
+                  regex: '^[A-Z]?[^.\s(]*(Audit|AccessLog|AccessEvent|PhiAccess|ActivityLog)[^.\s(]*\.(create|bulkCreate|insertMany)$'
+              - has:
+                  field: function
+                  kind: member_expression
+                  regex: '^\(?new\s+[^.\s(]*(Audit|AccessLog|AccessEvent|PhiAccess|ActivityLog)[^.\s(]*\([\s\S]*\)\)?\.save$'
+              - has:
+                  field: function
+                  kind: member_expression
+                  regex: '^\w+\(\s*[''\x22`][^''\x22`]*(audit|access_log)[^''\x22`]*[''\x22`]\s*\)\s*\.insert$'
+              - has:
+                  field: function
+                  kind: member_expression
+                  regex: '[aA]udit[^.\s(]*(Repo|Repository)\.(save|insert)$'
+              - has:
+                  field: function
+                  kind: member_expression
+                  regex: '\.insert\(\s*[\w.]*([aA]udit|[aA]ccess_?[lL]og)[\w.]*\s*\)\s*\.values$'
+              - all:
+                - has:
+                    field: function
+                    any:
+                    - kind: member_expression
+                      regex: '(?:^|\.)(?:query|execute|exec|none|one|any|raw|\$executeRaw|\$executeRawUnsafe|unsafe)$'
+                    - kind: identifier
+                      regex: '(?:^|\.)(?:query|execute|exec|none|one|any|raw|\$executeRaw|\$executeRawUnsafe|unsafe)$'
+                - any:
+                  - has:
+                      field: arguments
+                      kind: arguments
+                      has:
+                        any:
+                        - kind: string
+                          regex: '(?i)\binsert\s+into\s+[`\x22]?(?:\w+\.)?[`\x22]?[^\s(`\x22]*(audit|access_log|access_event|phi_access|activity_log|security_event)'
+                        - kind: template_string
+                          regex: '(?i)\binsert\s+into\s+[`\x22]?(?:\w+\.)?[`\x22]?[^\s(`\x22]*(audit|access_log|access_event|phi_access|activity_log|security_event)'
+                  - has:
+                      field: arguments
+                      kind: template_string
+                      regex: '(?i)\binsert\s+into\s+[`\x22]?(?:\w+\.)?[`\x22]?[^\s(`\x22]*(audit|access_log|access_event|phi_access|activity_log|security_event)'
+            - all:
+              - not:
+                  any:
+                  - inside: &id012
+                      any:
+                      - kind: expression_statement
+                        inside:
+                          kind: statement_block
+                          inside: &id011
+                            kind: if_statement
+                      - kind: expression_statement
+                        inside: *id011
+                  - inside:
+                      kind: await_expression
+                      inside: *id012
+                  - inside: &id018
+                      kind: expression_statement
+                      any:
+                      - follows: &id013
+                          kind: return_statement
+                      - follows:
+                          any:
+                          - &id014
+                            kind: expression_statement
+                          - &id015
+                            kind: lexical_declaration
+                          - &id016
+                            kind: variable_declaration
+                          - &id017
+                            kind: comment
+                          follows: *id013
+                      - follows:
+                          any:
+                          - *id014
+                          - *id015
+                          - *id016
+                          - *id017
+                          follows:
+                            any:
+                            - *id014
+                            - *id015
+                            - *id016
+                            - *id017
+                            follows: *id013
+                  - inside:
+                      kind: await_expression
+                      inside: *id018
+              - not:
+                  all:
+                  - pattern: '$AFN($$$AARGS)'
+                  - any:
+                    - inside: &id019
+                        kind: expression_statement
+                        inside:
+                          kind: statement_block
+                          has:
+                            any:
+                            - kind: lexical_declaration
+                            - kind: variable_declaration
+                            has:
+                              kind: variable_declarator
+                              pattern:
+                                context: 'const $AFN = $AVAL'
+                                selector: variable_declarator
+                    - inside:
+                        kind: await_expression
+                        inside: *id019
+          - kind: await_expression
+            has: *id020
+    - not:
+        has:
+          kind: return_statement
+          precedes:
+            any:
+            - kind: expression_statement
+            - kind: lexical_declaration
+            - kind: variable_declaration
+            - kind: comment
+            - kind: if_statement
+            - kind: return_statement
+min_engine: 0.45.3
+---
+id: access-audit-log.javascript-nextjs.log-flag-off
+practice_id: access-audit-log
+language: javascript
+frameworks:
+- nextjs
+kind: violation
+rule:
+  all:
+  - kind: pair
+  - any:
+    - all:
+      - has:
+          field: key
+          kind: property_identifier
+          regex: '^(log|audit|auditLog|logAccess)$'
+      - has:
+          field: value
+          kind: 'false'
+    - all:
+      - has:
+          field: key
+          kind: property_identifier
+          regex: '^(skipAudit|noAudit|disableAudit|skipAuditLog|withoutAudit)$'
+      - has:
+          field: value
+          kind: 'true'
+  - inside:
+      kind: object
+      inside:
+        kind: arguments
+min_engine: 0.45.3

@@ -1,0 +1,64 @@
+# Spring controller methods mapped to a request (@GetMapping, @PostMapping, @PutMapping, @PatchMapping,
+# @DeleteMapping, @RequestMapping) that take a @PathVariable (a record named by the path), one item each. The control
+# is the caller read in the method: an @AuthenticationPrincipal or @CurrentSecurityContext parameter, a Principal or
+# Authentication parameter, SecurityContextHolder in the body, or @PreAuthorize / @PostAuthorize naming the principal,
+# the authentication, a parameter (#id) or hasPermission. A role rule (hasRole, a URL pattern) never counts.
+id: authz-every-handler.java-spring.mapping
+practice_id: authz-every-handler
+language: java
+frameworks:
+- spring
+kind: items
+rule:
+  kind: method_declaration
+  all:
+  - has:
+      kind: modifiers
+      has:
+        any:
+        - kind: annotation
+          regex: '^@(Get|Post|Put|Patch|Delete|Request)Mapping\b'
+        - kind: marker_annotation
+          regex: '^@(Get|Post|Put|Patch|Delete|Request)Mapping\b'
+  - has:
+      kind: formal_parameters
+      has:
+        kind: formal_parameter
+        has:
+          kind: modifiers
+          has:
+            any:
+            - kind: annotation
+              regex: '^@PathVariable\b'
+            - kind: marker_annotation
+              regex: '^@PathVariable\b'
+control:
+  any:
+  - has:
+      kind: formal_parameters
+      has:
+        kind: formal_parameter
+        any:
+        - has:
+            kind: modifiers
+            has:
+              any:
+              - kind: annotation
+                regex: '^@(AuthenticationPrincipal|CurrentSecurityContext)\b'
+              - kind: marker_annotation
+                regex: '^@(AuthenticationPrincipal|CurrentSecurityContext)\b'
+        - has:
+            kind: type_identifier
+            regex: '^(Principal|Authentication|JwtAuthenticationToken|OAuth2AuthenticationToken|UsernamePasswordAuthenticationToken)$'
+  - has:
+      kind: block
+      has:
+        stopBy: end
+        kind: identifier
+        regex: '^SecurityContextHolder$'
+  - has:
+      kind: modifiers
+      has:
+        kind: annotation
+        regex: '^@(PreAuthorize|PostAuthorize)\(.*(principal|authentication|hasPermission|#)'
+min_engine: 0.39.0

@@ -1,0 +1,118 @@
+# Values built into SQL text, which pgAudit logs (T23 B56d). Written by
+# scripts/gen_pgaudit_rules.py: don't edit. The practice is capped at needs_review.
+id: pgaudit-no-literals.typescript-generic.string-built-sql
+practice_id: pgaudit-no-literals
+language: typescript
+frameworks:
+- generic
+kind: violation
+rule:
+  kind: call_expression
+  all:
+  - has:
+      field: function
+      any:
+      - kind: identifier
+        regex: (^|\.)\s*(query|queryObject|queryArray|execute|raw|\$queryRawUnsafe|\$executeRawUnsafe|unsafe|exec|none|one|oneOrNone|many|manyOrNone|any|whereRaw|orWhereRaw|andWhereRaw|havingRaw|orHavingRaw|joinRaw|where|andWhere|orWhere|having)$
+      - kind: member_expression
+        regex: (^|\.)\s*(query|queryObject|queryArray|execute|raw|\$queryRawUnsafe|\$executeRawUnsafe|unsafe|exec|none|one|oneOrNone|many|manyOrNone|any|whereRaw|orWhereRaw|andWhereRaw|havingRaw|orHavingRaw|joinRaw|where|andWhere|orWhere|having)$
+  - has:
+      field: arguments
+      kind: arguments
+      has:
+        any:
+        - any: &id003
+          - kind: template_string
+            regex: (?is)((((=|<|>|\bI?LIKE\b|\bIN\b|\bANY\b|\bALL\b|\bBETWEEN\b|\bBETWEEN\s+\S+\s+AND\b|\bIS\b|\bTHEN\b|\bELSE\b|\bVALUES\b|\|\||&&|@>|<@|@@|~\*?|\bSIMILAR\s+TO\b|\bDISTINCT\s+FROM\b|\$\w*\$|\b(btrim|ltrim|rtrim|nullif|greatest|least|cast|concat|concat_ws|md5|digest|hmac|crypt|encode|decode|to_char|to_date|to_timestamp|to_number|date_trunc|date_part|extract|position|substr|substring|replace|strpos|left|right|lpad|rpad|format|similarity|word_similarity|strict_word_similarity|levenshtein|soundex|metaphone|pgp_sym_encrypt|pgp_sym_decrypt|to_tsquery|plainto_tsquery|phraseto_tsquery|websearch_to_tsquery|json_build_object|jsonb_build_object)\s*\(|\b(lower|upper|trim|coalesce)\s*\(([^(),]|\([^()]*\))*,)|\b(WHERE|AND|OR|NOT|ON|HAVING|WHEN|SET)\s*(\(|\[|\bARRAY\s*\[|\bROW\s*\(|[\w.]*\w\s*\(|E?'))(\s|\(|\[|,|::\w+|\bARRAY\s*\[|\bROW\s*\(|[\w.]*\w\s*\(|[\w.]+\s*,|'[^']*'\s*,|\b(year|month|day|hour|minute|second|epoch|dow|doy|week|quarter|isodow|isoyear|century|decade|millennium|milliseconds|microseconds|timezone)\s+FROM\s+)*(E'[^']*)?|\bVALUES\s*\([^)]*|\bINSERT\s+INTO\b[^;]*\bSELECT\s+([^;]*,)?|(=|<|>|\(|,|\|\||\w\s)\s*'[^']*|')\s*'?\s*\$\{|(\b(lower|upper|trim|coalesce)\s*\(\s*)+\$\{\s*(\b(\w*[^\WlLnNdD]|d|\w*[^\WlL]d|ld|\w*[^\WeE]ld|eld|\w*[^\WiI]eld|ield|\w*[^\WfF]ield|\w+field|l|\w*[^\WoO]l|ol|\w*[^\WcC]ol|\w*[^\W_]col|n|\w*[^\WmM]n|mn|\w*[^\WuU]mn|umn|\w*[^\WlL]umn|lumn|\w*[^\WoO]lumn|olumn|\w*[^\WcC]olumn|\w*[^\W_]column)\b|\w+\s*[^\w\s}]|[^\w\s{]))
+            has:
+              kind: template_substitution
+              has:
+                stopBy: end
+                any: &id002
+                - kind: identifier
+                  not:
+                    regex: ^[A-Z][A-Z0-9_]*$
+                    kind: identifier
+                - kind: property_identifier
+                  not:
+                    regex: ^[A-Z][A-Z0-9_]*$
+                    kind: property_identifier
+              not:
+                kind: template_substitution
+                regex: (?s)^\$\{\s*[\w$.]+\s*\.\s*map\s*\(\s*(\([\w$\s,]*\)|[\w$]+)\s*=>\s*([\"'`]\$[\"'`]\s*\+\s*([\w$]+|\(\s*[\w$]+\s*\+\s*\d+\s*\))|`\$\$\{\s*[\w$]+\s*(\+\s*\d+\s*)?\}`|[\"'`]\?[\"'`])\s*\)(\s*\.\s*join\s*\(\s*([\"'`][^\"'`]*[\"'`])?\s*\))?\s*\}$
+                any:
+                - kind: template_substitution
+                  regex: =>\s*[\"'`]\?[\"'`]\s*\)
+                - has:
+                    stopBy: end
+                    kind: arrow_function
+                    all:
+                    - has:
+                        field: parameters
+                        kind: formal_parameters
+                        pattern:
+                          context: ($_A, $I) => 0
+                          selector: formal_parameters
+                    - has:
+                        field: body
+                        any:
+                        - kind: identifier
+                          pattern: &id001
+                            context: ($I)
+                            selector: identifier
+                        - has:
+                            stopBy: end
+                            kind: identifier
+                            pattern: *id001
+            not:
+              kind: template_string
+              regex: (?is)^[\w.$]*\(?\s*[fFrRbBuU]*[\"'`]{1,3}\s*(CREATE|ALTER|DROP|COMMENT|GRANT|REVOKE|REINDEX|VACUUM|ANALYZE|TRUNCATE|REFRESH|CLUSTER)\b
+              not:
+                kind: template_string
+                regex: (?is)\bAS\s*\(?\s*(SELECT|WITH|VALUES)\b|;\s*(INSERT|UPDATE|DELETE|SELECT|WITH|MERGE)\b|\bINSERT\s+INTO\b|\bDELETE\s+FROM\b|\bUPDATE\s+\S+\s+SET\b
+          - kind: binary_expression
+            regex: (?is)((((=|<|>|\bI?LIKE\b|\bIN\b|\bANY\b|\bALL\b|\bBETWEEN\b|\bBETWEEN\s+\S+\s+AND\b|\bIS\b|\bTHEN\b|\bELSE\b|\bVALUES\b|\|\||&&|@>|<@|@@|~\*?|\bSIMILAR\s+TO\b|\bDISTINCT\s+FROM\b|\$\w*\$|\b(btrim|ltrim|rtrim|nullif|greatest|least|cast|concat|concat_ws|md5|digest|hmac|crypt|encode|decode|to_char|to_date|to_timestamp|to_number|date_trunc|date_part|extract|position|substr|substring|replace|strpos|left|right|lpad|rpad|format|similarity|word_similarity|strict_word_similarity|levenshtein|soundex|metaphone|pgp_sym_encrypt|pgp_sym_decrypt|to_tsquery|plainto_tsquery|phraseto_tsquery|websearch_to_tsquery|json_build_object|jsonb_build_object)\s*\(|\b(lower|upper|trim|coalesce)\s*\(([^(),]|\([^()]*\))*,)|\b(WHERE|AND|OR|NOT|ON|HAVING|WHEN|SET)\s*(\(|\[|\bARRAY\s*\[|\bROW\s*\(|[\w.]*\w\s*\(|E?'))(\s|\(|\[|,|::\w+|\bARRAY\s*\[|\bROW\s*\(|[\w.]*\w\s*\(|[\w.]+\s*,|'[^']*'\s*,|\b(year|month|day|hour|minute|second|epoch|dow|doy|week|quarter|isodow|isoyear|century|decade|millennium|milliseconds|microseconds|timezone)\s+FROM\s+)*(E'[^']*)?|\bVALUES\s*\([^)]*|\bINSERT\s+INTO\b[^;]*\bSELECT\s+([^;]*,)?|(=|<|>|\(|,|\|\||\w\s)\s*'[^']*|')\s*'?\s*[\"'`]\s*\+|(\b(lower|upper|trim|coalesce)\s*\(\s*)+[\"'`]\s*\+\s*(\b(\w*[^\WlLnNdD]|d|\w*[^\WlL]d|ld|\w*[^\WeE]ld|eld|\w*[^\WiI]eld|ield|\w*[^\WfF]ield|\w+field|l|\w*[^\WoO]l|ol|\w*[^\WcC]ol|\w*[^\W_]col|n|\w*[^\WmM]n|mn|\w*[^\WuU]mn|umn|\w*[^\WlL]umn|lumn|\w*[^\WoO]lumn|olumn|\w*[^\WcC]olumn|\w*[^\W_]column)\b|\w+\s*[.(\[]|[^\w\s]))
+            all:
+            - has:
+                any:
+                - kind: string
+                - kind: template_string
+                - kind: binary_expression
+            - has:
+                stopBy: end
+                any: *id002
+            not:
+              kind: binary_expression
+              regex: (?is)^[\w.$]*\(?\s*[fFrRbBuU]*[\"'`]{1,3}\s*(CREATE|ALTER|DROP|COMMENT|GRANT|REVOKE|REINDEX|VACUUM|ANALYZE|TRUNCATE|REFRESH|CLUSTER)\b
+              not:
+                kind: binary_expression
+                regex: (?is)\bAS\s*\(?\s*(SELECT|WITH|VALUES)\b|;\s*(INSERT|UPDATE|DELETE|SELECT|WITH|MERGE)\b|\bINSERT\s+INTO\b|\bDELETE\s+FROM\b|\bUPDATE\s+\S+\s+SET\b
+        - kind: object
+          has:
+            kind: pair
+            all:
+            - has:
+                field: key
+                any:
+                - kind: property_identifier
+                  regex: ^(text|sql)$
+                - kind: string
+                  regex: ^[\"'](text|sql)[\"']$
+            - has:
+                field: value
+                any: *id003
+min_engine: 0.39.0
+---
+id: pgaudit-no-literals.typescript-generic.alter-role-password
+practice_id: pgaudit-no-literals
+language: typescript
+frameworks:
+- generic
+kind: violation
+rule:
+  any:
+  - kind: string
+    regex: (?is)\bALTER\s+(ROLE|USER)\s+\S+\s+(WITH\s+)?(ENCRYPTED\s+)?PASSWORD\s+'[^']+'
+  - kind: template_string
+    regex: (?is)\bALTER\s+(ROLE|USER)\s+\S+\s+(WITH\s+)?(ENCRYPTED\s+)?PASSWORD\s+'[^']+'
+min_engine: 0.39.0

@@ -1,0 +1,99 @@
+id: no-phi-in-ai-metadata.typescript-generic.metadata-phi
+practice_id: no-phi-in-ai-metadata
+language: typescript
+frameworks:
+- generic
+kind: violation
+rule:
+  all:
+  - kind: pair
+  - has:
+      field: key
+      kind: property_identifier
+      regex: '^(user|safety_identifier|metadata|prompt_cache_key|tags|labels)$'
+  - has:
+      field: value
+      any:
+      - kind: member_expression
+        regex: '\.(name|firstName|lastName|first_name|last_name|fullName|full_name|email|phone|phoneNumber|dob|dateOfBirth|date_of_birth|birthDate|ssn|mrn|diagnosis|address)$'
+      - kind: template_string
+        has:
+          kind: template_substitution
+      - has:
+          stopBy: end
+          any:
+          - kind: member_expression
+            regex: '\.(name|firstName|lastName|first_name|last_name|fullName|full_name|email|phone|phoneNumber|dob|dateOfBirth|date_of_birth|birthDate|ssn|mrn|diagnosis|address)$'
+          - kind: template_string
+            has:
+              kind: template_substitution
+          - all:
+            - kind: pair
+            - has:
+                field: key
+                any:
+                - kind: property_identifier
+                  regex: '^(?i:patient_?name|name|full_?name|first_?name|last_?name|email|dob|date_?of_?birth|birth_?date|mrn|ssn|phone|diagnosis|address)$'
+                - kind: string
+                  regex: '^[''"](?i:patient_?name|name|full_?name|first_?name|last_?name|email|dob|date_?of_?birth|birth_?date|mrn|ssn|phone|diagnosis|address)[''"]$'
+  - inside:
+      stopBy: end
+      kind: call_expression
+      has:
+        field: function
+        kind: member_expression
+        regex: '\.(responses\.(create|stream|parse)|chat\.completions\.(create|stream|parse)|messages\.(create|stream)|batches\.create|generateContent|generateContentStream)$'
+min_engine: 0.45.3
+---
+id: no-phi-in-ai-metadata.typescript-generic.dynamic-schema
+practice_id: no-phi-in-ai-metadata
+language: typescript
+frameworks:
+- generic
+kind: violation
+rule:
+  all:
+  - kind: template_string
+  - has:
+      kind: template_substitution
+  - inside:
+      stopBy: end
+      kind: pair
+      has:
+        field: key
+        kind: property_identifier
+        regex: '^(tools|functions|response_format|json_schema|tool_choice|output_schema)$'
+  - inside:
+      stopBy: end
+      kind: call_expression
+      has:
+        field: function
+        kind: member_expression
+        regex: '\.(responses\.(create|stream|parse)|chat\.completions\.(create|stream|parse)|messages\.(create|stream))$'
+min_engine: 0.45.3
+---
+id: no-phi-in-ai-metadata.typescript-generic.caller-tools
+practice_id: no-phi-in-ai-metadata
+language: typescript
+frameworks:
+- generic
+kind: violation
+rule:
+  all:
+  - kind: pair
+  - has:
+      field: key
+      kind: property_identifier
+      regex: '^(tools|functions)$'
+  - has:
+      field: value
+      kind: member_expression
+      regex: '^(req\.body|request\.body|body|input|ctx\.request\.body)\.(tools|functions)$'
+  - inside:
+      stopBy: end
+      kind: call_expression
+      has:
+        field: function
+        kind: member_expression
+        regex: '\.(responses\.(create|stream|parse)|chat\.completions\.(create|stream|parse)|messages\.(create|stream))$'
+min_engine: 0.45.3

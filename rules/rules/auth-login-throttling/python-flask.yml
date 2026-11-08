@@ -1,0 +1,85 @@
+id: auth-login-throttling.python-flask.sign-in
+practice_id: auth-login-throttling
+language: python
+frameworks:
+- flask
+kind: items
+rule:
+  all:
+  - any:
+    - kind: function_definition
+  - has:
+      stopBy: end
+      any:
+      - kind: call
+        regex: ^(\w+\.)*(authenticate|check_password|verify_password|checkpw|verify)\(
+control:
+  any:
+  - has:
+      field: body
+      has:
+        any:
+        - kind: expression_statement
+          regex: (?i)((rate_?limit\w*|limiter|throttl\w*)\.(limit|consume|check|hit|attempt|try\w*)\(|\b(check|enforce|apply)\w*(rate_?limit|throttle|lockout)\w*\(|locked_?(at|until)\b|is_?locked|is_?locked_?out|lockout|\bis\w*blocked\w*\(|too_?many_?(login_?)?attempts|failed_?(login_?)?(attempts?|count|logins?)\s*>=?|max_?(failed_?)?(login_?)?attempts|(re)?captcha\w*\.?verify|verify\w*captcha|turnstile|check\w*failed\w*counter\(|RateLimiter::(tooManyAttempts|attempt)|ratelimit\.Allow|\.Allow\(\))
+        - kind: return_statement
+          regex: (?i)((rate_?limit\w*|limiter|throttl\w*)\.(limit|consume|check|hit|attempt|try\w*)\(|\b(check|enforce|apply)\w*(rate_?limit|throttle|lockout)\w*\(|locked_?(at|until)\b|is_?locked|is_?locked_?out|lockout|\bis\w*blocked\w*\(|too_?many_?(login_?)?attempts|failed_?(login_?)?(attempts?|count|logins?)\s*>=?|max_?(failed_?)?(login_?)?attempts|(re)?captcha\w*\.?verify|verify\w*captcha|turnstile|check\w*failed\w*counter\(|RateLimiter::(tooManyAttempts|attempt)|ratelimit\.Allow|\.Allow\(\))
+        - kind: if_statement
+          regex: (?i)((rate_?limit\w*|limiter|throttl\w*)\.(limit|consume|check|hit|attempt|try\w*)\(|\b(check|enforce|apply)\w*(rate_?limit|throttle|lockout)\w*\(|locked_?(at|until)\b|is_?locked|is_?locked_?out|lockout|\bis\w*blocked\w*\(|too_?many_?(login_?)?attempts|failed_?(login_?)?(attempts?|count|logins?)\s*>=?|max_?(failed_?)?(login_?)?attempts|(re)?captcha\w*\.?verify|verify\w*captcha|turnstile|check\w*failed\w*counter\(|RateLimiter::(tooManyAttempts|attempt)|ratelimit\.Allow|\.Allow\(\))
+        - kind: try_statement
+          regex: (?i)((rate_?limit\w*|limiter|throttl\w*)\.(limit|consume|check|hit|attempt|try\w*)\(|\b(check|enforce|apply)\w*(rate_?limit|throttle|lockout)\w*\(|locked_?(at|until)\b|is_?locked|is_?locked_?out|lockout|\bis\w*blocked\w*\(|too_?many_?(login_?)?attempts|failed_?(login_?)?(attempts?|count|logins?)\s*>=?|max_?(failed_?)?(login_?)?attempts|(re)?captcha\w*\.?verify|verify\w*captcha|turnstile|check\w*failed\w*counter\(|RateLimiter::(tooManyAttempts|attempt)|ratelimit\.Allow|\.Allow\(\))
+        - kind: for_statement
+          regex: (?i)((rate_?limit\w*|limiter|throttl\w*)\.(limit|consume|check|hit|attempt|try\w*)\(|\b(check|enforce|apply)\w*(rate_?limit|throttle|lockout)\w*\(|locked_?(at|until)\b|is_?locked|is_?locked_?out|lockout|\bis\w*blocked\w*\(|too_?many_?(login_?)?attempts|failed_?(login_?)?(attempts?|count|logins?)\s*>=?|max_?(failed_?)?(login_?)?attempts|(re)?captcha\w*\.?verify|verify\w*captcha|turnstile|check\w*failed\w*counter\(|RateLimiter::(tooManyAttempts|attempt)|ratelimit\.Allow|\.Allow\(\))
+        - kind: with_statement
+          regex: (?i)((rate_?limit\w*|limiter|throttl\w*)\.(limit|consume|check|hit|attempt|try\w*)\(|\b(check|enforce|apply)\w*(rate_?limit|throttle|lockout)\w*\(|locked_?(at|until)\b|is_?locked|is_?locked_?out|lockout|\bis\w*blocked\w*\(|too_?many_?(login_?)?attempts|failed_?(login_?)?(attempts?|count|logins?)\s*>=?|max_?(failed_?)?(login_?)?attempts|(re)?captcha\w*\.?verify|verify\w*captcha|turnstile|check\w*failed\w*counter\(|RateLimiter::(tooManyAttempts|attempt)|ratelimit\.Allow|\.Allow\(\))
+        - kind: while_statement
+          regex: (?i)((rate_?limit\w*|limiter|throttl\w*)\.(limit|consume|check|hit|attempt|try\w*)\(|\b(check|enforce|apply)\w*(rate_?limit|throttle|lockout)\w*\(|locked_?(at|until)\b|is_?locked|is_?locked_?out|lockout|\bis\w*blocked\w*\(|too_?many_?(login_?)?attempts|failed_?(login_?)?(attempts?|count|logins?)\s*>=?|max_?(failed_?)?(login_?)?attempts|(re)?captcha\w*\.?verify|verify\w*captcha|turnstile|check\w*failed\w*counter\(|RateLimiter::(tooManyAttempts|attempt)|ratelimit\.Allow|\.Allow\(\))
+        - kind: decorated_definition
+          regex: (?i)((rate_?limit\w*|limiter|throttl\w*)\.(limit|consume|check|hit|attempt|try\w*)\(|\b(check|enforce|apply)\w*(rate_?limit|throttle|lockout)\w*\(|locked_?(at|until)\b|is_?locked|is_?locked_?out|lockout|\bis\w*blocked\w*\(|too_?many_?(login_?)?attempts|failed_?(login_?)?(attempts?|count|logins?)\s*>=?|max_?(failed_?)?(login_?)?attempts|(re)?captcha\w*\.?verify|verify\w*captcha|turnstile|check\w*failed\w*counter\(|RateLimiter::(tooManyAttempts|attempt)|ratelimit\.Allow|\.Allow\(\))
+        - kind: function_definition
+          regex: (?i)((rate_?limit\w*|limiter|throttl\w*)\.(limit|consume|check|hit|attempt|try\w*)\(|\b(check|enforce|apply)\w*(rate_?limit|throttle|lockout)\w*\(|locked_?(at|until)\b|is_?locked|is_?locked_?out|lockout|\bis\w*blocked\w*\(|too_?many_?(login_?)?attempts|failed_?(login_?)?(attempts?|count|logins?)\s*>=?|max_?(failed_?)?(login_?)?attempts|(re)?captcha\w*\.?verify|verify\w*captcha|turnstile|check\w*failed\w*counter\(|RateLimiter::(tooManyAttempts|attempt)|ratelimit\.Allow|\.Allow\(\))
+  - inside:
+      kind: decorated_definition
+      has:
+        kind: decorator
+        regex: ^@(\w+\.)?(ratelimit|limit|limiter\.limit|axes_dispatch)\b
+min_engine: 0.39.0
+---
+id: auth-login-throttling.python-flask.failure-record
+practice_id: auth-login-throttling
+language: python
+frameworks:
+- flask
+kind: evidence
+rule:
+  all:
+  - all:
+    - any:
+      - kind: function_definition
+    - has:
+        stopBy: end
+        any:
+        - kind: call
+          regex: ^(\w+\.)*(authenticate|check_password|verify_password|checkpw|verify)\(
+  - has:
+      field: body
+      has:
+        any:
+        - kind: expression_statement
+          regex: (?i)(failed_?login|login_?failed|LoginFailed|loginFailure|auth(entication)?_?fail\w*|failed_?attempts?\s*(\+\+|\+=|=\s*\w+\s*\+\s*1)|increment\w*\(\s*['\"]failed)
+        - kind: return_statement
+          regex: (?i)(failed_?login|login_?failed|LoginFailed|loginFailure|auth(entication)?_?fail\w*|failed_?attempts?\s*(\+\+|\+=|=\s*\w+\s*\+\s*1)|increment\w*\(\s*['\"]failed)
+        - kind: if_statement
+          regex: (?i)(failed_?login|login_?failed|LoginFailed|loginFailure|auth(entication)?_?fail\w*|failed_?attempts?\s*(\+\+|\+=|=\s*\w+\s*\+\s*1)|increment\w*\(\s*['\"]failed)
+        - kind: try_statement
+          regex: (?i)(failed_?login|login_?failed|LoginFailed|loginFailure|auth(entication)?_?fail\w*|failed_?attempts?\s*(\+\+|\+=|=\s*\w+\s*\+\s*1)|increment\w*\(\s*['\"]failed)
+        - kind: for_statement
+          regex: (?i)(failed_?login|login_?failed|LoginFailed|loginFailure|auth(entication)?_?fail\w*|failed_?attempts?\s*(\+\+|\+=|=\s*\w+\s*\+\s*1)|increment\w*\(\s*['\"]failed)
+        - kind: with_statement
+          regex: (?i)(failed_?login|login_?failed|LoginFailed|loginFailure|auth(entication)?_?fail\w*|failed_?attempts?\s*(\+\+|\+=|=\s*\w+\s*\+\s*1)|increment\w*\(\s*['\"]failed)
+        - kind: while_statement
+          regex: (?i)(failed_?login|login_?failed|LoginFailed|loginFailure|auth(entication)?_?fail\w*|failed_?attempts?\s*(\+\+|\+=|=\s*\w+\s*\+\s*1)|increment\w*\(\s*['\"]failed)
+        - kind: decorated_definition
+          regex: (?i)(failed_?login|login_?failed|LoginFailed|loginFailure|auth(entication)?_?fail\w*|failed_?attempts?\s*(\+\+|\+=|=\s*\w+\s*\+\s*1)|increment\w*\(\s*['\"]failed)
+        - kind: function_definition
+          regex: (?i)(failed_?login|login_?failed|LoginFailed|loginFailure|auth(entication)?_?fail\w*|failed_?attempts?\s*(\+\+|\+=|=\s*\w+\s*\+\s*1)|increment\w*\(\s*['\"]failed)
+min_engine: 0.39.0

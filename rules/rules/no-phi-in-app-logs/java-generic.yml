@@ -1,0 +1,124 @@
+id: no-phi-in-app-logs.java-generic.request-body
+practice_id: no-phi-in-app-logs
+language: java
+frameworks:
+- generic
+kind: violation
+rule:
+  all:
+  - kind: method_invocation
+  - regex: '^(log|LOG|logger|LOGGER|this\.logger|this\.log)\s*\.\s*(trace|debug|info|warn|error)\s*\('
+  - any:
+    - any:
+      - all:
+        - pattern: '$L6.$M6($BODY.toString())'
+        - &id001
+          inside:
+            stopBy: end
+            kind: method_declaration
+            has:
+              field: parameters
+              kind: formal_parameters
+              has:
+                kind: formal_parameter
+                any:
+                - pattern:
+                    context: 'class A { void m(@RequestBody $T1 $BODY) {} }'
+                    selector: formal_parameter
+                - pattern:
+                    context: 'class A { void m(@Valid @RequestBody $T2 $BODY) {} }'
+                    selector: formal_parameter
+                - pattern:
+                    context: 'class A { void m(@RequestBody @Valid $T3 $BODY) {} }'
+                    selector: formal_parameter
+      - all:
+        - pattern: '$L7.$M7($A7, $BODY.toString())'
+        - *id001
+      - all:
+        - pattern: '$L1.$M1($A1, $BODY)'
+        - *id001
+      - all:
+        - pattern: '$L2.$M2($A2, $BODY, $$$REST2)'
+        - *id001
+      - all:
+        - pattern: '$L3.$M3($A3, $B3, $BODY)'
+        - *id001
+      - all:
+        - pattern: '$L4.$M4($BODY)'
+        - *id001
+      - all:
+        - pattern: '$L5.$M5($A5, $B5, $C5, $BODY)'
+        - *id001
+    - has:
+        field: arguments
+        kind: argument_list
+        has:
+          stopBy: end
+          kind: method_invocation
+          regex: '^(request|req|httpRequest|servletRequest)\.(getParameterMap|getReader|getInputStream|getQueryString)\s*\(\s*\)$'
+min_engine: 0.45.3
+---
+id: no-phi-in-app-logs.java-generic.patient-fields
+practice_id: no-phi-in-app-logs
+language: java
+frameworks:
+- generic
+kind: violation
+rule:
+  all:
+  - kind: method_invocation
+  - regex: '^(log|LOG|logger|LOGGER|this\.logger|this\.log)\s*\.\s*(trace|debug|info|warn|error)\s*\('
+  - has:
+      field: arguments
+      kind: argument_list
+      has:
+        stopBy: end
+        any:
+        - kind: method_invocation
+          regex: '\.(getSsn|getSSN|getSocialSecurityNumber|getDob|getDOB|getDateOfBirth|getBirthDate|getBirthdate|getDiagnosis|getDiagnoses|getMrn|getMRN|getMedicalRecordNumber)\s*\(\s*\)$'
+        - kind: method_invocation
+          regex: '^(patient|currentPatient|patientEntity|patientDto)\.(getName|getFirstName|getLastName|getFullName|getGivenName|getFamilyName|getEmail|getPhone|getAddress|getNotes)\s*\(\s*\)$'
+        - all:
+          - kind: identifier
+          - regex: '^(patient|patients|patientEntity|patientDto|patientRecord|currentPatient)$'
+          - not:
+              any:
+              - inside:
+                  kind: method_invocation
+                  field: object
+              - inside:
+                  kind: field_access
+min_engine: 0.45.3
+---
+id: no-phi-in-app-logs.java-generic.credential
+practice_id: no-phi-in-app-logs
+language: java
+frameworks:
+- generic
+kind: violation
+rule:
+  all:
+  - kind: method_invocation
+  - regex: '^(log|LOG|logger|LOGGER|this\.logger|this\.log)\s*\.\s*(trace|debug|info|warn|error)\s*\('
+  - has:
+      field: arguments
+      kind: argument_list
+      has:
+        stopBy: end
+        any:
+        - kind: method_invocation
+          regex: '\.(getPassword|getSecret|getClientSecret|getToken|getAccessToken|getRefreshToken|getApiKey|getPrivateKey|getEncryptionKey)\s*\(\s*\)$'
+        - all:
+          - kind: identifier
+          - regex: '^(?i:password|passwd|secret|clientSecret|token|accessToken|refreshToken|apiKey|privateKey|encryptionKey|jdbcUrl|connectionString)$'
+          - not:
+              any:
+              - inside:
+                  kind: method_invocation
+                  field: object
+              - inside:
+                  kind: field_access
+              - inside:
+                  kind: method_invocation
+                  field: name
+min_engine: 0.45.3

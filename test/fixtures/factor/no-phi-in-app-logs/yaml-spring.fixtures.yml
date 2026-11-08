@@ -1,0 +1,23 @@
+# Fixtures for no-phi-in-app-logs (Spring YAML). A production log level in application.yml is configuration.
+logging:
+  level:
+    # ruleid: no-phi-in-app-logs.yaml-spring.debug-level
+    root: DEBUG
+    # ruleid: no-phi-in-app-logs.yaml-spring.debug-level
+    org.hibernate.orm.jdbc.bind: TRACE
+    # ok: no-phi-in-app-logs.yaml-spring.debug-level
+    org.example: WARN
+spring:
+  jpa:
+    # ruleid: no-phi-in-app-logs.yaml-spring.orm-query-log
+    show-sql: true
+cache:
+  # A level outside logging is not a log level.
+  level:
+    # ok: no-phi-in-app-logs.yaml-spring.debug-level
+    root: DEBUG
+other:
+  # ok: no-phi-in-app-logs.yaml-spring.orm-query-log
+  show-sql: false
+# ruleid: no-phi-in-app-logs.yaml-spring.debug-level
+logging.level.org.example.api: DEBUG

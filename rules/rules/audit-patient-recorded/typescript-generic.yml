@@ -1,0 +1,424 @@
+id: audit-patient-recorded.typescript-generic.audit-write-patient
+practice_id: audit-patient-recorded
+language: typescript
+frameworks:
+- generic
+kind: items
+rule:
+  all:
+  - pattern: '$DB.$TABLE.create($ARG)'
+  - has:
+      field: function
+      kind: member_expression
+      regex: '\.([^.\s(]*[aA]udit[^.\s(]*|accessLogs?|activityLogs?|securityEvents?)\.(create|createMany)$'
+  - has:
+      field: arguments
+      kind: arguments
+      has:
+        kind: object
+        any:
+        - has:
+            kind: shorthand_property_identifier
+            regex: '^data$'
+        - has:
+            kind: pair
+            has:
+              field: key
+              kind: property_identifier
+              regex: '^data$'
+control:
+  has:
+    field: arguments
+    kind: arguments
+    has:
+      kind: object
+      has:
+        kind: pair
+        all:
+        - has:
+            field: key
+            kind: property_identifier
+            regex: '^data$'
+        - has:
+            field: value
+            kind: object
+            all:
+            - has:
+                kind: pair
+                all:
+                - &id001
+                  has:
+                    field: key
+                    kind: property_identifier
+                    regex: '(?-u)^(?i:patient|patient_?id|subject|subject_?id|pid|ehr_?id|person_?id|member_?id)$'
+                - has:
+                    field: value
+                    any:
+                    - &id002
+                      kind: member_expression
+                    - &id003
+                      kind: identifier
+                    - &id004
+                      kind: call_expression
+                    - &id005
+                      kind: await_expression
+                    - &id006
+                      kind: non_null_expression
+                    - &id007
+                      kind: as_expression
+                    - &id008
+                      kind: satisfies_expression
+                    - &id009
+                      kind: subscript_expression
+            - not:
+                has:
+                  kind: pair
+                  all:
+                  - *id001
+                  - not:
+                      has:
+                        field: value
+                        any:
+                        - *id002
+                        - *id003
+                        - *id004
+                        - *id005
+                        - *id006
+                        - *id007
+                        - *id008
+                        - *id009
+            - not:
+                has:
+                  kind: spread_element
+min_engine: 0.45.3
+table:
+  metavariable: '$TABLE'
+  access: write
+---
+id: audit-patient-recorded.typescript-generic.audit-write-patient-many
+practice_id: audit-patient-recorded
+language: typescript
+frameworks:
+- generic
+kind: items
+rule:
+  all:
+  - pattern: '$DB.$TABLE.createMany($ARG)'
+  - has:
+      field: function
+      kind: member_expression
+      regex: '\.([^.\s(]*[aA]udit[^.\s(]*|accessLogs?|activityLogs?|securityEvents?)\.(create|createMany)$'
+control:
+  has:
+    field: arguments
+    kind: arguments
+    has:
+      kind: object
+      has:
+        kind: pair
+        all:
+        - has:
+            field: key
+            kind: property_identifier
+            regex: '^data$'
+        - has:
+            field: value
+            kind: array
+            all:
+            - has:
+                kind: object
+            - not:
+                has:
+                  kind: object
+                  not:
+                    all:
+                    - has:
+                        kind: pair
+                        all:
+                        - &id001
+                          has:
+                            field: key
+                            kind: property_identifier
+                            regex: '(?-u)^(?i:patient|patient_?id|subject|subject_?id|pid|ehr_?id|person_?id|member_?id)$'
+                        - has:
+                            field: value
+                            any:
+                            - &id002
+                              kind: member_expression
+                            - &id003
+                              kind: identifier
+                            - &id004
+                              kind: call_expression
+                            - &id005
+                              kind: await_expression
+                            - &id006
+                              kind: non_null_expression
+                            - &id007
+                              kind: as_expression
+                            - &id008
+                              kind: satisfies_expression
+                            - &id009
+                              kind: subscript_expression
+                    - not:
+                        has:
+                          kind: pair
+                          all:
+                          - *id001
+                          - not:
+                              has:
+                                field: value
+                                any:
+                                - *id002
+                                - *id003
+                                - *id004
+                                - *id005
+                                - *id006
+                                - *id007
+                                - *id008
+                                - *id009
+                    - not:
+                        has:
+                          kind: spread_element
+            - not:
+                has:
+                  kind: spread_element
+min_engine: 0.45.3
+table:
+  metavariable: '$TABLE'
+  access: write
+---
+id: audit-patient-recorded.typescript-generic.audit-write-patient-from
+practice_id: audit-patient-recorded
+language: typescript
+frameworks:
+- generic
+kind: items
+rule:
+  all:
+  - pattern: '$CLIENT.from($TABLE).insert($ROW)'
+  - has:
+      field: function
+      kind: member_expression
+      regex: '\.from\(\s*[''\"`][^''\"`]*(audit|access_log|activity_log|security_event)[^''\"`]*[''\"`]\s*\)\s*\.insert$'
+  - has:
+      field: arguments
+      kind: arguments
+      has:
+        any:
+        - kind: object
+        - kind: array
+control:
+  has:
+    field: arguments
+    kind: arguments
+    any:
+    - has:
+        kind: object
+        all:
+        - &id010
+          has:
+            kind: pair
+            all:
+            - &id001
+              has:
+                field: key
+                kind: property_identifier
+                regex: '(?-u)^(?i:patient|patient_?id|subject|subject_?id|pid|ehr_?id|person_?id|member_?id)$'
+            - has:
+                field: value
+                any:
+                - &id002
+                  kind: member_expression
+                - &id003
+                  kind: identifier
+                - &id004
+                  kind: call_expression
+                - &id005
+                  kind: await_expression
+                - &id006
+                  kind: non_null_expression
+                - &id007
+                  kind: as_expression
+                - &id008
+                  kind: satisfies_expression
+                - &id009
+                  kind: subscript_expression
+        - &id011
+          not:
+            has:
+              kind: pair
+              all:
+              - *id001
+              - not:
+                  has:
+                    field: value
+                    any:
+                    - *id002
+                    - *id003
+                    - *id004
+                    - *id005
+                    - *id006
+                    - *id007
+                    - *id008
+                    - *id009
+        - &id012
+          not:
+            has:
+              kind: spread_element
+    - has:
+        kind: array
+        all:
+        - has:
+            kind: object
+        - not:
+            has:
+              kind: object
+              not:
+                all:
+                - *id010
+                - *id011
+                - *id012
+        - not:
+            has:
+              kind: spread_element
+min_engine: 0.45.3
+table:
+  metavariable: '$TABLE'
+  access: write
+---
+id: audit-patient-recorded.typescript-generic.log-flag-off
+practice_id: audit-patient-recorded
+language: typescript
+frameworks:
+- generic
+kind: violation
+rule:
+  all:
+  - kind: pair
+  - any:
+    - all:
+      - has:
+          field: key
+          kind: property_identifier
+          regex: '^(log|audit|auditLog|logAccess)$'
+      - has:
+          field: value
+          kind: 'false'
+    - all:
+      - has:
+          field: key
+          kind: property_identifier
+          regex: '^(skipAudit|noAudit|disableAudit|skipAuditLog|withoutAudit)$'
+      - has:
+          field: value
+          kind: 'true'
+  - inside:
+      kind: object
+      inside:
+        kind: arguments
+min_engine: 0.45.3
+---
+id: audit-patient-recorded.typescript-generic.request-handler
+practice_id: audit-patient-recorded
+language: typescript
+frameworks:
+- generic
+kind: evidence
+rule:
+  all:
+  - any:
+    - all:
+      - kind: function_declaration
+      - has:
+          field: name
+          kind: identifier
+          regex: '^(GET|POST|PUT|PATCH|DELETE)$'
+      - inside:
+          kind: export_statement
+    - all:
+      - kind: arrow_function
+      - inside:
+          kind: variable_declarator
+          has:
+            field: name
+            kind: identifier
+            regex: '^(GET|POST|PUT|PATCH|DELETE)$'
+          inside:
+            kind: lexical_declaration
+            inside:
+              kind: export_statement
+    - all:
+      - any:
+        - all:
+          - kind: function_declaration
+          - inside:
+              kind: export_statement
+        - all:
+          - kind: arrow_function
+          - inside:
+              kind: variable_declarator
+              inside:
+                kind: lexical_declaration
+                inside:
+                  kind: export_statement
+      - inside:
+          stopBy: end
+          kind: program
+          has:
+            kind: expression_statement
+            regex: '^[''"]use server[''"];?$'
+    - all:
+      - any:
+        - kind: function_declaration
+        - kind: arrow_function
+        - kind: function_expression
+      - has:
+          field: body
+          has:
+            kind: expression_statement
+            regex: '^[''"]use server[''"];?$'
+    - all:
+      - kind: method_definition
+      - any:
+        - follows: &route
+            kind: decorator
+            regex: '^@(Get|Post|Put|Patch|Delete|All)\('
+        - follows:
+            any: &between
+            - kind: decorator
+            - kind: comment
+            follows: *route
+        - follows:
+            any: *between
+            follows:
+              any: *between
+              follows: *route
+        - follows:
+            any: *between
+            follows:
+              any: *between
+              follows:
+                any: *between
+                follows: *route
+        - follows:
+            any: *between
+            follows:
+              any: *between
+              follows:
+                any: *between
+                follows:
+                  any: *between
+                  follows: *route
+      - inside:
+          stopBy: end
+          kind: class_declaration
+          any:
+          - has:
+              kind: decorator
+              regex: '^@Controller\b'
+          - inside:
+              kind: export_statement
+              has:
+                kind: decorator
+                regex: '^@Controller\b'
+min_engine: 0.45.3

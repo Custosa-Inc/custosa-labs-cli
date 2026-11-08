@@ -1,0 +1,167 @@
+id: audit-patient-recorded.python-generic.audit-write-patient
+practice_id: audit-patient-recorded
+language: python
+frameworks:
+- generic
+kind: items
+rule:
+  all:
+  - pattern: '$TABLE.objects.create($$$FIELDS)'
+  - has:
+      field: function
+      kind: attribute
+      regex: '^(AuditLog|AuditEvent|AccessLog|AuditTrail|ActivityLog|SecurityEvent)\.objects\.create$'
+  - not:
+      has:
+        field: arguments
+        kind: argument_list
+        has:
+          kind: dictionary_splat
+control:
+  has:
+    field: arguments
+    kind: argument_list
+    all:
+    - has:
+        kind: keyword_argument
+        all:
+        - &id001
+          has:
+            field: name
+            kind: identifier
+            regex: '(?-u)^(?i:patient|patient_?id|subject|subject_?id|pid|ehr_?id|person_?id|member_?id)$'
+        - &id002
+          has:
+            field: value
+            any:
+            - kind: attribute
+            - kind: identifier
+            - kind: subscript
+            - kind: call
+    - not:
+        has:
+          kind: keyword_argument
+          all:
+          - *id001
+          - not: *id002
+    - not:
+        has:
+          kind: dictionary_splat
+min_engine: 0.45.3
+table:
+  metavariable: '$TABLE'
+  access: write
+---
+id: audit-patient-recorded.python-generic.audit-write-patient-save
+practice_id: audit-patient-recorded
+language: python
+frameworks:
+- generic
+kind: items
+rule:
+  all:
+  - pattern: '$TABLE($$$FIELDS).save()'
+  - has:
+      field: function
+      kind: attribute
+      regex: '^(AuditLog|AuditEvent|AccessLog|AuditTrail|ActivityLog|SecurityEvent)\('
+control:
+  has:
+    field: function
+    kind: attribute
+    has:
+      field: object
+      kind: call
+      has:
+        field: arguments
+        kind: argument_list
+        all:
+        - has:
+            kind: keyword_argument
+            all:
+            - &id001
+              has:
+                field: name
+                kind: identifier
+                regex: '(?-u)^(?i:patient|patient_?id|subject|subject_?id|pid|ehr_?id|person_?id|member_?id)$'
+            - &id002
+              has:
+                field: value
+                any:
+                - kind: attribute
+                - kind: identifier
+                - kind: subscript
+                - kind: call
+        - not:
+            has:
+              kind: keyword_argument
+              all:
+              - *id001
+              - not: *id002
+        - not:
+            has:
+              kind: dictionary_splat
+min_engine: 0.45.3
+table:
+  metavariable: '$TABLE'
+  access: write
+---
+id: audit-patient-recorded.python-generic.audit-write-patient-bulk
+practice_id: audit-patient-recorded
+language: python
+frameworks:
+- generic
+kind: items
+rule:
+  all:
+  - pattern: '$TABLE.objects.bulk_create($$$ITEMS)'
+  - has:
+      field: function
+      kind: attribute
+      regex: '^(AuditLog|AuditEvent|AccessLog|AuditTrail|ActivityLog|SecurityEvent)\.objects\.bulk_create$'
+control:
+  has:
+    field: arguments
+    kind: argument_list
+    has:
+      kind: list
+      all:
+      - has:
+          kind: call
+      - not:
+          has:
+            kind: call
+            not:
+              has:
+                field: arguments
+                kind: argument_list
+                all:
+                - has:
+                    kind: keyword_argument
+                    all:
+                    - &id001
+                      has:
+                        field: name
+                        kind: identifier
+                        regex: '(?-u)^(?i:patient|patient_?id|subject|subject_?id|pid|ehr_?id|person_?id|member_?id)$'
+                    - &id002
+                      has:
+                        field: value
+                        any:
+                        - kind: attribute
+                        - kind: identifier
+                        - kind: subscript
+                        - kind: call
+                - not:
+                    has:
+                      kind: keyword_argument
+                      all:
+                      - *id001
+                      - not: *id002
+                - not:
+                    has:
+                      kind: dictionary_splat
+min_engine: 0.45.3
+table:
+  metavariable: '$TABLE'
+  access: write

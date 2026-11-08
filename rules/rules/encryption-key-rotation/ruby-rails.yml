@@ -1,0 +1,13 @@
+id: encryption-key-rotation.ruby-rails.kms-client
+practice_id: encryption-key-rotation
+language: ruby
+frameworks:
+- rails
+kind: evidence
+rule:
+  any:
+  - kind: call
+    regex: \.generate_data_key\(|^Aws::KMS::Client\.new
+  - kind: assignment
+    regex: ^config\.active_record\.encryption\.(primary_key|key_provider)\s*=
+min_engine: 0.39.0

@@ -1,0 +1,830 @@
+id: session-timeouts.javascript-generic.lifetime-within
+practice_id: session-timeouts
+language: javascript
+frameworks:
+- generic
+kind: evidence
+rule:
+  any:
+  - all:
+    - kind: pair
+      regex: ^expiresIn\s*:\s*(['\"`](([1-9][0-9]{0,2}|1[0-3][0-9][0-9]|14[0-3][0-9]|1440)\s*m(in(ute)?s?)?|([1-9]|1[0-9]|2[0-4])\s*h(ours?|rs?)?|1\s*d(ays?)?|([1-9][0-9]{0,3}|[1-7][0-9]{4}|8[0-5][0-9]{3}|86[0-3][0-9][0-9]|86400)\s*s(ec(ond)?s?)?)['\"`]|([1-9][0-9]{0,3}|[1-7][0-9]{4}|8[0-5][0-9]{3}|86[0-3][0-9][0-9]|86400|([1-9]|1[0-9]|2[0-4])\s*\*\s*60\s*\*\s*60|60\s*\*\s*60\s*\*\s*([1-9]|1[0-9]|2[0-4])|([1-9][0-9]?|[1-9][0-9][0-9]|1[0-3][0-9][0-9]|14[0-3][0-9]|1440)\s*\*\s*60))$
+    - all:
+      - inside:
+          stopBy: end
+          kind: call_expression
+          regex: ^(jwt\.sign|sign|signJwt|signToken|jwt\.encode|(this\.)?[A-Za-z0-9_]*[jJ]wt[A-Za-z0-9_]*\.sign(Async)?)\(
+      - inside:
+          stopBy: end
+          any:
+          - kind: variable_declarator
+            has:
+              field: name
+              kind: identifier
+              regex: (?i)(session|access|refresh|login|sign_?in|auth|bearer)
+          - kind: function_declaration
+            has:
+              field: name
+              kind: identifier
+              regex: (?i)(session|access|refresh|login|sign_?in|auth|bearer)
+          - kind: method_definition
+            has:
+              field: name
+              kind: property_identifier
+              regex: (?i)(session|access|refresh|login|sign_?in|auth|bearer)
+          - kind: pair
+            has:
+              field: key
+              kind: property_identifier
+              regex: (?i)(session|access|refresh|login|sign_?in|auth|bearer)
+      - not:
+          inside:
+            stopBy: end
+            any:
+            - kind: variable_declarator
+              has:
+                field: name
+                kind: identifier
+                regex: (?i)(verif|reset|invite|confirm|magic|email|otp|download|share|unsubscribe|signed_?url|presign|upload)
+            - kind: function_declaration
+              has:
+                field: name
+                kind: identifier
+                regex: (?i)(verif|reset|invite|confirm|magic|email|otp|download|share|unsubscribe|signed_?url|presign|upload)
+            - kind: method_definition
+              has:
+                field: name
+                kind: property_identifier
+                regex: (?i)(verif|reset|invite|confirm|magic|email|otp|download|share|unsubscribe|signed_?url|presign|upload)
+            - kind: pair
+              has:
+                field: key
+                kind: property_identifier
+                regex: (?i)(verif|reset|invite|confirm|magic|email|otp|download|share|unsubscribe|signed_?url|presign|upload)
+  - all:
+    - kind: pair
+      regex: ^maxAge\s*:\s*([1-9][0-9]{0,3}|[1-7][0-9]{4}|8[0-5][0-9]{3}|86[0-3][0-9][0-9]|86400|([1-9]|1[0-9]|2[0-4])\s*\*\s*60\s*\*\s*60|60\s*\*\s*60\s*\*\s*([1-9]|1[0-9]|2[0-4])|([1-9][0-9]?|[1-9][0-9][0-9]|1[0-3][0-9][0-9]|14[0-3][0-9]|1440)\s*\*\s*60)$
+    - all:
+      - inside:
+          stopBy: end
+          kind: pair
+          regex: '^session\s*:'
+      - not:
+          inside:
+            stopBy: end
+            kind: pair
+            regex: '^cookies?\s*:'
+  - all:
+    - kind: pair
+      regex: ^(maxAge|expires)\s*:\s*([1-9][0-9]{0,6}|[1-7][0-9]{7}|8[0-5][0-9]{6}|86[0-3][0-9]{5}|86400000|([1-9]|1[0-9]|2[0-4])\s*\*\s*60\s*\*\s*60\s*\*\s*1000|1000\s*\*\s*60\s*\*\s*60\s*\*\s*([1-9]|1[0-9]|2[0-4])|([1-9][0-9]?|[1-9][0-9][0-9]|1[0-3][0-9][0-9]|14[0-3][0-9]|1440)\s*\*\s*60\s*\*\s*1000)$
+    - any:
+      - inside:
+          stopBy: end
+          kind: pair
+          regex: '^cookie\s*:'
+      - inside:
+          stopBy: end
+          kind: call_expression
+          regex: ^(res|response|reply)\.cookie\(|cookies\(\)\.set\(|\.cookies\.set\(
+    - not:
+        inside:
+          stopBy: end
+          kind: call_expression
+          regex: ^(session|expressSession)\([\s\S]*rolling\s*:\s*true
+min_engine: 0.39.0
+---
+id: session-timeouts.javascript-generic.lifetime-within-options
+practice_id: session-timeouts
+language: javascript
+frameworks:
+- generic
+kind: evidence
+rule:
+  all:
+  - pattern: jwt.sign($PAYLOAD, $SECRET, $OPTS)
+  - inside:
+      stopBy: end
+      kind: program
+      has:
+        any:
+        - &id001
+          kind: lexical_declaration
+          regex: ^const\s
+          has:
+            kind: variable_declarator
+            all:
+            - pattern:
+                context: const $OPTS = $VALUE
+                selector: variable_declarator
+            - has:
+                field: value
+                kind: object
+            - has:
+                field: value
+                has:
+                  kind: pair
+                  regex: ^expiresIn\s*:\s*(['"`][^'"`$]+['"`]|[0-9][0-9_]*(\s*\*\s*[0-9][0-9_]*)*)$
+            - not:
+                has:
+                  field: value
+                  has:
+                    kind: spread_element
+            - has:
+                field: value
+                has:
+                  kind: pair
+                  regex: ^expiresIn\s*:\s*(['\"`](([1-9][0-9]{0,2}|1[0-3][0-9][0-9]|14[0-3][0-9]|1440)\s*m(in(ute)?s?)?|([1-9]|1[0-9]|2[0-4])\s*h(ours?|rs?)?|1\s*d(ays?)?|([1-9][0-9]{0,3}|[1-7][0-9]{4}|8[0-5][0-9]{3}|86[0-3][0-9][0-9]|86400)\s*s(ec(ond)?s?)?)['\"`]|([1-9][0-9]{0,3}|[1-7][0-9]{4}|8[0-5][0-9]{3}|86[0-3][0-9][0-9]|86400|([1-9]|1[0-9]|2[0-4])\s*\*\s*60\s*\*\s*60|60\s*\*\s*60\s*\*\s*([1-9]|1[0-9]|2[0-4])|([1-9][0-9]?|[1-9][0-9][0-9]|1[0-3][0-9][0-9]|14[0-3][0-9]|1440)\s*\*\s*60))$
+            - has:
+                field: value
+                has:
+                  kind: pair
+                  regex: ^expiresIn\s*:\s*(['\"`](([1-9][0-9]{0,2}|1[0-3][0-9][0-9]|14[0-3][0-9]|1440)\s*m(in(ute)?s?)?|([1-9]|1[0-9]|2[0-4])\s*h(ours?|rs?)?|1\s*d(ays?)?|([1-9][0-9]{0,3}|[1-7][0-9]{4}|8[0-5][0-9]{3}|86[0-3][0-9][0-9]|86400)\s*s(ec(ond)?s?)?)['\"`]|([1-9][0-9]{0,3}|[1-7][0-9]{4}|8[0-5][0-9]{3}|86[0-3][0-9][0-9]|86400|([1-9]|1[0-9]|2[0-4])\s*\*\s*60\s*\*\s*60|60\s*\*\s*60\s*\*\s*([1-9]|1[0-9]|2[0-4])|([1-9][0-9]?|[1-9][0-9][0-9]|1[0-3][0-9][0-9]|14[0-3][0-9]|1440)\s*\*\s*60))$
+        - kind: export_statement
+          has: *id001
+  - not:
+      inside:
+        stopBy: end
+        kind: program
+        has:
+          stopBy: end
+          any:
+          - kind: assignment_expression
+            has:
+              field: left
+              any:
+              - kind: identifier
+                pattern: &id002
+                  context: $OPTS.x;
+                  selector: identifier
+              - kind: member_expression
+                has:
+                  field: object
+                  kind: identifier
+                  pattern: *id002
+          - kind: augmented_assignment_expression
+            has:
+              field: left
+              kind: member_expression
+              has:
+                field: object
+                kind: identifier
+                pattern: *id002
+          - kind: call_expression
+            regex: ^Object\.assign\(
+            has:
+              field: arguments
+              has:
+                kind: identifier
+                pattern: *id002
+          - kind: unary_expression
+            regex: ^delete\s
+            has:
+              stopBy: end
+              kind: identifier
+              pattern: *id002
+  - not:
+      inside:
+        stopBy: end
+        all:
+        - any:
+          - kind: function_declaration
+          - kind: method_definition
+          - kind: arrow_function
+          - kind: function_expression
+        - any:
+          - has:
+              field: parameters
+              stopBy: end
+              kind: identifier
+              pattern: &id003
+                context: $OPTS.x;
+                selector: identifier
+          - has:
+              field: parameter
+              kind: identifier
+              pattern: *id003
+          - has:
+              field: body
+              stopBy: end
+              kind: variable_declarator
+              has:
+                field: name
+                kind: identifier
+                pattern: *id003
+  - not:
+      inside:
+        stopBy: end
+        any:
+        - kind: variable_declarator
+          has:
+            field: name
+            kind: identifier
+            regex: (?i)(verif|reset|invite|confirm|magic|email|otp|download|share|unsubscribe|signed_?url|presign|upload)
+        - kind: function_declaration
+          has:
+            field: name
+            kind: identifier
+            regex: (?i)(verif|reset|invite|confirm|magic|email|otp|download|share|unsubscribe|signed_?url|presign|upload)
+        - kind: method_definition
+          has:
+            field: name
+            kind: property_identifier
+            regex: (?i)(verif|reset|invite|confirm|magic|email|otp|download|share|unsubscribe|signed_?url|presign|upload)
+        - kind: pair
+          has:
+            field: key
+            kind: property_identifier
+            regex: (?i)(verif|reset|invite|confirm|magic|email|otp|download|share|unsubscribe|signed_?url|presign|upload)
+min_engine: 0.39.0
+---
+id: session-timeouts.javascript-generic.idle-within
+practice_id: session-timeouts
+language: javascript
+frameworks:
+- generic
+kind: evidence
+rule:
+  any:
+  - all:
+    - kind: pair
+      regex: ^updateAge\s*:\s*(([1-9][0-9]{0,3}|[1-7][0-9]{4}|8[0-5][0-9]{3}|86[0-3][0-9][0-9]|86400|([1-9]|1[0-9]|2[0-4])\s*\*\s*60\s*\*\s*60|60\s*\*\s*60\s*\*\s*([1-9]|1[0-9]|2[0-4])|([1-9][0-9]?|[1-9][0-9][0-9]|1[0-3][0-9][0-9]|14[0-3][0-9]|1440)\s*\*\s*60))$
+    - all:
+      - inside:
+          stopBy: end
+          kind: pair
+          regex: '^session\s*:'
+      - not:
+          inside:
+            stopBy: end
+            kind: pair
+            regex: '^cookies?\s*:'
+    - kind: pair
+      regex: ^updateAge\s*:\s*([1-9][0-9]{0,2}|[1-2][0-9]{3}|3[0-5][0-9][0-9]|3600|([1-9]|[1-5][0-9]|60)\s*\*\s*60)$
+  - all:
+    - kind: call_expression
+      regex: ^(session|expressSession)\(
+    - has:
+        field: arguments
+        kind: arguments
+        regex: (?-u:\b)rolling\s*:\s*true(?-u:\b)
+    - has:
+        field: arguments
+        kind: arguments
+        regex: (?-u:\b)cookie\s*:\s*\{[^}]*(?-u:\b)maxAge\s*:\s*([1-9][0-9]{0,5}|[1-2][0-9]{6}|3[0-5][0-9]{5}|3600000|([1-9]|[1-5][0-9]|60)\s*\*\s*60\s*\*\s*1000|1000\s*\*\s*60\s*\*\s*([1-9]|[1-5][0-9]|60))\s*[,}]
+min_engine: 0.39.0
+---
+id: session-timeouts.javascript-generic.over-limit
+practice_id: session-timeouts
+language: javascript
+frameworks:
+- generic
+kind: violation
+rule:
+  any:
+  - all:
+    - kind: pair
+      regex: ^expiresIn\s*:\s*(['\"`](([2-9]|[0-9]{2,})\s*d(ays?)?|(2[5-9]|[3-9][0-9]|[0-9]{3,})\s*h(ours?|rs?)?|[0-9]+\s*(w|weeks?|y|years?)|(144[1-9]|14[5-9][0-9]|1[5-9][0-9][0-9]|[2-9][0-9]{3}|[0-9]{5,})\s*m(in(ute)?s?)?|(8640[1-9]|864[1-9][0-9]|86[5-9][0-9]{2}|8[7-9][0-9]{3}|9[0-9]{4}|[1-9][0-9]{5,})\s*s(ec(ond)?s?)?)['\"`]|ms\(\s*['\"`](([2-9]|[0-9]{2,})\s*d|[0-9]+\s*(w|y))|(8640[1-9]|864[1-9][0-9]|86[5-9][0-9]{2}|8[7-9][0-9]{3}|9[0-9]{4}|[1-9][0-9]{5,}|([2-9]|[0-9]{2,})\s*\*\s*24\s*\*\s*60\s*\*\s*60|60\s*\*\s*60\s*\*\s*24\s*\*\s*([2-9]|[0-9]{2,})|(2[5-9]|[3-9][0-9]|[0-9]{3,})\s*\*\s*60\s*\*\s*60|([2-9]|[1-9][0-9]+)\s*\*\s*(24\s*\*\s*3600|3600\s*\*\s*24|86400|24\s*\*\s*60\s*\*\s*60|60\s*\*\s*60\s*\*\s*24)|(24\s*\*\s*3600|3600\s*\*\s*24|86400|24\s*\*\s*60\s*\*\s*60|60\s*\*\s*60\s*\*\s*24)\s*\*\s*([2-9]|[1-9][0-9]+)|(2[5-9]|[3-9][0-9]|[1-9][0-9]{2,})\s*\*\s*3600|3600\s*\*\s*(2[5-9]|[3-9][0-9]|[1-9][0-9]{2,})))
+    - all:
+      - inside:
+          stopBy: end
+          kind: call_expression
+          regex: ^(jwt\.sign|sign|signJwt|signToken|jwt\.encode|(this\.)?[A-Za-z0-9_]*[jJ]wt[A-Za-z0-9_]*\.sign(Async)?)\(
+      - not:
+          inside:
+            stopBy: end
+            any:
+            - kind: variable_declarator
+              has:
+                field: name
+                kind: identifier
+                regex: (?i)(verif|reset|invite|confirm|magic|email|otp|download|share|unsubscribe|signed_?url|presign|upload)
+            - kind: function_declaration
+              has:
+                field: name
+                kind: identifier
+                regex: (?i)(verif|reset|invite|confirm|magic|email|otp|download|share|unsubscribe|signed_?url|presign|upload)
+            - kind: method_definition
+              has:
+                field: name
+                kind: property_identifier
+                regex: (?i)(verif|reset|invite|confirm|magic|email|otp|download|share|unsubscribe|signed_?url|presign|upload)
+            - kind: pair
+              has:
+                field: key
+                kind: property_identifier
+                regex: (?i)(verif|reset|invite|confirm|magic|email|otp|download|share|unsubscribe|signed_?url|presign|upload)
+  - all:
+    - kind: pair
+      regex: ^maxAge\s*:\s*(8640[1-9]|864[1-9][0-9]|86[5-9][0-9]{2}|8[7-9][0-9]{3}|9[0-9]{4}|[1-9][0-9]{5,}|([2-9]|[0-9]{2,})\s*\*\s*24\s*\*\s*60\s*\*\s*60|60\s*\*\s*60\s*\*\s*24\s*\*\s*([2-9]|[0-9]{2,})|(2[5-9]|[3-9][0-9]|[0-9]{3,})\s*\*\s*60\s*\*\s*60|([2-9]|[1-9][0-9]+)\s*\*\s*(24\s*\*\s*3600|3600\s*\*\s*24|86400|24\s*\*\s*60\s*\*\s*60|60\s*\*\s*60\s*\*\s*24)|(24\s*\*\s*3600|3600\s*\*\s*24|86400|24\s*\*\s*60\s*\*\s*60|60\s*\*\s*60\s*\*\s*24)\s*\*\s*([2-9]|[1-9][0-9]+)|(2[5-9]|[3-9][0-9]|[1-9][0-9]{2,})\s*\*\s*3600|3600\s*\*\s*(2[5-9]|[3-9][0-9]|[1-9][0-9]{2,}))$
+    - all:
+      - inside:
+          stopBy: end
+          kind: pair
+          regex: '^(session|jwt)\s*:'
+      - not:
+          inside:
+            stopBy: end
+            kind: pair
+            regex: '^cookies?\s*:'
+  - all:
+    - kind: pair
+      regex: ^(maxAge|expires)\s*:\s*(8640000[1-9]|864000[1-9][0-9]|86400[1-9][0-9]{2}|8640[1-9][0-9]{3}|864[1-9][0-9]{4}|86[5-9][0-9]{5}|8[7-9][0-9]{6}|9[0-9]{7}|[1-9][0-9]{8,}|([2-9]|[1-9][0-9]+)\s*\*\s*(24\s*\*\s*3600\s*\*\s*1000|86400\s*\*\s*1000|86400000|24\s*\*\s*60\s*\*\s*60\s*\*\s*1000|1000\s*\*\s*60\s*\*\s*60\s*\*\s*24)|(24\s*\*\s*3600\s*\*\s*1000|86400\s*\*\s*1000|86400000|24\s*\*\s*60\s*\*\s*60\s*\*\s*1000|1000\s*\*\s*60\s*\*\s*60\s*\*\s*24)\s*\*\s*([2-9]|[1-9][0-9]+)|(2[5-9]|[3-9][0-9]|[1-9][0-9]{2,})\s*\*\s*(60\s*\*\s*60|3600)\s*\*\s*1000)$
+    - any:
+      - inside:
+          stopBy: end
+          kind: pair
+          regex: '^cookie\s*:'
+      - inside:
+          stopBy: end
+          kind: call_expression
+          regex: ^(res|response|reply)\.cookie\(|cookies\(\)\.set\(|\.cookies\.set\(
+  - kind: pair
+    regex: ^(idleTimeout|idle_?timeout|inactivityTimeout)\s*:\s*(['\"`](([2-9]|[0-9]{2,})\s*d(ays?)?|(2[5-9]|[3-9][0-9]|[0-9]{3,})\s*h(ours?|rs?)?|[0-9]+\s*(w|weeks?|y|years?)|(144[1-9]|14[5-9][0-9]|1[5-9][0-9][0-9]|[2-9][0-9]{3}|[0-9]{5,})\s*m(in(ute)?s?)?|(8640[1-9]|864[1-9][0-9]|86[5-9][0-9]{2}|8[7-9][0-9]{3}|9[0-9]{4}|[1-9][0-9]{5,})\s*s(ec(ond)?s?)?)['\"`]|ms\(\s*['\"`](([2-9]|[0-9]{2,})\s*d|[0-9]+\s*(w|y))|['\"`]([2-9]|[0-9]{2,})\s*h(ours?)?['\"`])$
+  - all:
+    - kind: pair
+      regex: ^(expiresAt|expires_at|expires|expiry|expiresOn)\s*:\s*new Date\(\s*Date\.now\(\)\s*\+\s*(8640000[1-9]|864000[1-9][0-9]|86400[1-9][0-9]{2}|8640[1-9][0-9]{3}|864[1-9][0-9]{4}|86[5-9][0-9]{5}|8[7-9][0-9]{6}|9[0-9]{7}|[1-9][0-9]{8,}|([2-9]|[1-9][0-9]+)\s*\*\s*(24\s*\*\s*3600\s*\*\s*1000|86400\s*\*\s*1000|86400000|24\s*\*\s*60\s*\*\s*60\s*\*\s*1000|1000\s*\*\s*60\s*\*\s*60\s*\*\s*24)|(24\s*\*\s*3600\s*\*\s*1000|86400\s*\*\s*1000|86400000|24\s*\*\s*60\s*\*\s*60\s*\*\s*1000|1000\s*\*\s*60\s*\*\s*60\s*\*\s*24)\s*\*\s*([2-9]|[1-9][0-9]+)|(2[5-9]|[3-9][0-9]|[1-9][0-9]{2,})\s*\*\s*(60\s*\*\s*60|3600)\s*\*\s*1000)\s*\)$
+    - inside:
+        stopBy: end
+        kind: call_expression
+        regex: ^[A-Za-z0-9_.]*\.(refreshToken|refreshTokens|refresh_token|refresh_tokens|session|sessions|userSession|userSessions)\.(create|createMany|upsert|update|insert)\(
+  - all:
+    - kind: call_expression
+      regex: \.setExpirationTime\(\s*['\"`](([2-9]|[0-9]{2,})\s*d(ays?)?|(2[5-9]|[3-9][0-9]|[0-9]{3,})\s*h(ours?|rs?)?|[0-9]+\s*(w|weeks?|y|years?)|(144[1-9]|14[5-9][0-9]|1[5-9][0-9][0-9]|[2-9][0-9]{3}|[0-9]{5,})\s*m(in(ute)?s?)?|(8640[1-9]|864[1-9][0-9]|86[5-9][0-9]{2}|8[7-9][0-9]{3}|9[0-9]{4}|[1-9][0-9]{5,})\s*s(ec(ond)?s?)?)['\"`]\s*\)$
+    - has:
+        stopBy: end
+        kind: new_expression
+        regex: ^new\s+SignJWT\(
+  - all:
+    - pattern: jwt.sign($PAYLOAD, $SECRET, $OPTS)
+    - has:
+        field: arguments
+        kind: arguments
+        regex: ',\s*[A-Za-z_$][A-Za-z0-9_$]*\s*\)$'
+    - inside:
+        stopBy: end
+        kind: program
+        has:
+          any:
+          - &id001
+            kind: lexical_declaration
+            regex: ^const\s
+            has:
+              kind: variable_declarator
+              all:
+              - pattern:
+                  context: const $OPTS = $VALUE
+                  selector: variable_declarator
+              - has:
+                  field: value
+                  kind: object
+              - has:
+                  field: value
+                  has:
+                    kind: pair
+                    regex: ^expiresIn\s*:\s*(['\"`](([2-9]|[0-9]{2,})\s*d(ays?)?|(2[5-9]|[3-9][0-9]|[0-9]{3,})\s*h(ours?|rs?)?|[0-9]+\s*(w|weeks?|y|years?)|(144[1-9]|14[5-9][0-9]|1[5-9][0-9][0-9]|[2-9][0-9]{3}|[0-9]{5,})\s*m(in(ute)?s?)?|(8640[1-9]|864[1-9][0-9]|86[5-9][0-9]{2}|8[7-9][0-9]{3}|9[0-9]{4}|[1-9][0-9]{5,})\s*s(ec(ond)?s?)?)['\"`]|ms\(\s*['\"`](([2-9]|[0-9]{2,})\s*d|[0-9]+\s*(w|y))|(8640[1-9]|864[1-9][0-9]|86[5-9][0-9]{2}|8[7-9][0-9]{3}|9[0-9]{4}|[1-9][0-9]{5,}|([2-9]|[0-9]{2,})\s*\*\s*24\s*\*\s*60\s*\*\s*60|60\s*\*\s*60\s*\*\s*24\s*\*\s*([2-9]|[0-9]{2,})|(2[5-9]|[3-9][0-9]|[0-9]{3,})\s*\*\s*60\s*\*\s*60|([2-9]|[1-9][0-9]+)\s*\*\s*(24\s*\*\s*3600|3600\s*\*\s*24|86400|24\s*\*\s*60\s*\*\s*60|60\s*\*\s*60\s*\*\s*24)|(24\s*\*\s*3600|3600\s*\*\s*24|86400|24\s*\*\s*60\s*\*\s*60|60\s*\*\s*60\s*\*\s*24)\s*\*\s*([2-9]|[1-9][0-9]+)|(2[5-9]|[3-9][0-9]|[1-9][0-9]{2,})\s*\*\s*3600|3600\s*\*\s*(2[5-9]|[3-9][0-9]|[1-9][0-9]{2,})))
+          - kind: export_statement
+            has: *id001
+    - not:
+        inside:
+          stopBy: end
+          kind: program
+          has:
+            stopBy: end
+            any:
+            - kind: assignment_expression
+              has:
+                field: left
+                any:
+                - kind: identifier
+                  pattern: &id002
+                    context: $OPTS.x;
+                    selector: identifier
+                - kind: member_expression
+                  has:
+                    field: object
+                    kind: identifier
+                    pattern: *id002
+            - kind: augmented_assignment_expression
+              has:
+                field: left
+                kind: member_expression
+                has:
+                  field: object
+                  kind: identifier
+                  pattern: *id002
+            - kind: call_expression
+              regex: ^Object\.assign\(
+              has:
+                field: arguments
+                has:
+                  kind: identifier
+                  pattern: *id002
+            - kind: unary_expression
+              regex: ^delete\s
+              has:
+                stopBy: end
+                kind: identifier
+                pattern: *id002
+    - not:
+        inside:
+          stopBy: end
+          all:
+          - any:
+            - kind: function_declaration
+            - kind: method_definition
+            - kind: arrow_function
+            - kind: function_expression
+          - any:
+            - has:
+                field: parameters
+                stopBy: end
+                kind: identifier
+                pattern: &id003
+                  context: $OPTS.x;
+                  selector: identifier
+            - has:
+                field: parameter
+                kind: identifier
+                pattern: *id003
+            - has:
+                field: body
+                stopBy: end
+                kind: variable_declarator
+                has:
+                  field: name
+                  kind: identifier
+                  pattern: *id003
+    - not:
+        inside:
+          stopBy: end
+          any:
+          - kind: variable_declarator
+            has:
+              field: name
+              kind: identifier
+              regex: (?i)(verif|reset|invite|confirm|magic|email|otp|download|share|unsubscribe|signed_?url|presign|upload)
+          - kind: function_declaration
+            has:
+              field: name
+              kind: identifier
+              regex: (?i)(verif|reset|invite|confirm|magic|email|otp|download|share|unsubscribe|signed_?url|presign|upload)
+          - kind: method_definition
+            has:
+              field: name
+              kind: property_identifier
+              regex: (?i)(verif|reset|invite|confirm|magic|email|otp|download|share|unsubscribe|signed_?url|presign|upload)
+          - kind: pair
+            has:
+              field: key
+              kind: property_identifier
+              regex: (?i)(verif|reset|invite|confirm|magic|email|otp|download|share|unsubscribe|signed_?url|presign|upload)
+min_engine: 0.39.0
+---
+id: session-timeouts.javascript-generic.no-expiry
+practice_id: session-timeouts
+language: javascript
+frameworks:
+- generic
+kind: violation
+rule:
+  any:
+  - all:
+    - any:
+      - pattern: jwt.sign($PAYLOAD, $SECRET)
+      - all:
+        - pattern: jwt.sign($PAYLOAD, $SECRET, $OPTS)
+        - has:
+            field: arguments
+            kind: arguments
+            regex: ',\s*\{[^{}]*\}\s*\)$'
+        - not:
+            has:
+              stopBy: end
+              any:
+              - kind: property_identifier
+                regex: ^(expiresIn|exp)$
+              - kind: shorthand_property_identifier
+                regex: ^(expiresIn|exp)$
+        - not:
+            has:
+              stopBy: end
+              kind: spread_element
+      - all:
+        - pattern: jwt.sign($PAYLOAD, $SECRET, $OPTS)
+        - has:
+            field: arguments
+            kind: arguments
+            regex: ',\s*[A-Za-z_$][A-Za-z0-9_$]*\s*\)$'
+        - inside:
+            stopBy: end
+            kind: program
+            has:
+              any:
+              - &id001
+                kind: lexical_declaration
+                regex: ^const\s
+                has:
+                  kind: variable_declarator
+                  all:
+                  - pattern:
+                      context: const $OPTS = $VALUE
+                      selector: variable_declarator
+                  - has:
+                      field: value
+                      kind: object
+                  - not:
+                      has:
+                        stopBy: end
+                        any:
+                        - kind: property_identifier
+                          regex: ^(expiresIn|exp)$
+                        - kind: shorthand_property_identifier
+                          regex: ^(expiresIn|exp)$
+                  - not:
+                      has:
+                        field: value
+                        has:
+                          kind: spread_element
+              - kind: export_statement
+                has: *id001
+        - not:
+            inside:
+              stopBy: end
+              kind: program
+              has:
+                stopBy: end
+                any:
+                - kind: assignment_expression
+                  has:
+                    field: left
+                    any:
+                    - kind: identifier
+                      pattern: &id002
+                        context: $OPTS.x;
+                        selector: identifier
+                    - kind: member_expression
+                      has:
+                        field: object
+                        kind: identifier
+                        pattern: *id002
+                - kind: augmented_assignment_expression
+                  has:
+                    field: left
+                    kind: member_expression
+                    has:
+                      field: object
+                      kind: identifier
+                      pattern: *id002
+                - kind: call_expression
+                  regex: ^Object\.assign\(
+                  has:
+                    field: arguments
+                    has:
+                      kind: identifier
+                      pattern: *id002
+                - kind: unary_expression
+                  regex: ^delete\s
+                  has:
+                    stopBy: end
+                    kind: identifier
+                    pattern: *id002
+        - not:
+            inside:
+              stopBy: end
+              all:
+              - any:
+                - kind: function_declaration
+                - kind: method_definition
+                - kind: arrow_function
+                - kind: function_expression
+              - any:
+                - has:
+                    field: parameters
+                    stopBy: end
+                    kind: identifier
+                    pattern: &id003
+                      context: $OPTS.x;
+                      selector: identifier
+                - has:
+                    field: parameter
+                    kind: identifier
+                    pattern: *id003
+                - has:
+                    field: body
+                    stopBy: end
+                    kind: variable_declarator
+                    has:
+                      field: name
+                      kind: identifier
+                      pattern: *id003
+    - &id004
+      not:
+        inside:
+          stopBy: end
+          any:
+          - kind: variable_declarator
+            has:
+              field: name
+              kind: identifier
+              regex: (?i)(verif|reset|invite|confirm|magic|email|otp|download|share|unsubscribe|signed_?url|presign|upload)
+          - kind: function_declaration
+            has:
+              field: name
+              kind: identifier
+              regex: (?i)(verif|reset|invite|confirm|magic|email|otp|download|share|unsubscribe|signed_?url|presign|upload)
+          - kind: method_definition
+            has:
+              field: name
+              kind: property_identifier
+              regex: (?i)(verif|reset|invite|confirm|magic|email|otp|download|share|unsubscribe|signed_?url|presign|upload)
+          - kind: pair
+            has:
+              field: key
+              kind: property_identifier
+              regex: (?i)(verif|reset|invite|confirm|magic|email|otp|download|share|unsubscribe|signed_?url|presign|upload)
+  - all:
+    - kind: call_expression
+      regex: ^new\s+SignJWT\([\s\S]*\.sign\(
+    - not:
+        kind: call_expression
+        regex: \.setExpirationTime\(
+    - not:
+        has:
+          field: function
+          has:
+            stopBy: end
+            kind: call_expression
+            regex: \.sign\(
+    - *id004
+min_engine: 0.39.0
+---
+id: session-timeouts.javascript-generic.options-variable
+practice_id: session-timeouts
+language: javascript
+frameworks:
+- generic
+kind: items
+rule:
+  all:
+  - pattern: jwt.sign($PAYLOAD, $SECRET, $OPTS)
+  - not:
+      has:
+        field: arguments
+        kind: arguments
+        has:
+          kind: object
+          has:
+            kind: pair
+            all:
+            - has:
+                field: key
+                kind: property_identifier
+                regex: ^expiresIn$
+            - has:
+                field: value
+                any:
+                - kind: string
+                  regex: ^(['"`][^'"`$]+['"`]|[0-9][0-9_]*(\s*\*\s*[0-9][0-9_]*)*|ms\(\s*['"`][^'"`$]+['"`]\s*\)(\s*/\s*1000)?)$
+                - kind: number
+                  regex: ^(['"`][^'"`$]+['"`]|[0-9][0-9_]*(\s*\*\s*[0-9][0-9_]*)*|ms\(\s*['"`][^'"`$]+['"`]\s*\)(\s*/\s*1000)?)$
+                - kind: binary_expression
+                  regex: ^(['"`][^'"`$]+['"`]|[0-9][0-9_]*(\s*\*\s*[0-9][0-9_]*)*|ms\(\s*['"`][^'"`$]+['"`]\s*\)(\s*/\s*1000)?)$
+                - kind: template_string
+                  regex: ^(['"`][^'"`$]+['"`]|[0-9][0-9_]*(\s*\*\s*[0-9][0-9_]*)*|ms\(\s*['"`][^'"`$]+['"`]\s*\)(\s*/\s*1000)?)$
+                - kind: call_expression
+                  regex: ^(['"`][^'"`$]+['"`]|[0-9][0-9_]*(\s*\*\s*[0-9][0-9_]*)*|ms\(\s*['"`][^'"`$]+['"`]\s*\)(\s*/\s*1000)?)$
+  - not:
+      has:
+        field: arguments
+        kind: arguments
+        regex: ',\s*\{[^{}.]*(\.[^{}.]+)*\}\s*\)$'
+        not:
+          kind: arguments
+          regex: expiresIn
+  - not:
+      inside:
+        stopBy: end
+        any:
+        - kind: variable_declarator
+          has:
+            field: name
+            kind: identifier
+            regex: (?i)(verif|reset|invite|confirm|magic|email|otp|download|share|unsubscribe|signed_?url|presign|upload)
+        - kind: function_declaration
+          has:
+            field: name
+            kind: identifier
+            regex: (?i)(verif|reset|invite|confirm|magic|email|otp|download|share|unsubscribe|signed_?url|presign|upload)
+        - kind: method_definition
+          has:
+            field: name
+            kind: property_identifier
+            regex: (?i)(verif|reset|invite|confirm|magic|email|otp|download|share|unsubscribe|signed_?url|presign|upload)
+        - kind: pair
+          has:
+            field: key
+            kind: property_identifier
+            regex: (?i)(verif|reset|invite|confirm|magic|email|otp|download|share|unsubscribe|signed_?url|presign|upload)
+control:
+  all:
+  - pattern: jwt.sign($PAYLOAD, $SECRET, $OPTS)
+  - inside:
+      stopBy: end
+      kind: program
+      has:
+        any:
+        - &id001
+          kind: lexical_declaration
+          regex: ^const\s
+          has:
+            kind: variable_declarator
+            all:
+            - pattern:
+                context: const $OPTS = $VALUE
+                selector: variable_declarator
+            - has:
+                field: value
+                kind: object
+            - has:
+                field: value
+                has:
+                  kind: pair
+                  regex: ^expiresIn\s*:\s*(['"`][^'"`$]+['"`]|[0-9][0-9_]*(\s*\*\s*[0-9][0-9_]*)*)$
+            - not:
+                has:
+                  field: value
+                  has:
+                    kind: spread_element
+        - kind: export_statement
+          has: *id001
+  - not:
+      inside:
+        stopBy: end
+        kind: program
+        has:
+          stopBy: end
+          any:
+          - kind: assignment_expression
+            has:
+              field: left
+              any:
+              - kind: identifier
+                pattern: &id002
+                  context: $OPTS.x;
+                  selector: identifier
+              - kind: member_expression
+                has:
+                  field: object
+                  kind: identifier
+                  pattern: *id002
+          - kind: augmented_assignment_expression
+            has:
+              field: left
+              kind: member_expression
+              has:
+                field: object
+                kind: identifier
+                pattern: *id002
+          - kind: call_expression
+            regex: ^Object\.assign\(
+            has:
+              field: arguments
+              has:
+                kind: identifier
+                pattern: *id002
+          - kind: unary_expression
+            regex: ^delete\s
+            has:
+              stopBy: end
+              kind: identifier
+              pattern: *id002
+  - not:
+      inside:
+        stopBy: end
+        all:
+        - any:
+          - kind: function_declaration
+          - kind: method_definition
+          - kind: arrow_function
+          - kind: function_expression
+        - any:
+          - has:
+              field: parameters
+              stopBy: end
+              kind: identifier
+              pattern: &id003
+                context: $OPTS.x;
+                selector: identifier
+          - has:
+              field: parameter
+              kind: identifier
+              pattern: *id003
+          - has:
+              field: body
+              stopBy: end
+              kind: variable_declarator
+              has:
+                field: name
+                kind: identifier
+                pattern: *id003
+min_engine: 0.39.0

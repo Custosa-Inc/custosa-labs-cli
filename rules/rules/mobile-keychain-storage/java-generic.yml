@@ -1,0 +1,104 @@
+# Tokens in plain mobile storage (T23 B56e). Written by scripts/gen_mobile_rules.py: don't edit.
+# The practice is capped at needs_review: a violation fails, the rest is for a person.
+id: mobile-keychain-storage.java-generic.token-prefs
+practice_id: mobile-keychain-storage
+language: java
+frameworks:
+- generic
+kind: violation
+rule:
+  kind: method_invocation
+  all:
+  - all:
+    - has:
+        field: name
+        kind: identifier
+        regex: ^(putString)$
+    - has:
+        field: arguments
+        kind: argument_list
+        regex: ^\(\s*"(?i:(access|refresh|id|auth|session)[_-]?token|jwt|credentials?|password)"\s*,
+  - any:
+    - has:
+        field: object
+        any:
+        - kind: method_invocation
+          all: &id001
+          - has:
+              field: name
+              kind: identifier
+              regex: ^(getSharedPreferences|getDefaultSharedPreferences)$
+          - has:
+              field: arguments
+              kind: argument_list
+              regex: ^\(
+        - has:
+            stopBy: end
+            kind: method_invocation
+            all: *id001
+    - all:
+      - inside:
+          kind: program
+          stopBy: end
+          has:
+            stopBy: end
+            kind: method_invocation
+            all:
+            - has:
+                field: name
+                kind: identifier
+                regex: ^(getSharedPreferences|getDefaultSharedPreferences)$
+            - has:
+                field: arguments
+                kind: argument_list
+                regex: ^\(
+      - not:
+          inside:
+            kind: program
+            stopBy: end
+            has:
+              stopBy: end
+              any:
+              - kind: identifier
+                regex: ^EncryptedSharedPreferences$
+              - kind: type_identifier
+                regex: ^EncryptedSharedPreferences$
+min_engine: 0.39.0
+---
+id: mobile-keychain-storage.java-generic.encrypted-prefs
+practice_id: mobile-keychain-storage
+language: java
+frameworks:
+- generic
+kind: evidence
+rule:
+  kind: method_invocation
+  all:
+  - has:
+      field: object
+      kind: identifier
+      regex: ^EncryptedSharedPreferences$
+  - has:
+      field: name
+      kind: identifier
+      regex: ^create$
+min_engine: 0.39.0
+---
+id: mobile-keychain-storage.java-generic.keystore
+practice_id: mobile-keychain-storage
+language: java
+frameworks:
+- generic
+kind: evidence
+rule:
+  kind: method_invocation
+  all:
+  - has:
+      field: name
+      kind: identifier
+      regex: ^(getInstance)$
+  - has:
+      field: arguments
+      kind: argument_list
+      regex: ^\(\s*"AndroidKeyStore"\s*\)$
+min_engine: 0.39.0

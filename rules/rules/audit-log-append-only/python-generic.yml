@@ -1,0 +1,41 @@
+id: audit-log-append-only.python-generic.orm-mutation
+practice_id: audit-log-append-only
+language: python
+frameworks:
+- generic
+kind: violation
+rule:
+  all:
+  - kind: call
+  - has:
+      field: function
+      kind: attribute
+      regex: '^(AuditLog|AuditEvent|AccessLog|AuditTrail|ActivityLog|SecurityEvent)\.objects\b[\s\S]*\.(delete|update|bulk_update)$'
+min_engine: 0.45.3
+---
+id: audit-log-append-only.python-generic.sqlalchemy-mutation
+practice_id: audit-log-append-only
+language: python
+frameworks:
+- generic
+kind: violation
+rule:
+  all:
+  - kind: call
+  - has:
+      field: function
+      kind: attribute
+      regex: '\.query\(\s*(AuditLog|AuditEvent|AccessLog|AuditTrail|ActivityLog|SecurityEvent)\s*\)[\s\S]*\.(delete|update)$'
+min_engine: 0.45.3
+---
+id: audit-log-append-only.python-generic.sql-mutation
+practice_id: audit-log-append-only
+language: python
+frameworks:
+- generic
+kind: violation
+rule:
+  any:
+  - kind: string
+    regex: '(?i)(?:\bdelete\s+from\s+(?:[`\x22]?\w+[`\x22]?\.)?[`\x22]?(?:\w*audit\w*|\w*access_logs?|\w*security_logs?|\w*security_events?|activity_logs?|extended_log|api_log|log)[`\x22]?(?:[\s;)''\x22`]|$)|\bupdate\s+(?:[`\x22]?\w+[`\x22]?\.)?[`\x22]?(?:\w*audit\w*|\w*access_logs?|\w*security_logs?|\w*security_events?|activity_logs?|extended_log|api_log|log)[`\x22]?\s+set\b|\btruncate(?:\s+table)?(?:\s+only)?\s+(?:[`\x22]?\w+[`\x22]?\.)?[`\x22]?(?:\w*audit\w*|\w*access_logs?|\w*security_logs?|\w*security_events?|activity_logs?|extended_log|api_log|log)[`\x22]?(?:[\s;,)''\x22`]|$))'
+min_engine: 0.45.3

@@ -1,0 +1,74 @@
+id: write-fields-allowlisted.python-django.all-fields
+practice_id: write-fields-allowlisted
+language: python
+frameworks:
+- django
+kind: violation
+rule:
+  all:
+  - kind: assignment
+  - has:
+      field: left
+      kind: identifier
+      regex: ^fields$
+  - has:
+      field: right
+      kind: string
+      regex: ^['\"]__all__['\"]$
+  - inside:
+      stopBy: end
+      kind: class_definition
+      has:
+        field: name
+        kind: identifier
+        regex: ^Meta$
+min_engine: 0.39.0
+---
+id: write-fields-allowlisted.python-django.exclude-list
+practice_id: write-fields-allowlisted
+language: python
+frameworks:
+- django
+kind: violation
+rule:
+  all:
+  - kind: assignment
+  - has:
+      field: left
+      kind: identifier
+      regex: ^exclude$
+  - inside:
+      stopBy: end
+      kind: class_definition
+      has:
+        field: name
+        kind: identifier
+        regex: ^Meta$
+min_engine: 0.39.0
+---
+id: write-fields-allowlisted.python-django.listed-fields
+practice_id: write-fields-allowlisted
+language: python
+frameworks:
+- django
+kind: evidence
+rule:
+  all:
+  - kind: assignment
+  - has:
+      field: left
+      kind: identifier
+      regex: ^fields$
+  - has:
+      field: right
+      any:
+      - kind: list
+      - kind: tuple
+  - inside:
+      stopBy: end
+      kind: class_definition
+      has:
+        field: name
+        kind: identifier
+        regex: ^Meta$
+min_engine: 0.39.0

@@ -1,0 +1,659 @@
+# phi-responses-not-cached (T23 B34, design v3 2.2.6, docs/b34-plan.md). Written by scripts/gen_nocache_rules.py:
+# edit that script, never this file. The rule id's last part is the form (items-handler, unobserved-header,
+# violation-shared, static-page). unobserved-header matches the items-handler node itself, so judge holds that item
+# at its own path and line.
+
+# items-handler: a route handler whose body makes a data call. The control is a literal Cache-Control value holding
+# no-store. No control: fail, unless unobserved-header holds it. The header counts only in a response write (res.set,
+# setHeader, header, writeHead, headers.set, NextResponse or new Response, a name bound from one of those, or a
+# Headers object passed to one), never in a request sent with fetch or axios or on its result, nor in a comment.
+id: phi-responses-not-cached.typescript-nextjs.items-handler
+practice_id: phi-responses-not-cached
+language: typescript
+frameworks:
+- nextjs
+kind: items
+rule:
+  all:
+  - any:
+    - any:
+      - kind: function_declaration
+        all:
+        - has:
+            field: name
+            kind: identifier
+            regex: ^(GET|POST|PUT|PATCH|DELETE|HEAD|OPTIONS)$
+        - inside:
+            kind: export_statement
+      - kind: arrow_function
+        inside:
+          kind: variable_declarator
+          all:
+          - has:
+              field: name
+              kind: identifier
+              regex: ^(GET|POST|PUT|PATCH|DELETE|HEAD|OPTIONS)$
+          - inside:
+              kind: lexical_declaration
+              inside:
+                kind: export_statement
+      - kind: function_declaration
+        all:
+        - inside:
+            kind: export_statement
+            regex: ^export\s+default\b
+        - has:
+            field: parameters
+            kind: formal_parameters
+            regex: ^\(\s*req\b[^,]*,\s*res\b
+    - any:
+      - kind: function_declaration
+        all:
+        - inside:
+            kind: export_statement
+        - inside:
+            stopBy: end
+            kind: program
+            regex: ^\s*(//[^\n]*\n\s*)*['"]use server['"]
+      - kind: arrow_function
+        all:
+        - inside:
+            kind: variable_declarator
+            inside:
+              kind: lexical_declaration
+              inside:
+                kind: export_statement
+        - inside:
+            stopBy: end
+            kind: program
+            regex: ^\s*(//[^\n]*\n\s*)*['"]use server['"]
+    - any:
+      - kind: function_declaration
+        all:
+        - has:
+            field: name
+            kind: identifier
+            regex: ^getServerSideProps$
+        - inside:
+            kind: export_statement
+      - kind: arrow_function
+        inside:
+          kind: variable_declarator
+          all:
+          - has:
+              field: name
+              kind: identifier
+              regex: ^getServerSideProps$
+          - inside:
+              kind: lexical_declaration
+              inside:
+                kind: export_statement
+  - any:
+    - kind: function_declaration
+      regex: (\b(db|prisma|supabase|knex|pool|sql|pg|mongo|mongoose|collection|tx|trx|repo|\w+Repository|\w+Model)(\s*\.\s*\w+)*\s*\.\s*(insert|create|update|upsert|delete|remove|save|query|execute|exec|from|find|select|aggregate|put|increment|decrement|count|get)\w*\s*\(|\b\w+(Service|Dao|Repo)\s*\.\s*\w+\s*\(|\b[A-Z]\w*\s*\.\s*(find\w*|aggregate|countDocuments|estimatedDocumentCount|distinct|exists|insertMany|updateOne|updateMany|replaceOne|deleteOne|deleteMany|bulkWrite)\s*\(|\b(?:[A-NP-Z]\w*|O(?:[^b\W]\w*)?|Ob(?:[^j\W]\w*)?|Obj(?:[^e\W]\w*)?|Obje(?:[^c\W]\w*)?|Objec(?:[^t\W]\w*)?|Object\w+)\s*\.\s*create\s*\()
+    - kind: arrow_function
+      regex: (\b(db|prisma|supabase|knex|pool|sql|pg|mongo|mongoose|collection|tx|trx|repo|\w+Repository|\w+Model)(\s*\.\s*\w+)*\s*\.\s*(insert|create|update|upsert|delete|remove|save|query|execute|exec|from|find|select|aggregate|put|increment|decrement|count|get)\w*\s*\(|\b\w+(Service|Dao|Repo)\s*\.\s*\w+\s*\(|\b[A-Z]\w*\s*\.\s*(find\w*|aggregate|countDocuments|estimatedDocumentCount|distinct|exists|insertMany|updateOne|updateMany|replaceOne|deleteOne|deleteMany|bulkWrite)\s*\(|\b(?:[A-NP-Z]\w*|O(?:[^b\W]\w*)?|Ob(?:[^j\W]\w*)?|Obj(?:[^e\W]\w*)?|Obje(?:[^c\W]\w*)?|Objec(?:[^t\W]\w*)?|Object\w+)\s*\.\s*create\s*\()
+    - kind: function_expression
+      regex: (\b(db|prisma|supabase|knex|pool|sql|pg|mongo|mongoose|collection|tx|trx|repo|\w+Repository|\w+Model)(\s*\.\s*\w+)*\s*\.\s*(insert|create|update|upsert|delete|remove|save|query|execute|exec|from|find|select|aggregate|put|increment|decrement|count|get)\w*\s*\(|\b\w+(Service|Dao|Repo)\s*\.\s*\w+\s*\(|\b[A-Z]\w*\s*\.\s*(find\w*|aggregate|countDocuments|estimatedDocumentCount|distinct|exists|insertMany|updateOne|updateMany|replaceOne|deleteOne|deleteMany|bulkWrite)\s*\(|\b(?:[A-NP-Z]\w*|O(?:[^b\W]\w*)?|Ob(?:[^j\W]\w*)?|Obj(?:[^e\W]\w*)?|Obje(?:[^c\W]\w*)?|Objec(?:[^t\W]\w*)?|Object\w+)\s*\.\s*create\s*\()
+    - kind: method_definition
+      regex: (\b(db|prisma|supabase|knex|pool|sql|pg|mongo|mongoose|collection|tx|trx|repo|\w+Repository|\w+Model)(\s*\.\s*\w+)*\s*\.\s*(insert|create|update|upsert|delete|remove|save|query|execute|exec|from|find|select|aggregate|put|increment|decrement|count|get)\w*\s*\(|\b\w+(Service|Dao|Repo)\s*\.\s*\w+\s*\(|\b[A-Z]\w*\s*\.\s*(find\w*|aggregate|countDocuments|estimatedDocumentCount|distinct|exists|insertMany|updateOne|updateMany|replaceOne|deleteOne|deleteMany|bulkWrite)\s*\(|\b(?:[A-NP-Z]\w*|O(?:[^b\W]\w*)?|Ob(?:[^j\W]\w*)?|Obj(?:[^e\W]\w*)?|Obje(?:[^c\W]\w*)?|Objec(?:[^t\W]\w*)?|Object\w+)\s*\.\s*create\s*\()
+control:
+  has:
+    stopBy: end
+    any:
+    - kind: call_expression
+      regex: (?is)['"`]cache-control['"`]\s*[,:]\s*['"`][^'"`]*no-store
+      has:
+        field: function
+        any:
+        - kind: identifier
+          regex: ^(res|resp|response|reply|ctx|c)\b[\s\S]*\.\s*(set|setHeader|header|writeHead|append|appendHeader)$|^(NextResponse|Response)\s*\.\s*\w+$
+        - kind: member_expression
+          regex: ^(res|resp|response|reply|ctx|c)\b[\s\S]*\.\s*(set|setHeader|header|writeHead|append|appendHeader)$|^(NextResponse|Response)\s*\.\s*\w+$
+      not:
+        all:
+        - any:
+          - pattern: $R.headers.set($$$A)
+          - pattern: $R.headers.append($$$A)
+        - inside:
+            stopBy: end
+            any:
+            - kind: function_declaration
+            - kind: arrow_function
+            - kind: function_expression
+            - kind: method_definition
+            has:
+              stopBy: end
+              kind: variable_declarator
+              all:
+              - has:
+                  field: name
+                  pattern:
+                    context: ($R)
+                    selector: identifier
+              - has:
+                  field: value
+                  any:
+                  - kind: call_expression
+                    regex: ^(await\s+)?(fetch|axios)\b
+                  - kind: new_expression
+                    regex: ^(await\s+)?(fetch|axios)\b
+                  - kind: await_expression
+                    regex: ^(await\s+)?(fetch|axios)\b
+    - kind: new_expression
+      regex: (?is)['"`]cache-control['"`]\s*[,:]\s*['"`][^'"`]*no-store
+      has:
+        field: constructor
+        kind: identifier
+        regex: ^(NextResponse|Response)$
+    - kind: call_expression
+      regex: (?is)['"`]cache-control['"`]\s*[,:]\s*['"`][^'"`]*no-store
+      all:
+      - any:
+        - pattern: $R.headers.set($$$A)
+        - pattern: $R.headers.append($$$A)
+      - inside:
+          stopBy:
+            any:
+            - kind: function_declaration
+            - kind: arrow_function
+            - kind: function_expression
+            - kind: method_definition
+          any:
+          - kind: function_declaration
+          - kind: arrow_function
+          - kind: function_expression
+          - kind: method_definition
+          has:
+            stopBy:
+              any:
+              - kind: function_declaration
+              - kind: arrow_function
+              - kind: function_expression
+              - kind: method_definition
+            kind: variable_declarator
+            all:
+            - has:
+                field: name
+                pattern:
+                  context: ($R)
+                  selector: identifier
+            - has:
+                field: value
+                any:
+                - kind: call_expression
+                  regex: ^(new\s+)?(NextResponse|Response)\b
+                - kind: new_expression
+                  regex: ^(new\s+)?(NextResponse|Response)\b
+                - kind: await_expression
+                  regex: ^(new\s+)?(NextResponse|Response)\b
+    - kind: new_expression
+      regex: (?is)['"`]cache-control['"`]\s*[,:]\s*['"`][^'"`]*no-store
+      all:
+      - has:
+          field: constructor
+          kind: identifier
+          regex: ^Headers$
+      - inside:
+          kind: variable_declarator
+          has:
+            field: name
+            pattern:
+              context: ($R)
+              selector: identifier
+      - inside:
+          stopBy:
+            any:
+            - kind: function_declaration
+            - kind: arrow_function
+            - kind: function_expression
+            - kind: method_definition
+          any:
+          - kind: function_declaration
+          - kind: arrow_function
+          - kind: function_expression
+          - kind: method_definition
+          has:
+            stopBy:
+              any:
+              - kind: function_declaration
+              - kind: arrow_function
+              - kind: function_expression
+              - kind: method_definition
+            any:
+            - kind: call_expression
+              regex: ^(new\s+)?(NextResponse|Response)\b
+              has:
+                stopBy: end
+                any:
+                - kind: pair
+                  all:
+                  - has:
+                      field: key
+                      kind: property_identifier
+                      regex: ^headers$
+                  - has:
+                      field: value
+                      pattern:
+                        context: ($R)
+                        selector: identifier
+                - kind: shorthand_property_identifier
+                  regex: ^headers$
+                  pattern:
+                    context: ({$R})
+                    selector: shorthand_property_identifier
+            - kind: new_expression
+              regex: ^(new\s+)?(NextResponse|Response)\b
+              has:
+                stopBy: end
+                any:
+                - kind: pair
+                  all:
+                  - has:
+                      field: key
+                      kind: property_identifier
+                      regex: ^headers$
+                  - has:
+                      field: value
+                      pattern:
+                        context: ($R)
+                        selector: identifier
+                - kind: shorthand_property_identifier
+                  regex: ^headers$
+                  pattern:
+                    context: ({$R})
+                    selector: shorthand_property_identifier
+min_engine: 0.39.0
+---
+# unobserved-header: the same handler when it writes no literal Cache-Control. The header may be set by middleware, a
+# framework default or a CDN rule elsewhere, so the item is held for a person. The header counts only in a response
+# write (res.set, setHeader, header, writeHead, headers.set, NextResponse or new Response, a name bound from one of
+# those, or a Headers object passed to one), never in a request sent with fetch or axios or on its result, nor in a
+# comment.
+id: phi-responses-not-cached.typescript-nextjs.unobserved-header
+practice_id: phi-responses-not-cached
+language: typescript
+frameworks:
+- nextjs
+kind: evidence
+rule:
+  all:
+  - any:
+    - any:
+      - kind: function_declaration
+        all:
+        - has:
+            field: name
+            kind: identifier
+            regex: ^(GET|POST|PUT|PATCH|DELETE|HEAD|OPTIONS)$
+        - inside:
+            kind: export_statement
+      - kind: arrow_function
+        inside:
+          kind: variable_declarator
+          all:
+          - has:
+              field: name
+              kind: identifier
+              regex: ^(GET|POST|PUT|PATCH|DELETE|HEAD|OPTIONS)$
+          - inside:
+              kind: lexical_declaration
+              inside:
+                kind: export_statement
+      - kind: function_declaration
+        all:
+        - inside:
+            kind: export_statement
+            regex: ^export\s+default\b
+        - has:
+            field: parameters
+            kind: formal_parameters
+            regex: ^\(\s*req\b[^,]*,\s*res\b
+    - any:
+      - kind: function_declaration
+        all:
+        - inside:
+            kind: export_statement
+        - inside:
+            stopBy: end
+            kind: program
+            regex: ^\s*(//[^\n]*\n\s*)*['"]use server['"]
+      - kind: arrow_function
+        all:
+        - inside:
+            kind: variable_declarator
+            inside:
+              kind: lexical_declaration
+              inside:
+                kind: export_statement
+        - inside:
+            stopBy: end
+            kind: program
+            regex: ^\s*(//[^\n]*\n\s*)*['"]use server['"]
+    - any:
+      - kind: function_declaration
+        all:
+        - has:
+            field: name
+            kind: identifier
+            regex: ^getServerSideProps$
+        - inside:
+            kind: export_statement
+      - kind: arrow_function
+        inside:
+          kind: variable_declarator
+          all:
+          - has:
+              field: name
+              kind: identifier
+              regex: ^getServerSideProps$
+          - inside:
+              kind: lexical_declaration
+              inside:
+                kind: export_statement
+  - any:
+    - kind: function_declaration
+      regex: (\b(db|prisma|supabase|knex|pool|sql|pg|mongo|mongoose|collection|tx|trx|repo|\w+Repository|\w+Model)(\s*\.\s*\w+)*\s*\.\s*(insert|create|update|upsert|delete|remove|save|query|execute|exec|from|find|select|aggregate|put|increment|decrement|count|get)\w*\s*\(|\b\w+(Service|Dao|Repo)\s*\.\s*\w+\s*\(|\b[A-Z]\w*\s*\.\s*(find\w*|aggregate|countDocuments|estimatedDocumentCount|distinct|exists|insertMany|updateOne|updateMany|replaceOne|deleteOne|deleteMany|bulkWrite)\s*\(|\b(?:[A-NP-Z]\w*|O(?:[^b\W]\w*)?|Ob(?:[^j\W]\w*)?|Obj(?:[^e\W]\w*)?|Obje(?:[^c\W]\w*)?|Objec(?:[^t\W]\w*)?|Object\w+)\s*\.\s*create\s*\()
+    - kind: arrow_function
+      regex: (\b(db|prisma|supabase|knex|pool|sql|pg|mongo|mongoose|collection|tx|trx|repo|\w+Repository|\w+Model)(\s*\.\s*\w+)*\s*\.\s*(insert|create|update|upsert|delete|remove|save|query|execute|exec|from|find|select|aggregate|put|increment|decrement|count|get)\w*\s*\(|\b\w+(Service|Dao|Repo)\s*\.\s*\w+\s*\(|\b[A-Z]\w*\s*\.\s*(find\w*|aggregate|countDocuments|estimatedDocumentCount|distinct|exists|insertMany|updateOne|updateMany|replaceOne|deleteOne|deleteMany|bulkWrite)\s*\(|\b(?:[A-NP-Z]\w*|O(?:[^b\W]\w*)?|Ob(?:[^j\W]\w*)?|Obj(?:[^e\W]\w*)?|Obje(?:[^c\W]\w*)?|Objec(?:[^t\W]\w*)?|Object\w+)\s*\.\s*create\s*\()
+    - kind: function_expression
+      regex: (\b(db|prisma|supabase|knex|pool|sql|pg|mongo|mongoose|collection|tx|trx|repo|\w+Repository|\w+Model)(\s*\.\s*\w+)*\s*\.\s*(insert|create|update|upsert|delete|remove|save|query|execute|exec|from|find|select|aggregate|put|increment|decrement|count|get)\w*\s*\(|\b\w+(Service|Dao|Repo)\s*\.\s*\w+\s*\(|\b[A-Z]\w*\s*\.\s*(find\w*|aggregate|countDocuments|estimatedDocumentCount|distinct|exists|insertMany|updateOne|updateMany|replaceOne|deleteOne|deleteMany|bulkWrite)\s*\(|\b(?:[A-NP-Z]\w*|O(?:[^b\W]\w*)?|Ob(?:[^j\W]\w*)?|Obj(?:[^e\W]\w*)?|Obje(?:[^c\W]\w*)?|Objec(?:[^t\W]\w*)?|Object\w+)\s*\.\s*create\s*\()
+    - kind: method_definition
+      regex: (\b(db|prisma|supabase|knex|pool|sql|pg|mongo|mongoose|collection|tx|trx|repo|\w+Repository|\w+Model)(\s*\.\s*\w+)*\s*\.\s*(insert|create|update|upsert|delete|remove|save|query|execute|exec|from|find|select|aggregate|put|increment|decrement|count|get)\w*\s*\(|\b\w+(Service|Dao|Repo)\s*\.\s*\w+\s*\(|\b[A-Z]\w*\s*\.\s*(find\w*|aggregate|countDocuments|estimatedDocumentCount|distinct|exists|insertMany|updateOne|updateMany|replaceOne|deleteOne|deleteMany|bulkWrite)\s*\(|\b(?:[A-NP-Z]\w*|O(?:[^b\W]\w*)?|Ob(?:[^j\W]\w*)?|Obj(?:[^e\W]\w*)?|Obje(?:[^c\W]\w*)?|Objec(?:[^t\W]\w*)?|Object\w+)\s*\.\s*create\s*\()
+  - all:
+    - not:
+        has:
+          stopBy: end
+          any:
+          - kind: call_expression
+            regex: (?is)['"`]cache-control['"`]\s*[,:]\s*['"`]
+            has:
+              field: function
+              any:
+              - kind: identifier
+                regex: ^(res|resp|response|reply|ctx|c)\b[\s\S]*\.\s*(set|setHeader|header|writeHead|append|appendHeader)$|^(NextResponse|Response)\s*\.\s*\w+$
+              - kind: member_expression
+                regex: ^(res|resp|response|reply|ctx|c)\b[\s\S]*\.\s*(set|setHeader|header|writeHead|append|appendHeader)$|^(NextResponse|Response)\s*\.\s*\w+$
+            not:
+              all:
+              - any:
+                - pattern: $R.headers.set($$$A)
+                - pattern: $R.headers.append($$$A)
+              - inside:
+                  stopBy: end
+                  any:
+                  - kind: function_declaration
+                  - kind: arrow_function
+                  - kind: function_expression
+                  - kind: method_definition
+                  has:
+                    stopBy: end
+                    kind: variable_declarator
+                    all:
+                    - has:
+                        field: name
+                        pattern:
+                          context: ($R)
+                          selector: identifier
+                    - has:
+                        field: value
+                        any:
+                        - kind: call_expression
+                          regex: ^(await\s+)?(fetch|axios)\b
+                        - kind: new_expression
+                          regex: ^(await\s+)?(fetch|axios)\b
+                        - kind: await_expression
+                          regex: ^(await\s+)?(fetch|axios)\b
+          - kind: new_expression
+            regex: (?is)['"`]cache-control['"`]\s*[,:]\s*['"`]
+            has:
+              field: constructor
+              kind: identifier
+              regex: ^(NextResponse|Response)$
+          - kind: call_expression
+            regex: (?is)['"`]cache-control['"`]\s*[,:]\s*['"`]
+            all:
+            - any:
+              - pattern: $R.headers.set($$$A)
+              - pattern: $R.headers.append($$$A)
+            - inside:
+                stopBy:
+                  any:
+                  - kind: function_declaration
+                  - kind: arrow_function
+                  - kind: function_expression
+                  - kind: method_definition
+                any:
+                - kind: function_declaration
+                - kind: arrow_function
+                - kind: function_expression
+                - kind: method_definition
+                has:
+                  stopBy:
+                    any:
+                    - kind: function_declaration
+                    - kind: arrow_function
+                    - kind: function_expression
+                    - kind: method_definition
+                  kind: variable_declarator
+                  all:
+                  - has:
+                      field: name
+                      pattern:
+                        context: ($R)
+                        selector: identifier
+                  - has:
+                      field: value
+                      any:
+                      - kind: call_expression
+                        regex: ^(new\s+)?(NextResponse|Response)\b
+                      - kind: new_expression
+                        regex: ^(new\s+)?(NextResponse|Response)\b
+                      - kind: await_expression
+                        regex: ^(new\s+)?(NextResponse|Response)\b
+          - kind: new_expression
+            regex: (?is)['"`]cache-control['"`]\s*[,:]\s*['"`]
+            all:
+            - has:
+                field: constructor
+                kind: identifier
+                regex: ^Headers$
+            - inside:
+                kind: variable_declarator
+                has:
+                  field: name
+                  pattern:
+                    context: ($R)
+                    selector: identifier
+            - inside:
+                stopBy:
+                  any:
+                  - kind: function_declaration
+                  - kind: arrow_function
+                  - kind: function_expression
+                  - kind: method_definition
+                any:
+                - kind: function_declaration
+                - kind: arrow_function
+                - kind: function_expression
+                - kind: method_definition
+                has:
+                  stopBy:
+                    any:
+                    - kind: function_declaration
+                    - kind: arrow_function
+                    - kind: function_expression
+                    - kind: method_definition
+                  any:
+                  - kind: call_expression
+                    regex: ^(new\s+)?(NextResponse|Response)\b
+                    has:
+                      stopBy: end
+                      any:
+                      - kind: pair
+                        all:
+                        - has:
+                            field: key
+                            kind: property_identifier
+                            regex: ^headers$
+                        - has:
+                            field: value
+                            pattern:
+                              context: ($R)
+                              selector: identifier
+                      - kind: shorthand_property_identifier
+                        regex: ^headers$
+                        pattern:
+                          context: ({$R})
+                          selector: shorthand_property_identifier
+                  - kind: new_expression
+                    regex: ^(new\s+)?(NextResponse|Response)\b
+                    has:
+                      stopBy: end
+                      any:
+                      - kind: pair
+                        all:
+                        - has:
+                            field: key
+                            kind: property_identifier
+                            regex: ^headers$
+                        - has:
+                            field: value
+                            pattern:
+                              context: ($R)
+                              selector: identifier
+                      - kind: shorthand_property_identifier
+                        regex: ^headers$
+                        pattern:
+                          context: ({$R})
+                          selector: shorthand_property_identifier
+min_engine: 0.39.0
+---
+# violation-shared: a data handler in a file that holds, anywhere, a literal Cache-Control with public, s-maxage or
+# stale-while-revalidate, or the framework's shared-cache form: a shared cache may keep it, whatever middleware sends
+# (T23-P1-C142). Fail.
+id: phi-responses-not-cached.typescript-nextjs.violation-shared
+practice_id: phi-responses-not-cached
+language: typescript
+frameworks:
+- nextjs
+kind: violation
+rule:
+  all:
+  - any:
+    - any:
+      - kind: function_declaration
+        all:
+        - has:
+            field: name
+            kind: identifier
+            regex: ^(GET|POST|PUT|PATCH|DELETE|HEAD|OPTIONS)$
+        - inside:
+            kind: export_statement
+      - kind: arrow_function
+        inside:
+          kind: variable_declarator
+          all:
+          - has:
+              field: name
+              kind: identifier
+              regex: ^(GET|POST|PUT|PATCH|DELETE|HEAD|OPTIONS)$
+          - inside:
+              kind: lexical_declaration
+              inside:
+                kind: export_statement
+      - kind: function_declaration
+        all:
+        - inside:
+            kind: export_statement
+            regex: ^export\s+default\b
+        - has:
+            field: parameters
+            kind: formal_parameters
+            regex: ^\(\s*req\b[^,]*,\s*res\b
+    - any:
+      - kind: function_declaration
+        all:
+        - inside:
+            kind: export_statement
+        - inside:
+            stopBy: end
+            kind: program
+            regex: ^\s*(//[^\n]*\n\s*)*['"]use server['"]
+      - kind: arrow_function
+        all:
+        - inside:
+            kind: variable_declarator
+            inside:
+              kind: lexical_declaration
+              inside:
+                kind: export_statement
+        - inside:
+            stopBy: end
+            kind: program
+            regex: ^\s*(//[^\n]*\n\s*)*['"]use server['"]
+    - any:
+      - kind: function_declaration
+        all:
+        - has:
+            field: name
+            kind: identifier
+            regex: ^getServerSideProps$
+        - inside:
+            kind: export_statement
+      - kind: arrow_function
+        inside:
+          kind: variable_declarator
+          all:
+          - has:
+              field: name
+              kind: identifier
+              regex: ^getServerSideProps$
+          - inside:
+              kind: lexical_declaration
+              inside:
+                kind: export_statement
+  - any:
+    - kind: function_declaration
+      regex: (\b(db|prisma|supabase|knex|pool|sql|pg|mongo|mongoose|collection|tx|trx|repo|\w+Repository|\w+Model)(\s*\.\s*\w+)*\s*\.\s*(insert|create|update|upsert|delete|remove|save|query|execute|exec|from|find|select|aggregate|put|increment|decrement|count|get)\w*\s*\(|\b\w+(Service|Dao|Repo)\s*\.\s*\w+\s*\(|\b[A-Z]\w*\s*\.\s*(find\w*|aggregate|countDocuments|estimatedDocumentCount|distinct|exists|insertMany|updateOne|updateMany|replaceOne|deleteOne|deleteMany|bulkWrite)\s*\(|\b(?:[A-NP-Z]\w*|O(?:[^b\W]\w*)?|Ob(?:[^j\W]\w*)?|Obj(?:[^e\W]\w*)?|Obje(?:[^c\W]\w*)?|Objec(?:[^t\W]\w*)?|Object\w+)\s*\.\s*create\s*\()
+    - kind: arrow_function
+      regex: (\b(db|prisma|supabase|knex|pool|sql|pg|mongo|mongoose|collection|tx|trx|repo|\w+Repository|\w+Model)(\s*\.\s*\w+)*\s*\.\s*(insert|create|update|upsert|delete|remove|save|query|execute|exec|from|find|select|aggregate|put|increment|decrement|count|get)\w*\s*\(|\b\w+(Service|Dao|Repo)\s*\.\s*\w+\s*\(|\b[A-Z]\w*\s*\.\s*(find\w*|aggregate|countDocuments|estimatedDocumentCount|distinct|exists|insertMany|updateOne|updateMany|replaceOne|deleteOne|deleteMany|bulkWrite)\s*\(|\b(?:[A-NP-Z]\w*|O(?:[^b\W]\w*)?|Ob(?:[^j\W]\w*)?|Obj(?:[^e\W]\w*)?|Obje(?:[^c\W]\w*)?|Objec(?:[^t\W]\w*)?|Object\w+)\s*\.\s*create\s*\()
+    - kind: function_expression
+      regex: (\b(db|prisma|supabase|knex|pool|sql|pg|mongo|mongoose|collection|tx|trx|repo|\w+Repository|\w+Model)(\s*\.\s*\w+)*\s*\.\s*(insert|create|update|upsert|delete|remove|save|query|execute|exec|from|find|select|aggregate|put|increment|decrement|count|get)\w*\s*\(|\b\w+(Service|Dao|Repo)\s*\.\s*\w+\s*\(|\b[A-Z]\w*\s*\.\s*(find\w*|aggregate|countDocuments|estimatedDocumentCount|distinct|exists|insertMany|updateOne|updateMany|replaceOne|deleteOne|deleteMany|bulkWrite)\s*\(|\b(?:[A-NP-Z]\w*|O(?:[^b\W]\w*)?|Ob(?:[^j\W]\w*)?|Obj(?:[^e\W]\w*)?|Obje(?:[^c\W]\w*)?|Objec(?:[^t\W]\w*)?|Object\w+)\s*\.\s*create\s*\()
+    - kind: method_definition
+      regex: (\b(db|prisma|supabase|knex|pool|sql|pg|mongo|mongoose|collection|tx|trx|repo|\w+Repository|\w+Model)(\s*\.\s*\w+)*\s*\.\s*(insert|create|update|upsert|delete|remove|save|query|execute|exec|from|find|select|aggregate|put|increment|decrement|count|get)\w*\s*\(|\b\w+(Service|Dao|Repo)\s*\.\s*\w+\s*\(|\b[A-Z]\w*\s*\.\s*(find\w*|aggregate|countDocuments|estimatedDocumentCount|distinct|exists|insertMany|updateOne|updateMany|replaceOne|deleteOne|deleteMany|bulkWrite)\s*\(|\b(?:[A-NP-Z]\w*|O(?:[^b\W]\w*)?|Ob(?:[^j\W]\w*)?|Obj(?:[^e\W]\w*)?|Obje(?:[^c\W]\w*)?|Objec(?:[^t\W]\w*)?|Object\w+)\s*\.\s*create\s*\()
+  - inside:
+      stopBy: end
+      kind: program
+      regex: (?is)['"`]cache-control['"`]\s*[,:]\s*['"`][^'"`]*(public|s-maxage|stale-while-revalidate)
+min_engine: 0.39.0
+---
+# static-page: a file with a data call that exports revalidate above 0, dynamic force-static or generateStaticParams,
+# or calls unstable_cache. The data may be public: named for a person, never failed.
+id: phi-responses-not-cached.typescript-nextjs.static-page
+practice_id: phi-responses-not-cached
+language: typescript
+frameworks:
+- nextjs
+kind: evidence
+rule:
+  any:
+  - kind: export_statement
+    regex: ^export\s+(const\s+revalidate\s*=\s*[1-9]|const\s+dynamic\s*=\s*['\"]force-static['\"]|(async\s+)?function\s+generateStaticParams\b|const\s+generateStaticParams\b)
+    inside:
+      stopBy: end
+      kind: program
+      regex: (\b(db|prisma|supabase|knex|pool|sql|pg|mongo|mongoose|collection|tx|trx|repo|\w+Repository|\w+Model)(\s*\.\s*\w+)*\s*\.\s*(insert|create|update|upsert|delete|remove|save|query|execute|exec|from|find|select|aggregate|put|increment|decrement|count|get)\w*\s*\(|\b\w+(Service|Dao|Repo)\s*\.\s*\w+\s*\(|\b[A-Z]\w*\s*\.\s*(find\w*|aggregate|countDocuments|estimatedDocumentCount|distinct|exists|insertMany|updateOne|updateMany|replaceOne|deleteOne|deleteMany|bulkWrite)\s*\(|\b(?:[A-NP-Z]\w*|O(?:[^b\W]\w*)?|Ob(?:[^j\W]\w*)?|Obj(?:[^e\W]\w*)?|Obje(?:[^c\W]\w*)?|Objec(?:[^t\W]\w*)?|Object\w+)\s*\.\s*create\s*\()
+  - kind: call_expression
+    has:
+      field: function
+      any:
+      - kind: identifier
+        regex: (^|\.)unstable_cache$
+      - kind: member_expression
+        regex: (^|\.)unstable_cache$
+    inside:
+      stopBy: end
+      kind: program
+      regex: (\b(db|prisma|supabase|knex|pool|sql|pg|mongo|mongoose|collection|tx|trx|repo|\w+Repository|\w+Model)(\s*\.\s*\w+)*\s*\.\s*(insert|create|update|upsert|delete|remove|save|query|execute|exec|from|find|select|aggregate|put|increment|decrement|count|get)\w*\s*\(|\b\w+(Service|Dao|Repo)\s*\.\s*\w+\s*\(|\b[A-Z]\w*\s*\.\s*(find\w*|aggregate|countDocuments|estimatedDocumentCount|distinct|exists|insertMany|updateOne|updateMany|replaceOne|deleteOne|deleteMany|bulkWrite)\s*\(|\b(?:[A-NP-Z]\w*|O(?:[^b\W]\w*)?|Ob(?:[^j\W]\w*)?|Obj(?:[^e\W]\w*)?|Obje(?:[^c\W]\w*)?|Objec(?:[^t\W]\w*)?|Object\w+)\s*\.\s*create\s*\()
+min_engine: 0.39.0

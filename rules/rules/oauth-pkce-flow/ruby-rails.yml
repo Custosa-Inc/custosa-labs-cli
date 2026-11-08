@@ -1,0 +1,21 @@
+id: oauth-pkce-flow.ruby-rails.pkce-client
+practice_id: oauth-pkce-flow
+language: ruby
+frameworks:
+- rails
+kind: evidence
+rule:
+  kind: pair
+  regex: ^(pkce:\s*true|:pkce\s*=>\s*true)$
+min_engine: 0.39.0
+---
+id: oauth-pkce-flow.ruby-rails.implicit-flow
+practice_id: oauth-pkce-flow
+language: ruby
+frameworks:
+- rails
+kind: violation
+rule:
+  kind: pair
+  regex: ^(response_type:\s*['\"]token['\"])$
+min_engine: 0.39.0

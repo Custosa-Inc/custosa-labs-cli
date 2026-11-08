@@ -1,0 +1,23 @@
+id: audit-actor-recorded.php-generic.session-level-context
+practice_id: audit-actor-recorded
+language: php
+frameworks:
+- generic
+kind: violation
+rule:
+  all:
+  - any:
+    - kind: string
+      regex: '(?i)(?:set_config\s*\(\s*''(?:app\.(?:user_id|current_user_id|current_user|user|actor|actor_id|uid|userid|account_id|current_account_id)|request\.jwt\.claims|request\.jwt\.claim\.sub|jwt\.claims)''\s*,[\s\S]*,\s*false\s*\)|\bset\s+(?:session\s+)?(?:app\.(?:user_id|current_user_id|current_user|user|actor|actor_id|uid|userid|account_id|current_account_id)|request\.jwt\.claims|request\.jwt\.claim\.sub|jwt\.claims)\s*(?:=|to))'
+    - kind: encapsed_string
+      regex: '(?i)(?:set_config\s*\(\s*''(?:app\.(?:user_id|current_user_id|current_user|user|actor|actor_id|uid|userid|account_id|current_account_id)|request\.jwt\.claims|request\.jwt\.claim\.sub|jwt\.claims)''\s*,[\s\S]*,\s*false\s*\)|\bset\s+(?:session\s+)?(?:app\.(?:user_id|current_user_id|current_user|user|actor|actor_id|uid|userid|account_id|current_account_id)|request\.jwt\.claims|request\.jwt\.claim\.sub|jwt\.claims)\s*(?:=|to))'
+  - inside:
+      stopBy: end
+      any:
+      - kind: scoped_call_expression
+        regex: '^\\?(DB|Illuminate\\Support\\Facades\\DB)::(statement|select|unprepared|selectOne)\s*\('
+      - kind: member_call_expression
+        regex: '->\s*(exec|query|prepare|statement|executeStatement|executeQuery|execute)\s*\('
+      - kind: function_call_expression
+        regex: '^\\?(sqlStatement|sqlQuery|sqlStatementNoLog|sqlQueryNoLog)\s*\('
+min_engine: 0.45.3

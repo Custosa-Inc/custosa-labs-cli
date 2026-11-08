@@ -1,0 +1,187 @@
+id: no-phi-in-app-logs.php-generic.request-body
+practice_id: no-phi-in-app-logs
+language: php
+frameworks:
+- generic
+kind: violation
+rule:
+  all:
+  - any:
+    - kind: function_call_expression
+      regex: '^\\?(error_log|syslog)\s*\('
+    - kind: member_call_expression
+      regex: '^(\$(this->)?(logger|log|_logger|monolog|psrLogger)|[\\\w]+::getLogger\(\)|\$this->getLogger\(\)|\(new\s+\\?[\w\\]*Logger\(\)\))\s*->\s*(debug|info|notice|warning|error|critical|alert|emergency|log)\s*\('
+    - kind: scoped_call_expression
+      regex: '^\\?(Log|Logger|Illuminate\\Support\\Facades\\Log)::(debug|info|notice|warning|error|critical|alert|emergency|log)\s*\('
+  - has:
+      field: arguments
+      kind: arguments
+      has:
+        stopBy: end
+        all:
+        - any:
+          - kind: variable_name
+            regex: '^\$_(POST|GET|REQUEST|COOKIE|FILES)$'
+          - kind: member_call_expression
+            regex: '^\$(request|req|this->request)\s*->\s*(getParsedBody|all|input|getContent|getQueryParams|post|query)\s*\(\s*\)$'
+          - kind: function_call_expression
+            regex: '^file_get_contents\s*\(\s*[''"]php://input[''"]\s*\)$'
+        - not:
+            inside:
+              kind: subscript_expression
+        - not:
+            inside:
+              kind: argument
+              inside:
+                kind: arguments
+                inside:
+                  any:
+                  - kind: function_call_expression
+                  - kind: member_call_expression
+                  - kind: scoped_call_expression
+                  not:
+                    any:
+                    - kind: function_call_expression
+                      regex: '^\\?(error_log|syslog|print_r|var_export|json_encode|serialize|sprintf)\s*\('
+                    - kind: member_call_expression
+                      regex: '^(\$(this->)?(logger|log|_logger|monolog|psrLogger)|[\\\w]+::getLogger\(\)|\$this->getLogger\(\)|\(new\s+\\?[\w\\]*Logger\(\)\))\s*->\s*(debug|info|notice|warning|error|critical|alert|emergency|log)\s*\('
+                    - kind: scoped_call_expression
+                      regex: '^\\?(Log|Logger|Illuminate\\Support\\Facades\\Log)::(debug|info|notice|warning|error|critical|alert|emergency|log)\s*\('
+min_engine: 0.45.3
+---
+id: no-phi-in-app-logs.php-generic.patient-fields
+practice_id: no-phi-in-app-logs
+language: php
+frameworks:
+- generic
+kind: violation
+rule:
+  all:
+  - any:
+    - kind: function_call_expression
+      regex: '^\\?(error_log|syslog)\s*\('
+    - kind: member_call_expression
+      regex: '^(\$(this->)?(logger|log|_logger|monolog|psrLogger)|[\\\w]+::getLogger\(\)|\$this->getLogger\(\)|\(new\s+\\?[\w\\]*Logger\(\)\))\s*->\s*(debug|info|notice|warning|error|critical|alert|emergency|log)\s*\('
+    - kind: scoped_call_expression
+      regex: '^\\?(Log|Logger|Illuminate\\Support\\Facades\\Log)::(debug|info|notice|warning|error|critical|alert|emergency|log)\s*\('
+  - has:
+      field: arguments
+      kind: arguments
+      has:
+        stopBy: end
+        all:
+        - any:
+          - kind: subscript_expression
+            regex: '\[\s*[''"](ss|ssn|SSN|DOB|dob|date_of_birth|birth_date|diagnosis|mrn|pubpid)[''"]\s*\]$'
+          - kind: subscript_expression
+            regex: '^\$(patient|patientData|patient_data|pt|patientRecord)\[\s*[''"](fname|lname|mname|name|first_name|last_name|email|phone_home|phone_cell|street|address|notes)[''"]\s*\]$'
+          - kind: member_access_expression
+            regex: '->(ssn|dob|dateOfBirth|date_of_birth|diagnosis|mrn)$'
+          - all:
+            - kind: variable_name
+            - regex: '^\$(patient|patients|patientData|patient_data|patientRecord|patient_record)$'
+            - not:
+                any:
+                - inside:
+                    kind: subscript_expression
+                - inside:
+                    kind: member_access_expression
+                - inside:
+                    kind: member_call_expression
+        - not:
+            inside:
+              kind: argument
+              inside:
+                kind: arguments
+                inside:
+                  any:
+                  - kind: function_call_expression
+                  - kind: member_call_expression
+                  - kind: scoped_call_expression
+                  not:
+                    any:
+                    - kind: function_call_expression
+                      regex: '^\\?(error_log|syslog|print_r|var_export|json_encode|serialize|sprintf)\s*\('
+                    - kind: member_call_expression
+                      regex: '^(\$(this->)?(logger|log|_logger|monolog|psrLogger)|[\\\w]+::getLogger\(\)|\$this->getLogger\(\)|\(new\s+\\?[\w\\]*Logger\(\)\))\s*->\s*(debug|info|notice|warning|error|critical|alert|emergency|log)\s*\('
+                    - kind: scoped_call_expression
+                      regex: '^\\?(Log|Logger|Illuminate\\Support\\Facades\\Log)::(debug|info|notice|warning|error|critical|alert|emergency|log)\s*\('
+min_engine: 0.45.3
+---
+id: no-phi-in-app-logs.php-generic.credential
+practice_id: no-phi-in-app-logs
+language: php
+frameworks:
+- generic
+kind: violation
+rule:
+  all:
+  - any:
+    - kind: function_call_expression
+      regex: '^\\?(error_log|syslog)\s*\('
+    - kind: member_call_expression
+      regex: '^(\$(this->)?(logger|log|_logger|monolog|psrLogger)|[\\\w]+::getLogger\(\)|\$this->getLogger\(\)|\(new\s+\\?[\w\\]*Logger\(\)\))\s*->\s*(debug|info|notice|warning|error|critical|alert|emergency|log)\s*\('
+    - kind: scoped_call_expression
+      regex: '^\\?(Log|Logger|Illuminate\\Support\\Facades\\Log)::(debug|info|notice|warning|error|critical|alert|emergency|log)\s*\('
+  - has:
+      field: arguments
+      kind: arguments
+      has:
+        stopBy: end
+        all:
+        - any:
+          - kind: variable_name
+            regex: '^\$(?i:password|passwd|pass|pwd|secret|client_secret|clientSecret|token|access_token|accessToken|refresh_token|refreshToken|api_key|apiKey|private_key|privateKey|encryption_key|dsn|connection_string)$'
+          - kind: member_access_expression
+            regex: '->(?i:password|passwd|secret|client_secret|clientSecret|token|access_token|accessToken|refresh_token|refreshToken|api_key|apiKey|private_key|privateKey|encryption_key|dsn)$'
+          - kind: subscript_expression
+            regex: '\[\s*[''"](?i:password|passwd|pass|pwd|secret|client_secret|token|access_token|refresh_token|api_key|private_key|encryption_key)[''"]\s*\]$'
+        - not:
+            inside:
+              kind: argument
+              inside:
+                kind: arguments
+                inside:
+                  any:
+                  - kind: function_call_expression
+                  - kind: member_call_expression
+                  - kind: scoped_call_expression
+                  not:
+                    any:
+                    - kind: function_call_expression
+                      regex: '^\\?(error_log|syslog|print_r|var_export|json_encode|serialize|sprintf)\s*\('
+                    - kind: member_call_expression
+                      regex: '^(\$(this->)?(logger|log|_logger|monolog|psrLogger)|[\\\w]+::getLogger\(\)|\$this->getLogger\(\)|\(new\s+\\?[\w\\]*Logger\(\)\))\s*->\s*(debug|info|notice|warning|error|critical|alert|emergency|log)\s*\('
+                    - kind: scoped_call_expression
+                      regex: '^\\?(Log|Logger|Illuminate\\Support\\Facades\\Log)::(debug|info|notice|warning|error|critical|alert|emergency|log)\s*\('
+min_engine: 0.45.3
+---
+id: no-phi-in-app-logs.php-generic.debug-level
+practice_id: no-phi-in-app-logs
+language: php
+frameworks:
+- generic
+kind: violation
+rule:
+  any:
+  - all:
+    - kind: object_creation_expression
+    - regex: '^new\s+\\?(Monolog\\Handler\\)?(StreamHandler|RotatingFileHandler|ErrorLogHandler|SyslogHandler)\s*\('
+    - has:
+        stopBy: end
+        any:
+        - kind: class_constant_access_expression
+          regex: '^\\?(Monolog\\)?(Logger|Level)::(DEBUG|Debug)$'
+  - all:
+    - kind: array_element_initializer
+    - has:
+        kind: string
+        regex: '^[''"]level[''"]$'
+    - any:
+      - has:
+          kind: string
+          regex: '^[''"]debug[''"]$'
+      - has:
+          kind: function_call_expression
+          regex: '^env\s*\(\s*[''"]LOG_LEVEL[''"]\s*,\s*[''"]debug[''"]\s*\)$'
+min_engine: 0.45.3

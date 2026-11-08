@@ -1,0 +1,12 @@
+{
+ "version": 1,
+ "etag": "BwXfixture3=",
+ "bindings": [
+  {
+   "role": "roles/resourcemanager.organizationAdmin",
+   "members": [
+    "group:admins@example.com"
+   ]
+  }
+ ]
+}

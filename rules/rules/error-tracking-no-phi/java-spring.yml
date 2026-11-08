@@ -1,0 +1,34 @@
+id: error-tracking-no-phi.java-spring.sentry-init
+practice_id: error-tracking-no-phi
+language: java
+frameworks:
+- spring
+kind: items
+rule:
+  all:
+  - kind: method_invocation
+  - regex: '(?-u)^Sentry\s*\.\s*init\s*\('
+control:
+  all:
+  - has:
+      stopBy: end
+      kind: method_invocation
+      regex: '(?-u)\.setBeforeSend\s*\('
+  - not:
+      has:
+        stopBy: end
+        kind: method_invocation
+        regex: '(?-u)\.setSendDefaultPii\s*\(\s*true\s*\)$'
+min_engine: 0.45.3
+---
+id: error-tracking-no-phi.java-spring.pii-on
+practice_id: error-tracking-no-phi
+language: java
+frameworks:
+- spring
+kind: violation
+rule:
+  all:
+  - kind: method_invocation
+  - regex: '\.setSendDefaultPii\s*\(\s*true\s*\)$'
+min_engine: 0.45.3

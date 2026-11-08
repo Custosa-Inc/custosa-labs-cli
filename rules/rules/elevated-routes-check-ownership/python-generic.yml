@@ -1,0 +1,813 @@
+# Python request handlers (Odoo @http.route, Flask or FastAPI routes, Django views taking request) that skip the
+# record rules, one item each: Odoo's sudo() or with_user(SUPERUSER_ID), Tryton's set_user(0) or check_access=False, a
+# supabase-py client created with the service role or secret key, or the Firebase Admin SDK's firestore.client(). A
+# plain connection (create_engine, psycopg.connect) is not elevated. The control is one of: every elevated query in
+# the handler (sudo(), with_user(SUPERUSER_ID), the service-key client's table()) scoped to the caller (a domain on
+# the caller's user or partner, an .eq on the owner column), at least one; a direct statement of the handler body,
+# with nothing returned before it, comparing the record's owner field (never one the request sent: body, data, kw,
+# request.json ...) with the caller (request.env.user, request.user, current_user, g.user), with no and/or, that
+# raises or answers 403/404; or, for a route with no per-user record, a request header compared with a secret from the
+# environment that refuses. A call named for ownership, an audit write naming the caller, or a lookup of the caller's
+# own partner beside an unscoped read is never the control.
+id: elevated-routes-check-ownership.python-generic.elevated-handler
+practice_id: elevated-routes-check-ownership
+language: python
+frameworks: [generic]
+kind: items
+rule:
+  all:
+  - kind: function_definition
+    any:
+    - has:
+        field: parameters
+        kind: parameters
+        regex: '^\(\s*request\b'
+    - inside:
+        kind: decorated_definition
+        has:
+          kind: decorator
+          regex: '^@(http\.route|route|\w+\.(route|get|post|put|patch|delete|api_route))\('
+  - has:
+      stopBy: end
+      any:
+      - kind: call
+        pattern: '$X.sudo($$$)'
+      - kind: call
+        pattern: '$X.with_user($$$)'
+        regex: 'SUPERUSER_ID|\(\s*1\s*\)'
+      - kind: call
+        pattern: '$X.set_user(0)'
+      - kind: keyword_argument
+        regex: '^_?check_access\s*=\s*False$'
+      - kind: call
+        pattern: 'create_client($U, $K)'
+        has:
+          field: arguments
+          kind: argument_list
+          regex: '(?i)service_?role|secret_?key'
+      - kind: call
+        pattern: 'firestore.client($$$)'
+        inside:
+          kind: module
+          stopBy: end
+          has:
+            stopBy: end
+            any:
+            - {kind: import_statement, regex: firebase_admin}
+            - {kind: import_from_statement, regex: firebase_admin}
+control:
+  any:
+  - has:
+      field: body
+      kind: block
+      has:
+        all:
+        - kind: if_statement
+          all:
+          - has:
+              field: condition
+              kind: comparison_operator
+              regex: '!=|\bis not\b|\bnot in\b'
+              all:
+              - has:
+                  kind: attribute
+                  regex: '(?i)\.(user_?id|owner_?id|partner_id|patient_?id|tenant_?id|company_id|create_uid|created_by|author_?id)(\.id)?$'
+                  not:
+                    kind: attribute
+                    regex: '^(body|data|payload|params|kw|kwargs|args|input|json_data|request\.(json|data|POST|GET|form|args|values|get_json))\b'
+              - has:
+                  kind: attribute
+                  regex: '^(request\.env\.user|request\.user|current_user|self\.request\.user|g\.user)(\.(id|partner_id|partner_id\.id|commercial_partner_id|company_id|tenant_id))?$'
+          - has:
+              field: consequence
+              kind: block
+              has:
+                any:
+                - {kind: raise_statement}
+                - kind: expression_statement
+                  regex: '^abort\(\s*40[134]'
+                - kind: return_statement
+                  regex: '\b40[134]\b'
+        - any:
+          - not:
+              follows:
+                any:
+                - {kind: expression_statement}
+                - {kind: if_statement}
+                - {kind: return_statement}
+                - {kind: raise_statement}
+                - {kind: try_statement}
+                - {kind: for_statement}
+                - {kind: while_statement}
+                - {kind: with_statement}
+                - {kind: function_definition}
+                - {kind: class_definition}
+                - {kind: decorated_definition}
+                - {kind: comment}
+                - {kind: pass_statement}
+                - {kind: assert_statement}
+                - {kind: delete_statement}
+                - {kind: global_statement}
+                - {kind: nonlocal_statement}
+                - {kind: import_statement}
+                - {kind: import_from_statement}
+                - {kind: match_statement}
+          - follows:
+              all:
+              - any:
+                - {kind: expression_statement}
+                - {kind: comment}
+                - {kind: pass_statement}
+                - {kind: if_statement}
+                - {kind: assert_statement}
+                - {kind: import_statement}
+                - {kind: import_from_statement}
+                not:
+                  has:
+                    stopBy:
+                      any:
+                      - {kind: function_definition}
+                      - {kind: lambda}
+                    kind: return_statement
+              - any:
+                - not:
+                    follows:
+                      any:
+                      - {kind: expression_statement}
+                      - {kind: if_statement}
+                      - {kind: return_statement}
+                      - {kind: raise_statement}
+                      - {kind: try_statement}
+                      - {kind: for_statement}
+                      - {kind: while_statement}
+                      - {kind: with_statement}
+                      - {kind: function_definition}
+                      - {kind: class_definition}
+                      - {kind: decorated_definition}
+                      - {kind: comment}
+                      - {kind: pass_statement}
+                      - {kind: assert_statement}
+                      - {kind: delete_statement}
+                      - {kind: global_statement}
+                      - {kind: nonlocal_statement}
+                      - {kind: import_statement}
+                      - {kind: import_from_statement}
+                      - {kind: match_statement}
+                - follows:
+                    all:
+                    - any:
+                      - {kind: expression_statement}
+                      - {kind: comment}
+                      - {kind: pass_statement}
+                      - {kind: if_statement}
+                      - {kind: assert_statement}
+                      - {kind: import_statement}
+                      - {kind: import_from_statement}
+                      not:
+                        has:
+                          stopBy:
+                            any:
+                            - {kind: function_definition}
+                            - {kind: lambda}
+                          kind: return_statement
+                    - any:
+                      - not:
+                          follows:
+                            any:
+                            - {kind: expression_statement}
+                            - {kind: if_statement}
+                            - {kind: return_statement}
+                            - {kind: raise_statement}
+                            - {kind: try_statement}
+                            - {kind: for_statement}
+                            - {kind: while_statement}
+                            - {kind: with_statement}
+                            - {kind: function_definition}
+                            - {kind: class_definition}
+                            - {kind: decorated_definition}
+                            - {kind: comment}
+                            - {kind: pass_statement}
+                            - {kind: assert_statement}
+                            - {kind: delete_statement}
+                            - {kind: global_statement}
+                            - {kind: nonlocal_statement}
+                            - {kind: import_statement}
+                            - {kind: import_from_statement}
+                            - {kind: match_statement}
+                      - follows:
+                          all:
+                          - any:
+                            - {kind: expression_statement}
+                            - {kind: comment}
+                            - {kind: pass_statement}
+                            - {kind: if_statement}
+                            - {kind: assert_statement}
+                            - {kind: import_statement}
+                            - {kind: import_from_statement}
+                            not:
+                              has:
+                                stopBy:
+                                  any:
+                                  - {kind: function_definition}
+                                  - {kind: lambda}
+                                kind: return_statement
+                          - any:
+                            - not:
+                                follows:
+                                  any:
+                                  - {kind: expression_statement}
+                                  - {kind: if_statement}
+                                  - {kind: return_statement}
+                                  - {kind: raise_statement}
+                                  - {kind: try_statement}
+                                  - {kind: for_statement}
+                                  - {kind: while_statement}
+                                  - {kind: with_statement}
+                                  - {kind: function_definition}
+                                  - {kind: class_definition}
+                                  - {kind: decorated_definition}
+                                  - {kind: comment}
+                                  - {kind: pass_statement}
+                                  - {kind: assert_statement}
+                                  - {kind: delete_statement}
+                                  - {kind: global_statement}
+                                  - {kind: nonlocal_statement}
+                                  - {kind: import_statement}
+                                  - {kind: import_from_statement}
+                                  - {kind: match_statement}
+                            - follows:
+                                all:
+                                - any:
+                                  - {kind: expression_statement}
+                                  - {kind: comment}
+                                  - {kind: pass_statement}
+                                  - {kind: if_statement}
+                                  - {kind: assert_statement}
+                                  - {kind: import_statement}
+                                  - {kind: import_from_statement}
+                                  not:
+                                    has:
+                                      stopBy:
+                                        any:
+                                        - {kind: function_definition}
+                                        - {kind: lambda}
+                                      kind: return_statement
+                                - any:
+                                  - not:
+                                      follows:
+                                        any:
+                                        - {kind: expression_statement}
+                                        - {kind: if_statement}
+                                        - {kind: return_statement}
+                                        - {kind: raise_statement}
+                                        - {kind: try_statement}
+                                        - {kind: for_statement}
+                                        - {kind: while_statement}
+                                        - {kind: with_statement}
+                                        - {kind: function_definition}
+                                        - {kind: class_definition}
+                                        - {kind: decorated_definition}
+                                        - {kind: comment}
+                                        - {kind: pass_statement}
+                                        - {kind: assert_statement}
+                                        - {kind: delete_statement}
+                                        - {kind: global_statement}
+                                        - {kind: nonlocal_statement}
+                                        - {kind: import_statement}
+                                        - {kind: import_from_statement}
+                                        - {kind: match_statement}
+                                  - follows:
+                                      all:
+                                      - any:
+                                        - {kind: expression_statement}
+                                        - {kind: comment}
+                                        - {kind: pass_statement}
+                                        - {kind: if_statement}
+                                        - {kind: assert_statement}
+                                        - {kind: import_statement}
+                                        - {kind: import_from_statement}
+                                        not:
+                                          has:
+                                            stopBy:
+                                              any:
+                                              - {kind: function_definition}
+                                              - {kind: lambda}
+                                            kind: return_statement
+                                      - any:
+                                        - not:
+                                            follows:
+                                              any:
+                                              - {kind: expression_statement}
+                                              - {kind: if_statement}
+                                              - {kind: return_statement}
+                                              - {kind: raise_statement}
+                                              - {kind: try_statement}
+                                              - {kind: for_statement}
+                                              - {kind: while_statement}
+                                              - {kind: with_statement}
+                                              - {kind: function_definition}
+                                              - {kind: class_definition}
+                                              - {kind: decorated_definition}
+                                              - {kind: comment}
+                                              - {kind: pass_statement}
+                                              - {kind: assert_statement}
+                                              - {kind: delete_statement}
+                                              - {kind: global_statement}
+                                              - {kind: nonlocal_statement}
+                                              - {kind: import_statement}
+                                              - {kind: import_from_statement}
+                                              - {kind: match_statement}
+                                        - follows:
+                                            all:
+                                            - any:
+                                              - {kind: expression_statement}
+                                              - {kind: comment}
+                                              - {kind: pass_statement}
+                                              - {kind: if_statement}
+                                              - {kind: assert_statement}
+                                              - {kind: import_statement}
+                                              - {kind: import_from_statement}
+                                              not:
+                                                has:
+                                                  stopBy:
+                                                    any:
+                                                    - {kind: function_definition}
+                                                    - {kind: lambda}
+                                                  kind: return_statement
+                                            - not:
+                                                follows:
+                                                  any:
+                                                  - {kind: expression_statement}
+                                                  - {kind: if_statement}
+                                                  - {kind: return_statement}
+                                                  - {kind: raise_statement}
+                                                  - {kind: try_statement}
+                                                  - {kind: for_statement}
+                                                  - {kind: while_statement}
+                                                  - {kind: with_statement}
+                                                  - {kind: function_definition}
+                                                  - {kind: class_definition}
+                                                  - {kind: decorated_definition}
+                                                  - {kind: comment}
+                                                  - {kind: pass_statement}
+                                                  - {kind: assert_statement}
+                                                  - {kind: delete_statement}
+                                                  - {kind: global_statement}
+                                                  - {kind: nonlocal_statement}
+                                                  - {kind: import_statement}
+                                                  - {kind: import_from_statement}
+                                                  - {kind: match_statement}
+  - has:
+      field: body
+      kind: block
+      has:
+        all:
+        - kind: if_statement
+          all:
+          - has:
+              field: condition
+              kind: comparison_operator
+              regex: '!='
+              all:
+              - has:
+                  kind: call
+                  regex: '^request\.headers\.get\('
+              - has:
+                  any:
+                  - kind: call
+                    regex: '^os\.(environ\.get|getenv)\(\s*[''\"][A-Z0-9_]*(SECRET|TOKEN)[''\"]'
+                  - kind: subscript
+                    regex: '^os\.environ\[\s*[''\"][A-Z0-9_]*(SECRET|TOKEN)[''\"]'
+          - has:
+              field: consequence
+              kind: block
+              has:
+                any:
+                - {kind: raise_statement}
+                - kind: expression_statement
+                  regex: '^abort\(\s*40[134]'
+                - kind: return_statement
+                  regex: '\b40[134]\b'
+        - any:
+          - not:
+              follows:
+                any:
+                - {kind: expression_statement}
+                - {kind: if_statement}
+                - {kind: return_statement}
+                - {kind: raise_statement}
+                - {kind: try_statement}
+                - {kind: for_statement}
+                - {kind: while_statement}
+                - {kind: with_statement}
+                - {kind: function_definition}
+                - {kind: class_definition}
+                - {kind: decorated_definition}
+                - {kind: comment}
+                - {kind: pass_statement}
+                - {kind: assert_statement}
+                - {kind: delete_statement}
+                - {kind: global_statement}
+                - {kind: nonlocal_statement}
+                - {kind: import_statement}
+                - {kind: import_from_statement}
+                - {kind: match_statement}
+          - follows:
+              all:
+              - any:
+                - {kind: expression_statement}
+                - {kind: comment}
+                - {kind: pass_statement}
+                - {kind: if_statement}
+                - {kind: assert_statement}
+                - {kind: import_statement}
+                - {kind: import_from_statement}
+                not:
+                  has:
+                    stopBy:
+                      any:
+                      - {kind: function_definition}
+                      - {kind: lambda}
+                    kind: return_statement
+              - any:
+                - not:
+                    follows:
+                      any:
+                      - {kind: expression_statement}
+                      - {kind: if_statement}
+                      - {kind: return_statement}
+                      - {kind: raise_statement}
+                      - {kind: try_statement}
+                      - {kind: for_statement}
+                      - {kind: while_statement}
+                      - {kind: with_statement}
+                      - {kind: function_definition}
+                      - {kind: class_definition}
+                      - {kind: decorated_definition}
+                      - {kind: comment}
+                      - {kind: pass_statement}
+                      - {kind: assert_statement}
+                      - {kind: delete_statement}
+                      - {kind: global_statement}
+                      - {kind: nonlocal_statement}
+                      - {kind: import_statement}
+                      - {kind: import_from_statement}
+                      - {kind: match_statement}
+                - follows:
+                    all:
+                    - any:
+                      - {kind: expression_statement}
+                      - {kind: comment}
+                      - {kind: pass_statement}
+                      - {kind: if_statement}
+                      - {kind: assert_statement}
+                      - {kind: import_statement}
+                      - {kind: import_from_statement}
+                      not:
+                        has:
+                          stopBy:
+                            any:
+                            - {kind: function_definition}
+                            - {kind: lambda}
+                          kind: return_statement
+                    - any:
+                      - not:
+                          follows:
+                            any:
+                            - {kind: expression_statement}
+                            - {kind: if_statement}
+                            - {kind: return_statement}
+                            - {kind: raise_statement}
+                            - {kind: try_statement}
+                            - {kind: for_statement}
+                            - {kind: while_statement}
+                            - {kind: with_statement}
+                            - {kind: function_definition}
+                            - {kind: class_definition}
+                            - {kind: decorated_definition}
+                            - {kind: comment}
+                            - {kind: pass_statement}
+                            - {kind: assert_statement}
+                            - {kind: delete_statement}
+                            - {kind: global_statement}
+                            - {kind: nonlocal_statement}
+                            - {kind: import_statement}
+                            - {kind: import_from_statement}
+                            - {kind: match_statement}
+                      - follows:
+                          all:
+                          - any:
+                            - {kind: expression_statement}
+                            - {kind: comment}
+                            - {kind: pass_statement}
+                            - {kind: if_statement}
+                            - {kind: assert_statement}
+                            - {kind: import_statement}
+                            - {kind: import_from_statement}
+                            not:
+                              has:
+                                stopBy:
+                                  any:
+                                  - {kind: function_definition}
+                                  - {kind: lambda}
+                                kind: return_statement
+                          - any:
+                            - not:
+                                follows:
+                                  any:
+                                  - {kind: expression_statement}
+                                  - {kind: if_statement}
+                                  - {kind: return_statement}
+                                  - {kind: raise_statement}
+                                  - {kind: try_statement}
+                                  - {kind: for_statement}
+                                  - {kind: while_statement}
+                                  - {kind: with_statement}
+                                  - {kind: function_definition}
+                                  - {kind: class_definition}
+                                  - {kind: decorated_definition}
+                                  - {kind: comment}
+                                  - {kind: pass_statement}
+                                  - {kind: assert_statement}
+                                  - {kind: delete_statement}
+                                  - {kind: global_statement}
+                                  - {kind: nonlocal_statement}
+                                  - {kind: import_statement}
+                                  - {kind: import_from_statement}
+                                  - {kind: match_statement}
+                            - follows:
+                                all:
+                                - any:
+                                  - {kind: expression_statement}
+                                  - {kind: comment}
+                                  - {kind: pass_statement}
+                                  - {kind: if_statement}
+                                  - {kind: assert_statement}
+                                  - {kind: import_statement}
+                                  - {kind: import_from_statement}
+                                  not:
+                                    has:
+                                      stopBy:
+                                        any:
+                                        - {kind: function_definition}
+                                        - {kind: lambda}
+                                      kind: return_statement
+                                - any:
+                                  - not:
+                                      follows:
+                                        any:
+                                        - {kind: expression_statement}
+                                        - {kind: if_statement}
+                                        - {kind: return_statement}
+                                        - {kind: raise_statement}
+                                        - {kind: try_statement}
+                                        - {kind: for_statement}
+                                        - {kind: while_statement}
+                                        - {kind: with_statement}
+                                        - {kind: function_definition}
+                                        - {kind: class_definition}
+                                        - {kind: decorated_definition}
+                                        - {kind: comment}
+                                        - {kind: pass_statement}
+                                        - {kind: assert_statement}
+                                        - {kind: delete_statement}
+                                        - {kind: global_statement}
+                                        - {kind: nonlocal_statement}
+                                        - {kind: import_statement}
+                                        - {kind: import_from_statement}
+                                        - {kind: match_statement}
+                                  - follows:
+                                      all:
+                                      - any:
+                                        - {kind: expression_statement}
+                                        - {kind: comment}
+                                        - {kind: pass_statement}
+                                        - {kind: if_statement}
+                                        - {kind: assert_statement}
+                                        - {kind: import_statement}
+                                        - {kind: import_from_statement}
+                                        not:
+                                          has:
+                                            stopBy:
+                                              any:
+                                              - {kind: function_definition}
+                                              - {kind: lambda}
+                                            kind: return_statement
+                                      - any:
+                                        - not:
+                                            follows:
+                                              any:
+                                              - {kind: expression_statement}
+                                              - {kind: if_statement}
+                                              - {kind: return_statement}
+                                              - {kind: raise_statement}
+                                              - {kind: try_statement}
+                                              - {kind: for_statement}
+                                              - {kind: while_statement}
+                                              - {kind: with_statement}
+                                              - {kind: function_definition}
+                                              - {kind: class_definition}
+                                              - {kind: decorated_definition}
+                                              - {kind: comment}
+                                              - {kind: pass_statement}
+                                              - {kind: assert_statement}
+                                              - {kind: delete_statement}
+                                              - {kind: global_statement}
+                                              - {kind: nonlocal_statement}
+                                              - {kind: import_statement}
+                                              - {kind: import_from_statement}
+                                              - {kind: match_statement}
+                                        - follows:
+                                            all:
+                                            - any:
+                                              - {kind: expression_statement}
+                                              - {kind: comment}
+                                              - {kind: pass_statement}
+                                              - {kind: if_statement}
+                                              - {kind: assert_statement}
+                                              - {kind: import_statement}
+                                              - {kind: import_from_statement}
+                                              not:
+                                                has:
+                                                  stopBy:
+                                                    any:
+                                                    - {kind: function_definition}
+                                                    - {kind: lambda}
+                                                  kind: return_statement
+                                            - not:
+                                                follows:
+                                                  any:
+                                                  - {kind: expression_statement}
+                                                  - {kind: if_statement}
+                                                  - {kind: return_statement}
+                                                  - {kind: raise_statement}
+                                                  - {kind: try_statement}
+                                                  - {kind: for_statement}
+                                                  - {kind: while_statement}
+                                                  - {kind: with_statement}
+                                                  - {kind: function_definition}
+                                                  - {kind: class_definition}
+                                                  - {kind: decorated_definition}
+                                                  - {kind: comment}
+                                                  - {kind: pass_statement}
+                                                  - {kind: assert_statement}
+                                                  - {kind: delete_statement}
+                                                  - {kind: global_statement}
+                                                  - {kind: nonlocal_statement}
+                                                  - {kind: import_statement}
+                                                  - {kind: import_from_statement}
+                                                  - {kind: match_statement}
+  - all:
+    - has:
+        stopBy: end
+        all:
+        - kind: call
+          any:
+          - pattern: '$X.sudo()'
+          - all:
+            - pattern: '$X.with_user($$$)'
+            - regex: 'SUPERUSER_ID|\(\s*1\s*\)'
+          - all:
+            - pattern: '$SB.table($T)'
+            - inside:
+                kind: function_definition
+                stopBy: end
+                has:
+                  stopBy: end
+                  kind: assignment
+                  pattern: '$SB = create_client($U, $K)'
+                  has:
+                    field: right
+                    kind: call
+                    has:
+                      field: arguments
+                      kind: argument_list
+                      regex: '(?i)service_?role|secret_?key'
+        - inside:
+            stopBy:
+              any:
+              - {kind: expression_statement}
+              - {kind: if_statement}
+              - {kind: return_statement}
+              - {kind: raise_statement}
+              - {kind: try_statement}
+              - {kind: for_statement}
+              - {kind: while_statement}
+              - {kind: with_statement}
+              - {kind: function_definition}
+              - {kind: class_definition}
+              - {kind: decorated_definition}
+              - {kind: comment}
+              - {kind: pass_statement}
+              - {kind: assert_statement}
+              - {kind: delete_statement}
+              - {kind: global_statement}
+              - {kind: nonlocal_statement}
+              - {kind: import_statement}
+              - {kind: import_from_statement}
+              - {kind: match_statement}
+            kind: call
+            any:
+            - has:
+                field: arguments
+                kind: argument_list
+                has:
+                  kind: list
+                  has:
+                    kind: tuple
+                    regex: '^\(\s*[''\"](user_id|owner_id|partner_id|patient_id|tenant_id|create_uid|company_id)[''\"]\s*,\s*[''\"](=|in|child_of)[''\"]\s*,\s*(request\.env\.user|request\.user|current_user|g\.user)\b'
+            - all:
+              - pattern: '$Q.eq($COL, $V)'
+              - has:
+                  field: arguments
+                  kind: argument_list
+                  all:
+                  - has:
+                      kind: string
+                      regex: '^[''\"](user_id|owner_id|patient_id|tenant_id|partner_id)[''\"]$'
+                  - has:
+                      kind: attribute
+                      regex: '^(request\.env\.user|request\.user|current_user|self\.request\.user|g\.user)(\.(id|partner_id|partner_id\.id|commercial_partner_id|company_id|tenant_id))?$'
+    - not:
+        has:
+          stopBy: end
+          all:
+          - kind: call
+            any:
+            - pattern: '$X2.sudo()'
+            - all:
+              - pattern: '$X2.with_user($$$)'
+              - regex: 'SUPERUSER_ID|\(\s*1\s*\)'
+            - all:
+              - pattern: '$SB2.table($T2)'
+              - inside:
+                  kind: function_definition
+                  stopBy: end
+                  has:
+                    stopBy: end
+                    kind: assignment
+                    pattern: '$SB2 = create_client($U, $K)'
+                    has:
+                      field: right
+                      kind: call
+                      has:
+                        field: arguments
+                        kind: argument_list
+                        regex: '(?i)service_?role|secret_?key'
+          - not:
+              inside:
+                stopBy:
+                  any:
+                  - {kind: expression_statement}
+                  - {kind: if_statement}
+                  - {kind: return_statement}
+                  - {kind: raise_statement}
+                  - {kind: try_statement}
+                  - {kind: for_statement}
+                  - {kind: while_statement}
+                  - {kind: with_statement}
+                  - {kind: function_definition}
+                  - {kind: class_definition}
+                  - {kind: decorated_definition}
+                  - {kind: comment}
+                  - {kind: pass_statement}
+                  - {kind: assert_statement}
+                  - {kind: delete_statement}
+                  - {kind: global_statement}
+                  - {kind: nonlocal_statement}
+                  - {kind: import_statement}
+                  - {kind: import_from_statement}
+                  - {kind: match_statement}
+                kind: call
+                any:
+                - has:
+                    field: arguments
+                    kind: argument_list
+                    has:
+                      kind: list
+                      has:
+                        kind: tuple
+                        regex: '^\(\s*[''\"](user_id|owner_id|partner_id|patient_id|tenant_id|create_uid|company_id)[''\"]\s*,\s*[''\"](=|in|child_of)[''\"]\s*,\s*(request\.env\.user|request\.user|current_user|g\.user)\b'
+                - all:
+                  - pattern: '$Q.eq($COL, $V)'
+                  - has:
+                      field: arguments
+                      kind: argument_list
+                      all:
+                      - has:
+                          kind: string
+                          regex: '^[''\"](user_id|owner_id|patient_id|tenant_id|partner_id)[''\"]$'
+                      - has:
+                          kind: attribute
+                          regex: '^(request\.env\.user|request\.user|current_user|self\.request\.user|g\.user)(\.(id|partner_id|partner_id\.id|commercial_partner_id|company_id|tenant_id))?$'
+    - not:
+        has:
+          stopBy: end
+          any:
+          - kind: call
+            pattern: '$X3.set_user(0)'
+          - kind: keyword_argument
+            regex: '^_?check_access\s*=\s*False$'
+          - kind: call
+            pattern: 'firestore.client($$$)'
+min_engine: 0.39.0

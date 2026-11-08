@@ -1,0 +1,57 @@
+id: write-fields-allowlisted.kotlin-spring.copy-all
+practice_id: write-fields-allowlisted
+language: kotlin
+frameworks:
+- spring
+kind: violation
+rule:
+  any:
+  - pattern: BeanUtils.copyProperties($SRC, $DST)
+  - pattern: BeanUtils.copyProperties($SRC, $DST, $$$IGNORED)
+  - pattern: $MAPPER.readerForUpdating($E)
+  - pattern: $BINDER.setDisallowedFields($$$)
+min_engine: 0.39.0
+---
+id: write-fields-allowlisted.kotlin-spring.identity-from-request
+practice_id: write-fields-allowlisted
+language: kotlin
+frameworks:
+- spring
+kind: violation
+rule:
+  all:
+  - kind: assignment
+  - has:
+      kind: directly_assignable_expression
+      regex: \.(ownerId|userId|tenantId|orgId|organizationId|accountId|clinicId|providerId|createdBy|updatedBy|authorId|role|roles|isAdmin)$
+  - has:
+      kind: navigation_expression
+      regex: ^(dto|request|req|body|form|input|payload|command|\w+Dto|\w+Request)\.\w+$
+min_engine: 0.39.0
+---
+id: write-fields-allowlisted.kotlin-spring.identity-field
+practice_id: write-fields-allowlisted
+language: kotlin
+frameworks:
+- spring
+kind: items
+rule:
+  any:
+  - all:
+    - kind: assignment
+    - has:
+        kind: directly_assignable_expression
+        regex: \.(ownerId|userId|tenantId|orgId|organizationId|accountId|clinicId|providerId|createdBy|updatedBy|authorId|role|roles|roleId|isAdmin|isStaff|permissions)$
+  - kind: value_argument
+    regex: ^(ownerId|userId|tenantId|orgId|organizationId|accountId|clinicId|providerId|createdBy|updatedBy|authorId|role|roles|roleId|isAdmin|isStaff|permissions)\s*=
+control:
+  has:
+    stopBy: end
+    any:
+    - kind: navigation_expression
+      regex: ^(auth|authentication|principal|jwt|currentUser|securityContext|SecurityContextHolder)(\.|$)|^(getCurrentUser|currentUser)\(
+    - kind: call_expression
+      regex: ^(auth|authentication|principal|jwt|currentUser|securityContext|SecurityContextHolder)(\.|$)|^(getCurrentUser|currentUser)\(
+    - kind: simple_identifier
+      regex: ^(principal|authentication|currentUser|jwt)$
+min_engine: 0.39.0

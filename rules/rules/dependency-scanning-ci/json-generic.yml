@@ -1,0 +1,165 @@
+# dependency-scanning-ci (T23 B56a). Written by scripts/gen_depscan_rules.py: edit
+# that script, never this file. The practice function reads the pieces by name: lockfile-<eco>, scan-<eco> or
+# scan-all, and update-bot-<eco> or update-bot-renovate (NAMING.md).
+# The regexes are written for the inspector's Rust regex engine, where $ is the very end of the text. Don't run them in
+# JS RegExp or Python re: some don't compile in Node, and some take seconds on a long folded run there (C221).
+
+# update-bot-renovate: a Renovate config (renovate.json, .renovaterc, .github/renovate.json, or package.json's
+# renovate key) that is not turned off (enabled: false). Renovate covers every ecosystem it detects. Evidence: the
+# update-bot piece for every ecosystem.
+id: dependency-scanning-ci.json-generic.update-bot-renovate
+practice_id: dependency-scanning-ci
+language: json
+frameworks:
+- generic
+kind: evidence
+path_regex: ^(renovate\.json|\.renovaterc(\.json)?|\.github/renovate\.json|package\.json)$
+rule:
+  any:
+  - kind: object
+    inside:
+      kind: document
+    all:
+    - has:
+        kind: pair
+        has:
+          field: key
+          kind: string
+          regex: ^"(\$schema|extends|packageRules|enabledManagers|schedule|automerge|rangeStrategy|lockFileMaintenance|dependencyDashboard|baseBranches|ignoreDeps|labels|timezone|prConcurrentLimit|vulnerabilityAlerts)"$
+    - not:
+        has:
+          kind: pair
+          has:
+            field: key
+            kind: string
+            regex: ^"(name|version|dependencies|devDependencies|scripts|private|workspaces|main|type)"$
+    - not:
+        has:
+          kind: pair
+          has:
+            field: key
+            kind: string
+            regex: ^"(enabled)"$
+          regex: ^"enabled"\s*:\s*false$
+  - kind: pair
+    has:
+      field: key
+      kind: string
+      regex: ^"(renovate)"$
+    inside:
+      kind: object
+      inside:
+        kind: document
+    not:
+      has:
+        kind: object
+        has:
+          kind: pair
+          has:
+            field: key
+            kind: string
+            regex: ^"(enabled)"$
+          regex: ^"enabled"\s*:\s*false$
+min_engine: 0.45.3
+---
+# app-root: a package.json that depends on a JS web framework or has scripts.start, or a composer.json requiring
+# Laravel, Slim or Symfony: one app root, shared with hsts-enabled (B56c counts them).
+id: dependency-scanning-ci.json-generic.app-root
+practice_id: dependency-scanning-ci
+language: json
+frameworks:
+- generic
+kind: evidence
+path_regex: (^|/)(package|composer)\.json$
+rule:
+  any:
+  - kind: object
+    inside:
+      kind: document
+    has:
+      kind: pair
+      all:
+      - has:
+          field: key
+          kind: string
+          regex: ^"(dependencies|devDependencies)"$
+      - has:
+          kind: object
+          has:
+            kind: pair
+            has:
+              field: key
+              kind: string
+              regex: ^"(next|express|koa|fastify|hono|@hono\/node-server|@nestjs\/core|@remix-run\/node|@react-router\/node|@react-router\/serve|@sveltejs\/kit|nuxt|@solidjs\/start|@builder\.io\/qwik-city|@tanstack\/react-start|@tanstack\/start|elysia|@adonisjs\/core|@feathersjs\/feathers|h3|@hapi\/hapi|restify|polka|connect|micro)"$
+  - kind: object
+    inside:
+      kind: document
+    has:
+      kind: pair
+      all:
+      - has:
+          field: key
+          kind: string
+          regex: ^"(scripts)"$
+      - has:
+          kind: object
+          has:
+            kind: pair
+            has:
+              field: key
+              kind: string
+              regex: ^"(start)"$
+  - kind: object
+    inside:
+      kind: document
+    has:
+      kind: pair
+      all:
+      - has:
+          field: key
+          kind: string
+          regex: ^"(require)"$
+      - has:
+          kind: object
+          has:
+            kind: pair
+            has:
+              field: key
+              kind: string
+              regex: ^"(laravel\/framework|slim\/slim|symfony\/framework-bundle)"$
+min_engine: 0.45.3
+---
+# workspace-declared: a workspace root: a top-level workspaces key in a package.json, or a packages: list in a
+# pnpm-workspace.yaml. Evidence for the one-app check (B56c).
+id: dependency-scanning-ci.json-generic.workspace-declared
+practice_id: dependency-scanning-ci
+language: json
+frameworks:
+- generic
+kind: evidence
+path_regex: (^|/)package\.json$
+rule:
+  kind: pair
+  has:
+    field: key
+    kind: string
+    regex: ^"(workspaces)"$
+  inside:
+    kind: object
+    inside:
+      kind: document
+min_engine: 0.45.3
+---
+# npm-lock-present: a committed package-lock.json (one match on the file). Evidence for the one-lockfile check (B56c).
+id: dependency-scanning-ci.json-generic.npm-lock-present
+practice_id: dependency-scanning-ci
+language: json
+frameworks:
+- generic
+kind: evidence
+path_regex: (^|/)package-lock\.json$
+rule:
+  kind: object
+  inside:
+    kind: document
+min_engine: 0.45.3

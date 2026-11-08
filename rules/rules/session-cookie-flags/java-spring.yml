@@ -1,0 +1,43 @@
+id: session-cookie-flags.java-spring.cookie-set
+practice_id: session-cookie-flags
+language: java
+frameworks:
+- spring
+kind: items
+rule:
+  any:
+  - kind: object_creation_expression
+    regex: ^new\s+Cookie\(
+  - kind: method_invocation
+    regex: ^ResponseCookie\.from\(.*\.build\(\)$
+control:
+  any:
+  - all:
+    - kind: method_invocation
+      regex: \.httpOnly\(true\)
+    - kind: method_invocation
+      regex: \.secure\(true\)
+    - kind: method_invocation
+      regex: \.sameSite\(\"(Lax|Strict)\"\)
+  - inside:
+      stopBy: end
+      kind: method_declaration
+      all:
+      - kind: method_declaration
+        regex: \.setHttpOnly\(true\)
+      - kind: method_declaration
+        regex: \.setSecure\(true\)
+      - kind: method_declaration
+        regex: (?i)samesite=(lax|strict)|setAttribute\(\"SameSite\",\s*\"(Lax|Strict)\"
+min_engine: 0.39.0
+---
+id: session-cookie-flags.java-spring.flag-off
+practice_id: session-cookie-flags
+language: java
+frameworks:
+- spring
+kind: violation
+rule:
+  kind: method_invocation
+  regex: \.(setHttpOnly|setSecure|httpOnly|secure)\(false\)$|\.sameSite\(\"None\"\)$
+min_engine: 0.39.0

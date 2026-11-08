@@ -1,0 +1,17 @@
+id: audit-log-append-only.php-generic.sql-mutation
+practice_id: audit-log-append-only
+language: php
+frameworks:
+- generic
+kind: violation
+rule:
+  any:
+  - kind: string
+    regex: '(?i)(?:\bdelete\s+from\s+(?:[`\x22]?\w+[`\x22]?\.)?[`\x22]?(?:\w*audit\w*|\w*access_logs?|\w*security_logs?|\w*security_events?|activity_logs?|extended_log|api_log|log)[`\x22]?(?:[\s;)''\x22`]|$)|\bupdate\s+(?:[`\x22]?\w+[`\x22]?\.)?[`\x22]?(?:\w*audit\w*|\w*access_logs?|\w*security_logs?|\w*security_events?|activity_logs?|extended_log|api_log|log)[`\x22]?\s+set\b|\btruncate(?:\s+table)?(?:\s+only)?\s+(?:[`\x22]?\w+[`\x22]?\.)?[`\x22]?(?:\w*audit\w*|\w*access_logs?|\w*security_logs?|\w*security_events?|activity_logs?|extended_log|api_log|log)[`\x22]?(?:[\s;,)''\x22`]|$))'
+  - kind: encapsed_string
+    regex: '(?i)(?:\bdelete\s+from\s+(?:[`\x22]?\w+[`\x22]?\.)?[`\x22]?(?:\w*audit\w*|\w*access_logs?|\w*security_logs?|\w*security_events?|activity_logs?|extended_log|api_log|log)[`\x22]?(?:[\s;)''\x22`]|$)|\bupdate\s+(?:[`\x22]?\w+[`\x22]?\.)?[`\x22]?(?:\w*audit\w*|\w*access_logs?|\w*security_logs?|\w*security_events?|activity_logs?|extended_log|api_log|log)[`\x22]?\s+set\b|\btruncate(?:\s+table)?(?:\s+only)?\s+(?:[`\x22]?\w+[`\x22]?\.)?[`\x22]?(?:\w*audit\w*|\w*access_logs?|\w*security_logs?|\w*security_events?|activity_logs?|extended_log|api_log|log)[`\x22]?(?:[\s;,)''\x22`]|$))'
+  - kind: heredoc
+    regex: '(?i)(?:\bdelete\s+from\s+(?:[`\x22]?\w+[`\x22]?\.)?[`\x22]?(?:\w*audit\w*|\w*access_logs?|\w*security_logs?|\w*security_events?|activity_logs?|extended_log|api_log|log)[`\x22]?(?:[\s;)''\x22`]|$)|\bupdate\s+(?:[`\x22]?\w+[`\x22]?\.)?[`\x22]?(?:\w*audit\w*|\w*access_logs?|\w*security_logs?|\w*security_events?|activity_logs?|extended_log|api_log|log)[`\x22]?\s+set\b|\btruncate(?:\s+table)?(?:\s+only)?\s+(?:[`\x22]?\w+[`\x22]?\.)?[`\x22]?(?:\w*audit\w*|\w*access_logs?|\w*security_logs?|\w*security_events?|activity_logs?|extended_log|api_log|log)[`\x22]?(?:[\s;,)''\x22`]|$))'
+  - kind: nowdoc
+    regex: '(?i)(?:\bdelete\s+from\s+(?:[`\x22]?\w+[`\x22]?\.)?[`\x22]?(?:\w*audit\w*|\w*access_logs?|\w*security_logs?|\w*security_events?|activity_logs?|extended_log|api_log|log)[`\x22]?(?:[\s;)''\x22`]|$)|\bupdate\s+(?:[`\x22]?\w+[`\x22]?\.)?[`\x22]?(?:\w*audit\w*|\w*access_logs?|\w*security_logs?|\w*security_events?|activity_logs?|extended_log|api_log|log)[`\x22]?\s+set\b|\btruncate(?:\s+table)?(?:\s+only)?\s+(?:[`\x22]?\w+[`\x22]?\.)?[`\x22]?(?:\w*audit\w*|\w*access_logs?|\w*security_logs?|\w*security_events?|activity_logs?|extended_log|api_log|log)[`\x22]?(?:[\s;,)''\x22`]|$))'
+min_engine: 0.45.3

@@ -1,0 +1,1783 @@
+{
+ "source": "core app.core.snapshot.ids",
+ "cases": [
+  {
+   "name": "hand-made",
+   "document": {
+    "catalog": {
+     "queries": [
+      {
+       "rows": [
+        {
+         "schema_name": "public",
+         "table_name": "patients",
+         "column_name": "dob"
+        },
+        {
+         "schema_name": "",
+         "table_name": "visits",
+         "column_name": ""
+        },
+        {
+         "schema_name": null,
+         "table_name": "notes"
+        },
+        {
+         "table_name": "",
+         "column_name": "x"
+        }
+       ]
+      }
+     ]
+    },
+    "columns": [
+     {
+      "table": "public.patients",
+      "column": "ssn"
+     },
+     {
+      "table": "plain",
+      "column": "c"
+     },
+     {
+      "table": "a.b.c",
+      "column": ""
+     }
+    ],
+    "matches": [
+     {
+      "path": "src/db.ts",
+      "line": 4
+     },
+     {
+      "path": "src/api/x.ts",
+      "line_start": 3,
+      "line_end": 9
+     },
+     {
+      "path": "src/one.ts",
+      "line_start": 7
+     },
+     {
+      "path": "src/same.ts",
+      "line_start": 5,
+      "line_end": 5
+     },
+     {
+      "path": "src/nullend.ts",
+      "line_start": 5,
+      "line_end": null
+     },
+     {
+      "path": "",
+      "line": 2
+     },
+     {
+      "path": "seeds/u_0123456789abcdef.sql",
+      "line": 1
+     }
+    ],
+    "platform": {
+     "settings": {
+      "enable_signup": "true",
+      "jwt_expiry": "3600",
+      "not_a_string": 5
+     }
+    },
+    "files": {
+     "elevated_imports": [
+      {
+       "path": "app/routes.py",
+       "location": "app/routes.py:12",
+       "module": "app.db"
+      }
+     ]
+    },
+    "nested": [
+     [
+      {
+       "path": "deep/a.sql"
+      }
+     ]
+    ]
+   },
+   "ids": [
+    "a.b.c",
+    "app.db",
+    "app/routes.py",
+    "app/routes.py:12",
+    "c",
+    "deep/a.sql",
+    "dob",
+    "notes",
+    "patients",
+    "patients.dob",
+    "patients.ssn",
+    "plain",
+    "plain.c",
+    "public",
+    "public.patients",
+    "public.patients.dob",
+    "public.patients.ssn",
+    "seeds/u_0123456789abcdef.sql",
+    "seeds/u_0123456789abcdef.sql:1",
+    "src/api/x.ts",
+    "src/api/x.ts:3-9",
+    "src/db.ts",
+    "src/db.ts:4",
+    "src/nullend.ts",
+    "src/one.ts",
+    "src/one.ts:7",
+    "src/same.ts",
+    "src/same.ts:5",
+    "ssn",
+    "visits",
+    "x"
+   ]
+  },
+  {
+   "name": "clinic-intake",
+   "document": {
+    "document": {
+     "answers": [],
+     "catalog": {
+      "preflight": {
+       "bypassrls": null,
+       "catalog_extensions": null,
+       "catalog_tables": null,
+       "createrole": null,
+       "dangerous_functions": null,
+       "database": null,
+       "definer_functions_executable": null,
+       "extension_relations_readable": null,
+       "failed": [
+        "connect"
+       ],
+       "large_objects": null,
+       "owned_objects": null,
+       "passed": false,
+       "predefined_roles": null,
+       "public_readable_tables": null,
+       "readable_tables": null,
+       "replication": null,
+       "role": null,
+       "session_user": null,
+       "settings_mismatched": null,
+       "superuser": null,
+       "system_identifier": null,
+       "writable_tables": null
+      },
+      "queries": [
+       {
+        "query_id": "rls_status",
+        "reason": "not_configured",
+        "rows": [],
+        "status": "not_run"
+       },
+       {
+        "query_id": "rls_policies",
+        "reason": "not_configured",
+        "rows": [],
+        "status": "not_run"
+       },
+       {
+        "query_id": "table_grants",
+        "reason": "not_configured",
+        "rows": [],
+        "status": "not_run"
+       },
+       {
+        "query_id": "table_columns",
+        "reason": "not_configured",
+        "rows": [],
+        "status": "not_run"
+       },
+       {
+        "query_id": "views",
+        "reason": "not_configured",
+        "rows": [],
+        "status": "not_run"
+       },
+       {
+        "query_id": "definer_functions",
+        "reason": "not_configured",
+        "rows": [],
+        "status": "not_run"
+       },
+       {
+        "query_id": "exposed_schemas",
+        "reason": "not_configured",
+        "rows": [],
+        "status": "not_run"
+       },
+       {
+        "query_id": "roles",
+        "reason": "not_configured",
+        "rows": [],
+        "status": "not_run"
+       },
+       {
+        "query_id": "storage_buckets",
+        "reason": "not_configured",
+        "rows": [],
+        "status": "not_run"
+       },
+       {
+        "query_id": "transport",
+        "reason": "not_configured",
+        "rows": [],
+        "status": "not_run"
+       },
+       {
+        "query_id": "logging",
+        "reason": "not_configured",
+        "rows": [],
+        "status": "not_run"
+       },
+       {
+        "query_id": "audit",
+        "reason": "not_configured",
+        "rows": [],
+        "status": "not_run"
+       },
+       {
+        "query_id": "self_hosted",
+        "reason": "not_configured",
+        "rows": [],
+        "status": "not_run"
+       },
+       {
+        "query_id": "advisor",
+        "reason": "not_configured",
+        "rows": [],
+        "status": "not_run"
+       },
+       {
+        "query_id": "default_acl",
+        "reason": "not_configured",
+        "rows": [],
+        "status": "not_run"
+       },
+       {
+        "query_id": "schema_privileges",
+        "reason": "not_configured",
+        "rows": [],
+        "status": "not_run"
+       },
+       {
+        "query_id": "triggers",
+        "reason": "not_configured",
+        "rows": [],
+        "status": "not_run"
+       },
+       {
+        "query_id": "constraints",
+        "reason": "not_configured",
+        "rows": [],
+        "status": "not_run"
+       },
+       {
+        "query_id": "realtime_publication",
+        "reason": "not_configured",
+        "rows": [],
+        "status": "not_run"
+       },
+       {
+        "query_id": "connected_roles",
+        "reason": "not_configured",
+        "rows": [],
+        "status": "not_run"
+       }
+      ]
+     },
+     "collection": [
+      {
+       "collector": "files",
+       "count": 4,
+       "reason": null,
+       "status": "ok"
+      },
+      {
+       "collector": "git",
+       "count": 0,
+       "reason": "not_configured",
+       "status": "not_run"
+      },
+      {
+       "collector": "rules",
+       "count": 95,
+       "reason": null,
+       "status": "ok"
+      },
+      {
+       "collector": "catalog",
+       "count": 0,
+       "reason": "not_configured",
+       "status": "not_run"
+      },
+      {
+       "collector": "platform",
+       "count": 0,
+       "reason": "not_configured",
+       "status": "not_run"
+      },
+      {
+       "collector": "secrets",
+       "count": 0,
+       "reason": null,
+       "status": "empty"
+      }
+     ],
+     "columns": [],
+     "environment": {
+      "source": "setup",
+      "value": "unknown"
+     },
+     "files": {
+      "analyzed": 2,
+      "data_files": [],
+      "derived_frameworks": [],
+      "elevated_imports": [],
+      "elevated_imports_complete": true,
+      "env_files": [],
+      "fingerprints": [],
+      "frameworks": [],
+      "helpers": [
+       {
+        "functions": [
+         "open_database",
+         "save_intake",
+         "get_intake",
+         "export_intake",
+         "lookup_catalogue"
+        ],
+        "importers": [
+         "probe.py"
+        ],
+        "importers_complete": true,
+        "language": "python",
+        "path": "clinic.py",
+        "work": [
+         "write"
+        ]
+       }
+      ],
+      "imports": [],
+      "imports_dynamic": {
+       "python": 0
+      },
+      "languages": [
+       "python"
+      ],
+      "manifests": [],
+      "not_analyzed": [
+       {
+        "kind": "file",
+        "path": "README.md",
+        "reason": "unknown_type",
+        "tracked": null
+       },
+       {
+        "kind": "file",
+        "path": "schema.sql",
+        "reason": "unsupported_language",
+        "tracked": null
+       }
+      ]
+     },
+     "inspector_version": "0.1.1",
+     "links": [],
+     "matches": [],
+     "platform": {
+      "provider": "unknown",
+      "settings": {
+       "auth_mfa_enabled": "not_read",
+       "cloudsql_pgaudit_masking": "not_read",
+       "firestore_backups_scheduled": "not_read",
+       "functions_verify_jwt": "not_read",
+       "high_compliance": "not_read",
+       "leaked_password_protection": "not_read",
+       "log_export": "not_read",
+       "log_retention": "not_read",
+       "login_rate_limited": "not_read",
+       "network_restricted": "not_read",
+       "org_mfa_enforced": "not_read",
+       "password_min_length_15": "not_read",
+       "password_min_length_8": "not_read",
+       "pitr_enabled": "not_read",
+       "realtime_private_only": "not_read",
+       "ssl_enforced": "not_read",
+       "sso_idp_mfa": "not_read",
+       "storage_encrypted": "not_read",
+       "storage_public_access_blocked": "not_read"
+      }
+     },
+     "root_id": "6e749da641acbde22a78f8c19648d31bd59a20a4f558ca788fceee938ea7b24d",
+     "ruleset_id": "2026-11-06.51096e69",
+     "schema_version": 2,
+     "secrets": [],
+     "session": null,
+     "supabase": {
+      "edge_functions": {
+       "items": [],
+       "reason": "not_configured",
+       "status": "not_run"
+      }
+     },
+     "tenancy": {
+      "model": "unknown",
+      "source": "answer",
+      "tenant_column": null
+     }
+    },
+    "handlers": {}
+   },
+   "ids": [
+    "README.md",
+    "auth_mfa_enabled",
+    "clinic.py",
+    "cloudsql_pgaudit_masking",
+    "export_intake",
+    "firestore_backups_scheduled",
+    "functions_verify_jwt",
+    "get_intake",
+    "high_compliance",
+    "leaked_password_protection",
+    "log_export",
+    "log_retention",
+    "login_rate_limited",
+    "lookup_catalogue",
+    "network_restricted",
+    "open_database",
+    "org_mfa_enforced",
+    "password_min_length_15",
+    "password_min_length_8",
+    "pitr_enabled",
+    "probe.py",
+    "realtime_private_only",
+    "save_intake",
+    "schema.sql",
+    "ssl_enforced",
+    "sso_idp_mfa",
+    "storage_encrypted",
+    "storage_public_access_blocked"
+   ]
+  },
+  {
+   "name": "plumbing-gaps",
+   "document": {
+    "document": {
+     "answers": [],
+     "catalog": {
+      "preflight": {
+       "bypassrls": null,
+       "catalog_extensions": null,
+       "catalog_tables": null,
+       "createrole": null,
+       "dangerous_functions": null,
+       "database": null,
+       "definer_functions_executable": null,
+       "extension_relations_readable": null,
+       "failed": [
+        "connect"
+       ],
+       "large_objects": null,
+       "owned_objects": null,
+       "passed": false,
+       "predefined_roles": null,
+       "public_readable_tables": null,
+       "readable_tables": null,
+       "replication": null,
+       "role": null,
+       "session_user": null,
+       "settings_mismatched": null,
+       "superuser": null,
+       "system_identifier": null,
+       "writable_tables": null
+      },
+      "queries": [
+       {
+        "query_id": "rls_status",
+        "reason": "not_configured",
+        "rows": [],
+        "status": "not_run"
+       },
+       {
+        "query_id": "rls_policies",
+        "reason": "not_configured",
+        "rows": [],
+        "status": "not_run"
+       },
+       {
+        "query_id": "table_grants",
+        "reason": "not_configured",
+        "rows": [],
+        "status": "not_run"
+       },
+       {
+        "query_id": "table_columns",
+        "reason": "not_configured",
+        "rows": [],
+        "status": "not_run"
+       },
+       {
+        "query_id": "views",
+        "reason": "not_configured",
+        "rows": [],
+        "status": "not_run"
+       },
+       {
+        "query_id": "definer_functions",
+        "reason": "not_configured",
+        "rows": [],
+        "status": "not_run"
+       },
+       {
+        "query_id": "exposed_schemas",
+        "reason": "not_configured",
+        "rows": [],
+        "status": "not_run"
+       },
+       {
+        "query_id": "roles",
+        "reason": "not_configured",
+        "rows": [],
+        "status": "not_run"
+       },
+       {
+        "query_id": "storage_buckets",
+        "reason": "not_configured",
+        "rows": [],
+        "status": "not_run"
+       },
+       {
+        "query_id": "transport",
+        "reason": "not_configured",
+        "rows": [],
+        "status": "not_run"
+       },
+       {
+        "query_id": "logging",
+        "reason": "not_configured",
+        "rows": [],
+        "status": "not_run"
+       },
+       {
+        "query_id": "audit",
+        "reason": "not_configured",
+        "rows": [],
+        "status": "not_run"
+       },
+       {
+        "query_id": "self_hosted",
+        "reason": "not_configured",
+        "rows": [],
+        "status": "not_run"
+       },
+       {
+        "query_id": "advisor",
+        "reason": "not_configured",
+        "rows": [],
+        "status": "not_run"
+       },
+       {
+        "query_id": "default_acl",
+        "reason": "not_configured",
+        "rows": [],
+        "status": "not_run"
+       },
+       {
+        "query_id": "schema_privileges",
+        "reason": "not_configured",
+        "rows": [],
+        "status": "not_run"
+       },
+       {
+        "query_id": "triggers",
+        "reason": "not_configured",
+        "rows": [],
+        "status": "not_run"
+       },
+       {
+        "query_id": "constraints",
+        "reason": "not_configured",
+        "rows": [],
+        "status": "not_run"
+       },
+       {
+        "query_id": "realtime_publication",
+        "reason": "not_configured",
+        "rows": [],
+        "status": "not_run"
+       },
+       {
+        "query_id": "connected_roles",
+        "reason": "not_configured",
+        "rows": [],
+        "status": "not_run"
+       }
+      ]
+     },
+     "collection": [
+      {
+       "collector": "files",
+       "count": 9,
+       "reason": null,
+       "status": "ok"
+      },
+      {
+       "collector": "git",
+       "count": 0,
+       "reason": "not_configured",
+       "status": "not_run"
+      },
+      {
+       "collector": "rules",
+       "count": 371,
+       "reason": null,
+       "status": "ok"
+      },
+      {
+       "collector": "catalog",
+       "count": 0,
+       "reason": "not_configured",
+       "status": "not_run"
+      },
+      {
+       "collector": "platform",
+       "count": 0,
+       "reason": "not_configured",
+       "status": "not_run"
+      },
+      {
+       "collector": "secrets",
+       "count": 1,
+       "reason": "unreadable",
+       "status": "truncated"
+      }
+     ],
+     "columns": [],
+     "environment": {
+      "source": "setup",
+      "value": "unknown"
+     },
+     "files": {
+      "analyzed": 6,
+      "data_files": [],
+      "derived_frameworks": [
+       "nextjs",
+       "supabase"
+      ],
+      "elevated_imports": [],
+      "elevated_imports_complete": true,
+      "env_files": [
+       {
+        "git": "not_checked",
+        "path": "config/production.env"
+       }
+      ],
+      "fingerprints": [
+       "ai_sdk"
+      ],
+      "frameworks": [],
+      "helpers": [
+       {
+        "functions": [
+         "uploadScan",
+         "listScans",
+         "shareScan",
+         "logoUrl"
+        ],
+        "importers": [],
+        "importers_complete": true,
+        "language": "typescript",
+        "path": "src/files.ts",
+        "work": [
+         "elevated_client",
+         "storage"
+        ]
+       }
+      ],
+      "imports": [
+       {
+        "fingerprint": "ai_sdk",
+        "line": 2,
+        "package": "openai",
+        "path": "src/ai.ts"
+       }
+      ],
+      "imports_dynamic": {
+       "tsx": 0,
+       "typescript": 0
+      },
+      "languages": [
+       "tsx",
+       "typescript"
+      ],
+      "manifests": [],
+      "not_analyzed": [
+       {
+        "kind": "file",
+        "path": "config/env.local.example",
+        "reason": "unknown_type",
+        "tracked": null
+       },
+       {
+        "kind": "file",
+        "path": "schema.sql",
+        "reason": "unsupported_language",
+        "tracked": null
+       },
+       {
+        "kind": "file",
+        "path": "scripts/seed.sh",
+        "reason": "unknown_type",
+        "tracked": null
+       }
+      ]
+     },
+     "inspector_version": "0.1.1",
+     "links": [],
+     "matches": [
+      {
+       "fingerprint": "f9b699bccb4885e9f45cf10bbae221ab7dbe2af6f5da1783d335ba60b8530d76",
+       "handler": "20fb23adabf17cf1b42cbf89b7dee9e48a54efab2438d46aac15d0ccb3a1af66",
+       "has_control": null,
+       "kind": "evidence",
+       "line_end": 12,
+       "line_start": 5,
+       "path": "app/(app)/layout.tsx",
+       "practice_id": "edge-function-auth",
+       "rule_id": "edge-function-auth.tsx-supabase.deno-other",
+       "shared_fingerprint": null,
+       "table": null
+      },
+      {
+       "fingerprint": "660079a84526638e0bc74fb38380dae096e45a2f4b9b4f8a13adedfdb1413be1",
+       "handler": "20fb23adabf17cf1b42cbf89b7dee9e48a54efab2438d46aac15d0ccb3a1af66",
+       "has_control": null,
+       "kind": "evidence",
+       "line_end": 12,
+       "line_start": 5,
+       "path": "app/(app)/layout.tsx",
+       "practice_id": "edge-function-auth",
+       "rule_id": "edge-function-auth.tsx-supabase.source-file",
+       "shared_fingerprint": null,
+       "table": null
+      },
+      {
+       "fingerprint": "531f83f29a2542f60bbf74487581058b5854d1dc2b66f7cdb9ca09aee42d39b7",
+       "handler": "20fb23adabf17cf1b42cbf89b7dee9e48a54efab2438d46aac15d0ccb3a1af66",
+       "has_control": false,
+       "kind": "item",
+       "line_end": 9,
+       "line_start": 9,
+       "path": "app/(app)/layout.tsx",
+       "practice_id": "no-trackers-on-signed-in",
+       "rule_id": "no-trackers-on-signed-in.tsx-generic.script-src",
+       "shared_fingerprint": null,
+       "table": null
+      },
+      {
+       "fingerprint": "3a01156454a5da54cbf9ff9d6a5ec5d9f369bab4651e1541072fb66e60e86e0b",
+       "handler": "0a31bcd4a32375dcb2b442c2f7502288378366900453d506cb2827b14ee9a19a",
+       "has_control": false,
+       "kind": "item",
+       "line_end": 14,
+       "line_start": 10,
+       "path": "app/api/notes/[id]/route.ts",
+       "practice_id": "access-audit-log",
+       "rule_id": "access-audit-log.typescript-nextjs.read-handler",
+       "shared_fingerprint": null,
+       "table": null
+      },
+      {
+       "fingerprint": "ec9c96483845b820cf2f40e9ae34348b0cbb50a9257885b3f8836417e0241a99",
+       "handler": "0a31bcd4a32375dcb2b442c2f7502288378366900453d506cb2827b14ee9a19a",
+       "has_control": null,
+       "kind": "evidence",
+       "line_end": 14,
+       "line_start": 10,
+       "path": "app/api/notes/[id]/route.ts",
+       "practice_id": "audit-patient-recorded",
+       "rule_id": "audit-patient-recorded.typescript-generic.request-handler",
+       "shared_fingerprint": null,
+       "table": null
+      },
+      {
+       "fingerprint": "8a3c2200d721c27b07e96a58a2f52b51ba54d91205f6b8a8d864275bbc5e7a94",
+       "handler": "0a31bcd4a32375dcb2b442c2f7502288378366900453d506cb2827b14ee9a19a",
+       "has_control": false,
+       "kind": "item",
+       "line_end": 14,
+       "line_start": 10,
+       "path": "app/api/notes/[id]/route.ts",
+       "practice_id": "authz-every-handler",
+       "rule_id": "authz-every-handler.typescript-nextjs.route",
+       "shared_fingerprint": null,
+       "table": null
+      },
+      {
+       "fingerprint": "860ebc5bbbd97e3e76d68fe6fab1b599bfc822fdd68a141afc1091764ed65828",
+       "handler": "0a31bcd4a32375dcb2b442c2f7502288378366900453d506cb2827b14ee9a19a",
+       "has_control": null,
+       "kind": "evidence",
+       "line_end": 14,
+       "line_start": 10,
+       "path": "app/api/notes/[id]/route.ts",
+       "practice_id": "edge-function-auth",
+       "rule_id": "edge-function-auth.typescript-supabase.source-file",
+       "shared_fingerprint": null,
+       "table": null
+      },
+      {
+       "fingerprint": "d43a78cfff1f4c27a6779f5f352975d3717ea22a52f1f60c9b81bc9b4bc570eb",
+       "handler": "0a31bcd4a32375dcb2b442c2f7502288378366900453d506cb2827b14ee9a19a",
+       "has_control": false,
+       "kind": "item",
+       "line_end": 14,
+       "line_start": 10,
+       "path": "app/api/notes/[id]/route.ts",
+       "practice_id": "elevated-routes-check-ownership",
+       "rule_id": "elevated-routes-check-ownership.typescript-nextjs.elevated-handler",
+       "shared_fingerprint": null,
+       "table": null
+      },
+      {
+       "fingerprint": "a7a3e223fa4ac38a7da53b466e684fbc22729ec9b724ea020eb15970353d9640",
+       "handler": "0a31bcd4a32375dcb2b442c2f7502288378366900453d506cb2827b14ee9a19a",
+       "has_control": null,
+       "kind": "evidence",
+       "line_end": 14,
+       "line_start": 10,
+       "path": "app/api/notes/[id]/route.ts",
+       "practice_id": "inbound-webhooks-verified",
+       "rule_id": "inbound-webhooks-verified.typescript-nextjs.entry",
+       "shared_fingerprint": null,
+       "table": null
+      },
+      {
+       "fingerprint": "ff45fc6dee8b3523452d7d0b15aca80e23d30ecce1139c5f3005e74edcb88f7f",
+       "handler": "d3148b870688b71d17726d1d3f30645151d70bd26cbb64888d24e714dfdcfd5d",
+       "has_control": true,
+       "kind": "item",
+       "line_end": 3,
+       "line_start": 3,
+       "path": "src/ai.ts",
+       "practice_id": "write-fields-allowlisted",
+       "rule_id": "write-fields-allowlisted.typescript-nextjs.write",
+       "shared_fingerprint": null,
+       "table": null
+      },
+      {
+       "fingerprint": "cb9f243f633c28e52ca3de521e6a94b218989ac77db1346972af372ec6c049c3",
+       "handler": "8061d1c843b689fa6632d23c0868c230793afb10666b31ed734d23a01d262281",
+       "has_control": null,
+       "kind": "evidence",
+       "line_end": 11,
+       "line_start": 6,
+       "path": "src/ai.ts",
+       "practice_id": "edge-function-auth",
+       "rule_id": "edge-function-auth.typescript-supabase.source-file",
+       "shared_fingerprint": null,
+       "table": null
+      },
+      {
+       "fingerprint": "e3d640b28f243392f32a050668dd69acf498857c3da2b68c340c332043226d8e",
+       "handler": "8061d1c843b689fa6632d23c0868c230793afb10666b31ed734d23a01d262281",
+       "has_control": false,
+       "kind": "item",
+       "line_end": 9,
+       "line_start": 9,
+       "path": "src/ai.ts",
+       "practice_id": "ai-provider-retention",
+       "rule_id": "ai-provider-retention.typescript-generic.responses-store",
+       "shared_fingerprint": null,
+       "table": null
+      },
+      {
+       "fingerprint": "c21a9aa737f04bbd4cd90909b07cd2ba8f95c3286bd29527fbba038eaef78707",
+       "handler": "8061d1c843b689fa6632d23c0868c230793afb10666b31ed734d23a01d262281",
+       "has_control": null,
+       "kind": "violation",
+       "line_end": 9,
+       "line_start": 9,
+       "path": "src/ai.ts",
+       "practice_id": "ai-provider-retention",
+       "rule_id": "ai-provider-retention.typescript-generic.store-on",
+       "shared_fingerprint": null,
+       "table": null
+      },
+      {
+       "fingerprint": "d7973a6d4563cc22c1527ea4dd03ab6ffdd80e5cadfeba4137bd6dcbb9e08804",
+       "handler": "8061d1c843b689fa6632d23c0868c230793afb10666b31ed734d23a01d262281",
+       "has_control": true,
+       "kind": "item",
+       "line_end": 9,
+       "line_start": 9,
+       "path": "src/ai.ts",
+       "practice_id": "write-fields-allowlisted",
+       "rule_id": "write-fields-allowlisted.typescript-nextjs.write",
+       "shared_fingerprint": null,
+       "table": null
+      },
+      {
+       "fingerprint": "7a3dfccc031e3c95cb868ac3178eb0e260edfec2d041df684df1dfebd6660cc7",
+       "handler": "c62b292b3edff414f83032e82592594fb21242ed4102a4a87810e7b8677a5c87",
+       "has_control": false,
+       "kind": "item",
+       "line_end": 14,
+       "line_start": 10,
+       "path": "src/auth.ts",
+       "practice_id": "staff-mfa-enforced",
+       "rule_id": "staff-mfa-enforced.typescript-generic.sign-in",
+       "shared_fingerprint": null,
+       "table": null
+      },
+      {
+       "fingerprint": "87b3807e0a996931a5578dab68bd579814f4f10d2d3d3fe14299bec23519ea11",
+       "handler": null,
+       "has_control": null,
+       "kind": "evidence",
+       "line_end": 20,
+       "line_start": 20,
+       "path": "src/auth.ts",
+       "practice_id": "edge-function-auth",
+       "rule_id": "edge-function-auth.typescript-supabase.source-file",
+       "shared_fingerprint": null,
+       "table": null
+      },
+      {
+       "fingerprint": "6ae87382e9f29c1d3b25a14c96193cac12a5a8be80eec85c37f47f9dde3e2cc2",
+       "handler": "6ddb9d45e4daaf2dcb6cc799e1c581172e35688b60015e88e54a4702a839f3ab",
+       "has_control": null,
+       "kind": "violation",
+       "line_end": 14,
+       "line_start": 14,
+       "path": "src/files.ts",
+       "practice_id": "upload-validation",
+       "rule_id": "upload-validation.typescript-nextjs.original-name-key",
+       "shared_fingerprint": null,
+       "table": null
+      },
+      {
+       "fingerprint": "8f105d32a557a89698ff6706a75e590d664fa46cb07c64173ca6f836c7f17dcd",
+       "handler": "60a7d978fc1d888c574ff185f211394c94eba1ba099969b58f1aa22255e9223e",
+       "has_control": null,
+       "kind": "evidence",
+       "line_end": 38,
+       "line_start": 36,
+       "path": "src/files.ts",
+       "practice_id": "edge-function-auth",
+       "rule_id": "edge-function-auth.typescript-supabase.source-file",
+       "shared_fingerprint": null,
+       "table": null
+      },
+      {
+       "fingerprint": "3dae26025bb069d9ad5c3133aecd08e1427725303a5834cbb888c08a3cc57475",
+       "handler": null,
+       "has_control": null,
+       "kind": "evidence",
+       "line_end": 5,
+       "line_start": 5,
+       "path": "src/lib/supabase.ts",
+       "practice_id": "edge-function-auth",
+       "rule_id": "edge-function-auth.typescript-supabase.source-file",
+       "shared_fingerprint": null,
+       "table": null
+      }
+     ],
+     "platform": {
+      "provider": "unknown",
+      "settings": {
+       "auth_mfa_enabled": "not_read",
+       "cloudsql_pgaudit_masking": "not_read",
+       "firestore_backups_scheduled": "not_read",
+       "functions_verify_jwt": "not_read",
+       "high_compliance": "not_read",
+       "leaked_password_protection": "not_read",
+       "log_export": "not_read",
+       "log_retention": "not_read",
+       "login_rate_limited": "not_read",
+       "network_restricted": "not_read",
+       "org_mfa_enforced": "not_read",
+       "password_min_length_15": "not_read",
+       "password_min_length_8": "not_read",
+       "pitr_enabled": "not_read",
+       "realtime_private_only": "not_read",
+       "ssl_enforced": "not_read",
+       "sso_idp_mfa": "not_read",
+       "storage_encrypted": "not_read",
+       "storage_public_access_blocked": "not_read"
+      }
+     },
+     "root_id": "bcbab50bfce12610f638a0fed3590967c76f55077b8edc7bee63709177741c5a",
+     "ruleset_id": "2026-11-06.51096e69",
+     "schema_version": 2,
+     "secrets": [
+      {
+       "fingerprint": "1da0ca9a304ec1dc1d6c8c0e4413dc690f99bcde023ca3f9ee44dcbd974db340",
+       "in_history": "not_checked",
+       "line": 2,
+       "path": "config/env.local.example",
+       "rule_id": "secrets.supabase-service-role-config"
+      }
+     ],
+     "session": null,
+     "supabase": {
+      "edge_functions": {
+       "items": [],
+       "reason": "not_configured",
+       "status": "not_run"
+      }
+     },
+     "tenancy": {
+      "model": "unknown",
+      "source": "answer",
+      "tenant_column": null
+     }
+    },
+    "handlers": {
+     "0a31bcd4a32375dcb2b442c2f7502288378366900453d506cb2827b14ee9a19a": {
+      "column": 7,
+      "line": 10,
+      "name": "GET",
+      "path": "app/api/notes/[id]/route.ts"
+     },
+     "20fb23adabf17cf1b42cbf89b7dee9e48a54efab2438d46aac15d0ccb3a1af66": {
+      "column": 15,
+      "line": 5,
+      "name": "AppLayout",
+      "path": "app/(app)/layout.tsx"
+     },
+     "60a7d978fc1d888c574ff185f211394c94eba1ba099969b58f1aa22255e9223e": {
+      "column": 7,
+      "line": 36,
+      "name": "logoUrl",
+      "path": "src/files.ts"
+     },
+     "6ddb9d45e4daaf2dcb6cc799e1c581172e35688b60015e88e54a4702a839f3ab": {
+      "column": 7,
+      "line": 13,
+      "name": "uploadScan",
+      "path": "src/files.ts"
+     },
+     "8061d1c843b689fa6632d23c0868c230793afb10666b31ed734d23a01d262281": {
+      "column": 7,
+      "line": 6,
+      "name": "summarize",
+      "path": "src/ai.ts"
+     },
+     "c62b292b3edff414f83032e82592594fb21242ed4102a4a87810e7b8677a5c87": {
+      "column": 7,
+      "line": 10,
+      "name": "signIn",
+      "path": "src/auth.ts"
+     },
+     "d3148b870688b71d17726d1d3f30645151d70bd26cbb64888d24e714dfdcfd5d": {
+      "column": 22,
+      "line": 3,
+      "name": "upload",
+      "path": "src/ai.ts"
+     }
+    }
+   },
+   "ids": [
+    "AppLayout",
+    "GET",
+    "app/(app)/layout.tsx",
+    "app/(app)/layout.tsx:5",
+    "app/(app)/layout.tsx:5-12",
+    "app/(app)/layout.tsx:9",
+    "app/api/notes/[id]/route.ts",
+    "app/api/notes/[id]/route.ts:10",
+    "app/api/notes/[id]/route.ts:10-14",
+    "auth_mfa_enabled",
+    "cloudsql_pgaudit_masking",
+    "config/env.local.example",
+    "config/env.local.example:2",
+    "config/production.env",
+    "firestore_backups_scheduled",
+    "functions_verify_jwt",
+    "high_compliance",
+    "leaked_password_protection",
+    "listScans",
+    "log_export",
+    "log_retention",
+    "login_rate_limited",
+    "logoUrl",
+    "network_restricted",
+    "org_mfa_enforced",
+    "password_min_length_15",
+    "password_min_length_8",
+    "pitr_enabled",
+    "realtime_private_only",
+    "schema.sql",
+    "scripts/seed.sh",
+    "shareScan",
+    "signIn",
+    "src/ai.ts",
+    "src/ai.ts:2",
+    "src/ai.ts:3",
+    "src/ai.ts:6",
+    "src/ai.ts:6-11",
+    "src/ai.ts:9",
+    "src/auth.ts",
+    "src/auth.ts:10",
+    "src/auth.ts:10-14",
+    "src/auth.ts:20",
+    "src/files.ts",
+    "src/files.ts:13",
+    "src/files.ts:14",
+    "src/files.ts:36",
+    "src/files.ts:36-38",
+    "src/lib/supabase.ts",
+    "src/lib/supabase.ts:5",
+    "ssl_enforced",
+    "sso_idp_mfa",
+    "storage_encrypted",
+    "storage_public_access_blocked",
+    "summarize",
+    "upload",
+    "uploadScan"
+   ]
+  },
+  {
+   "name": "ehrbase",
+   "document": {
+    "document": {
+     "answers": [],
+     "catalog": {
+      "preflight": {
+       "bypassrls": null,
+       "catalog_extensions": null,
+       "catalog_tables": null,
+       "createrole": null,
+       "dangerous_functions": null,
+       "database": null,
+       "definer_functions_executable": null,
+       "extension_relations_readable": null,
+       "failed": [
+        "connect"
+       ],
+       "large_objects": null,
+       "owned_objects": null,
+       "passed": false,
+       "predefined_roles": null,
+       "public_readable_tables": null,
+       "readable_tables": null,
+       "replication": null,
+       "role": null,
+       "session_user": null,
+       "settings_mismatched": null,
+       "superuser": null,
+       "system_identifier": null,
+       "writable_tables": null
+      },
+      "queries": [
+       {
+        "query_id": "rls_status",
+        "reason": "not_configured",
+        "rows": [],
+        "status": "not_run"
+       },
+       {
+        "query_id": "rls_policies",
+        "reason": "not_configured",
+        "rows": [],
+        "status": "not_run"
+       },
+       {
+        "query_id": "table_grants",
+        "reason": "not_configured",
+        "rows": [],
+        "status": "not_run"
+       },
+       {
+        "query_id": "table_columns",
+        "reason": "not_configured",
+        "rows": [],
+        "status": "not_run"
+       },
+       {
+        "query_id": "views",
+        "reason": "not_configured",
+        "rows": [],
+        "status": "not_run"
+       },
+       {
+        "query_id": "definer_functions",
+        "reason": "not_configured",
+        "rows": [],
+        "status": "not_run"
+       },
+       {
+        "query_id": "exposed_schemas",
+        "reason": "not_configured",
+        "rows": [],
+        "status": "not_run"
+       },
+       {
+        "query_id": "roles",
+        "reason": "not_configured",
+        "rows": [],
+        "status": "not_run"
+       },
+       {
+        "query_id": "storage_buckets",
+        "reason": "not_configured",
+        "rows": [],
+        "status": "not_run"
+       },
+       {
+        "query_id": "transport",
+        "reason": "not_configured",
+        "rows": [],
+        "status": "not_run"
+       },
+       {
+        "query_id": "logging",
+        "reason": "not_configured",
+        "rows": [],
+        "status": "not_run"
+       },
+       {
+        "query_id": "audit",
+        "reason": "not_configured",
+        "rows": [],
+        "status": "not_run"
+       },
+       {
+        "query_id": "self_hosted",
+        "reason": "not_configured",
+        "rows": [],
+        "status": "not_run"
+       },
+       {
+        "query_id": "advisor",
+        "reason": "not_configured",
+        "rows": [],
+        "status": "not_run"
+       },
+       {
+        "query_id": "default_acl",
+        "reason": "not_configured",
+        "rows": [],
+        "status": "not_run"
+       },
+       {
+        "query_id": "schema_privileges",
+        "reason": "not_configured",
+        "rows": [],
+        "status": "not_run"
+       },
+       {
+        "query_id": "triggers",
+        "reason": "not_configured",
+        "rows": [],
+        "status": "not_run"
+       },
+       {
+        "query_id": "constraints",
+        "reason": "not_configured",
+        "rows": [],
+        "status": "not_run"
+       },
+       {
+        "query_id": "realtime_publication",
+        "reason": "not_configured",
+        "rows": [],
+        "status": "not_run"
+       },
+       {
+        "query_id": "connected_roles",
+        "reason": "not_configured",
+        "rows": [],
+        "status": "not_run"
+       }
+      ]
+     },
+     "collection": [
+      {
+       "collector": "files",
+       "count": 56,
+       "reason": null,
+       "status": "ok"
+      },
+      {
+       "collector": "git",
+       "count": 0,
+       "reason": "not_configured",
+       "status": "not_run"
+      },
+      {
+       "collector": "rules",
+       "count": 27,
+       "reason": null,
+       "status": "ok"
+      },
+      {
+       "collector": "catalog",
+       "count": 0,
+       "reason": "not_configured",
+       "status": "not_run"
+      },
+      {
+       "collector": "platform",
+       "count": 0,
+       "reason": "not_configured",
+       "status": "not_run"
+      },
+      {
+       "collector": "secrets",
+       "count": 3,
+       "reason": null,
+       "status": "ok"
+      }
+     ],
+     "columns": [],
+     "environment": {
+      "source": "setup",
+      "value": "unknown"
+     },
+     "files": {
+      "analyzed": 13,
+      "data_files": [],
+      "derived_frameworks": [],
+      "elevated_imports": [],
+      "elevated_imports_complete": true,
+      "env_files": [],
+      "fingerprints": [],
+      "frameworks": [],
+      "helpers": [],
+      "imports": [],
+      "imports_dynamic": {},
+      "languages": [
+       "java"
+      ],
+      "manifests": [],
+      "not_analyzed": [
+       {
+        "kind": "file",
+        "path": "LICENSE",
+        "reason": "unknown_type",
+        "tracked": null
+       },
+       {
+        "kind": "file",
+        "path": "configuration/src/main/resources/application-docker.yml",
+        "reason": "unsupported_language",
+        "tracked": null
+       },
+       {
+        "kind": "file",
+        "path": "configuration/src/main/resources/application.yml",
+        "reason": "unsupported_language",
+        "tracked": null
+       },
+       {
+        "kind": "file",
+        "path": "jooq-pg/src/main/resources/db/migration/ehr/V10__ehr_status_subject_aql_idx.sql",
+        "reason": "unsupported_language",
+        "tracked": null
+       },
+       {
+        "kind": "file",
+        "path": "jooq-pg/src/main/resources/db/migration/ehr/V11__drop_system.sql",
+        "reason": "unsupported_language",
+        "tracked": null
+       },
+       {
+        "kind": "file",
+        "path": "jooq-pg/src/main/resources/db/migration/ehr/V12__drop_template_index.sql",
+        "reason": "unsupported_language",
+        "tracked": null
+       },
+       {
+        "kind": "file",
+        "path": "jooq-pg/src/main/resources/db/migration/ehr/V13__refactor_audit_details.sql",
+        "reason": "unsupported_language",
+        "tracked": null
+       },
+       {
+        "kind": "file",
+        "path": "jooq-pg/src/main/resources/db/migration/ehr/V14__index_for_ehr_time_created.sql",
+        "reason": "unsupported_language",
+        "tracked": null
+       },
+       {
+        "kind": "file",
+        "path": "jooq-pg/src/main/resources/db/migration/ehr/V15__data_tables_add_parent_num.sql",
+        "reason": "unsupported_language",
+        "tracked": null
+       },
+       {
+        "kind": "file",
+        "path": "jooq-pg/src/main/resources/db/migration/ehr/V16__ehr_item_tag_table.sql",
+        "reason": "unsupported_language",
+        "tracked": null
+       },
+       {
+        "kind": "file",
+        "path": "jooq-pg/src/main/resources/db/migration/ehr/V17__add_item_uuid_array_column.sql",
+        "reason": "unsupported_language",
+        "tracked": null
+       },
+       {
+        "kind": "file",
+        "path": "jooq-pg/src/main/resources/db/migration/ehr/V18__fix_ehr_status_subject_aql_idx.sql",
+        "reason": "unsupported_language",
+        "tracked": null
+       },
+       {
+        "kind": "file",
+        "path": "jooq-pg/src/main/resources/db/migration/ehr/V19__index_for_ehr_folder_version.sql",
+        "reason": "unsupported_language",
+        "tracked": null
+       },
+       {
+        "kind": "file",
+        "path": "jooq-pg/src/main/resources/db/migration/ehr/V1__ehr.sql",
+        "reason": "unsupported_language",
+        "tracked": null
+       },
+       {
+        "kind": "file",
+        "path": "jooq-pg/src/main/resources/db/migration/ehr/V20__fix_ehr_status_subject_aql_idx.sql",
+        "reason": "unsupported_language",
+        "tracked": null
+       },
+       {
+        "kind": "file",
+        "path": "jooq-pg/src/main/resources/db/migration/ehr/V21__add_contribution_indexes.sql",
+        "reason": "unsupported_language",
+        "tracked": null
+       },
+       {
+        "kind": "file",
+        "path": "jooq-pg/src/main/resources/db/migration/ehr/V22__add_missing_contribution_indexes.sql",
+        "reason": "unsupported_language",
+        "tracked": null
+       },
+       {
+        "kind": "file",
+        "path": "jooq-pg/src/main/resources/db/migration/ehr/V23__add_path_skipping_index.sql",
+        "reason": "unsupported_language",
+        "tracked": null
+       },
+       {
+        "kind": "file",
+        "path": "jooq-pg/src/main/resources/db/migration/ehr/V24__fix_delete_date.sql",
+        "reason": "unsupported_language",
+        "tracked": null
+       },
+       {
+        "kind": "file",
+        "path": "jooq-pg/src/main/resources/db/migration/ehr/V25__merge_version_and_data_history_tables.sql",
+        "reason": "unsupported_language",
+        "tracked": null
+       },
+       {
+        "kind": "file",
+        "path": "jooq-pg/src/main/resources/db/migration/ehr/V26__add_missing_folder_attributes_to_head.sql",
+        "reason": "unsupported_language",
+        "tracked": null
+       },
+       {
+        "kind": "file",
+        "path": "jooq-pg/src/main/resources/db/migration/ehr/V27__add_template_details.sql",
+        "reason": "unsupported_language",
+        "tracked": null
+       },
+       {
+        "kind": "file",
+        "path": "jooq-pg/src/main/resources/db/migration/ehr/V28__add_comp_history_ehr_index.sql",
+        "reason": "unsupported_language",
+        "tracked": null
+       },
+       {
+        "kind": "file",
+        "path": "jooq-pg/src/main/resources/db/migration/ehr/V2__tenant.sql",
+        "reason": "unsupported_language",
+        "tracked": null
+       },
+       {
+        "kind": "file",
+        "path": "jooq-pg/src/main/resources/db/migration/ehr/V3__locatable.sql",
+        "reason": "unsupported_language",
+        "tracked": null
+       },
+       {
+        "kind": "file",
+        "path": "jooq-pg/src/main/resources/db/migration/ehr/V4__drop_comp_data_idx.sql",
+        "reason": "unsupported_language",
+        "tracked": null
+       },
+       {
+        "kind": "file",
+        "path": "jooq-pg/src/main/resources/db/migration/ehr/V5_1__remove_multi_tenancy.sql",
+        "reason": "unsupported_language",
+        "tracked": null
+       },
+       {
+        "kind": "file",
+        "path": "jooq-pg/src/main/resources/db/migration/ehr/V5_2__remove_multi_tenancy.sql",
+        "reason": "unsupported_language",
+        "tracked": null
+       },
+       {
+        "kind": "file",
+        "path": "jooq-pg/src/main/resources/db/migration/ehr/V5_3__remove_multi_tenancy.sql",
+        "reason": "unsupported_language",
+        "tracked": null
+       },
+       {
+        "kind": "file",
+        "path": "jooq-pg/src/main/resources/db/migration/ehr/V5_4__remove_multi_tenancy.sql",
+        "reason": "unsupported_language",
+        "tracked": null
+       },
+       {
+        "kind": "file",
+        "path": "jooq-pg/src/main/resources/db/migration/ehr/V6_1__version_tables.sql",
+        "reason": "unsupported_language",
+        "tracked": null
+       },
+       {
+        "kind": "file",
+        "path": "jooq-pg/src/main/resources/db/migration/ehr/V6_2__version_tables.sql",
+        "reason": "unsupported_language",
+        "tracked": null
+       },
+       {
+        "kind": "file",
+        "path": "jooq-pg/src/main/resources/db/migration/ehr/V6_3__version_tables.sql",
+        "reason": "unsupported_language",
+        "tracked": null
+       },
+       {
+        "kind": "file",
+        "path": "jooq-pg/src/main/resources/db/migration/ehr/V6_4__version_tables.sql",
+        "reason": "unsupported_language",
+        "tracked": null
+       },
+       {
+        "kind": "file",
+        "path": "jooq-pg/src/main/resources/db/migration/ehr/V7__comp_rmobject_index.sql",
+        "reason": "unsupported_language",
+        "tracked": null
+       },
+       {
+        "kind": "file",
+        "path": "jooq-pg/src/main/resources/db/migration/ehr/V8__vo_data_indexes.sql",
+        "reason": "unsupported_language",
+        "tracked": null
+       },
+       {
+        "kind": "file",
+        "path": "jooq-pg/src/main/resources/db/migration/ehr/V9_1__add_root_concept_to_comp_version.sql",
+        "reason": "unsupported_language",
+        "tracked": null
+       },
+       {
+        "kind": "file",
+        "path": "jooq-pg/src/main/resources/db/migration/ehr/V9_2__add_root_concept_to_comp_version.sql",
+        "reason": "unsupported_language",
+        "tracked": null
+       },
+       {
+        "kind": "file",
+        "path": "jooq-pg/src/main/resources/db/migration/ehr/V9_3__add_root_concept_to_comp_version.sql",
+        "reason": "unsupported_language",
+        "tracked": null
+       },
+       {
+        "kind": "file",
+        "path": "jooq-pg/src/main/resources/db/migration/ext/V1__baseline.sql",
+        "reason": "unsupported_language",
+        "tracked": null
+       },
+       {
+        "kind": "file",
+        "path": "jooq-pg/src/main/resources/db/migration/ext/V2__aggregate_functions.sql",
+        "reason": "unsupported_language",
+        "tracked": null
+       },
+       {
+        "kind": "file",
+        "path": "jooq-pg/src/main/resources/db/migration/ext/V3__dv_ordered_aggregate_functions.sql",
+        "reason": "unsupported_language",
+        "tracked": null
+       },
+       {
+        "kind": "file",
+        "path": "jooq-pg/src/main/resources/db/migration/ext/V4__create_missing_collation.sql",
+        "reason": "unsupported_language",
+        "tracked": null
+       }
+      ]
+     },
+     "inspector_version": "0.1.1",
+     "links": [],
+     "matches": [
+      {
+       "fingerprint": "a5ded4904a6d24539c72af93e3bdde6b0cf508ab18343c6b98f9f08a5c0c1515",
+       "handler": "c48ab945e87b2173fcce910998e778836faf3c77829cac3b1e6bdda3a1443041",
+       "has_control": null,
+       "kind": "violation",
+       "line_end": 134,
+       "line_start": 134,
+       "path": "rest-openehr/src/main/java/org/ehrbase/rest/openehr/OpenehrQueryController.java",
+       "practice_id": "no-phi-in-app-logs",
+       "rule_id": "no-phi-in-app-logs.java-generic.request-body",
+       "shared_fingerprint": null,
+       "table": null
+      }
+     ],
+     "platform": {
+      "provider": "unknown",
+      "settings": {
+       "auth_mfa_enabled": "not_read",
+       "cloudsql_pgaudit_masking": "not_read",
+       "firestore_backups_scheduled": "not_read",
+       "functions_verify_jwt": "not_read",
+       "high_compliance": "not_read",
+       "leaked_password_protection": "not_read",
+       "log_export": "not_read",
+       "log_retention": "not_read",
+       "login_rate_limited": "not_read",
+       "network_restricted": "not_read",
+       "org_mfa_enforced": "not_read",
+       "password_min_length_15": "not_read",
+       "password_min_length_8": "not_read",
+       "pitr_enabled": "not_read",
+       "realtime_private_only": "not_read",
+       "ssl_enforced": "not_read",
+       "sso_idp_mfa": "not_read",
+       "storage_encrypted": "not_read",
+       "storage_public_access_blocked": "not_read"
+      }
+     },
+     "root_id": "4684f2d19c99554f4511424d963aa25772f8704a21daaea1231f5df5873df9f9",
+     "ruleset_id": "2026-11-06.51096e69",
+     "schema_version": 2,
+     "secrets": [
+      {
+       "fingerprint": "e6754e12a55caea920265d8bc1290120a8e9414148fc76b48303a6b6e4f6fb3f",
+       "in_history": "not_checked",
+       "line": 73,
+       "path": "configuration/src/main/resources/application.yml",
+       "rule_id": "secrets.config-password"
+      },
+      {
+       "fingerprint": "6f414b53927b3a916b2832ae5d7ff1cf703afc012e1ab5f004d41dce96db2ea9",
+       "in_history": "not_checked",
+       "line": 85,
+       "path": "configuration/src/main/resources/application.yml",
+       "rule_id": "secrets.config-password"
+      },
+      {
+       "fingerprint": "e8ad2275b5d7f7c267295fbdd6df388d6f1e73b7a3485ca0257eb73091a08614",
+       "in_history": "not_checked",
+       "line": 87,
+       "path": "configuration/src/main/resources/application.yml",
+       "rule_id": "secrets.config-password"
+      }
+     ],
+     "session": null,
+     "supabase": {
+      "edge_functions": {
+       "items": [],
+       "reason": "not_configured",
+       "status": "not_run"
+      }
+     },
+     "tenancy": {
+      "model": "unknown",
+      "source": "answer",
+      "tenant_column": null
+     }
+    },
+    "handlers": {
+     "c48ab945e87b2173fcce910998e778836faf3c77829cac3b1e6bdda3a1443041": {
+      "column": 4,
+      "line": 125,
+      "name": "executeAdHocQuery",
+      "path": "rest-openehr/src/main/java/org/ehrbase/rest/openehr/OpenehrQueryController.java"
+     }
+    }
+   },
+   "ids": [
+    "LICENSE",
+    "auth_mfa_enabled",
+    "cloudsql_pgaudit_masking",
+    "configuration/src/main/resources/application-docker.yml",
+    "configuration/src/main/resources/application.yml",
+    "configuration/src/main/resources/application.yml:73",
+    "configuration/src/main/resources/application.yml:85",
+    "configuration/src/main/resources/application.yml:87",
+    "executeAdHocQuery",
+    "firestore_backups_scheduled",
+    "functions_verify_jwt",
+    "high_compliance",
+    "jooq-pg/src/main/resources/db/migration/ehr/V10__ehr_status_subject_aql_idx.sql",
+    "jooq-pg/src/main/resources/db/migration/ehr/V11__drop_system.sql",
+    "jooq-pg/src/main/resources/db/migration/ehr/V12__drop_template_index.sql",
+    "jooq-pg/src/main/resources/db/migration/ehr/V13__refactor_audit_details.sql",
+    "jooq-pg/src/main/resources/db/migration/ehr/V14__index_for_ehr_time_created.sql",
+    "jooq-pg/src/main/resources/db/migration/ehr/V15__data_tables_add_parent_num.sql",
+    "jooq-pg/src/main/resources/db/migration/ehr/V16__ehr_item_tag_table.sql",
+    "jooq-pg/src/main/resources/db/migration/ehr/V17__add_item_uuid_array_column.sql",
+    "jooq-pg/src/main/resources/db/migration/ehr/V18__fix_ehr_status_subject_aql_idx.sql",
+    "jooq-pg/src/main/resources/db/migration/ehr/V19__index_for_ehr_folder_version.sql",
+    "jooq-pg/src/main/resources/db/migration/ehr/V1__ehr.sql",
+    "jooq-pg/src/main/resources/db/migration/ehr/V20__fix_ehr_status_subject_aql_idx.sql",
+    "jooq-pg/src/main/resources/db/migration/ehr/V21__add_contribution_indexes.sql",
+    "jooq-pg/src/main/resources/db/migration/ehr/V22__add_missing_contribution_indexes.sql",
+    "jooq-pg/src/main/resources/db/migration/ehr/V23__add_path_skipping_index.sql",
+    "jooq-pg/src/main/resources/db/migration/ehr/V24__fix_delete_date.sql",
+    "jooq-pg/src/main/resources/db/migration/ehr/V25__merge_version_and_data_history_tables.sql",
+    "jooq-pg/src/main/resources/db/migration/ehr/V26__add_missing_folder_attributes_to_head.sql",
+    "jooq-pg/src/main/resources/db/migration/ehr/V27__add_template_details.sql",
+    "jooq-pg/src/main/resources/db/migration/ehr/V28__add_comp_history_ehr_index.sql",
+    "jooq-pg/src/main/resources/db/migration/ehr/V2__tenant.sql",
+    "jooq-pg/src/main/resources/db/migration/ehr/V3__locatable.sql",
+    "jooq-pg/src/main/resources/db/migration/ehr/V4__drop_comp_data_idx.sql",
+    "jooq-pg/src/main/resources/db/migration/ehr/V5_1__remove_multi_tenancy.sql",
+    "jooq-pg/src/main/resources/db/migration/ehr/V5_2__remove_multi_tenancy.sql",
+    "jooq-pg/src/main/resources/db/migration/ehr/V5_3__remove_multi_tenancy.sql",
+    "jooq-pg/src/main/resources/db/migration/ehr/V5_4__remove_multi_tenancy.sql",
+    "jooq-pg/src/main/resources/db/migration/ehr/V6_1__version_tables.sql",
+    "jooq-pg/src/main/resources/db/migration/ehr/V6_2__version_tables.sql",
+    "jooq-pg/src/main/resources/db/migration/ehr/V6_3__version_tables.sql",
+    "jooq-pg/src/main/resources/db/migration/ehr/V6_4__version_tables.sql",
+    "jooq-pg/src/main/resources/db/migration/ehr/V7__comp_rmobject_index.sql",
+    "jooq-pg/src/main/resources/db/migration/ehr/V8__vo_data_indexes.sql",
+    "jooq-pg/src/main/resources/db/migration/ehr/V9_1__add_root_concept_to_comp_version.sql",
+    "jooq-pg/src/main/resources/db/migration/ehr/V9_2__add_root_concept_to_comp_version.sql",
+    "jooq-pg/src/main/resources/db/migration/ehr/V9_3__add_root_concept_to_comp_version.sql",
+    "jooq-pg/src/main/resources/db/migration/ext/V1__baseline.sql",
+    "jooq-pg/src/main/resources/db/migration/ext/V2__aggregate_functions.sql",
+    "jooq-pg/src/main/resources/db/migration/ext/V3__dv_ordered_aggregate_functions.sql",
+    "jooq-pg/src/main/resources/db/migration/ext/V4__create_missing_collation.sql",
+    "leaked_password_protection",
+    "log_export",
+    "log_retention",
+    "login_rate_limited",
+    "network_restricted",
+    "org_mfa_enforced",
+    "password_min_length_15",
+    "password_min_length_8",
+    "pitr_enabled",
+    "realtime_private_only",
+    "rest-openehr/src/main/java/org/ehrbase/rest/openehr/OpenehrQueryController.java",
+    "rest-openehr/src/main/java/org/ehrbase/rest/openehr/OpenehrQueryController.java:125",
+    "rest-openehr/src/main/java/org/ehrbase/rest/openehr/OpenehrQueryController.java:134",
+    "ssl_enforced",
+    "sso_idp_mfa",
+    "storage_encrypted",
+    "storage_public_access_blocked"
+   ]
+  }
+ ]
+}

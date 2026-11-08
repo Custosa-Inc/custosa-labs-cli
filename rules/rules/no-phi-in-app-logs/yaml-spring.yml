@@ -1,0 +1,51 @@
+id: no-phi-in-app-logs.yaml-spring.debug-level
+practice_id: no-phi-in-app-logs
+language: yaml
+frameworks:
+- spring
+kind: violation
+rule:
+  any:
+  - kind: block_mapping_pair
+    regex: '^logging\.level\.[\w.\-]+\s*:\s*["'']?(DEBUG|TRACE|debug|trace)["'']?\s*$'
+  - all:
+    - kind: block_mapping_pair
+    - has:
+        field: value
+        kind: flow_node
+        regex: '^["'']?(DEBUG|TRACE|debug|trace)["'']?$'
+    - inside:
+        kind: block_mapping
+        inside:
+          kind: block_node
+          inside:
+            kind: block_mapping_pair
+            has:
+              field: key
+              kind: flow_node
+              regex: '^level$'
+            inside:
+              kind: block_mapping
+              inside:
+                kind: block_node
+                inside:
+                  kind: block_mapping_pair
+                  has:
+                    field: key
+                    kind: flow_node
+                    regex: '^logging$'
+min_engine: 0.45.3
+---
+id: no-phi-in-app-logs.yaml-spring.orm-query-log
+practice_id: no-phi-in-app-logs
+language: yaml
+frameworks:
+- spring
+kind: violation
+rule:
+  any:
+  - kind: block_mapping_pair
+    regex: '^(spring\.jpa\.)?show-sql\s*:\s*true\s*$'
+  - kind: block_mapping_pair
+    regex: '^(spring\.jpa\.properties\.)?hibernate\.show_sql\s*:\s*true\s*$'
+min_engine: 0.45.3

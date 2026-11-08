@@ -1,0 +1,129 @@
+id: password-encoder-slow-hash.go-generic.slow-hash
+practice_id: password-encoder-slow-hash
+language: go
+frameworks: [generic]
+kind: evidence
+rule:
+  all:
+    - kind: call_expression
+    - any:
+        - has:
+            field: function
+            kind: selector_expression
+            regex: '^(bcrypt\.CompareHashAndPassword|argon2\.IDKey|argon2\.Key|scrypt\.Key|pbkdf2\.Key)$'
+        - all:
+            - has:
+                field: function
+                kind: selector_expression
+                regex: '^bcrypt\.GenerateFromPassword$'
+            - not:
+                has:
+                  field: arguments
+                  has:
+                    any:
+                      - kind: int_literal
+                        regex: '^[0-9]$'
+                      - kind: selector_expression
+                        regex: '^bcrypt\.MinCost$'
+min_engine: 0.39.0
+---
+id: password-encoder-slow-hash.go-generic.fast-hash
+practice_id: password-encoder-slow-hash
+language: go
+frameworks: [generic]
+kind: violation
+rule:
+  all:
+    - kind: call_expression
+    - has:
+        field: function
+        kind: selector_expression
+        regex: '^(md5\.Sum|sha1\.Sum|sha256\.Sum256|sha256\.Sum224|sha512\.Sum512|sha512\.Sum384)$'
+    - has:
+        field: arguments
+        stopBy: end
+        any:
+          - kind: identifier
+            regex: '(?i)^(pass|pwd|passwd|password|passphrase|(new|plain|raw|old|current|user|admin)_?pass(word)?)$'
+          - kind: field_identifier
+            regex: '(?i)^(pass|pwd|passwd|password|passphrase|(new|plain|raw|old|current|user|admin)_?pass(word)?)$'
+    - not:
+        inside:
+          stopBy: end
+          any:
+            - kind: function_declaration
+            - kind: method_declaration
+            - kind: func_literal
+          has:
+            stopBy: end
+            kind: call_expression
+            has:
+              field: function
+              kind: selector_expression
+              regex: '^(aes\.NewCipher|chacha20poly1305\.New|chacha20poly1305\.NewX)$'
+min_engine: 0.39.0
+---
+id: password-encoder-slow-hash.go-generic.low-cost
+practice_id: password-encoder-slow-hash
+language: go
+frameworks: [generic]
+kind: violation
+rule:
+  all:
+    - pattern: bcrypt.GenerateFromPassword($PW, $COST)
+    - has:
+        field: arguments
+        has:
+          any:
+            - kind: int_literal
+              regex: '^[0-9]$'
+            - kind: selector_expression
+              regex: '^bcrypt\.MinCost$'
+min_engine: 0.39.0
+---
+id: password-encoder-slow-hash.go-generic.plain-compare
+practice_id: password-encoder-slow-hash
+language: go
+frameworks: [generic]
+kind: violation
+rule:
+  any:
+    - all:
+        - any:
+            - pattern: $A == $B
+            - pattern: $A != $B
+        - has:
+            field: left
+            any:
+              - kind: identifier
+                regex: '(?i)^(pass|pwd|passwd|password|passphrase|(new|plain|raw|input|given|supplied)_?pass(word)?)$'
+              - kind: selector_expression
+                has:
+                  field: field
+                  kind: field_identifier
+                  regex: '(?i)^(pass|pwd|passwd|password|passphrase|[a-z]*password)$'
+        - has:
+            field: right
+            any:
+              - kind: identifier
+                regex: '(?i)^(pass|pwd|passwd|password|passphrase|(new|plain|raw|input|given|supplied)_?pass(word)?)$'
+              - kind: selector_expression
+                has:
+                  field: field
+                  kind: field_identifier
+                  regex: '(?i)^(pass|pwd|passwd|password|passphrase|[a-z]*password)$'
+    - all:
+        - kind: call_expression
+        - has:
+            field: function
+            kind: selector_expression
+            regex: '^subtle\.ConstantTimeCompare$'
+        - has:
+            field: arguments
+            stopBy: end
+            any:
+              - kind: identifier
+                regex: '(?i)^(pass|pwd|passwd|password|passphrase|(new|plain|raw|input|given|supplied)_?pass(word)?)$'
+              - kind: field_identifier
+                regex: '(?i)^(pass|pwd|passwd|password|passphrase|[a-z]*password)$'
+min_engine: 0.39.0

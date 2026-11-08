@@ -1,0 +1,15 @@
+{
+ "version": 1,
+ "etag": "BwXfixture2=",
+ "bindings": [],
+ "auditConfigs": [
+  {
+   "service": "allServices",
+   "auditLogConfigs": [
+    {
+     "logType": "DATA_WRITE"
+    }
+   ]
+  }
+ ]
+}

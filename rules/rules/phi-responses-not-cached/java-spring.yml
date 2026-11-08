@@ -1,0 +1,257 @@
+# phi-responses-not-cached (T23 B34, design v3 2.2.6, docs/b34-plan.md). Written by scripts/gen_nocache_rules.py:
+# edit that script, never this file. The rule id's last part is the form (items-handler, unobserved-header,
+# violation-shared, static-page). unobserved-header matches the items-handler node itself, so judge holds that item
+# at its own path and line.
+
+# items-handler: a route handler whose body makes a data call. The control is a literal Cache-Control value holding
+# no-store (also cacheControl(CacheControl.noStore()); CacheControl...cachePublic() or sMaxAge() are shared). No
+# control: fail, unless unobserved-header holds it. The header counts only in a response write (setHeader or addHeader
+# on the response, header on a ResponseEntity builder), never in RestTemplate HttpHeaders, WebClient or OkHttp, nor in
+# a comment. A no-store literal no write placed holds the item, never a fail.
+id: phi-responses-not-cached.java-spring.items-handler
+practice_id: phi-responses-not-cached
+language: java
+frameworks:
+- spring
+kind: items
+rule:
+  all:
+  - kind: method_declaration
+    has:
+      kind: modifiers
+      has:
+        any:
+        - kind: annotation
+          regex: ^@(Get|Post|Put|Patch|Delete|Request)Mapping\b
+        - kind: marker_annotation
+          regex: ^@(Get|Post|Put|Patch|Delete|Request)Mapping\b
+  - any:
+    - kind: method_declaration
+      regex: (\b(\w*[Rr]epository|\w*[Rr]epo|jdbcTemplate|jdbc|entityManager|em|dsl|jooq)\s*\.\s*(save\w*|find\w*|insert\w*|update\w*|delete\w*|query\w*|persist|merge|execute\w*|batchUpdate|select\w*)\s*\(|\b\w*(Service|Dao|Mapper)\s*\.\s*\w+\s*\()
+control:
+  any:
+  - has:
+      stopBy: end
+      any:
+      - kind: method_invocation
+        all:
+        - has:
+            field: name
+            kind: identifier
+            regex: ^(setHeader|addHeader)$
+        - has:
+            field: object
+            any:
+            - kind: identifier
+              regex: ^(\w*[Rr]esponse|res|resp)$
+            - kind: method_invocation
+              regex: ^(\w*[Rr]esponse|res|resp)$
+            - kind: field_access
+              regex: ^(\w*[Rr]esponse|res|resp)$
+        - has:
+            field: arguments
+            kind: argument_list
+            regex: (?is)("cache-control"|CACHE_CONTROL)\s*,\s*"[^"]*no-store
+      - kind: method_invocation
+        all:
+        - has:
+            field: name
+            kind: identifier
+            regex: ^headers?$
+        - has:
+            field: object
+            any:
+            - kind: identifier
+              regex: ^ResponseEntity\b
+            - kind: method_invocation
+              regex: ^ResponseEntity\b
+            - kind: field_access
+              regex: ^ResponseEntity\b
+        - has:
+            field: arguments
+            kind: argument_list
+            regex: (?is)("cache-control"|CACHE_CONTROL)\s*,\s*"[^"]*no-store
+  - has:
+      stopBy: end
+      kind: method_invocation
+      regex: ^CacheControl\s*\.\s*noStore\s*\(
+min_engine: 0.39.0
+---
+# unobserved-header: the same handler when it writes no literal Cache-Control (also
+# cacheControl(CacheControl.noStore()); CacheControl...cachePublic() or sMaxAge() are shared). The header may be set
+# by middleware, a framework default or a CDN rule elsewhere, so the item is held for a person. The header counts only
+# in a response write (setHeader or addHeader on the response, header on a ResponseEntity builder), never in
+# RestTemplate HttpHeaders, WebClient or OkHttp, nor in a comment. A no-store literal no write placed holds the item,
+# never a fail.
+id: phi-responses-not-cached.java-spring.unobserved-header
+practice_id: phi-responses-not-cached
+language: java
+frameworks:
+- spring
+kind: evidence
+rule:
+  all:
+  - kind: method_declaration
+    has:
+      kind: modifiers
+      has:
+        any:
+        - kind: annotation
+          regex: ^@(Get|Post|Put|Patch|Delete|Request)Mapping\b
+        - kind: marker_annotation
+          regex: ^@(Get|Post|Put|Patch|Delete|Request)Mapping\b
+  - any:
+    - kind: method_declaration
+      regex: (\b(\w*[Rr]epository|\w*[Rr]epo|jdbcTemplate|jdbc|entityManager|em|dsl|jooq)\s*\.\s*(save\w*|find\w*|insert\w*|update\w*|delete\w*|query\w*|persist|merge|execute\w*|batchUpdate|select\w*)\s*\(|\b\w*(Service|Dao|Mapper)\s*\.\s*\w+\s*\()
+  - any:
+    - all:
+      - not:
+          has:
+            stopBy: end
+            any:
+            - kind: method_invocation
+              all:
+              - has:
+                  field: name
+                  kind: identifier
+                  regex: ^(setHeader|addHeader)$
+              - has:
+                  field: object
+                  any:
+                  - kind: identifier
+                    regex: ^(\w*[Rr]esponse|res|resp)$
+                  - kind: method_invocation
+                    regex: ^(\w*[Rr]esponse|res|resp)$
+                  - kind: field_access
+                    regex: ^(\w*[Rr]esponse|res|resp)$
+              - has:
+                  field: arguments
+                  kind: argument_list
+                  regex: (?is)("cache-control"|CACHE_CONTROL)\s*,\s*"
+            - kind: method_invocation
+              all:
+              - has:
+                  field: name
+                  kind: identifier
+                  regex: ^headers?$
+              - has:
+                  field: object
+                  any:
+                  - kind: identifier
+                    regex: ^ResponseEntity\b
+                  - kind: method_invocation
+                    regex: ^ResponseEntity\b
+                  - kind: field_access
+                    regex: ^ResponseEntity\b
+              - has:
+                  field: arguments
+                  kind: argument_list
+                  regex: (?is)("cache-control"|CACHE_CONTROL)\s*,\s*"
+      - not:
+          has:
+            stopBy: end
+            kind: method_invocation
+            regex: ^CacheControl\s*\.
+    - all:
+      - any:
+        - kind: method_declaration
+          regex: (?is)("cache-control"|CACHE_CONTROL)\s*,\s*"[^"]*no-store
+      - not:
+          any:
+          - has:
+              stopBy: end
+              any:
+              - kind: method_invocation
+                all:
+                - has:
+                    field: name
+                    kind: identifier
+                    regex: ^(setHeader|addHeader)$
+                - has:
+                    field: object
+                    any:
+                    - kind: identifier
+                      regex: ^(\w*[Rr]esponse|res|resp)$
+                    - kind: method_invocation
+                      regex: ^(\w*[Rr]esponse|res|resp)$
+                    - kind: field_access
+                      regex: ^(\w*[Rr]esponse|res|resp)$
+                - has:
+                    field: arguments
+                    kind: argument_list
+                    regex: (?is)("cache-control"|CACHE_CONTROL)\s*,\s*"[^"]*no-store
+              - kind: method_invocation
+                all:
+                - has:
+                    field: name
+                    kind: identifier
+                    regex: ^headers?$
+                - has:
+                    field: object
+                    any:
+                    - kind: identifier
+                      regex: ^ResponseEntity\b
+                    - kind: method_invocation
+                      regex: ^ResponseEntity\b
+                    - kind: field_access
+                      regex: ^ResponseEntity\b
+                - has:
+                    field: arguments
+                    kind: argument_list
+                    regex: (?is)("cache-control"|CACHE_CONTROL)\s*,\s*"[^"]*no-store
+          - has:
+              stopBy: end
+              kind: method_invocation
+              regex: ^CacheControl\s*\.\s*noStore\s*\(
+min_engine: 0.39.0
+---
+# violation-shared: a data handler in a file that holds, anywhere, a literal Cache-Control with public, s-maxage or
+# stale-while-revalidate, or the framework's shared-cache form (also cacheControl(CacheControl.noStore());
+# CacheControl...cachePublic() or sMaxAge() are shared): a shared cache may keep it, whatever middleware sends
+# (T23-P1-C142). Fail.
+id: phi-responses-not-cached.java-spring.violation-shared
+practice_id: phi-responses-not-cached
+language: java
+frameworks:
+- spring
+kind: violation
+rule:
+  all:
+  - kind: method_declaration
+    has:
+      kind: modifiers
+      has:
+        any:
+        - kind: annotation
+          regex: ^@(Get|Post|Put|Patch|Delete|Request)Mapping\b
+        - kind: marker_annotation
+          regex: ^@(Get|Post|Put|Patch|Delete|Request)Mapping\b
+  - any:
+    - kind: method_declaration
+      regex: (\b(\w*[Rr]epository|\w*[Rr]epo|jdbcTemplate|jdbc|entityManager|em|dsl|jooq)\s*\.\s*(save\w*|find\w*|insert\w*|update\w*|delete\w*|query\w*|persist|merge|execute\w*|batchUpdate|select\w*)\s*\(|\b\w*(Service|Dao|Mapper)\s*\.\s*\w+\s*\()
+  - any:
+    - inside:
+        stopBy: end
+        kind: program
+        regex: (?is)("cache-control"|CACHE_CONTROL)\s*,\s*"[^"]*(public|s-maxage|stale-while-revalidate)
+    - inside:
+        stopBy: end
+        kind: program
+        regex: \bCacheControl\s*\.[^;\n]*\.\s*(cachePublic|sMaxAge)\s*\(
+min_engine: 0.39.0
+---
+# violation-writer-off: Spring Security's header writer turned off (headers().disable(), headers(h -> h.disable()),
+# cacheControl(...) disabled): it removes the default no-store from every response. Fail, at the config file.
+id: phi-responses-not-cached.java-spring.violation-writer-off
+practice_id: phi-responses-not-cached
+language: java
+frameworks:
+- spring
+kind: violation
+rule:
+  any:
+  - kind: method_invocation
+    regex: (?s)\.\s*(headers|cacheControl)\s*\(\s*\)\s*\.\s*disable\s*\(\s*\)$
+  - kind: method_invocation
+    regex: (?s)\b(headers|cacheControl)\s*\(\s*(\w+\s*->\s*\w+\s*\.\s*disable\s*\(\s*\)|[\w.]+::disable)\s*\)$
+min_engine: 0.39.0

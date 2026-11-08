@@ -1,0 +1,218 @@
+id: no-phi-in-app-logs.go-generic.request-body
+practice_id: no-phi-in-app-logs
+language: go
+frameworks:
+- generic
+kind: violation
+rule:
+  all:
+  - kind: call_expression
+  - has:
+      field: function
+      kind: selector_expression
+      regex: '(^|\.)(log|logger|Logger|logrus|sugar|zap|slog|globalLogger|l)\.(Print|Printf|Println|Info|Infof|Infoln|Infow|Debug|Debugf|Debugln|Debugw|Warn|Warnf|Warnln|Warning|Warningf|Error|Errorf|Errorln|Trace|Tracef|Fatal|Fatalf)$'
+  - has:
+      field: arguments
+      kind: argument_list
+      has:
+        stopBy: end
+        all:
+        - kind: selector_expression
+        - regex: '^(r|req|request|c\.Request|ctx\.Request)\.(Body|Form|PostForm|MultipartForm|URL\.RawQuery)$'
+        - not:
+            inside:
+              kind: selector_expression
+              field: operand
+        - not:
+            inside:
+              kind: argument_list
+              inside:
+                kind: call_expression
+                not:
+                  has:
+                    field: function
+                    any:
+                    - kind: selector_expression
+                      regex: '(^|\.)(log|logger|Logger|logrus|sugar|zap|slog|globalLogger|l)\.(Print|Printf|Println|Info|Infof|Infoln|Infow|Debug|Debugf|Debugln|Debugw|Warn|Warnf|Warnln|Warning|Warningf|Error|Errorf|Errorln|Trace|Tracef|Fatal|Fatalf)$|^fmt\.Sprint(f|ln)?$'
+                    - kind: identifier
+                      regex: '^string$'
+min_engine: 0.45.3
+---
+id: no-phi-in-app-logs.go-generic.patient-fields
+practice_id: no-phi-in-app-logs
+language: go
+frameworks:
+- generic
+kind: violation
+rule:
+  all:
+  - kind: call_expression
+  - has:
+      field: function
+      kind: selector_expression
+      regex: '(^|\.)(log|logger|Logger|logrus|sugar|zap|slog|globalLogger|l)\.(Print|Printf|Println|Info|Infof|Infoln|Infow|Debug|Debugf|Debugln|Debugw|Warn|Warnf|Warnln|Warning|Warningf|Error|Errorf|Errorln|Trace|Tracef|Fatal|Fatalf)$'
+  - has:
+      field: arguments
+      kind: argument_list
+      has:
+        stopBy: end
+        all:
+        - any:
+          - kind: selector_expression
+            regex: '\.(SSN|Ssn|DOB|Dob|DateOfBirth|BirthDate|Birthdate|Diagnosis|Diagnoses|MRN|Mrn|MedicalRecordNumber|InsuranceNumber|ClinicalNotes)$'
+          - kind: selector_expression
+            regex: '^(patient|p|pat|currentPatient)\.(Name|FirstName|LastName|FullName|Email|Phone|PhoneNumber|Address|Notes)$'
+          - all:
+            - kind: identifier
+            - regex: '^(patient|patients|patientRecord|currentPatient)$'
+            - not:
+                inside:
+                  kind: selector_expression
+        - not:
+            inside:
+              kind: selector_expression
+              field: operand
+        - not:
+            inside:
+              kind: argument_list
+              inside:
+                kind: call_expression
+                not:
+                  has:
+                    field: function
+                    any:
+                    - kind: selector_expression
+                      regex: '(^|\.)(log|logger|Logger|logrus|sugar|zap|slog|globalLogger|l)\.(Print|Printf|Println|Info|Infof|Infoln|Infow|Debug|Debugf|Debugln|Debugw|Warn|Warnf|Warnln|Warning|Warningf|Error|Errorf|Errorln|Trace|Tracef|Fatal|Fatalf)$|^fmt\.Sprint(f|ln)?$'
+                    - kind: identifier
+                      regex: '^string$'
+min_engine: 0.45.3
+---
+id: no-phi-in-app-logs.go-generic.credential
+practice_id: no-phi-in-app-logs
+language: go
+frameworks:
+- generic
+kind: violation
+rule:
+  all:
+  - kind: call_expression
+  - has:
+      field: function
+      kind: selector_expression
+      regex: '(^|\.)(log|logger|Logger|logrus|sugar|zap|slog|globalLogger|l)\.(Print|Printf|Println|Info|Infof|Infoln|Infow|Debug|Debugf|Debugln|Debugw|Warn|Warnf|Warnln|Warning|Warningf|Error|Errorf|Errorln|Trace|Tracef|Fatal|Fatalf)$'
+  - has:
+      field: arguments
+      kind: argument_list
+      has:
+        stopBy: end
+        all:
+        - any:
+          - all:
+            - kind: identifier
+            - regex: '^(?i:password|passwd|secret|clientSecret|token|accessToken|refreshToken|idToken|apiKey|privateKey|encryptionKey|dsn|connStr|connectionString|databaseUrl|dbUrl)$'
+            - not:
+                inside:
+                  kind: selector_expression
+          - kind: selector_expression
+            regex: '\.(?i:password|passwd|secret|clientSecret|token|accessToken|refreshToken|idToken|apiKey|privateKey|encryptionKey|dsn|connectionString|databaseUrl|authorization)$'
+        - not:
+            inside:
+              kind: selector_expression
+              field: operand
+        - not:
+            inside:
+              kind: argument_list
+              inside:
+                kind: call_expression
+                not:
+                  has:
+                    field: function
+                    any:
+                    - kind: selector_expression
+                      regex: '(^|\.)(log|logger|Logger|logrus|sugar|zap|slog|globalLogger|l)\.(Print|Printf|Println|Info|Infof|Infoln|Infow|Debug|Debugf|Debugln|Debugw|Warn|Warnf|Warnln|Warning|Warningf|Error|Errorf|Errorln|Trace|Tracef|Fatal|Fatalf)$|^fmt\.Sprint(f|ln)?$'
+                    - kind: identifier
+                      regex: '^string$'
+min_engine: 0.45.3
+---
+id: no-phi-in-app-logs.go-generic.orm-query-log
+practice_id: no-phi-in-app-logs
+language: go
+frameworks:
+- generic
+kind: violation
+rule:
+  all:
+  - any:
+    - all:
+      - kind: call_expression
+      - regex: '\.Debug\(\)$'
+      - inside:
+          any:
+          - kind: expression_list
+            inside:
+              kind: assignment_statement
+          - kind: expression_list
+            inside:
+              kind: short_var_declaration
+    - all:
+      - kind: call_expression
+      - regex: '\.Debug\(\)\s*\.\s*(Where|Find|First|Last|Take|Create|Save|Model|Table|Exec|Raw|Preload|Updates|Update|Delete|Select|Joins)\('
+      - not:
+          inside:
+            kind: call_expression
+            regex: '\.Debug\(\)\s*\.\s*(Where|Find|First|Last|Take|Create|Save|Model|Table|Exec|Raw|Preload|Updates|Update|Delete|Select|Joins)\('
+    - pattern: logger.Default.LogMode(logger.Info)
+  - not:
+      inside:
+        stopBy: end
+        kind: if_statement
+        has:
+          field: condition
+          any:
+          - kind: binary_expression
+            regex: (?i)debug
+          - kind: call_expression
+            regex: (?i)debug
+          - kind: selector_expression
+            regex: (?i)debug
+          - kind: identifier
+            regex: (?i)debug
+min_engine: 0.45.3
+---
+id: no-phi-in-app-logs.go-generic.debug-level
+practice_id: no-phi-in-app-logs
+language: go
+frameworks:
+- generic
+kind: violation
+rule:
+  any:
+  - all:
+    - kind: call_expression
+    - has:
+        field: function
+        kind: selector_expression
+        regex: '^[A-Za-z_][A-Za-z0-9_.]*\.SetDefault$'
+    - has:
+        field: arguments
+        kind: argument_list
+        all:
+        - has:
+            kind: interpreted_string_literal
+            regex: '^"(?i:log\.level|log_level|loglevel|logging\.level|log-level|level)"$'
+        - has:
+            kind: interpreted_string_literal
+            regex: '^"(?i:debug|trace)"$'
+  - all:
+    - kind: call_expression
+    - has:
+        field: function
+        kind: selector_expression
+        regex: '^(logrus|log|logger|zerolog)\.(SetLevel|SetGlobalLevel)$'
+    - has:
+        field: arguments
+        kind: argument_list
+        has:
+          kind: selector_expression
+          regex: '\.(DebugLevel|TraceLevel|LevelDebug)$'
+min_engine: 0.45.3

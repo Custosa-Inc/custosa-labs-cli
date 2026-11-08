@@ -1,0 +1,39 @@
+# Tokens in plain mobile storage (T23 B56e). Written by scripts/gen_mobile_rules.py: don't edit.
+# The practice is capped at needs_review: a violation fails, the rest is for a person.
+id: mobile-keychain-storage.typescript-expo.secure-store-always
+practice_id: mobile-keychain-storage
+language: typescript
+frameworks:
+- expo
+kind: violation
+rule:
+  kind: call_expression
+  all:
+  - has:
+      field: function
+      any:
+      - kind: member_expression
+        regex: ^SecureStore\s*\.\s*setItem(Async)?$
+      - kind: identifier
+        regex: ^setItemAsync$
+  - has:
+      field: arguments
+      has:
+        stopBy: end
+        kind: pair
+        all:
+        - has:
+            field: key
+            any:
+            - kind: property_identifier
+              regex: ^keychainAccessible$
+            - kind: string
+              regex: ^["'`]keychainAccessible["'`]$
+        - has:
+            field: value
+            any:
+            - kind: member_expression
+              regex: (^|\.)\s*ALWAYS(_THIS_DEVICE_ONLY)?$
+            - kind: identifier
+              regex: ^ALWAYS(_THIS_DEVICE_ONLY)?$
+min_engine: 0.39.0

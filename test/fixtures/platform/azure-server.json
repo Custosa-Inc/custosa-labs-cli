@@ -1,0 +1,11 @@
+{
+ "id": "/subscriptions/00000000-0000-0000-0000-00000000aaaa/resourceGroups/clinic-rg/providers/Microsoft.DBforPostgreSQL/flexibleServers/clinic-pg",
+ "name": "clinic-pg",
+ "type": "Microsoft.DBforPostgreSQL/flexibleServers",
+ "location": "eastus",
+ "properties": {
+  "version": "16",
+  "state": "Ready",
+  "fullyQualifiedDomainName": "clinic-pg.postgres.database.azure.com"
+ }
+}

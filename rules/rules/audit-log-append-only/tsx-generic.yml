@@ -1,0 +1,194 @@
+id: audit-log-append-only.tsx-generic.supabase-delete
+practice_id: audit-log-append-only
+language: tsx
+frameworks:
+- generic
+kind: violation
+rule:
+  all:
+  - pattern: '$CLIENT.from($TABLE).delete()'
+  - has:
+      field: function
+      kind: member_expression
+      regex: '\.from\(\s*[''\x22`](?:\w+\.)?(?:\w*audit\w*|\w*access_logs?|\w*security_logs?|\w*security_events?|activity_logs?|extended_log|api_log|log)[''\x22`]\s*\)\s*\.delete$'
+min_engine: 0.45.3
+table:
+  metavariable: '$TABLE'
+  access: write
+---
+id: audit-log-append-only.tsx-generic.supabase-update
+practice_id: audit-log-append-only
+language: tsx
+frameworks:
+- generic
+kind: violation
+rule:
+  all:
+  - pattern: '$CLIENT.from($TABLE).update($ROW)'
+  - has:
+      field: function
+      kind: member_expression
+      regex: '\.from\(\s*[''\x22`](?:\w+\.)?(?:\w*audit\w*|\w*access_logs?|\w*security_logs?|\w*security_events?|activity_logs?|extended_log|api_log|log)[''\x22`]\s*\)\s*\.update$'
+min_engine: 0.45.3
+table:
+  metavariable: '$TABLE'
+  access: write
+---
+id: audit-log-append-only.tsx-generic.supabase-upsert
+practice_id: audit-log-append-only
+language: tsx
+frameworks:
+- generic
+kind: violation
+rule:
+  all:
+  - pattern: '$CLIENT.from($TABLE).upsert($ROW)'
+  - has:
+      field: function
+      kind: member_expression
+      regex: '\.from\(\s*[''\x22`](?:\w+\.)?(?:\w*audit\w*|\w*access_logs?|\w*security_logs?|\w*security_events?|activity_logs?|extended_log|api_log|log)[''\x22`]\s*\)\s*\.upsert$'
+min_engine: 0.45.3
+table:
+  metavariable: '$TABLE'
+  access: write
+---
+id: audit-log-append-only.tsx-generic.orm-mutation
+practice_id: audit-log-append-only
+language: tsx
+frameworks:
+- generic
+kind: violation
+rule:
+  all:
+  - pattern: '$DB.$TABLE.$OP($ARG)'
+  - has:
+      field: function
+      kind: member_expression
+      regex: '\.(auditLog|auditLogs|auditEvent|auditEvents|accessLog|accessLogs|auditTrail|activityLog|securityEvent|securityEvents)\.(delete|deleteMany|update|updateMany|upsert)$'
+min_engine: 0.45.3
+table:
+  metavariable: '$TABLE'
+  access: write
+---
+id: audit-log-append-only.tsx-generic.orm-mutation-all
+practice_id: audit-log-append-only
+language: tsx
+frameworks:
+- generic
+kind: violation
+rule:
+  all:
+  - pattern: '$DB.$TABLE.$OP()'
+  - has:
+      field: function
+      kind: member_expression
+      regex: '\.(auditLog|auditLogs|auditEvent|auditEvents|accessLog|accessLogs|auditTrail|activityLog|securityEvent|securityEvents)\.(deleteMany|updateMany)$'
+min_engine: 0.45.3
+table:
+  metavariable: '$TABLE'
+  access: write
+---
+id: audit-log-append-only.tsx-generic.drizzle-delete
+practice_id: audit-log-append-only
+language: tsx
+frameworks:
+- generic
+kind: violation
+rule:
+  all:
+  - pattern: '$DB.delete($TABLE)'
+  - has:
+      field: arguments
+      kind: arguments
+      has:
+        kind: identifier
+        regex: '^(auditLog|auditLogs|auditEvent|auditEvents|accessLog|accessLogs|auditTrail|activityLog|securityEvent|securityEvents)$'
+min_engine: 0.45.3
+table:
+  metavariable: '$TABLE'
+  access: write
+---
+id: audit-log-append-only.tsx-generic.drizzle-update
+practice_id: audit-log-append-only
+language: tsx
+frameworks:
+- generic
+kind: violation
+rule:
+  all:
+  - pattern: '$DB.update($TABLE)'
+  - has:
+      field: arguments
+      kind: arguments
+      has:
+        kind: identifier
+        regex: '^(auditLog|auditLogs|auditEvent|auditEvents|accessLog|accessLogs|auditTrail|activityLog|securityEvent|securityEvents)$'
+min_engine: 0.45.3
+table:
+  metavariable: '$TABLE'
+  access: write
+---
+id: audit-log-append-only.tsx-generic.knex-delete
+practice_id: audit-log-append-only
+language: tsx
+frameworks:
+- generic
+kind: violation
+rule:
+  all:
+  - pattern: '$KNEX($TABLE).$OP()'
+  - has:
+      field: function
+      kind: member_expression
+      regex: '^\w+\(\s*[''\x22`](?:\w*audit\w*|\w*access_logs?|\w*security_logs?|\w*security_events?|activity_logs?|extended_log|api_log|log)[''\x22`]\s*\)\s*\.(del|delete|truncate)$'
+min_engine: 0.45.3
+table:
+  metavariable: '$TABLE'
+  access: write
+---
+id: audit-log-append-only.tsx-generic.knex-update
+practice_id: audit-log-append-only
+language: tsx
+frameworks:
+- generic
+kind: violation
+rule:
+  all:
+  - pattern: '$KNEX($TABLE).update($ROW)'
+  - has:
+      field: function
+      kind: member_expression
+      regex: '^\w+\(\s*[''\x22`](?:\w*audit\w*|\w*access_logs?|\w*security_logs?|\w*security_events?|activity_logs?|extended_log|api_log|log)[''\x22`]\s*\)\s*\.update$'
+min_engine: 0.45.3
+table:
+  metavariable: '$TABLE'
+  access: write
+---
+id: audit-log-append-only.tsx-generic.sequelize-mutation
+practice_id: audit-log-append-only
+language: tsx
+frameworks:
+- generic
+kind: violation
+rule:
+  all:
+  - kind: call_expression
+  - has:
+      field: function
+      kind: member_expression
+      regex: '^(AuditLog|AuditEvent|AccessLog|AuditTrail|ActivityLog|SecurityEvent)\.(destroy|update|truncate|bulkUpdate)$'
+min_engine: 0.45.3
+---
+id: audit-log-append-only.tsx-generic.sql-mutation
+practice_id: audit-log-append-only
+language: tsx
+frameworks:
+- generic
+kind: violation
+rule:
+  any:
+  - kind: string
+    regex: '(?i)(?:\bdelete\s+from\s+(?:[`\x22]?\w+[`\x22]?\.)?[`\x22]?(?:\w*audit\w*|\w*access_logs?|\w*security_logs?|\w*security_events?|activity_logs?|extended_log|api_log|log)[`\x22]?(?:[\s;)''\x22`]|$)|\bupdate\s+(?:[`\x22]?\w+[`\x22]?\.)?[`\x22]?(?:\w*audit\w*|\w*access_logs?|\w*security_logs?|\w*security_events?|activity_logs?|extended_log|api_log|log)[`\x22]?\s+set\b|\btruncate(?:\s+table)?(?:\s+only)?\s+(?:[`\x22]?\w+[`\x22]?\.)?[`\x22]?(?:\w*audit\w*|\w*access_logs?|\w*security_logs?|\w*security_events?|activity_logs?|extended_log|api_log|log)[`\x22]?(?:[\s;,)''\x22`]|$))'
+  - kind: template_string
+    regex: '(?i)(?:\bdelete\s+from\s+(?:[`\x22]?\w+[`\x22]?\.)?[`\x22]?(?:\w*audit\w*|\w*access_logs?|\w*security_logs?|\w*security_events?|activity_logs?|extended_log|api_log|log)[`\x22]?(?:[\s;)''\x22`]|$)|\bupdate\s+(?:[`\x22]?\w+[`\x22]?\.)?[`\x22]?(?:\w*audit\w*|\w*access_logs?|\w*security_logs?|\w*security_events?|activity_logs?|extended_log|api_log|log)[`\x22]?\s+set\b|\btruncate(?:\s+table)?(?:\s+only)?\s+(?:[`\x22]?\w+[`\x22]?\.)?[`\x22]?(?:\w*audit\w*|\w*access_logs?|\w*security_logs?|\w*security_events?|activity_logs?|extended_log|api_log|log)[`\x22]?(?:[\s;,)''\x22`]|$))'
+min_engine: 0.45.3

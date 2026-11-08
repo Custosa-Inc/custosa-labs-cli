@@ -1,0 +1,32 @@
+id: purge-deleted-rows.java-spring.purge-soft-deleted
+practice_id: purge-deleted-rows
+language: java
+frameworks:
+- spring
+kind: evidence
+rule:
+  all:
+  - kind: method_invocation
+    regex: \.deleteBy\w*DeletedAt(Before|LessThan)\w*\(\s*[A-Za-z_]
+  - not:
+      kind: method_invocation
+      regex: (?i)^\w*audit
+min_engine: 0.39.0
+---
+id: purge-deleted-rows.java-spring.purge-history
+practice_id: purge-deleted-rows
+language: java
+frameworks:
+- spring
+kind: evidence
+rule:
+  all:
+  - kind: method_invocation
+    regex: ^\w*(history|History|version|Version)\w*Repository\.deleteBy\w+\(
+  - not:
+      kind: method_invocation
+      regex: (?i)^\w*audit
+  - not:
+      kind: method_invocation
+      regex: \.deleteById(In)?\(
+min_engine: 0.39.0

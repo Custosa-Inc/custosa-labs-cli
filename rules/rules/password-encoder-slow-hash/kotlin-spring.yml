@@ -1,0 +1,61 @@
+id: password-encoder-slow-hash.kotlin-spring.slow-encoder
+practice_id: password-encoder-slow-hash
+language: kotlin
+frameworks: [spring]
+kind: evidence
+rule:
+  all:
+    - any:
+        - pattern: BCryptPasswordEncoder($$$)
+        - pattern: Argon2PasswordEncoder($$$)
+        - pattern: SCryptPasswordEncoder($$$)
+        - pattern: Pbkdf2PasswordEncoder($$$)
+        - pattern: Argon2PasswordEncoder.defaultsForSpringSecurity_v5_8()
+        - pattern: SCryptPasswordEncoder.defaultsForSpringSecurity_v5_8()
+        - pattern: Pbkdf2PasswordEncoder.defaultsForSpringSecurity_v5_8()
+        - pattern: PasswordEncoderFactories.createDelegatingPasswordEncoder()
+    - not:
+        has:
+          stopBy: end
+          kind: integer_literal
+          regex: '^[0-9]$'
+min_engine: 0.39.0
+---
+id: password-encoder-slow-hash.kotlin-spring.noop-or-fast-encoder
+practice_id: password-encoder-slow-hash
+language: kotlin
+frameworks: [spring]
+kind: violation
+rule:
+  any:
+    - pattern: NoOpPasswordEncoder.getInstance()
+    - pattern: StandardPasswordEncoder($$$)
+    - pattern: MessageDigestPasswordEncoder($$$)
+    - pattern: LdapShaPasswordEncoder($$$)
+    - pattern: Md4PasswordEncoder($$$)
+    - pattern: User.withDefaultPasswordEncoder()
+    - all:
+        - pattern: $BUILDER.password($PW)
+        - has:
+            kind: call_suffix
+            has:
+              stopBy: end
+              kind: string_literal
+              not:
+                kind: string_literal
+                regex: '^"\{(bcrypt|argon2|argon2@SpringSecurity_v5_8|scrypt|scrypt@SpringSecurity_v5_8|pbkdf2|pbkdf2@SpringSecurity_v5_8)\}'
+min_engine: 0.39.0
+---
+id: password-encoder-slow-hash.kotlin-spring.low-cost
+practice_id: password-encoder-slow-hash
+language: kotlin
+frameworks: [spring]
+kind: violation
+rule:
+  all:
+    - pattern: BCryptPasswordEncoder($$$)
+    - has:
+        stopBy: end
+        kind: integer_literal
+        regex: '^[0-9]$'
+min_engine: 0.39.0

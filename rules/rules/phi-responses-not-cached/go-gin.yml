@@ -1,0 +1,179 @@
+# phi-responses-not-cached (T23 B34, design v3 2.2.6, docs/b34-plan.md). Written by scripts/gen_nocache_rules.py:
+# edit that script, never this file. The rule id's last part is the form (items-handler, unobserved-header,
+# violation-shared, static-page). unobserved-header matches the items-handler node itself, so judge holds that item
+# at its own path and line.
+
+# items-handler: a route handler whose body makes a data call. The control is a literal Cache-Control value holding
+# no-store. No control: fail, unless unobserved-header holds it. The header counts only in a response write
+# (w.Header().Set or .Add, the w.Header() map, or gin's c.Header), never on a request's Header field or gin's c.Set,
+# nor in a comment. A no-store literal no write placed holds the item, never a fail.
+id: phi-responses-not-cached.go-gin.items-handler
+practice_id: phi-responses-not-cached
+language: go
+frameworks:
+- gin
+kind: items
+rule:
+  all:
+  - any:
+    - kind: function_declaration
+      has:
+        kind: parameter_list
+        regex: \*gin\.Context|echo\.Context|\*fiber\.Ctx|http\.ResponseWriter
+    - kind: method_declaration
+      has:
+        kind: parameter_list
+        regex: \*gin\.Context|echo\.Context|\*fiber\.Ctx|http\.ResponseWriter
+    - kind: func_literal
+      has:
+        kind: parameter_list
+        regex: \*gin\.Context|echo\.Context|\*fiber\.Ctx|http\.ResponseWriter
+  - any:
+    - kind: function_declaration
+      regex: (\b(db|tx|conn|pool|gdb|gormDB|database|DB|repo|store)\s*\.\s*(Exec|Query|QueryRow|Create|Save|First|Find|Where|Update|Delete|Insert|Select|Model|Table)\w*\s*\(|\b\w+(Service|Svc|Repository|Repo|Store)\s*\.\s*\w+\s*\()
+    - kind: method_declaration
+      regex: (\b(db|tx|conn|pool|gdb|gormDB|database|DB|repo|store)\s*\.\s*(Exec|Query|QueryRow|Create|Save|First|Find|Where|Update|Delete|Insert|Select|Model|Table)\w*\s*\(|\b\w+(Service|Svc|Repository|Repo|Store)\s*\.\s*\w+\s*\()
+    - kind: func_literal
+      regex: (\b(db|tx|conn|pool|gdb|gormDB|database|DB|repo|store)\s*\.\s*(Exec|Query|QueryRow|Create|Save|First|Find|Where|Update|Delete|Insert|Select|Model|Table)\w*\s*\(|\b\w+(Service|Svc|Repository|Repo|Store)\s*\.\s*\w+\s*\()
+control:
+  has:
+    stopBy: end
+    any:
+    - kind: call_expression
+      all:
+      - has:
+          field: function
+          kind: selector_expression
+          regex: (\.\s*Header\s*\(\s*\)\s*\.\s*(Set|Add)|^(c|ctx)\s*\.\s*Header)$
+      - has:
+          field: arguments
+          kind: argument_list
+          regex: (?is)(["`]cache-control["`]|HeaderCacheControl)\s*(,|\]\s*=\s*\[\]string\s*\{)\s*["`][^"`]*no-store
+    - kind: assignment_statement
+      regex: (?is)(["`]cache-control["`]|HeaderCacheControl)\s*(,|\]\s*=\s*\[\]string\s*\{)\s*["`][^"`]*no-store
+      has:
+        field: left
+        kind: expression_list
+        regex: \.\s*Header\s*\(\s*\)\s*\[
+min_engine: 0.39.0
+---
+# unobserved-header: the same handler when it writes no literal Cache-Control. The header may be set by middleware, a
+# framework default or a CDN rule elsewhere, so the item is held for a person. The header counts only in a response
+# write (w.Header().Set or .Add, the w.Header() map, or gin's c.Header), never on a request's Header field or gin's
+# c.Set, nor in a comment. A no-store literal no write placed holds the item, never a fail.
+id: phi-responses-not-cached.go-gin.unobserved-header
+practice_id: phi-responses-not-cached
+language: go
+frameworks:
+- gin
+kind: evidence
+rule:
+  all:
+  - any:
+    - kind: function_declaration
+      has:
+        kind: parameter_list
+        regex: \*gin\.Context|echo\.Context|\*fiber\.Ctx|http\.ResponseWriter
+    - kind: method_declaration
+      has:
+        kind: parameter_list
+        regex: \*gin\.Context|echo\.Context|\*fiber\.Ctx|http\.ResponseWriter
+    - kind: func_literal
+      has:
+        kind: parameter_list
+        regex: \*gin\.Context|echo\.Context|\*fiber\.Ctx|http\.ResponseWriter
+  - any:
+    - kind: function_declaration
+      regex: (\b(db|tx|conn|pool|gdb|gormDB|database|DB|repo|store)\s*\.\s*(Exec|Query|QueryRow|Create|Save|First|Find|Where|Update|Delete|Insert|Select|Model|Table)\w*\s*\(|\b\w+(Service|Svc|Repository|Repo|Store)\s*\.\s*\w+\s*\()
+    - kind: method_declaration
+      regex: (\b(db|tx|conn|pool|gdb|gormDB|database|DB|repo|store)\s*\.\s*(Exec|Query|QueryRow|Create|Save|First|Find|Where|Update|Delete|Insert|Select|Model|Table)\w*\s*\(|\b\w+(Service|Svc|Repository|Repo|Store)\s*\.\s*\w+\s*\()
+    - kind: func_literal
+      regex: (\b(db|tx|conn|pool|gdb|gormDB|database|DB|repo|store)\s*\.\s*(Exec|Query|QueryRow|Create|Save|First|Find|Where|Update|Delete|Insert|Select|Model|Table)\w*\s*\(|\b\w+(Service|Svc|Repository|Repo|Store)\s*\.\s*\w+\s*\()
+  - any:
+    - all:
+      - not:
+          has:
+            stopBy: end
+            any:
+            - kind: call_expression
+              all:
+              - has:
+                  field: function
+                  kind: selector_expression
+                  regex: (\.\s*Header\s*\(\s*\)\s*\.\s*(Set|Add)|^(c|ctx)\s*\.\s*Header)$
+              - has:
+                  field: arguments
+                  kind: argument_list
+                  regex: (?is)(["`]cache-control["`]|HeaderCacheControl)\s*(,|\]\s*=\s*\[\]string\s*\{)\s*["`]
+            - kind: assignment_statement
+              regex: (?is)(["`]cache-control["`]|HeaderCacheControl)\s*(,|\]\s*=\s*\[\]string\s*\{)\s*["`]
+              has:
+                field: left
+                kind: expression_list
+                regex: \.\s*Header\s*\(\s*\)\s*\[
+    - all:
+      - any:
+        - kind: function_declaration
+          regex: (?is)(["`]cache-control["`]|HeaderCacheControl)\s*(,|\]\s*=\s*\[\]string\s*\{)\s*["`][^"`]*no-store
+        - kind: method_declaration
+          regex: (?is)(["`]cache-control["`]|HeaderCacheControl)\s*(,|\]\s*=\s*\[\]string\s*\{)\s*["`][^"`]*no-store
+        - kind: func_literal
+          regex: (?is)(["`]cache-control["`]|HeaderCacheControl)\s*(,|\]\s*=\s*\[\]string\s*\{)\s*["`][^"`]*no-store
+      - not:
+          has:
+            stopBy: end
+            any:
+            - kind: call_expression
+              all:
+              - has:
+                  field: function
+                  kind: selector_expression
+                  regex: (\.\s*Header\s*\(\s*\)\s*\.\s*(Set|Add)|^(c|ctx)\s*\.\s*Header)$
+              - has:
+                  field: arguments
+                  kind: argument_list
+                  regex: (?is)(["`]cache-control["`]|HeaderCacheControl)\s*(,|\]\s*=\s*\[\]string\s*\{)\s*["`][^"`]*no-store
+            - kind: assignment_statement
+              regex: (?is)(["`]cache-control["`]|HeaderCacheControl)\s*(,|\]\s*=\s*\[\]string\s*\{)\s*["`][^"`]*no-store
+              has:
+                field: left
+                kind: expression_list
+                regex: \.\s*Header\s*\(\s*\)\s*\[
+min_engine: 0.39.0
+---
+# violation-shared: a data handler in a file that holds, anywhere, a literal Cache-Control with public, s-maxage or
+# stale-while-revalidate, or the framework's shared-cache form: a shared cache may keep it, whatever middleware sends
+# (T23-P1-C142). Fail.
+id: phi-responses-not-cached.go-gin.violation-shared
+practice_id: phi-responses-not-cached
+language: go
+frameworks:
+- gin
+kind: violation
+rule:
+  all:
+  - any:
+    - kind: function_declaration
+      has:
+        kind: parameter_list
+        regex: \*gin\.Context|echo\.Context|\*fiber\.Ctx|http\.ResponseWriter
+    - kind: method_declaration
+      has:
+        kind: parameter_list
+        regex: \*gin\.Context|echo\.Context|\*fiber\.Ctx|http\.ResponseWriter
+    - kind: func_literal
+      has:
+        kind: parameter_list
+        regex: \*gin\.Context|echo\.Context|\*fiber\.Ctx|http\.ResponseWriter
+  - any:
+    - kind: function_declaration
+      regex: (\b(db|tx|conn|pool|gdb|gormDB|database|DB|repo|store)\s*\.\s*(Exec|Query|QueryRow|Create|Save|First|Find|Where|Update|Delete|Insert|Select|Model|Table)\w*\s*\(|\b\w+(Service|Svc|Repository|Repo|Store)\s*\.\s*\w+\s*\()
+    - kind: method_declaration
+      regex: (\b(db|tx|conn|pool|gdb|gormDB|database|DB|repo|store)\s*\.\s*(Exec|Query|QueryRow|Create|Save|First|Find|Where|Update|Delete|Insert|Select|Model|Table)\w*\s*\(|\b\w+(Service|Svc|Repository|Repo|Store)\s*\.\s*\w+\s*\()
+    - kind: func_literal
+      regex: (\b(db|tx|conn|pool|gdb|gormDB|database|DB|repo|store)\s*\.\s*(Exec|Query|QueryRow|Create|Save|First|Find|Where|Update|Delete|Insert|Select|Model|Table)\w*\s*\(|\b\w+(Service|Svc|Repository|Repo|Store)\s*\.\s*\w+\s*\()
+  - inside:
+      stopBy: end
+      kind: source_file
+      regex: (?is)(["`]cache-control["`]|HeaderCacheControl)\s*(,|\]\s*=\s*\[\]string\s*\{)\s*["`][^"`]*(public|s-maxage|stale-while-revalidate)
+min_engine: 0.39.0

@@ -1,0 +1,19 @@
+<DescribeDBClustersResponse xmlns="http://rds.amazonaws.com/doc/2014-10-31/">
+  <DescribeDBClustersResult>
+    <DBClusters>
+      <DBCluster>
+        <DBClusterIdentifier>clinic-cluster</DBClusterIdentifier>
+        <Engine>aurora-postgresql</Engine>
+        <EngineVersion>16.4</EngineVersion>
+        <Status>available</Status>
+        <StorageEncrypted>true</StorageEncrypted>
+        <EnabledCloudwatchLogsExports>
+          <member>postgresql</member>
+        </EnabledCloudwatchLogsExports>
+      </DBCluster>
+    </DBClusters>
+  </DescribeDBClustersResult>
+  <ResponseMetadata>
+    <RequestId>00000000-0000-0000-0000-000000000002</RequestId>
+  </ResponseMetadata>
+</DescribeDBClustersResponse>

@@ -1,0 +1,1185 @@
+# inbound-webhooks-verified (T23 B32, design v3 2.2.2). Written by scripts/gen_webhook_rules.py: edit that script,
+# never this file. The rule id's last part is the form (items-sdk, items-hmac, violation, webhook-route,
+# replay-dedupe), which the practice function reads, since a match carries only one has_control. replay-dedupe matches
+# the items-sdk handler itself, so the function joins the two on path and line.
+
+# items-sdk: a Spring mapping method that reads a provider signature header (@RequestHeader or getHeader) or calls a
+# provider SDK's verifying parse (Webhook.constructEvent), and computes no HMAC itself. The control is the SDK's
+# verify call with the raw body (a @RequestBody String or byte array, or the request's stream), or a call the provider
+# signs without it (Twilio's form check). No control: fail. The control holds only when no data call (a data-layer
+# receiver or ORM model) comes before the verify call in the handler's text.
+id: inbound-webhooks-verified.kotlin-spring.items-sdk
+practice_id: inbound-webhooks-verified
+language: kotlin
+frameworks:
+- spring
+kind: items
+rule:
+  all:
+  - kind: function_declaration
+    has:
+      kind: modifiers
+      has:
+        kind: annotation
+        regex: ^@(Get|Post|Put|Patch|Delete|Request)Mapping\b
+  - any:
+    - has:
+        stopBy: end
+        kind: string_literal
+        regex: (?i)^"(stripe-signature|x-twilio-signature|svix-signature|x-hub-signature-256|x-hub-signature|webhook-signature)"$
+    - has:
+        stopBy: end
+        any:
+        - kind: call_expression
+          regex: ^([\w.]+\.)?(constructEvent)\s*\(
+  - not:
+      has:
+        stopBy: end
+        kind: call_expression
+        regex: ^Mac\.getInstance\(
+control:
+  all:
+  - any:
+    - all:
+      - has:
+          stopBy: end
+          any:
+          - all:
+            - all:
+              - any:
+                - any:
+                  - kind: call_expression
+                    regex: ^([\w.]+\.)?(constructEvent)\s*\(
+                - all:
+                  - any:
+                    - kind: call_expression
+                      regex: (?i)^\w*(wh|webhooks?|svix|hook|validator)\w*\.(verify)\s*\(
+                  - inside:
+                      stopBy: end
+                      kind: source_file
+                      has:
+                        stopBy: end
+                        kind: import_header
+                        regex: ^import\s+(static\s+)?(com\.svix|com\.svix)\.
+              - not:
+                  any:
+                  - inside:
+                      stopBy: end
+                      kind: statements
+                      inside:
+                        kind: try_expression
+                        has:
+                          kind: catch_block
+                          not:
+                            has:
+                              kind: statements
+                              has:
+                                any:
+                                - kind: jump_expression
+                                  regex: ^(throw\b|return($|[^@\w]))
+                  - inside:
+                      stopBy: end
+                      kind: call_expression
+                      regex: ^([\w.]+\.)?runCatching\s*\{
+            - not:
+                inside:
+                  stopBy: end
+                  any:
+                  - kind: anonymous_function
+                  - kind: lambda_literal
+                    not:
+                      inside:
+                        kind: annotated_lambda
+                        inside:
+                          kind: call_suffix
+                          inside:
+                            kind: call_expression
+                            has:
+                              any:
+                              - kind: navigation_expression
+                                regex: ^([^?]*\.\s*(let|also|apply|use)|this\s*\.\s*run)$
+                              - kind: simple_identifier
+                                regex: ^(run|with)$
+                  - kind: function_declaration
+                    inside:
+                      stopBy: end
+                      kind: function_declaration
+      - has:
+          stopBy: end
+          any:
+          - kind: function_value_parameters
+            regex: '@RequestBody\s+\w+\s*:\s*(String|ByteArray)\b'
+          - kind: call_expression
+            regex: \.(getInputStream|getReader)\(\)
+    - has:
+        stopBy: end
+        any:
+        - all:
+          - all:
+            - any:
+              - all:
+                - any:
+                  - kind: call_expression
+                    regex: (?i)^\w*(wh|webhooks?|svix|hook|validator)\w*\.(validate)\s*\(
+                - inside:
+                    stopBy: end
+                    kind: source_file
+                    has:
+                      stopBy: end
+                      kind: import_header
+                      regex: ^import\s+(static\s+)?(com\.twilio)\.
+            - any:
+              - inside:
+                  stopBy: end
+                  kind: prefix_expression
+                  regex: ^!
+                  inside:
+                    kind: if_expression
+                    has:
+                      kind: control_structure_body
+                      any:
+                      - has:
+                          any:
+                          - kind: jump_expression
+                            regex: ^(throw\b|return($|[^@\w]))
+                      - has:
+                          kind: statements
+                          has:
+                            any:
+                            - kind: jump_expression
+                              regex: ^(throw\b|return($|[^@\w]))
+              - all:
+                - inside:
+                    any:
+                    - kind: property_declaration
+                    - kind: assignment
+                - any:
+                  - inside:
+                      stopBy: end
+                      kind: property_declaration
+                      pattern: val $OK = $V
+                      precedes:
+                        kind: if_expression
+                        has:
+                          kind: control_structure_body
+                          any:
+                          - has:
+                              any:
+                              - kind: jump_expression
+                                regex: ^(throw\b|return($|[^@\w]))
+                          - has:
+                              kind: statements
+                              has:
+                                any:
+                                - kind: jump_expression
+                                  regex: ^(throw\b|return($|[^@\w]))
+                        all:
+                        - has:
+                            kind: prefix_expression
+                            pattern: '!$OK'
+                  - inside:
+                      stopBy: end
+                      kind: property_declaration
+                      pattern: var $OK = $V
+                      precedes:
+                        kind: if_expression
+                        has:
+                          kind: control_structure_body
+                          any:
+                          - has:
+                              any:
+                              - kind: jump_expression
+                                regex: ^(throw\b|return($|[^@\w]))
+                          - has:
+                              kind: statements
+                              has:
+                                any:
+                                - kind: jump_expression
+                                  regex: ^(throw\b|return($|[^@\w]))
+                        all:
+                        - has:
+                            kind: prefix_expression
+                            pattern: '!$OK'
+                  - inside:
+                      stopBy: end
+                      kind: assignment
+                      pattern: $OK = $V
+                      precedes:
+                        kind: if_expression
+                        has:
+                          kind: control_structure_body
+                          any:
+                          - has:
+                              any:
+                              - kind: jump_expression
+                                regex: ^(throw\b|return($|[^@\w]))
+                          - has:
+                              kind: statements
+                              has:
+                                any:
+                                - kind: jump_expression
+                                  regex: ^(throw\b|return($|[^@\w]))
+                        all:
+                        - has:
+                            kind: prefix_expression
+                            pattern: '!$OK'
+          - not:
+              inside:
+                stopBy: end
+                any:
+                - kind: anonymous_function
+                - kind: lambda_literal
+                  not:
+                    inside:
+                      kind: annotated_lambda
+                      inside:
+                        kind: call_suffix
+                        inside:
+                          kind: call_expression
+                          has:
+                            any:
+                            - kind: navigation_expression
+                              regex: ^([^?]*\.\s*(let|also|apply|use)|this\s*\.\s*run)$
+                            - kind: simple_identifier
+                              regex: ^(run|with)$
+                - kind: function_declaration
+                  inside:
+                    stopBy: end
+                    kind: function_declaration
+  - not:
+      any:
+      - kind: function_declaration
+        regex: (?s)\b(\w*[Rr]epository|\w*[Rr]epo|jdbcTemplate|jdbc|entityManager|em|dsl|jooq)\s*\.\s*(save\w*|find\w*|insert\w*|update\w*|delete\w*|query\w*|persist|merge|execute\w*|batchUpdate|select\w*)\s*\(.*\b(constructEvent|validate|verify)\b
+min_engine: 0.39.0
+---
+# items-hmac: a mapping method that reads a provider signature header and computes an HMAC itself (Mac.getInstance).
+# The control is a constant-time compare (MessageDigest.isEqual). With it, needs_review; without, fail.
+id: inbound-webhooks-verified.kotlin-spring.items-hmac
+practice_id: inbound-webhooks-verified
+language: kotlin
+frameworks:
+- spring
+kind: items
+rule:
+  all:
+  - kind: function_declaration
+    has:
+      kind: modifiers
+      has:
+        kind: annotation
+        regex: ^@(Get|Post|Put|Patch|Delete|Request)Mapping\b
+  - has:
+      stopBy: end
+      kind: string_literal
+      regex: (?i)^"(stripe-signature|x-twilio-signature|svix-signature|x-hub-signature-256|x-hub-signature|webhook-signature)"$
+  - has:
+      stopBy: end
+      kind: call_expression
+      regex: ^Mac\.getInstance\(
+control:
+  has:
+    stopBy: end
+    kind: call_expression
+    regex: ^MessageDigest\.isEqual\(
+min_engine: 0.39.0
+---
+# violation: in a signature-reading method: a signature compared with ==, != or equals, or constructEvent given a
+# tolerance. Fail.
+id: inbound-webhooks-verified.kotlin-spring.violation
+practice_id: inbound-webhooks-verified
+language: kotlin
+frameworks:
+- spring
+kind: violation
+rule:
+  any:
+  - all:
+    - kind: equality_expression
+      regex: (?i)sig
+    - kind: equality_expression
+      regex: '[!=]='
+    inside:
+      stopBy: end
+      all:
+      - kind: function_declaration
+        has:
+          kind: modifiers
+          has:
+            kind: annotation
+            regex: ^@(Get|Post|Put|Patch|Delete|Request)Mapping\b
+      - any:
+        - has:
+            stopBy: end
+            kind: string_literal
+            regex: (?i)^"(stripe-signature|x-twilio-signature|svix-signature|x-hub-signature-256|x-hub-signature|webhook-signature)"$
+        - has:
+            stopBy: end
+            any:
+            - kind: call_expression
+              regex: ^([\w.]+\.)?(constructEvent)\s*\(
+  - all:
+    - kind: call_expression
+      regex: (?i)sig
+    - kind: call_expression
+      regex: \.(equals|equalsIgnoreCase|contentEquals)\(
+    inside:
+      stopBy: end
+      all:
+      - kind: function_declaration
+        has:
+          kind: modifiers
+          has:
+            kind: annotation
+            regex: ^@(Get|Post|Put|Patch|Delete|Request)Mapping\b
+      - any:
+        - has:
+            stopBy: end
+            kind: string_literal
+            regex: (?i)^"(stripe-signature|x-twilio-signature|svix-signature|x-hub-signature-256|x-hub-signature|webhook-signature)"$
+        - has:
+            stopBy: end
+            any:
+            - kind: call_expression
+              regex: ^([\w.]+\.)?(constructEvent)\s*\(
+  - kind: call_expression
+    regex: ^([\w.]+\.)?(constructEvent)\s*\(
+    has:
+      kind: call_suffix
+      has:
+        kind: value_arguments
+        regex: ^\((?:[^,()]|\((?:[^()]|\([^()]*\))*\))*,(?:[^,()]|\((?:[^()]|\([^()]*\))*\))*,(?:[^,()]|\((?:[^()]|\([^()]*\))*\))*,
+    inside:
+      stopBy: end
+      all:
+      - kind: function_declaration
+        has:
+          kind: modifiers
+          has:
+            kind: annotation
+            regex: ^@(Get|Post|Put|Patch|Delete|Request)Mapping\b
+      - any:
+        - has:
+            stopBy: end
+            kind: string_literal
+            regex: (?i)^"(stripe-signature|x-twilio-signature|svix-signature|x-hub-signature-256|x-hub-signature|webhook-signature)"$
+        - has:
+            stopBy: end
+            any:
+            - kind: call_expression
+              regex: ^([\w.]+\.)?(constructEvent)\s*\(
+min_engine: 0.39.0
+---
+# webhook-route: a route whose path names a webhook, hook, callback or notify endpoint, or a handler (or its class,
+# controller or module) named for one, that reads no provider signature. Evidence: needs_review naming it.
+id: inbound-webhooks-verified.kotlin-spring.webhook-route
+practice_id: inbound-webhooks-verified
+language: kotlin
+frameworks:
+- spring
+kind: evidence
+rule:
+  all:
+  - kind: function_declaration
+    any:
+    - has:
+        kind: modifiers
+        has:
+          kind: annotation
+          regex: (?i)^@(Get|Post|Put|Patch|Delete|Request)Mapping\(\s*((value|path)\s*=\s*)?[\[{]?\s*\"/?([^\"]*[/_-])?(webhooks?|hooks?|callbacks?|notify)([/_.-][^\"]*)?\"
+    - has:
+        kind: modifiers
+        has:
+          kind: annotation
+          regex: ^@(Get|Post|Put|Patch|Delete|Request)Mapping\b
+      inside:
+        stopBy: end
+        kind: class_declaration
+        has:
+          kind: modifiers
+          has:
+            kind: annotation
+            regex: (?i)^@(Get|Post|Put|Patch|Delete|Request)Mapping\(\s*((value|path)\s*=\s*)?[\[{]?\s*\"/?([^\"]*[/_-])?(webhooks?|hooks?|callbacks?|notify)([/_.-][^\"]*)?\"
+    - all:
+      - has:
+          kind: modifiers
+          has:
+            kind: annotation
+            regex: ^@(Post|Request)Mapping\b
+      - has:
+          kind: simple_identifier
+          regex: (?i)(webhooks?|hooks?|callbacks?|notify)
+    - has:
+        kind: modifiers
+        has:
+          kind: annotation
+          regex: ^@(Post|Request)Mapping\b
+      inside:
+        stopBy: end
+        kind: class_declaration
+        has:
+          kind: type_identifier
+          regex: (?i)(webhooks?|hooks?|callbacks?|notify)
+  - not:
+      any:
+      - has:
+          stopBy: end
+          kind: string_literal
+          regex: (?i)^"(stripe-signature|x-twilio-signature|svix-signature|x-hub-signature-256|x-hub-signature|webhook-signature)"$
+      - has:
+          stopBy: end
+          any:
+          - kind: call_expression
+            regex: ^([\w.]+\.)?(constructEvent)\s*\(
+min_engine: 0.39.0
+---
+# entry: an entry point that can take a request body (B32p E): a method under @PostMapping, @PutMapping or
+# @PatchMapping, or @RequestMapping with no method or naming POST, PUT or PATCH, and a @GetMapping method with a
+# parameter Spring can bind from the request. Evidence for the pass, which needs every entry verified or user-gated;
+# never an object of its own.
+id: inbound-webhooks-verified.kotlin-spring.entry
+practice_id: inbound-webhooks-verified
+language: kotlin
+frameworks:
+- spring
+kind: evidence
+rule:
+  kind: function_declaration
+  any:
+  - has:
+      kind: modifiers
+      has:
+        any:
+        - kind: annotation
+          regex: (?s)^@((Post|Put|Patch)Mapping\b|RequestMapping\b.*\bmethod\s*=.*\b(POST|PUT|PATCH)\b)
+  - has:
+      kind: modifiers
+      has:
+        any:
+        - kind: annotation
+          regex: ^@RequestMapping\b
+          not:
+            kind: annotation
+            regex: \bmethod\s*=
+  - all:
+    - has:
+        kind: modifiers
+        has:
+          any:
+          - kind: annotation
+            regex: (?s)^@(GetMapping\b|RequestMapping\b.*\bmethod\s*=)
+    - has:
+        kind: function_value_parameters
+        not:
+          kind: function_value_parameters
+          regex: ^\(\s*(\w+\s*:\s*(Model|ModelMap|Principal|Authentication|HttpServletResponse|ServerHttpResponse|HttpSession|Locale)\??\s*,?\s*)*\)$
+min_engine: 0.39.0
+---
+# route-unread: a route registration the inventory can't place (B32p C2): a mapping whose path is no literal (a
+# constant, a concatenation, a template), or a functional router (RouterFunctions, router or coRouter). Evidence: no
+# pass while it is seen; never an object of its own.
+id: inbound-webhooks-verified.kotlin-spring.route-unread
+practice_id: inbound-webhooks-verified
+language: kotlin
+frameworks:
+- spring
+kind: evidence
+rule:
+  any:
+  - kind: annotation
+    regex: (?s)^@(Get|Post|Put|Patch|Delete|Request)Mapping\(\s*(((value|path)\s*=\s*)?[\[{]?\s*[A-Za-z_][\w.]*\s*[,)\]}+]|.*\b(value|path)\s*=\s*[\[{]?\s*[A-Za-z_]|.*\"\s*\+|.*\+\s*\"|.*\"[^\"]*\$)
+  - kind: call_expression
+    regex: ^(co)?[Rr]outer\s*\{
+min_engine: 0.39.0
+---
+# replay-dedupe: an items-sdk handler (the same match, so the same path and line) that rejects a repeated event: a
+# data call inserting the event id with ON CONFLICT, INSERT IGNORE, ON DUPLICATE KEY, upsert, onConflict or the like,
+# whose result is tested right after (or in the condition) by an if that returns or throws; or a try around an insert
+# of the event id whose catch names a unique violation (23505, 1062, P2002, IntegrityError, RecordNotUnique,
+# DuplicateKey) and returns. No data call may come before it. A table name or a log line alone never counts. Evidence:
+# with the SDK control, it allows the pass once Q6 is ruled.
+id: inbound-webhooks-verified.kotlin-spring.replay-dedupe
+practice_id: inbound-webhooks-verified
+language: kotlin
+frameworks:
+- spring
+kind: evidence
+rule:
+  all:
+  - kind: function_declaration
+    has:
+      kind: modifiers
+      has:
+        kind: annotation
+        regex: ^@(Get|Post|Put|Patch|Delete|Request)Mapping\b
+  - any:
+    - has:
+        stopBy: end
+        kind: string_literal
+        regex: (?i)^"(stripe-signature|x-twilio-signature|svix-signature|x-hub-signature-256|x-hub-signature|webhook-signature)"$
+    - has:
+        stopBy: end
+        any:
+        - kind: call_expression
+          regex: ^([\w.]+\.)?(constructEvent)\s*\(
+  - not:
+      has:
+        stopBy: end
+        kind: call_expression
+        regex: ^Mac\.getInstance\(
+  - has:
+      stopBy: end
+      any:
+      - all:
+        - any:
+          - all:
+            - kind: call_expression
+              regex: (?i)(\bON\s+CONFLICT\b|\bINSERT\s+IGNORE\b|\bON\s+DUPLICATE\s+KEY\b|\bon_?conflict|\bupsert|\binsert_?or_?ignore|\bignore_?duplicates|\bskip_?duplicates|\bunique_by\b)
+            - kind: call_expression
+              regex: (?i)(\b(event|evt)\s*(\?\.|\.|->)\s*(id\b|getId\(\))|\b(event|evt)\s*\[\s*:?['\"]?id['\"]?\s*\]|\bevent_?id\b)
+            - kind: call_expression
+              has:
+                any:
+                - kind: navigation_expression
+                  regex: (?i)(^|\.)(insert|create|save|add|put|persist|exec|execute|query|update|upsert|run|raw|sql|on_?conflict|ignore|merge)\w*[!?]?$
+                - kind: simple_identifier
+                  regex: (?i)(^|\.)(insert|create|save|add|put|persist|exec|execute|query|update|upsert|run|raw|sql|on_?conflict|ignore|merge)\w*[!?]?$
+        - any:
+          - inside:
+              stopBy: end
+              any:
+              - kind: property_declaration
+              - kind: assignment
+              precedes:
+                kind: if_expression
+                has:
+                  kind: control_structure_body
+                  any:
+                  - has:
+                      any:
+                      - kind: jump_expression
+                        regex: ^(throw\b|return($|[^@\w]))
+                  - has:
+                      kind: statements
+                      has:
+                        any:
+                        - kind: jump_expression
+                          regex: ^(throw\b|return($|[^@\w]))
+          - inside:
+              stopBy: end
+              any:
+              - kind: prefix_expression
+              - kind: equality_expression
+              - kind: comparison_expression
+              - kind: conjunction_expression
+              - kind: disjunction_expression
+              inside:
+                kind: if_expression
+                has:
+                  kind: control_structure_body
+                  any:
+                  - has:
+                      any:
+                      - kind: jump_expression
+                        regex: ^(throw\b|return($|[^@\w]))
+                  - has:
+                      kind: statements
+                      has:
+                        any:
+                        - kind: jump_expression
+                          regex: ^(throw\b|return($|[^@\w]))
+      - kind: try_expression
+        all:
+        - has:
+            kind: catch_block
+            regex: (?is)(\b23505\b|\b1062\b|ER_DUP_ENTRY|\bP2002\b|unique_?violation|UniqueConstraintViolation|IntegrityError|RecordNotUnique|DuplicateKey|SQLIntegrityConstraintViolation|duplicate key).{0,160}?\breturn\b
+        - has:
+            stopBy: end
+            any:
+            - all:
+              - kind: call_expression
+                regex: (?i)\b(insert|create|save|add|put|persist|exec|execute|query|update)\w*\s*[!?]?\s*\(
+              - kind: call_expression
+                regex: (?i)(\b(event|evt)\s*(\?\.|\.|->)\s*(id\b|getId\(\))|\b(event|evt)\s*\[\s*:?['\"]?id['\"]?\s*\]|\bevent_?id\b)
+            not:
+              inside:
+                stopBy: end
+                kind: catch_block
+  - not:
+      any:
+      - kind: function_declaration
+        regex: (?s)\b(\w*[Rr]epository|\w*[Rr]epo|jdbcTemplate|jdbc|entityManager|em|dsl|jooq)\s*\.\s*(save\w*|find\w*|insert\w*|update\w*|delete\w*|query\w*|persist|merge|execute\w*|batchUpdate|select\w*)\s*\(.*\b(\w*[Rr]epository|\w*[Rr]epo|jdbcTemplate|jdbc|entityManager|em|dsl|jooq)\s*\.\s*(save\w*|find\w*|insert\w*|update\w*|delete\w*|query\w*|persist|merge|execute\w*|batchUpdate|select\w*)\s*\(.{0,400}?((\bON\s+CONFLICT\b|\bINSERT\s+IGNORE\b|\bON\s+DUPLICATE\s+KEY\b|\bon_?conflict|\bupsert|\binsert_?or_?ignore|\bignore_?duplicates|\bskip_?duplicates|\bunique_by\b))
+min_engine: 0.39.0
+---
+# payload-before-verify: an items-sdk handler (the same match, so the same path and line) whose text has a helper (a
+# bare call, or one on self, this or $this) given the body, event or payload, then later a verify call (B32p 5.2).
+# Evidence: no pass while it is seen, until the stem reads what the helper does; never an object of its own.
+id: inbound-webhooks-verified.kotlin-spring.payload-before-verify
+practice_id: inbound-webhooks-verified
+language: kotlin
+frameworks:
+- spring
+kind: evidence
+rule:
+  all:
+  - all:
+    - kind: function_declaration
+      has:
+        kind: modifiers
+        has:
+          kind: annotation
+          regex: ^@(Get|Post|Put|Patch|Delete|Request)Mapping\b
+    - any:
+      - has:
+          stopBy: end
+          kind: string_literal
+          regex: (?i)^"(stripe-signature|x-twilio-signature|svix-signature|x-hub-signature-256|x-hub-signature|webhook-signature)"$
+      - has:
+          stopBy: end
+          any:
+          - kind: call_expression
+            regex: ^([\w.]+\.)?(constructEvent)\s*\(
+    - not:
+        has:
+          stopBy: end
+          kind: call_expression
+          regex: ^Mac\.getInstance\(
+  - any:
+    - kind: function_declaration
+      regex: (?s)(\n[ \t]*|=\s*|[(,]\s*|\b(return|await|yield|go|defer)\s+)(this\s*\.\s*)?[A-Za-z_]\w*\s*\(\s*((body|event|evt|payload|data)\b).*\b(constructEvent|validate|verify)\b
+min_engine: 0.39.0
+---
+# header-unread: a request header read by a name that is no literal: a variable, a member or a constant (B32p C6), so
+# it can't be checked against the providers' signature headers. Evidence: no pass while it is seen; never an object of
+# its own.
+id: inbound-webhooks-verified.kotlin-spring.header-unread
+practice_id: inbound-webhooks-verified
+language: kotlin
+frameworks:
+- spring
+kind: evidence
+rule:
+  any:
+  - kind: call_expression
+    regex: (?i)^\w*(request|headers?)\w*\s*\.\s*(getHeader|getHeaders|getFirst)\s*\(\s*[A-Za-z_]
+  - kind: annotation
+    regex: ^@RequestHeader\(\s*((value|name)\s*=\s*)?[A-Za-z_]
+min_engine: 0.39.0
+---
+# session-gate: an entry handler whose first statement (or the one right after a first declaration of the lookup) is
+# an if that negates a user-session lookup from a known auth library alone and returns or throws (B32p 9.2). Evidence:
+# the entry is user-gated for the pass; never an object of its own.
+id: inbound-webhooks-verified.kotlin-spring.session-gate
+practice_id: inbound-webhooks-verified
+language: kotlin
+frameworks:
+- spring
+kind: evidence
+rule:
+  kind: if_expression
+  has:
+    kind: control_structure_body
+    any:
+    - has:
+        any:
+        - kind: jump_expression
+          regex: ^(throw\b|return($|[^@\w]))
+    - has:
+        kind: statements
+        has:
+          any:
+          - kind: jump_expression
+            regex: ^(throw\b|return($|[^@\w]))
+  all:
+  - kind: if_expression
+    regex: ^if\s*\(\s*(SecurityContextHolder\s*\.\s*getContext\s*\(\s*\)\s*\.\s*getAuthentication\s*\(\s*\)|\w+\s*\.\s*getUserPrincipal\s*\(\s*\))\s*==\s*null\s*\)
+  - inside:
+      kind: statements
+      inside:
+        kind: function_body
+        inside:
+          kind: function_declaration
+  - any:
+    - not:
+        follows:
+          stopBy: neighbor
+          any:
+          - any:
+            - kind: line_comment
+            - kind: multiline_comment
+          - not:
+              any:
+              - kind: line_comment
+              - kind: multiline_comment
+    - follows:
+        stopBy: neighbor
+        all:
+        - any:
+          - kind: line_comment
+          - kind: multiline_comment
+        - any:
+          - not:
+              follows:
+                stopBy: neighbor
+                any:
+                - any:
+                  - kind: line_comment
+                  - kind: multiline_comment
+                - not:
+                    any:
+                    - kind: line_comment
+                    - kind: multiline_comment
+          - follows:
+              stopBy: neighbor
+              all:
+              - any:
+                - kind: line_comment
+                - kind: multiline_comment
+              - any:
+                - not:
+                    follows:
+                      stopBy: neighbor
+                      any:
+                      - any:
+                        - kind: line_comment
+                        - kind: multiline_comment
+                      - not:
+                          any:
+                          - kind: line_comment
+                          - kind: multiline_comment
+                - follows:
+                    stopBy: neighbor
+                    all:
+                    - any:
+                      - kind: line_comment
+                      - kind: multiline_comment
+                    - not:
+                        follows:
+                          stopBy: neighbor
+                          any:
+                          - any:
+                            - kind: line_comment
+                            - kind: multiline_comment
+                          - not:
+                              any:
+                              - kind: line_comment
+                              - kind: multiline_comment
+min_engine: 0.39.0
+---
+# provider-stripe: an import of stripe's SDK (the practice's providers table). Evidence: the pass needs a verified
+# items-sdk handler for stripe (Q6).
+id: inbound-webhooks-verified.kotlin-spring.provider-stripe
+practice_id: inbound-webhooks-verified
+language: kotlin
+frameworks:
+- spring
+kind: evidence
+rule:
+  kind: import_header
+  regex: ^import\s+(static\s+)?(com\.stripe)\.
+min_engine: 0.39.0
+---
+# verified-stripe: an items-sdk handler (the same match, so the same path and line) whose control calls stripe's own
+# verify call; an instance call counts only beside a literal naming one of stripe's headers. Evidence: with the SDK
+# control, it shows stripe verified for the pass (Q6).
+id: inbound-webhooks-verified.kotlin-spring.verified-stripe
+practice_id: inbound-webhooks-verified
+language: kotlin
+frameworks:
+- spring
+kind: evidence
+rule:
+  all:
+  - all:
+    - kind: function_declaration
+      has:
+        kind: modifiers
+        has:
+          kind: annotation
+          regex: ^@(Get|Post|Put|Patch|Delete|Request)Mapping\b
+    - any:
+      - has:
+          stopBy: end
+          kind: string_literal
+          regex: (?i)^"(stripe-signature|x-twilio-signature|svix-signature|x-hub-signature-256|x-hub-signature|webhook-signature)"$
+      - has:
+          stopBy: end
+          any:
+          - kind: call_expression
+            regex: ^([\w.]+\.)?(constructEvent)\s*\(
+    - not:
+        has:
+          stopBy: end
+          kind: call_expression
+          regex: ^Mac\.getInstance\(
+  - any:
+    - has:
+        stopBy: end
+        any:
+        - all:
+          - all:
+            - any:
+              - any:
+                - kind: call_expression
+                  regex: ^([\w.]+\.)?(constructEvent)\s*\(
+            - not:
+                any:
+                - inside:
+                    stopBy: end
+                    kind: statements
+                    inside:
+                      kind: try_expression
+                      has:
+                        kind: catch_block
+                        not:
+                          has:
+                            kind: statements
+                            has:
+                              any:
+                              - kind: jump_expression
+                                regex: ^(throw\b|return($|[^@\w]))
+                - inside:
+                    stopBy: end
+                    kind: call_expression
+                    regex: ^([\w.]+\.)?runCatching\s*\{
+          - not:
+              inside:
+                stopBy: end
+                any:
+                - kind: anonymous_function
+                - kind: lambda_literal
+                  not:
+                    inside:
+                      kind: annotated_lambda
+                      inside:
+                        kind: call_suffix
+                        inside:
+                          kind: call_expression
+                          has:
+                            any:
+                            - kind: navigation_expression
+                              regex: ^([^?]*\.\s*(let|also|apply|use)|this\s*\.\s*run)$
+                            - kind: simple_identifier
+                              regex: ^(run|with)$
+                - kind: function_declaration
+                  inside:
+                    stopBy: end
+                    kind: function_declaration
+min_engine: 0.39.0
+---
+# provider-twilio: an import of twilio's SDK (the practice's providers table). Evidence: the pass needs a verified
+# items-sdk handler for twilio (Q6).
+id: inbound-webhooks-verified.kotlin-spring.provider-twilio
+practice_id: inbound-webhooks-verified
+language: kotlin
+frameworks:
+- spring
+kind: evidence
+rule:
+  kind: import_header
+  regex: ^import\s+(static\s+)?(com\.twilio)\.
+min_engine: 0.39.0
+---
+# verified-twilio: an items-sdk handler (the same match, so the same path and line) whose control calls twilio's own
+# verify call; an instance call counts only beside a literal naming one of twilio's headers. Evidence: with the SDK
+# control, it shows twilio verified for the pass (Q6).
+id: inbound-webhooks-verified.kotlin-spring.verified-twilio
+practice_id: inbound-webhooks-verified
+language: kotlin
+frameworks:
+- spring
+kind: evidence
+rule:
+  all:
+  - all:
+    - kind: function_declaration
+      has:
+        kind: modifiers
+        has:
+          kind: annotation
+          regex: ^@(Get|Post|Put|Patch|Delete|Request)Mapping\b
+    - any:
+      - has:
+          stopBy: end
+          kind: string_literal
+          regex: (?i)^"(stripe-signature|x-twilio-signature|svix-signature|x-hub-signature-256|x-hub-signature|webhook-signature)"$
+      - has:
+          stopBy: end
+          any:
+          - kind: call_expression
+            regex: ^([\w.]+\.)?(constructEvent)\s*\(
+    - not:
+        has:
+          stopBy: end
+          kind: call_expression
+          regex: ^Mac\.getInstance\(
+  - any:
+    - all:
+      - has:
+          stopBy: end
+          any:
+          - all:
+            - all:
+              - any:
+                - all:
+                  - any:
+                    - kind: call_expression
+                      regex: (?i)^\w*(wh|webhooks?|svix|hook|validator)\w*\.(validate)\s*\(
+                  - inside:
+                      stopBy: end
+                      kind: source_file
+                      has:
+                        stopBy: end
+                        kind: import_header
+                        regex: ^import\s+(static\s+)?(com\.twilio)\.
+              - any:
+                - inside:
+                    stopBy: end
+                    kind: prefix_expression
+                    regex: ^!
+                    inside:
+                      kind: if_expression
+                      has:
+                        kind: control_structure_body
+                        any:
+                        - has:
+                            any:
+                            - kind: jump_expression
+                              regex: ^(throw\b|return($|[^@\w]))
+                        - has:
+                            kind: statements
+                            has:
+                              any:
+                              - kind: jump_expression
+                                regex: ^(throw\b|return($|[^@\w]))
+                - all:
+                  - inside:
+                      any:
+                      - kind: property_declaration
+                      - kind: assignment
+                  - any:
+                    - inside:
+                        stopBy: end
+                        kind: property_declaration
+                        pattern: val $OK = $V
+                        precedes:
+                          kind: if_expression
+                          has:
+                            kind: control_structure_body
+                            any:
+                            - has:
+                                any:
+                                - kind: jump_expression
+                                  regex: ^(throw\b|return($|[^@\w]))
+                            - has:
+                                kind: statements
+                                has:
+                                  any:
+                                  - kind: jump_expression
+                                    regex: ^(throw\b|return($|[^@\w]))
+                          all:
+                          - has:
+                              kind: prefix_expression
+                              pattern: '!$OK'
+                    - inside:
+                        stopBy: end
+                        kind: property_declaration
+                        pattern: var $OK = $V
+                        precedes:
+                          kind: if_expression
+                          has:
+                            kind: control_structure_body
+                            any:
+                            - has:
+                                any:
+                                - kind: jump_expression
+                                  regex: ^(throw\b|return($|[^@\w]))
+                            - has:
+                                kind: statements
+                                has:
+                                  any:
+                                  - kind: jump_expression
+                                    regex: ^(throw\b|return($|[^@\w]))
+                          all:
+                          - has:
+                              kind: prefix_expression
+                              pattern: '!$OK'
+                    - inside:
+                        stopBy: end
+                        kind: assignment
+                        pattern: $OK = $V
+                        precedes:
+                          kind: if_expression
+                          has:
+                            kind: control_structure_body
+                            any:
+                            - has:
+                                any:
+                                - kind: jump_expression
+                                  regex: ^(throw\b|return($|[^@\w]))
+                            - has:
+                                kind: statements
+                                has:
+                                  any:
+                                  - kind: jump_expression
+                                    regex: ^(throw\b|return($|[^@\w]))
+                          all:
+                          - has:
+                              kind: prefix_expression
+                              pattern: '!$OK'
+            - not:
+                inside:
+                  stopBy: end
+                  any:
+                  - kind: anonymous_function
+                  - kind: lambda_literal
+                    not:
+                      inside:
+                        kind: annotated_lambda
+                        inside:
+                          kind: call_suffix
+                          inside:
+                            kind: call_expression
+                            has:
+                              any:
+                              - kind: navigation_expression
+                                regex: ^([^?]*\.\s*(let|also|apply|use)|this\s*\.\s*run)$
+                              - kind: simple_identifier
+                                regex: ^(run|with)$
+                  - kind: function_declaration
+                    inside:
+                      stopBy: end
+                      kind: function_declaration
+      - has:
+          stopBy: end
+          any:
+          - kind: string_literal
+            regex: (?i)(X-Twilio-Signature)
+min_engine: 0.39.0
+---
+# provider-svix: an import of svix's SDK (the practice's providers table). Evidence: the pass needs a verified
+# items-sdk handler for svix (Q6).
+id: inbound-webhooks-verified.kotlin-spring.provider-svix
+practice_id: inbound-webhooks-verified
+language: kotlin
+frameworks:
+- spring
+kind: evidence
+rule:
+  kind: import_header
+  regex: ^import\s+(static\s+)?(com\.svix)\.
+min_engine: 0.39.0
+---
+# verified-svix: an items-sdk handler (the same match, so the same path and line) whose control calls svix's own
+# verify call; an instance call counts only beside a literal naming one of svix's headers. Evidence: with the SDK
+# control, it shows svix verified for the pass (Q6).
+id: inbound-webhooks-verified.kotlin-spring.verified-svix
+practice_id: inbound-webhooks-verified
+language: kotlin
+frameworks:
+- spring
+kind: evidence
+rule:
+  all:
+  - all:
+    - kind: function_declaration
+      has:
+        kind: modifiers
+        has:
+          kind: annotation
+          regex: ^@(Get|Post|Put|Patch|Delete|Request)Mapping\b
+    - any:
+      - has:
+          stopBy: end
+          kind: string_literal
+          regex: (?i)^"(stripe-signature|x-twilio-signature|svix-signature|x-hub-signature-256|x-hub-signature|webhook-signature)"$
+      - has:
+          stopBy: end
+          any:
+          - kind: call_expression
+            regex: ^([\w.]+\.)?(constructEvent)\s*\(
+    - not:
+        has:
+          stopBy: end
+          kind: call_expression
+          regex: ^Mac\.getInstance\(
+  - any:
+    - all:
+      - has:
+          stopBy: end
+          any:
+          - all:
+            - all:
+              - any:
+                - all:
+                  - any:
+                    - kind: call_expression
+                      regex: (?i)^\w*(wh|webhooks?|svix|hook|validator)\w*\.(verify|verify)\s*\(
+                  - inside:
+                      stopBy: end
+                      kind: source_file
+                      has:
+                        stopBy: end
+                        kind: import_header
+                        regex: ^import\s+(static\s+)?(com\.svix|com\.svix)\.
+              - not:
+                  any:
+                  - inside:
+                      stopBy: end
+                      kind: statements
+                      inside:
+                        kind: try_expression
+                        has:
+                          kind: catch_block
+                          not:
+                            has:
+                              kind: statements
+                              has:
+                                any:
+                                - kind: jump_expression
+                                  regex: ^(throw\b|return($|[^@\w]))
+                  - inside:
+                      stopBy: end
+                      kind: call_expression
+                      regex: ^([\w.]+\.)?runCatching\s*\{
+            - not:
+                inside:
+                  stopBy: end
+                  any:
+                  - kind: anonymous_function
+                  - kind: lambda_literal
+                    not:
+                      inside:
+                        kind: annotated_lambda
+                        inside:
+                          kind: call_suffix
+                          inside:
+                            kind: call_expression
+                            has:
+                              any:
+                              - kind: navigation_expression
+                                regex: ^([^?]*\.\s*(let|also|apply|use)|this\s*\.\s*run)$
+                              - kind: simple_identifier
+                                regex: ^(run|with)$
+                  - kind: function_declaration
+                    inside:
+                      stopBy: end
+                      kind: function_declaration
+      - has:
+          stopBy: end
+          any:
+          - kind: string_literal
+            regex: (?i)(svix-signature)
+min_engine: 0.39.0
+---
+# provider-plaid: an import of plaid's SDK (the practice's providers table). Evidence: the pass needs a verified
+# items-sdk handler for plaid (Q6).
+id: inbound-webhooks-verified.kotlin-spring.provider-plaid
+practice_id: inbound-webhooks-verified
+language: kotlin
+frameworks:
+- spring
+kind: evidence
+rule:
+  kind: import_header
+  regex: ^import\s+(static\s+)?(com\.plaid)\.
+min_engine: 0.39.0

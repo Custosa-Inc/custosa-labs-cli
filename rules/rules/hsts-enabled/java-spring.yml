@@ -1,0 +1,88 @@
+# hsts-enabled (T23 B56b). Written by scripts/gen_hsts_rules.py: edit that script,
+# never this file. The practice function reads the pieces by name: header-<form> and redirect-<form> (NAMING.md).
+
+# redirect-spring: requiresChannel(c -> c.anyRequest().requiresSecure()) in a @Bean method returning
+# SecurityFilterChain with no securityMatcher, in a file with no requiresInsecure and no anyChannel. Evidence: the
+# redirect piece, when filter-chain matches exactly once.
+id: hsts-enabled.java-spring.redirect-spring
+practice_id: hsts-enabled
+language: java
+frameworks:
+- spring
+kind: evidence
+rule:
+  kind: method_invocation
+  all:
+  - has:
+      field: name
+      kind: identifier
+      regex: ^requiresChannel$
+  - has:
+      field: arguments
+      kind: argument_list
+      regex: ^\(\s*\w+\s*->\s*\w+\s*\.\s*anyRequest\(\s*\)\s*\.\s*requiresSecure\(\s*\)\s*\)$
+  - inside:
+      stopBy: end
+      kind: method_declaration
+      all:
+      - has:
+          kind: modifiers
+          has:
+            kind: marker_annotation
+            regex: ^@Bean$
+      - has:
+          field: type
+          kind: type_identifier
+          regex: ^SecurityFilterChain$
+      not:
+        has:
+          stopBy: end
+          kind: method_invocation
+          has:
+            field: name
+            kind: identifier
+            regex: ^securityMatchers?$
+  - not:
+      inside:
+        stopBy: end
+        kind: program
+        regex: \b(requiresInsecure|anyChannel)\b
+min_engine: 0.45.3
+---
+# filter-chain: a @Bean method returning SecurityFilterChain, one match per method. Evidence the function counts: the
+# Spring redirect piece needs exactly one.
+id: hsts-enabled.java-spring.filter-chain
+practice_id: hsts-enabled
+language: java
+frameworks:
+- spring
+kind: evidence
+rule:
+  kind: method_declaration
+  all:
+  - has:
+      kind: modifiers
+      has:
+        kind: marker_annotation
+        regex: ^@Bean$
+  - has:
+      field: type
+      kind: type_identifier
+      regex: ^SecurityFilterChain$
+min_engine: 0.45.3
+---
+# app-construction: a call that makes an app: in JS and TS express(), require('express')(), new Koa(), new Hono(), new
+# Elysia(), fastify(), NestFactory.create, polka(), feathers(), createApp() from h3, connect() from connect; in Go
+# gin.Default(), gin.New(), echo.New(), fiber.New(), chi.NewRouter(), mux.NewRouter(), http.NewServeMux(); in Java
+# SpringApplication.run(...); in PHP Application::configure, new Illuminate\Foundation\Application,
+# AppFactory::create() and each class extending a Kernel. Evidence the function counts.
+id: hsts-enabled.java-spring.app-construction
+practice_id: hsts-enabled
+language: java
+frameworks:
+- spring
+kind: evidence
+rule:
+  kind: method_invocation
+  regex: ^SpringApplication\s*\.\s*run\s*\(
+min_engine: 0.45.3

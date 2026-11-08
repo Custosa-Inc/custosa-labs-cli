@@ -1,0 +1,5 @@
+{
+ "name": "projects/clinic-project/locations/global/buckets/_Default",
+ "retentionDays": 30,
+ "lifecycleState": "ACTIVE"
+}

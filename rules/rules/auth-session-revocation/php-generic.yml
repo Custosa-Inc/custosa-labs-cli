@@ -1,0 +1,31 @@
+id: auth-session-revocation.php-generic.signout-server
+practice_id: auth-session-revocation
+language: php
+frameworks:
+- generic
+kind: evidence
+rule:
+  any:
+  - kind: member_call_expression
+    regex: ^(Auth::logout\(\)|auth\(\)->logout\(\)|\$request->session\(\)->invalidate\(\)|session_destroy\(\)|\$\w+->currentAccessToken\(\)->delete\(\)|SessionUtil::\w*(destroy|logout)\w*\()
+  - kind: scoped_call_expression
+    regex: ^(Auth::logout\(\)|auth\(\)->logout\(\)|\$request->session\(\)->invalidate\(\)|session_destroy\(\)|\$\w+->currentAccessToken\(\)->delete\(\)|SessionUtil::\w*(destroy|logout)\w*\()
+  - kind: function_call_expression
+    regex: ^(Auth::logout\(\)|auth\(\)->logout\(\)|\$request->session\(\)->invalidate\(\)|session_destroy\(\)|\$\w+->currentAccessToken\(\)->delete\(\)|SessionUtil::\w*(destroy|logout)\w*\()
+min_engine: 0.39.0
+---
+id: auth-session-revocation.php-generic.revoke-all
+practice_id: auth-session-revocation
+language: php
+frameworks:
+- generic
+kind: evidence
+rule:
+  any:
+  - kind: member_call_expression
+    regex: ^(\$\w+->tokens\(\)->delete\(\)|\$\w+->sessions\(\)->delete\(\)|DB::table\(['\"](sessions|personal_access_tokens|oauth_access_tokens)['\"]\)->where\(['\"](user_id|tokenable_id)['\"]\s*,\s*\$\w+\)->(delete|update)\([^)]*\))$
+  - kind: scoped_call_expression
+    regex: ^(\$\w+->tokens\(\)->delete\(\)|\$\w+->sessions\(\)->delete\(\)|DB::table\(['\"](sessions|personal_access_tokens|oauth_access_tokens)['\"]\)->where\(['\"](user_id|tokenable_id)['\"]\s*,\s*\$\w+\)->(delete|update)\([^)]*\))$
+  - kind: function_call_expression
+    regex: ^(\$\w+->tokens\(\)->delete\(\)|\$\w+->sessions\(\)->delete\(\)|DB::table\(['\"](sessions|personal_access_tokens|oauth_access_tokens)['\"]\)->where\(['\"](user_id|tokenable_id)['\"]\s*,\s*\$\w+\)->(delete|update)\([^)]*\))$
+min_engine: 0.39.0

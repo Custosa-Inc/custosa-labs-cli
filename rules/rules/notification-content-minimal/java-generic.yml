@@ -1,0 +1,286 @@
+# Patient values in push, email and SMS content (T23 B56d). Written by
+# scripts/gen_notification_rules.py: don't edit. The practice is capped at needs_review.
+id: notification-content-minimal.java-generic.send
+practice_id: notification-content-minimal
+language: java
+frameworks:
+- generic
+kind: evidence
+rule:
+  any:
+  - kind: method_invocation
+    any:
+    - all:
+      - has:
+          field: name
+          kind: identifier
+          regex: ^(setText|setSubject)$
+      - has:
+          field: object
+          any:
+          - kind: identifier
+            regex: (?i)(helper|message|mail|msg|email)\w*$
+          - kind: field_access
+            regex: (?i)(helper|message|mail|msg|email)\w*$
+    - all:
+      - has:
+          field: name
+          kind: identifier
+          regex: ^(setTitle|setBody)$
+      - has:
+          field: object
+          kind: method_invocation
+          regex: Notification\s*\.\s*builder\s*\(\s*\)
+    - has:
+        field: name
+        kind: identifier
+        regex: ^(setContentTitle|setContentText)$
+    - all:
+      - has:
+          field: name
+          kind: identifier
+          regex: ^creator$
+      - has:
+          field: object
+          kind: identifier
+          regex: ^Message$
+    - all:
+      - has:
+          field: name
+          kind: identifier
+          regex: ^(setText|setSubject)$
+      - inside:
+          stopBy: end
+          kind: method_declaration
+          has:
+            stopBy: end
+            kind: type_identifier
+            regex: ^SimpleMailMessage$
+  - kind: method_invocation
+    all:
+    - has:
+        field: name
+        kind: identifier
+        regex: ^(send|sendEach|sendMulticast|sendAsync)$
+    - has:
+        field: object
+        kind: method_invocation
+        regex: FirebaseMessaging\s*\.\s*getInstance\b
+  - kind: method_invocation
+    all:
+    - has:
+        field: name
+        kind: identifier
+        regex: ^send$
+    - has:
+        field: object
+        any:
+        - kind: identifier
+          regex: (?i)mail_?sender$
+        - kind: field_access
+          regex: (?i)mail_?sender$
+min_engine: 0.39.0
+---
+id: notification-content-minimal.java-generic.clinical-interpolated
+practice_id: notification-content-minimal
+language: java
+frameworks:
+- generic
+kind: violation
+rule:
+  any:
+  - any:
+    - kind: binary_expression
+      regex: \+
+      all:
+      - has:
+          any:
+          - kind: string_literal
+          - kind: binary_expression
+      - has:
+          stopBy: end
+          kind: identifier
+          regex: ^(?i:\w*(diagnos|condition|medication|prescription|dosage|lab_?results?|test_?results?|results?_?value|reason_?for_?visit|appointment_?reason|visit_?reason|procedure|medical_?record_?number|date_?of_?birth)\w*|(get_?)?(mrn|dob|ssn))$
+    - kind: method_invocation
+      regex: ^(String\s*\.\s*format\s*\(|\"[\s\S]*\"\s*\.\s*formatted\s*\()
+      has:
+        field: arguments
+        has:
+          stopBy: end
+          kind: identifier
+          regex: ^(?i:\w*(diagnos|condition|medication|prescription|dosage|lab_?results?|test_?results?|results?_?value|reason_?for_?visit|appointment_?reason|visit_?reason|procedure|medical_?record_?number|date_?of_?birth)\w*|(get_?)?(mrn|dob|ssn))$
+    inside:
+      stopBy: end
+      kind: argument_list
+      inside: &id001
+        kind: method_invocation
+        any:
+        - all:
+          - has:
+              field: name
+              kind: identifier
+              regex: ^(setText|setSubject)$
+          - has:
+              field: object
+              any:
+              - kind: identifier
+                regex: (?i)(helper|message|mail|msg|email)\w*$
+              - kind: field_access
+                regex: (?i)(helper|message|mail|msg|email)\w*$
+        - all:
+          - has:
+              field: name
+              kind: identifier
+              regex: ^(setTitle|setBody)$
+          - has:
+              field: object
+              kind: method_invocation
+              regex: Notification\s*\.\s*builder\s*\(\s*\)
+        - has:
+            field: name
+            kind: identifier
+            regex: ^(setContentTitle|setContentText)$
+        - all:
+          - has:
+              field: name
+              kind: identifier
+              regex: ^creator$
+          - has:
+              field: object
+              kind: identifier
+              regex: ^Message$
+        - all:
+          - has:
+              field: name
+              kind: identifier
+              regex: ^(setText|setSubject)$
+          - inside:
+              stopBy: end
+              kind: method_declaration
+              has:
+                stopBy: end
+                kind: type_identifier
+                regex: ^SimpleMailMessage$
+  - any:
+    - kind: method_invocation
+      has:
+        field: name
+        kind: identifier
+        regex: ^(?i:\w*(diagnos|condition|medication|prescription|dosage|lab_?results?|test_?results?|results?_?value|reason_?for_?visit|appointment_?reason|visit_?reason|procedure|medical_?record_?number|date_?of_?birth)\w*|(get_?)?(mrn|dob|ssn))$
+    - kind: field_access
+      has:
+        field: field
+        kind: identifier
+        regex: ^(?i:\w*(diagnos|condition|medication|prescription|dosage|lab_?results?|test_?results?|results?_?value|reason_?for_?visit|appointment_?reason|visit_?reason|procedure|medical_?record_?number|date_?of_?birth)\w*|(get_?)?(mrn|dob|ssn))$
+    - kind: identifier
+      regex: ^(?i:\w*(diagnos|condition|medication|prescription|dosage|lab_?results?|test_?results?|results?_?value|reason_?for_?visit|appointment_?reason|visit_?reason|procedure|medical_?record_?number|date_?of_?birth)\w*|(get_?)?(mrn|dob|ssn))$
+    inside:
+      kind: argument_list
+      inside: *id001
+min_engine: 0.39.0
+---
+id: notification-content-minimal.java-generic.identifying-interpolated
+practice_id: notification-content-minimal
+language: java
+frameworks:
+- generic
+kind: evidence
+rule:
+  any:
+  - any:
+    - kind: binary_expression
+      regex: \+
+      all:
+      - has:
+          any:
+          - kind: string_literal
+          - kind: binary_expression
+      - has:
+          stopBy: end
+          any: &id001
+          - kind: identifier
+            regex: ^(?i:(get)?(first|last|full|given|family|middle|display|preferred)_?name)$
+          - kind: field_access
+            regex: ^(?i:([\w$]+\s*\.\s*)*(patient|user|member|recipient|person|client|customer)\s*\.\s*(getName\s*\(\s*\)|name))$
+          - kind: method_invocation
+            regex: ^(?i:([\w$]+\s*\.\s*)*(patient|user|member|recipient|person|client|customer)\s*\.\s*(getName\s*\(\s*\)|name))$
+    - kind: method_invocation
+      regex: ^(String\s*\.\s*format\s*\(|\"[\s\S]*\"\s*\.\s*formatted\s*\()
+      has:
+        field: arguments
+        has:
+          stopBy: end
+          any: *id001
+    inside:
+      stopBy: end
+      kind: argument_list
+      inside: &id002
+        kind: method_invocation
+        any:
+        - all:
+          - has:
+              field: name
+              kind: identifier
+              regex: ^(setText|setSubject)$
+          - has:
+              field: object
+              any:
+              - kind: identifier
+                regex: (?i)(helper|message|mail|msg|email)\w*$
+              - kind: field_access
+                regex: (?i)(helper|message|mail|msg|email)\w*$
+        - all:
+          - has:
+              field: name
+              kind: identifier
+              regex: ^(setTitle|setBody)$
+          - has:
+              field: object
+              kind: method_invocation
+              regex: Notification\s*\.\s*builder\s*\(\s*\)
+        - has:
+            field: name
+            kind: identifier
+            regex: ^(setContentTitle|setContentText)$
+        - all:
+          - has:
+              field: name
+              kind: identifier
+              regex: ^creator$
+          - has:
+              field: object
+              kind: identifier
+              regex: ^Message$
+        - all:
+          - has:
+              field: name
+              kind: identifier
+              regex: ^(setText|setSubject)$
+          - inside:
+              stopBy: end
+              kind: method_declaration
+              has:
+                stopBy: end
+                kind: type_identifier
+                regex: ^SimpleMailMessage$
+  - any:
+    - kind: method_invocation
+      has:
+        field: name
+        kind: identifier
+        regex: ^(?i:(get)?(first|last|full|given|family|middle|display|preferred)_?name)$
+    - kind: field_access
+      has:
+        field: field
+        kind: identifier
+        regex: ^(?i:(get)?(first|last|full|given|family|middle|display|preferred)_?name)$
+    - kind: identifier
+      regex: ^(?i:(get)?(first|last|full|given|family|middle|display|preferred)_?name)$
+    - kind: field_access
+      regex: ^(?i:([\w$]+\s*\.\s*)*(patient|user|member|recipient|person|client|customer)\s*\.\s*(getName\s*\(\s*\)|name))$
+    - kind: method_invocation
+      regex: ^(?i:([\w$]+\s*\.\s*)*(patient|user|member|recipient|person|client|customer)\s*\.\s*(getName\s*\(\s*\)|name))$
+    inside:
+      kind: argument_list
+      inside: *id002
+min_engine: 0.39.0

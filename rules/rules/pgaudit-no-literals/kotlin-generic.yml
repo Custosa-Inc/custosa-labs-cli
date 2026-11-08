@@ -1,0 +1,73 @@
+# Values built into SQL text, which pgAudit logs (T23 B56d). Written by
+# scripts/gen_pgaudit_rules.py: don't edit. The practice is capped at needs_review.
+id: pgaudit-no-literals.kotlin-generic.string-built-sql
+practice_id: pgaudit-no-literals
+language: kotlin
+frameworks:
+- generic
+kind: violation
+rule:
+  kind: call_expression
+  all:
+  - has:
+      any:
+      - kind: simple_identifier
+        regex: ^(executeQuery|executeUpdate|execute|addBatch|query|update|queryForObject|queryForList|queryForMap|createNativeQuery|createQuery|prepareStatement|exec)$
+      - kind: navigation_expression
+        regex: \.\s*(executeQuery|executeUpdate|execute|addBatch|query|update|queryForObject|queryForList|queryForMap|createNativeQuery|createQuery|prepareStatement|exec)$
+  - has:
+      kind: call_suffix
+      has:
+        kind: value_arguments
+        has:
+          kind: value_argument
+          has:
+            any:
+            - kind: string_literal
+              regex: (?is)((((=|<|>|\bI?LIKE\b|\bIN\b|\bANY\b|\bALL\b|\bBETWEEN\b|\bBETWEEN\s+\S+\s+AND\b|\bIS\b|\bTHEN\b|\bELSE\b|\bVALUES\b|\|\||&&|@>|<@|@@|~\*?|\bSIMILAR\s+TO\b|\bDISTINCT\s+FROM\b|\$\w*\$|\b(btrim|ltrim|rtrim|nullif|greatest|least|cast|concat|concat_ws|md5|digest|hmac|crypt|encode|decode|to_char|to_date|to_timestamp|to_number|date_trunc|date_part|extract|position|substr|substring|replace|strpos|left|right|lpad|rpad|format|similarity|word_similarity|strict_word_similarity|levenshtein|soundex|metaphone|pgp_sym_encrypt|pgp_sym_decrypt|to_tsquery|plainto_tsquery|phraseto_tsquery|websearch_to_tsquery|json_build_object|jsonb_build_object)\s*\(|\b(lower|upper|trim|coalesce)\s*\(([^(),]|\([^()]*\))*,)|\b(WHERE|AND|OR|NOT|ON|HAVING|WHEN|SET)\s*(\(|\[|\bARRAY\s*\[|\bROW\s*\(|[\w.]*\w\s*\(|E?'))(\s|\(|\[|,|::\w+|\bARRAY\s*\[|\bROW\s*\(|[\w.]*\w\s*\(|[\w.]+\s*,|'[^']*'\s*,|\b(year|month|day|hour|minute|second|epoch|dow|doy|week|quarter|isodow|isoyear|century|decade|millennium|milliseconds|microseconds|timezone)\s+FROM\s+)*(E'[^']*)?|\bVALUES\s*\([^)]*|\bINSERT\s+INTO\b[^;]*\bSELECT\s+([^;]*,)?|(=|<|>|\(|,|\|\||\w\s)\s*'[^']*|')\s*'?\s*\$|(\b(lower|upper|trim|coalesce)\s*\(\s*)+\$(\{\s*(\b(\w*[^\WlLnNdD]|d|\w*[^\WlL]d|ld|\w*[^\WeE]ld|eld|\w*[^\WiI]eld|ield|\w*[^\WfF]ield|\w+field|l|\w*[^\WoO]l|ol|\w*[^\WcC]ol|\w*[^\W_]col|n|\w*[^\WmM]n|mn|\w*[^\WuU]mn|umn|\w*[^\WlL]umn|lumn|\w*[^\WoO]lumn|olumn|\w*[^\WcC]olumn|\w*[^\W_]column)\b|\w+\s*[^\w\s}]|[^\w\s{])|\b(\w*[^\WlLnNdD]|d|\w*[^\WlL]d|ld|\w*[^\WeE]ld|eld|\w*[^\WiI]eld|ield|\w*[^\WfF]ield|\w+field|l|\w*[^\WoO]l|ol|\w*[^\WcC]ol|\w*[^\W_]col|n|\w*[^\WmM]n|mn|\w*[^\WuU]mn|umn|\w*[^\WlL]umn|lumn|\w*[^\WoO]lumn|olumn|\w*[^\WcC]olumn|\w*[^\W_]column)\b))
+              has:
+                any:
+                - kind: interpolated_identifier
+                  not:
+                    regex: ^[A-Z][A-Z0-9_]*$
+                    kind: interpolated_identifier
+                - kind: interpolated_expression
+                  has:
+                    stopBy: end
+                    any: &id001
+                    - kind: simple_identifier
+                      not:
+                        regex: ^[A-Z][A-Z0-9_]*$
+                        kind: simple_identifier
+              not:
+                kind: string_literal
+                regex: (?is)^[\w.$]*\(?\s*[fFrRbBuU]*[\"'`]{1,3}\s*(CREATE|ALTER|DROP|COMMENT|GRANT|REVOKE|REINDEX|VACUUM|ANALYZE|TRUNCATE|REFRESH|CLUSTER)\b
+                not:
+                  kind: string_literal
+                  regex: (?is)\bAS\s*\(?\s*(SELECT|WITH|VALUES)\b|;\s*(INSERT|UPDATE|DELETE|SELECT|WITH|MERGE)\b|\bINSERT\s+INTO\b|\bDELETE\s+FROM\b|\bUPDATE\s+\S+\s+SET\b
+            - kind: additive_expression
+              regex: (?is)((((=|<|>|\bI?LIKE\b|\bIN\b|\bANY\b|\bALL\b|\bBETWEEN\b|\bBETWEEN\s+\S+\s+AND\b|\bIS\b|\bTHEN\b|\bELSE\b|\bVALUES\b|\|\||&&|@>|<@|@@|~\*?|\bSIMILAR\s+TO\b|\bDISTINCT\s+FROM\b|\$\w*\$|\b(btrim|ltrim|rtrim|nullif|greatest|least|cast|concat|concat_ws|md5|digest|hmac|crypt|encode|decode|to_char|to_date|to_timestamp|to_number|date_trunc|date_part|extract|position|substr|substring|replace|strpos|left|right|lpad|rpad|format|similarity|word_similarity|strict_word_similarity|levenshtein|soundex|metaphone|pgp_sym_encrypt|pgp_sym_decrypt|to_tsquery|plainto_tsquery|phraseto_tsquery|websearch_to_tsquery|json_build_object|jsonb_build_object)\s*\(|\b(lower|upper|trim|coalesce)\s*\(([^(),]|\([^()]*\))*,)|\b(WHERE|AND|OR|NOT|ON|HAVING|WHEN|SET)\s*(\(|\[|\bARRAY\s*\[|\bROW\s*\(|[\w.]*\w\s*\(|E?'))(\s|\(|\[|,|::\w+|\bARRAY\s*\[|\bROW\s*\(|[\w.]*\w\s*\(|[\w.]+\s*,|'[^']*'\s*,|\b(year|month|day|hour|minute|second|epoch|dow|doy|week|quarter|isodow|isoyear|century|decade|millennium|milliseconds|microseconds|timezone)\s+FROM\s+)*(E'[^']*)?|\bVALUES\s*\([^)]*|\bINSERT\s+INTO\b[^;]*\bSELECT\s+([^;]*,)?|(=|<|>|\(|,|\|\||\w\s)\s*'[^']*|')\s*'?\s*\"\s*\+|(\b(lower|upper|trim|coalesce)\s*\(\s*)+\"\s*\+\s*(\b(\w*[^\WlLnNdD]|d|\w*[^\WlL]d|ld|\w*[^\WeE]ld|eld|\w*[^\WiI]eld|ield|\w*[^\WfF]ield|\w+field|l|\w*[^\WoO]l|ol|\w*[^\WcC]ol|\w*[^\W_]col|n|\w*[^\WmM]n|mn|\w*[^\WuU]mn|umn|\w*[^\WlL]umn|lumn|\w*[^\WoO]lumn|olumn|\w*[^\WcC]olumn|\w*[^\W_]column)\b|\w+\s*[.(\[]|[^\w\s]))
+              all:
+              - has:
+                  kind: string_literal
+              - has:
+                  stopBy: end
+                  any: *id001
+              not:
+                kind: additive_expression
+                regex: (?is)^[\w.$]*\(?\s*[fFrRbBuU]*[\"'`]{1,3}\s*(CREATE|ALTER|DROP|COMMENT|GRANT|REVOKE|REINDEX|VACUUM|ANALYZE|TRUNCATE|REFRESH|CLUSTER)\b
+                not:
+                  kind: additive_expression
+                  regex: (?is)\bAS\s*\(?\s*(SELECT|WITH|VALUES)\b|;\s*(INSERT|UPDATE|DELETE|SELECT|WITH|MERGE)\b|\bINSERT\s+INTO\b|\bDELETE\s+FROM\b|\bUPDATE\s+\S+\s+SET\b
+min_engine: 0.39.0
+---
+id: pgaudit-no-literals.kotlin-generic.alter-role-password
+practice_id: pgaudit-no-literals
+language: kotlin
+frameworks:
+- generic
+kind: violation
+rule:
+  kind: string_literal
+  regex: (?is)\bALTER\s+(ROLE|USER)\s+\S+\s+(WITH\s+)?(ENCRYPTED\s+)?PASSWORD\s+'[^']+'
+min_engine: 0.39.0

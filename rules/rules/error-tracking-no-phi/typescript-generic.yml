@@ -1,0 +1,282 @@
+id: error-tracking-no-phi.typescript-generic.sentry-init
+practice_id: error-tracking-no-phi
+language: typescript
+frameworks:
+- generic
+kind: items
+rule:
+  any:
+  - all:
+    - kind: call_expression
+    - has:
+        field: function
+        kind: member_expression
+        regex: '^Sentry\.init$'
+  - all:
+    - kind: call_expression
+    - has:
+        field: function
+        kind: identifier
+        regex: '^init$'
+    - inside:
+        stopBy: end
+        kind: program
+        has:
+          kind: import_statement
+          regex: '\binit\b[\s\S]*from\s+[''\x22]@sentry/'
+control:
+  all:
+  - kind: call_expression
+  - has:
+      field: arguments
+      kind: arguments
+      has:
+        kind: object
+        all:
+        - has:
+            any:
+            - kind: pair
+              all:
+              - has:
+                  field: key
+                  kind: property_identifier
+                  regex: '^beforeSend$'
+              - has:
+                  field: value
+                  any:
+                  - kind: arrow_function
+                  - kind: function_expression
+                  - kind: identifier
+                  - kind: member_expression
+                  not:
+                    any:
+                    - pattern: '($E1) => $E1'
+                    - pattern: '$E2 => $E2'
+                    - pattern: '($E3, $H3) => $E3'
+                    - pattern: 'function ($E4) { return $E4; }'
+                    - pattern: 'function ($E5, $H5) { return $E5; }'
+            - kind: method_definition
+              has:
+                field: name
+                kind: property_identifier
+                regex: '^beforeSend$'
+            - kind: shorthand_property_identifier
+              regex: '^beforeSend$'
+        - not:
+            has:
+              kind: spread_element
+  - not:
+      has:
+        stopBy: end
+        kind: pair
+        any:
+        - all:
+          - has:
+              field: key
+              kind: property_identifier
+              regex: '^(sendDefaultPii|includeLocalVariables)$'
+          - has:
+              field: value
+              any:
+              - &id001
+                kind: 'true'
+              - &id002
+                kind: unary_expression
+                regex: '(?-u)^!\s*(false|0)$'
+        - all:
+          - has:
+              field: key
+              kind: property_identifier
+              regex: '^(maskAllText|maskAllInputs|blockAllMedia)$'
+          - has:
+              field: value
+              any:
+              - kind: 'false'
+              - kind: unary_expression
+                regex: '(?-u)^!\s*(true|1)$'
+        - all:
+          - has:
+              field: key
+              kind: property_identifier
+              regex: '^(unmask|unblock)$'
+          - has:
+              field: value
+              kind: array
+              has:
+                kind: string
+        - all:
+          - has:
+              field: key
+              kind: property_identifier
+              regex: '^(userInfo|cookies|urlQueryParams|databaseQueryData|stackFrameVariables|genAIInputs|genAIOutputs|inputs|outputs|headers)$'
+          - has:
+              field: value
+              any:
+              - *id001
+              - *id002
+          - inside:
+              kind: object
+              inside:
+                kind: pair
+                has:
+                  field: key
+                  kind: property_identifier
+                  regex: '^(dataCollection|genAI)$'
+        - all:
+          - has:
+              field: key
+              kind: property_identifier
+              regex: '^httpBodies$'
+          - has:
+              field: value
+              kind: array
+              has:
+                kind: string
+          - inside:
+              kind: object
+              inside:
+                kind: pair
+                has:
+                  field: key
+                  kind: property_identifier
+                  regex: '^dataCollection$'
+min_engine: 0.45.3
+---
+id: error-tracking-no-phi.typescript-generic.pii-on
+practice_id: error-tracking-no-phi
+language: typescript
+frameworks:
+- generic
+kind: violation
+rule:
+  all:
+  - kind: pair
+  - any:
+    - all:
+      - has:
+          field: key
+          kind: property_identifier
+          regex: '^(sendDefaultPii|includeLocalVariables)$'
+      - has:
+          field: value
+          any:
+          - &id001
+            kind: 'true'
+          - &id002
+            kind: unary_expression
+            regex: '^!\s*(false|0)$'
+    - all:
+      - has:
+          field: key
+          kind: property_identifier
+          regex: '^(maskAllText|maskAllInputs|blockAllMedia)$'
+      - has:
+          field: value
+          any:
+          - kind: 'false'
+          - kind: unary_expression
+            regex: '^!\s*(true|1)$'
+    - all:
+      - has:
+          field: key
+          kind: property_identifier
+          regex: '^(unmask|unblock)$'
+      - has:
+          field: value
+          kind: array
+          has:
+            kind: string
+    - all:
+      - has:
+          field: key
+          kind: property_identifier
+          regex: '^(userInfo|cookies|urlQueryParams|databaseQueryData|stackFrameVariables|genAIInputs|genAIOutputs|inputs|outputs|headers)$'
+      - has:
+          field: value
+          any:
+          - *id001
+          - *id002
+      - inside:
+          kind: object
+          inside:
+            kind: pair
+            has:
+              field: key
+              kind: property_identifier
+              regex: '^(dataCollection|genAI)$'
+    - all:
+      - has:
+          field: key
+          kind: property_identifier
+          regex: '^httpBodies$'
+      - has:
+          field: value
+          kind: array
+          has:
+            kind: string
+      - inside:
+          kind: object
+          inside:
+            kind: pair
+            has:
+              field: key
+              kind: property_identifier
+              regex: '^dataCollection$'
+  - inside:
+      stopBy: end
+      any:
+      - any:
+        - all:
+          - kind: call_expression
+          - has:
+              field: function
+              kind: member_expression
+              regex: '^Sentry\.init$'
+        - all:
+          - kind: call_expression
+          - has:
+              field: function
+              kind: identifier
+              regex: '^init$'
+          - inside:
+              stopBy: end
+              kind: program
+              has:
+                kind: import_statement
+                regex: '\binit\b[\s\S]*from\s+[''\x22]@sentry/'
+      - all:
+        - kind: call_expression
+        - has:
+            field: function
+            any:
+            - kind: member_expression
+              regex: '^Sentry\.replayIntegration$'
+            - kind: identifier
+              regex: '^replayIntegration$'
+min_engine: 0.45.3
+---
+id: error-tracking-no-phi.typescript-generic.rum-privacy
+practice_id: error-tracking-no-phi
+language: typescript
+frameworks:
+- generic
+kind: violation
+rule:
+  all:
+  - kind: pair
+  - has:
+      field: key
+      kind: property_identifier
+      regex: '^defaultPrivacyLevel$'
+  - has:
+      field: value
+      kind: string
+      regex: '^[''"](allow|mask-user-input)[''"]$'
+  - inside:
+      stopBy: end
+      kind: call_expression
+      has:
+        field: function
+        kind: member_expression
+        regex: '^(datadogRum|DD_RUM)\.init$'
+min_engine: 0.45.3

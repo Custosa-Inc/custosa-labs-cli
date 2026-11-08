@@ -1,0 +1,14 @@
+id: access-audit-log.typescript-generic.audit-write
+practice_id: access-audit-log
+language: typescript
+frameworks: [generic]
+kind: evidence
+rule:
+  all:
+    - pattern: $DB.from($TABLE).insert($$$ROWS)
+    - regex: audit_log
+    - not:
+        inside:
+          kind: catch_clause
+          stopBy: end
+min_engine: 0.45.0

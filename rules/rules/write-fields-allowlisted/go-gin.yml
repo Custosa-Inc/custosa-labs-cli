@@ -1,0 +1,157 @@
+id: write-fields-allowlisted.go-gin.bind-into-model
+practice_id: write-fields-allowlisted
+language: go
+frameworks:
+- gin
+kind: violation
+rule:
+  all:
+  - kind: call_expression
+  - has:
+      field: function
+      kind: selector_expression
+      regex: \.(ShouldBindJSON|BindJSON|ShouldBind|Bind|ShouldBindWith|BindWith|ShouldBindBodyWith|Decode)$
+  - has:
+      field: arguments
+      has:
+        pattern:
+          context: func f() { g(&$V) }
+          selector: unary_expression
+        inside:
+          stopBy: end
+          any:
+          - kind: function_declaration
+          - kind: method_declaration
+          - kind: func_literal
+          has:
+            stopBy: end
+            any:
+            - all:
+              - pattern: var $V $P.$T
+              - has:
+                  stopBy: end
+                  kind: qualified_type
+                  regex: ^(models?|entit(y|ies)|domain|schema|db)\.
+            - all:
+              - pattern: $V := $P.$T{}
+              - has:
+                  stopBy: end
+                  kind: qualified_type
+                  regex: ^(models?|entit(y|ies)|domain|schema|db)\.
+            - all:
+              - pattern: $V := &$P.$T{}
+              - has:
+                  stopBy: end
+                  kind: qualified_type
+                  regex: ^(models?|entit(y|ies)|domain|schema|db)\.
+  - has:
+      field: arguments
+      has:
+        pattern:
+          context: func f() { g(&$V) }
+          selector: unary_expression
+        inside:
+          stopBy: end
+          any:
+          - kind: function_declaration
+          - kind: method_declaration
+          - kind: func_literal
+          has:
+            stopBy: end
+            kind: call_expression
+            all:
+            - has:
+                field: function
+                kind: selector_expression
+                regex: \.(Create|Save|Update|Updates|Upsert|Insert|Add|Register)\w*$
+            - has:
+                field: arguments
+                has:
+                  pattern:
+                    context: func f() { g(&$V) }
+                    selector: unary_expression
+min_engine: 0.39.0
+---
+id: write-fields-allowlisted.go-gin.denylist
+practice_id: write-fields-allowlisted
+language: go
+frameworks:
+- gin
+kind: violation
+rule:
+  any:
+  - all:
+    - kind: call_expression
+    - has:
+        field: function
+        kind: selector_expression
+        regex: \.Omit$
+  - all:
+    - kind: call_expression
+    - has:
+        field: function
+        kind: identifier
+        regex: ^delete$
+    - has:
+        field: arguments
+        has:
+          kind: identifier
+          regex: (?i)^(data|body|input|payload|values|updates|changes|fields|attrs|m)$
+    - has:
+        field: arguments
+        has:
+          kind: interpreted_string_literal
+min_engine: 0.39.0
+---
+id: write-fields-allowlisted.go-gin.identity-from-request
+practice_id: write-fields-allowlisted
+language: go
+frameworks:
+- gin
+kind: violation
+rule:
+  all:
+  - kind: keyed_element
+  - has:
+      kind: literal_element
+      regex: ^(UserID|UserId|OwnerID|OwnerId|TenantID|TenantId|OrgID|OrganizationID|AccountID|ClinicID|ProviderID|CreatedBy|UpdatedBy|AuthorID|Role|Roles|RoleID|IsAdmin|IsStaff|Permissions)$
+  - has:
+      kind: literal_element
+      has:
+        kind: selector_expression
+        regex: ^(req|request|body|input|payload|params|form|dto|data)\.\w+$
+min_engine: 0.39.0
+---
+id: write-fields-allowlisted.go-gin.identity-field
+practice_id: write-fields-allowlisted
+language: go
+frameworks:
+- gin
+kind: items
+rule:
+  all:
+  - kind: keyed_element
+  - has:
+      kind: literal_element
+      regex: ^(UserID|UserId|OwnerID|OwnerId|TenantID|TenantId|OrgID|OrganizationID|AccountID|ClinicID|ProviderID|CreatedBy|UpdatedBy|AuthorID|Role|Roles|RoleID|IsAdmin|IsStaff|Permissions)$
+  - inside:
+      stopBy: end
+      kind: composite_literal
+      has:
+        field: type
+        any:
+        - kind: qualified_type
+          regex: ^(models?|entit(y|ies)|domain|schema|db)\.
+        - kind: type_identifier
+control:
+  has:
+    kind: literal_element
+    has:
+      any:
+      - kind: call_expression
+        regex: ^(c\.(GetString|MustGet|Get|GetInt|GetUint)\(|ctx\.Value\(|r\.Context\(\)\.Value\(|claims\.|currentUser\.|user\.(ID|Id)$|session\.|auth\.|middleware\.)
+      - kind: selector_expression
+        regex: ^(c\.(GetString|MustGet|Get|GetInt|GetUint)\(|ctx\.Value\(|r\.Context\(\)\.Value\(|claims\.|currentUser\.|user\.(ID|Id)$|session\.|auth\.|middleware\.)
+      - kind: type_assertion_expression
+        regex: ^(c\.(GetString|MustGet|Get|GetInt|GetUint)\(|ctx\.Value\(|r\.Context\(\)\.Value\(|claims\.|currentUser\.|user\.(ID|Id)$|session\.|auth\.|middleware\.)
+min_engine: 0.39.0

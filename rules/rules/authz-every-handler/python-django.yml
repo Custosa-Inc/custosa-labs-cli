@@ -1,0 +1,136 @@
+# Django views that take a record from the URL, one item each: a function view (request, <url kwargs>) and a class
+# view or DRF method (get, post, put, patch, delete, retrieve, update, partial_update, destroy) with URL kwargs; a
+# function view answers with a response (helpers are left out). The control is the caller used inside it: request.user
+# (or self.request.user) as a filter's keyword, in a comparison or through a related manager (never only logged),
+# DRF's self.get_object() (it runs the object permissions), or a get_queryset in the class that uses request.user that
+# way. A decorator or mixin alone (login_required, LoginRequiredMixin) says the caller is signed in, never which
+# record, so it doesn't count.
+id: authz-every-handler.python-django.view
+practice_id: authz-every-handler
+language: python
+frameworks:
+- django
+kind: items
+rule:
+  kind: function_definition
+  all:
+  - has:
+      field: parameters
+      kind: parameters
+      regex: '^\(\s*request\s*,\s*\w'
+  - not:
+      inside:
+        kind: class_definition
+        stopBy: end
+  - not:
+      has:
+        field: name
+        kind: identifier
+        regex: ^_
+  - has:
+      stopBy: end
+      kind: return_statement
+      regex: '^return\s+(render|redirect|JsonResponse|HttpResponse\w*|Response|TemplateResponse|FileResponse|StreamingHttpResponse)\b'
+control:
+  any:
+  - has:
+      stopBy: end
+      any:
+      - kind: attribute
+        regex: '^(self\.)?request\.user(\.(id|pk|profile|tenant|tenant_id|organization))?$'
+        any:
+        - inside:
+            kind: keyword_argument
+        - inside:
+            kind: comparison_operator
+      - kind: attribute
+        regex: '^(self\.)?request\.user\.\w+\.(all|filter|get|exclude|create)$'
+  - has:
+      stopBy: end
+      pattern: self.get_object()
+  - inside:
+      kind: class_definition
+      stopBy: end
+      has:
+        stopBy: end
+        kind: function_definition
+        all:
+        - has:
+            field: name
+            kind: identifier
+            regex: '^get_queryset$'
+        - has:
+            stopBy: end
+            any:
+            - kind: attribute
+              regex: '^(self\.)?request\.user(\.(id|pk|profile|tenant|tenant_id|organization))?$'
+              any:
+              - inside:
+                  kind: keyword_argument
+              - inside:
+                  kind: comparison_operator
+            - kind: attribute
+              regex: '^(self\.)?request\.user\.\w+\.(all|filter|get|exclude|create)$'
+min_engine: 0.39.0
+---
+id: authz-every-handler.python-django.method
+practice_id: authz-every-handler
+language: python
+frameworks:
+- django
+kind: items
+rule:
+  kind: function_definition
+  all:
+  - has:
+      field: name
+      kind: identifier
+      regex: '^(get|post|put|patch|delete|retrieve|update|partial_update|destroy)$'
+  - has:
+      field: parameters
+      kind: parameters
+      regex: '^\(\s*self\s*,\s*request\s*,\s*\w'
+  - inside:
+      kind: class_definition
+      stopBy: end
+control:
+  any:
+  - has:
+      stopBy: end
+      any:
+      - kind: attribute
+        regex: '^(self\.)?request\.user(\.(id|pk|profile|tenant|tenant_id|organization))?$'
+        any:
+        - inside:
+            kind: keyword_argument
+        - inside:
+            kind: comparison_operator
+      - kind: attribute
+        regex: '^(self\.)?request\.user\.\w+\.(all|filter|get|exclude|create)$'
+  - has:
+      stopBy: end
+      pattern: self.get_object()
+  - inside:
+      kind: class_definition
+      stopBy: end
+      has:
+        stopBy: end
+        kind: function_definition
+        all:
+        - has:
+            field: name
+            kind: identifier
+            regex: '^get_queryset$'
+        - has:
+            stopBy: end
+            any:
+            - kind: attribute
+              regex: '^(self\.)?request\.user(\.(id|pk|profile|tenant|tenant_id|organization))?$'
+              any:
+              - inside:
+                  kind: keyword_argument
+              - inside:
+                  kind: comparison_operator
+            - kind: attribute
+              regex: '^(self\.)?request\.user\.\w+\.(all|filter|get|exclude|create)$'
+min_engine: 0.39.0

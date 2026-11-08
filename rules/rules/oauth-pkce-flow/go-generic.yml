@@ -1,0 +1,21 @@
+id: oauth-pkce-flow.go-generic.pkce-client
+practice_id: oauth-pkce-flow
+language: go
+frameworks:
+- generic
+kind: evidence
+rule:
+  kind: call_expression
+  regex: ^oauth2\.(S256ChallengeOption|VerifierOption)\(
+min_engine: 0.39.0
+---
+id: oauth-pkce-flow.go-generic.implicit-flow
+practice_id: oauth-pkce-flow
+language: go
+frameworks:
+- generic
+kind: violation
+rule:
+  kind: interpreted_string_literal
+  regex: '[?&]response_type=token\b'
+min_engine: 0.39.0

@@ -1,0 +1,266 @@
+id: auth-session-revocation.javascript-generic.signout-server
+practice_id: auth-session-revocation
+language: javascript
+frameworks:
+- generic
+kind: evidence
+rule:
+  all:
+  - not:
+      regex: ^(await\s+)?(this\.)?(?i:mock|fake|stub|spy)\w*\.
+      kind: call_expression
+  - any:
+    - all:
+      - pattern: $SB.auth.signOut($$$)
+      - regex: ^(\(\s*await\s+)?(this\.)?([A-Za-z0-9_]*[sS]upabase[A-Za-z0-9_]*|sb|create[A-Za-z]*Client\([^)]*\))\)?\.auth\.signOut\(
+    - all:
+      - pattern: $REQ.session.destroy($$$)
+      - regex: ^(req|request|ctx\.req|ctx)\.session\.destroy\(
+    - all:
+      - pattern: $REQ.logout($$$)
+      - regex: ^(req|request|ctx\.req)\.logout\(
+    - all:
+      - kind: call_expression
+      - has:
+          field: function
+          kind: member_expression
+          regex: \.(session|sessions|Session|userSession|refreshToken|refreshTokens|token|tokens)\.delete$
+      - has:
+          field: arguments
+          kind: arguments
+          regex: '^\(\s*\{\s*where\s*:'
+    - all:
+      - kind: call_expression
+      - has:
+          field: function
+          kind: member_expression
+          regex: \.(session|sessions|Session|userSession|refreshToken|refreshTokens)\.deleteMany$
+      - has:
+          field: arguments
+          kind: arguments
+          regex: \b(id|sessionId|session_id|token|tokenHash|jti)\s*[:,}]
+    - all:
+      - kind: call_expression
+      - has:
+          field: function
+          any:
+          - kind: member_expression
+            regex: \.(revokeToken|revokeRefreshToken|revokeSession|invalidateSession|destroySession)$
+          - kind: identifier
+            regex: ^(revokeToken|revokeRefreshToken|revokeSession|invalidateSession|destroySession)$
+min_engine: 0.39.0
+---
+id: auth-session-revocation.javascript-generic.revoke-all
+practice_id: auth-session-revocation
+language: javascript
+frameworks:
+- generic
+kind: evidence
+rule:
+  all:
+  - not:
+      regex: ^(await\s+)?(this\.)?(?i:mock|fake|stub|spy)\w*\.
+      kind: call_expression
+  - any:
+    - pattern: $SB.auth.admin.signOut($JWT, 'global')
+    - pattern: $SB.auth.admin.signOut($JWT, "global")
+    - all:
+      - pattern: $SB.auth.admin.updateUserById($ID, $ATTRS)
+      - has:
+          field: arguments
+          has:
+            kind: object
+            regex: ban_duration\s*:\s*['\"`](\d+(\.\d+)?(ns|us|ms|s|m|h))+['\"`]
+      - not:
+          has:
+            field: arguments
+            has:
+              kind: object
+              regex: ban_duration\s*:\s*['\"`](none|0+\w*)['\"`]
+    - all:
+      - kind: call_expression
+      - has:
+          field: function
+          kind: member_expression
+          regex: \.(session|sessions|Session|refreshToken|refreshTokens)\.deleteMany$
+      - has:
+          field: arguments
+          kind: arguments
+          regex: ^\(\s*\{\s*where\s*:\s*\{\s*(user_?[iI]d)\s*(:\s*[\w.]+\s*)?\}\s*\}\s*\)$
+min_engine: 0.39.0
+---
+id: auth-session-revocation.javascript-generic.revoke-candidate
+practice_id: auth-session-revocation
+language: javascript
+frameworks:
+- generic
+kind: evidence
+rule:
+  any:
+  - pattern: $SB.auth.admin.deleteUser($$$)
+  - all:
+    - any:
+      - kind: function_declaration
+      - kind: method_definition
+      - kind: arrow_function
+      - kind: function_expression
+    - has:
+        field: body
+        has:
+          any:
+          - kind: expression_statement
+            regex: revoked_?[aA]t\s*:\s*(new Date|now\(|Date\.now)|(session|token)_?[vV]ersion\s*:\s*([\w.]+\s*\+\s*[1-9]|\{\s*increment\s*:\s*[1-9])|\.[sS]essions?\.(update|delete)Many\(\s*\{\s*where\s*:\s*\{\s*user_?[iI]d\b(\s*:\s*[\w.]+)?\s*\}|ban_duration\s*:\s*['\"`]\d
+          - kind: lexical_declaration
+            regex: revoked_?[aA]t\s*:\s*(new Date|now\(|Date\.now)|(session|token)_?[vV]ersion\s*:\s*([\w.]+\s*\+\s*[1-9]|\{\s*increment\s*:\s*[1-9])|\.[sS]essions?\.(update|delete)Many\(\s*\{\s*where\s*:\s*\{\s*user_?[iI]d\b(\s*:\s*[\w.]+)?\s*\}|ban_duration\s*:\s*['\"`]\d
+          - kind: return_statement
+            regex: revoked_?[aA]t\s*:\s*(new Date|now\(|Date\.now)|(session|token)_?[vV]ersion\s*:\s*([\w.]+\s*\+\s*[1-9]|\{\s*increment\s*:\s*[1-9])|\.[sS]essions?\.(update|delete)Many\(\s*\{\s*where\s*:\s*\{\s*user_?[iI]d\b(\s*:\s*[\w.]+)?\s*\}|ban_duration\s*:\s*['\"`]\d
+          - kind: if_statement
+            regex: revoked_?[aA]t\s*:\s*(new Date|now\(|Date\.now)|(session|token)_?[vV]ersion\s*:\s*([\w.]+\s*\+\s*[1-9]|\{\s*increment\s*:\s*[1-9])|\.[sS]essions?\.(update|delete)Many\(\s*\{\s*where\s*:\s*\{\s*user_?[iI]d\b(\s*:\s*[\w.]+)?\s*\}|ban_duration\s*:\s*['\"`]\d
+          - kind: for_statement
+            regex: revoked_?[aA]t\s*:\s*(new Date|now\(|Date\.now)|(session|token)_?[vV]ersion\s*:\s*([\w.]+\s*\+\s*[1-9]|\{\s*increment\s*:\s*[1-9])|\.[sS]essions?\.(update|delete)Many\(\s*\{\s*where\s*:\s*\{\s*user_?[iI]d\b(\s*:\s*[\w.]+)?\s*\}|ban_duration\s*:\s*['\"`]\d
+          - kind: for_in_statement
+            regex: revoked_?[aA]t\s*:\s*(new Date|now\(|Date\.now)|(session|token)_?[vV]ersion\s*:\s*([\w.]+\s*\+\s*[1-9]|\{\s*increment\s*:\s*[1-9])|\.[sS]essions?\.(update|delete)Many\(\s*\{\s*where\s*:\s*\{\s*user_?[iI]d\b(\s*:\s*[\w.]+)?\s*\}|ban_duration\s*:\s*['\"`]\d
+          - kind: try_statement
+            regex: revoked_?[aA]t\s*:\s*(new Date|now\(|Date\.now)|(session|token)_?[vV]ersion\s*:\s*([\w.]+\s*\+\s*[1-9]|\{\s*increment\s*:\s*[1-9])|\.[sS]essions?\.(update|delete)Many\(\s*\{\s*where\s*:\s*\{\s*user_?[iI]d\b(\s*:\s*[\w.]+)?\s*\}|ban_duration\s*:\s*['\"`]\d
+min_engine: 0.39.0
+---
+id: auth-session-revocation.javascript-generic.client-only-signout
+practice_id: auth-session-revocation
+language: javascript
+frameworks:
+- generic
+kind: violation
+rule:
+  all:
+  - any:
+    - kind: function_declaration
+    - kind: method_definition
+    - kind: arrow_function
+    - kind: function_expression
+  - any:
+    - has:
+        field: name
+        any:
+        - kind: identifier
+          regex: (?i)(log_?out|sign_?out)
+        - kind: property_identifier
+          regex: (?i)(log_?out|sign_?out)
+    - inside:
+        kind: variable_declarator
+        has:
+          field: name
+          kind: identifier
+          regex: (?i)(log_?out|sign_?out)
+  - has:
+      field: body
+      has:
+        stopBy: end
+        any:
+        - kind: call_expression
+          regex: ^((window|globalThis)\.)?(localStorage|sessionStorage)\.(removeItem|clear)\(|^(Cookies|cookies|cookie)\.remove\(|^(deleteCookie|removeCookie)\(
+        - kind: assignment_expression
+          regex: ^document\.cookie\s*=
+  - not:
+      has:
+        field: body
+        has:
+          stopBy: end
+          any:
+          - all:
+            - kind: call_expression
+              regex: ^(await\s+)?(fetch|axios|ky|\$fetch|ofetch)\(|^axios\.(post|delete|put|get|request)\(
+            - has:
+                field: arguments
+                kind: arguments
+                has:
+                  any:
+                  - kind: string
+                    regex: (?i)(log-?out|sign-?out|revoke)
+                  - kind: template_string
+                    regex: (?i)(log-?out|sign-?out|revoke)
+          - all:
+            - kind: call_expression
+              regex: ^[A-Za-z0-9_$.]*\.(post|delete|put)\(
+            - has:
+                field: arguments
+                kind: arguments
+                has:
+                  any:
+                  - kind: string
+                    regex: (?i)(log-?out|sign-?out|revoke)
+                  - kind: template_string
+                    regex: (?i)(log-?out|sign-?out|revoke)
+          - all:
+            - kind: call_expression
+              regex: ^(await\s+)?(fetch|axios|ky|\$fetch|ofetch)\(
+            - has:
+                field: arguments
+                kind: arguments
+                has:
+                  any:
+                  - kind: string
+                    regex: (?i)(session|token)
+                  - kind: template_string
+                    regex: (?i)(session|token)
+            - has:
+                field: arguments
+                kind: arguments
+                any:
+                - has:
+                    kind: object
+                    has:
+                      kind: pair
+                      all:
+                      - has:
+                          field: key
+                          any:
+                          - kind: property_identifier
+                            regex: ^method$
+                          - kind: string
+                            regex: ^['"]method['"]$
+                      - has:
+                          field: value
+                          any:
+                          - kind: string
+                            regex: (?i)^['"`](post|delete)['"`]$
+                          - kind: template_string
+                            regex: (?i)^`(post|delete)`$
+                - has:
+                    any:
+                    - kind: identifier
+                    - kind: member_expression
+                    - kind: call_expression
+                    - kind: spread_element
+                    - kind: ternary_expression
+          - all:
+            - kind: call_expression
+              regex: ^[A-Za-z0-9_$.]*\.(post|delete)\(
+            - has:
+                field: arguments
+                kind: arguments
+                has:
+                  any:
+                  - kind: string
+                    regex: (?i)(session|token)
+                  - kind: template_string
+                    regex: (?i)(session|token)
+          - all:
+            - kind: call_expression
+              regex: ^(await\s+)?(fetch|axios|ky|\$fetch|ofetch)\(|^axios\.(post|delete|put|get|request)\(
+            - &id001
+              not:
+                has:
+                  field: arguments
+                  kind: arguments
+                  any:
+                  - has:
+                      kind: string
+                  - has:
+                      kind: template_string
+          - all:
+            - kind: call_expression
+              regex: ^[A-Za-z0-9_$.]*\.(post|put)\(
+            - *id001
+          - kind: call_expression
+            regex: ^([A-Za-z0-9_$]+\.)*(signOut|signout|logout|logOut|revoke|revokeToken|revokeRefreshToken|revokeTokens|revokeSession|revokeSessions|revokeAllSessions|revoke[A-Za-z]*Token)\(
+min_engine: 0.39.0

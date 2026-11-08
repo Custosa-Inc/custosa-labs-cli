@@ -1,0 +1,294 @@
+# Go HTTP handlers (gin, echo, fiber, net/http, chi, gorilla/mux) that read a path parameter (c.Param, chi.URLParam,
+# mux.Vars, r.PathValue), one item each. The control is the caller read in the handler: a context value under a user,
+# claims, account, principal or subject key (c.Get, c.MustGet, c.GetString, c.Locals, r.Context().Value), or a call
+# whose name says it returns the current user or claims. A check only in middleware never counts.
+id: authz-every-handler.go-generic.handler
+practice_id: authz-every-handler
+language: go
+frameworks:
+- generic
+kind: items
+rule:
+  any:
+  - kind: function_declaration
+  - kind: method_declaration
+  all:
+  - has:
+      kind: parameter_list
+      regex: '\*gin\.Context|echo\.Context|\*fiber\.Ctx|http\.ResponseWriter'
+  - has:
+      stopBy: end
+      kind: call_expression
+      regex: '^(\w+\.Param|\w+\.Params|\w+\.ParamsInt|chi\.URLParam|mux\.Vars|\w+\.PathValue)\('
+control:
+  has:
+    stopBy: end
+    kind: call_expression
+    any:
+    - kind: call_expression
+      regex: '^\w+\.(Get|MustGet|GetString|GetInt|GetInt64|GetUint|Locals)\(\s*[^,)]*(?i:user|claims|account|principal|subject|uid)'
+    - kind: call_expression
+      regex: '\.Context\(\)\.Value\(\s*[^)]*(?i:user|claims|account|principal|auth|session)'
+    - kind: call_expression
+      regex: '^[\w.]*(?i:current_?user|get_?user(_?id)?|user_?(id_?)?from|claims_?from|get_?claims|must_?user|get_?principal)\('
+min_engine: 0.39.0
+---
+# The same Go handlers when the record comes from the body or query instead of the path (c.ShouldBindJSON,
+# c.Bind, c.BodyParser, json.NewDecoder(r.Body).Decode), one item each, with the same control. A handler
+# reading a path parameter is the handler rule's item.
+id: authz-every-handler.go-generic.handler-body
+practice_id: authz-every-handler
+language: go
+frameworks:
+- generic
+kind: items
+rule:
+  any:
+  - kind: function_declaration
+  - kind: method_declaration
+  all:
+  - has:
+      kind: parameter_list
+      regex: '\*gin\.Context|echo\.Context|\*fiber\.Ctx|http\.ResponseWriter'
+  - has:
+      stopBy: end
+      kind: call_expression
+      regex: '^(\w+\.(ShouldBind|ShouldBindJSON|ShouldBindWith|ShouldBindBodyWith|ShouldBindQuery|ShouldBindUri|Bind|BindJSON|BindQuery|BindUri|BodyParser|QueryParser)\(|json\.NewDecoder\(\s*\w+\.Body\s*\)\.Decode\()'
+  - not:
+      has:
+        stopBy: end
+        kind: call_expression
+        regex: '^(\w+\.Param|\w+\.Params|\w+\.ParamsInt|chi\.URLParam|mux\.Vars|\w+\.PathValue)\('
+control:
+  has:
+    stopBy: end
+    kind: call_expression
+    any:
+    - kind: call_expression
+      regex: '^\w+\.(Get|MustGet|GetString|GetInt|GetInt64|GetUint|Locals)\(\s*[^,)]*(?i:user|claims|account|principal|subject|uid)'
+    - kind: call_expression
+      regex: '\.Context\(\)\.Value\(\s*[^)]*(?i:user|claims|account|principal|auth|session)'
+    - kind: call_expression
+      regex: '^[\w.]*(?i:current_?user|get_?user(_?id)?|user_?(id_?)?from|claims_?from|get_?claims|must_?user|get_?principal)\('
+min_engine: 0.39.0
+---
+# A Go handler handing its request context to project code. Held for a person (needs_review), since the caller
+# check may live in the callee (fasten's repository reads the user from the gin context):
+# - a function called by name that this file doesn't declare (a function elsewhere in the package), or one it
+#   declares whose body shows a caller read (a user or claims read, a 401 or 403);
+# - a method of the handler's receiver or of a receiver field (h.repo.GetSource(c, id));
+# - a method of a value the handler or its enclosing factory binds locally, a variable or a parameter
+#   (databaseRepo := c.MustGet(...).(database.DatabaseRepository); databaseRepo.GetSource(c, id)), never an
+#   imported package's function.
+# Not it, so the absence stays visible and the item fails: a database or driver call (Exec, Query, QueryRow,
+# Begin, Prepare and their Context and sqlx forms, any method ending in Context; a project method merely starting
+# with Query, such as QueryResources, is not one; WithContext, the sqlx, pgx, gorm and ent sinks, a value named
+# db, tx, pool, conn, client, queries and the like), a logger, another package's function (render.JSON,
+# http.Redirect, http.Error), a function of this file with no caller read (parseID(c)), or a context read on c.
+id: authz-every-handler.go-generic.auth-unobserved-passes
+practice_id: authz-every-handler
+language: go
+frameworks:
+- generic
+kind: evidence
+rule:
+  kind: call_expression
+  all:
+  - has:
+      field: arguments
+      kind: argument_list
+      has:
+        any:
+        - kind: identifier
+          regex: ^(c|ctx|r|req|e)$
+        - kind: call_expression
+          regex: ^(c|r|req|e|c\.Request)\.Context\(\)$
+        - kind: selector_expression
+          regex: ^c\.Request$
+  - inside:
+      stopBy: end
+      any:
+      - kind: function_declaration
+      - kind: method_declaration
+      - kind: func_literal
+      has:
+        kind: parameter_list
+        regex: \*gin\.Context|echo\.Context|\*fiber\.Ctx|http\.ResponseWriter
+  - not:
+      has:
+        field: function
+        kind: selector_expression
+        regex: ^(log|logger|fmt|zap|logrus|http|render)\.|^(chi\.URLParam|mux\.Vars)$|^(c|ctx|r|req|e|w)\.\w+$|(?i:current_?user|get_?user|claims_?from|get_?claims|must_?user|get_?principal)$
+  - any:
+    - all:
+      - has:
+          field: function
+          kind: identifier
+          pattern:
+            context: func ($F T) f() {}
+            selector: identifier
+          not:
+            kind: identifier
+            regex: ^(next|append|len|cap|make|new|panic|print|println|copy|delete|close|min|max|clear)$
+      - any:
+        - not:
+            inside:
+              stopBy: end
+              kind: source_file
+              has:
+                kind: function_declaration
+                has:
+                  field: name
+                  kind: identifier
+                  pattern:
+                    context: func ($F T) f() {}
+                    selector: identifier
+        - inside:
+            stopBy: end
+            kind: source_file
+            has:
+              kind: function_declaration
+              all:
+              - has:
+                  field: name
+                  kind: identifier
+                  pattern:
+                    context: func ($F T) f() {}
+                    selector: identifier
+              - has:
+                  stopBy: end
+                  any:
+                  - kind: call_expression
+                    regex: ^\w+\.(MustGet|Get|GetString|Locals)\(\s*[^,)]*(?i:user|claims|principal|subject|uid)
+                  - kind: call_expression
+                    regex: ^[\w.]*(?i:current_?user|get_?user|claims_?from|get_?claims|must_?user|get_?principal)\(
+                  - kind: call_expression
+                    regex: ^http\.Error\([\s\S]*(40[13]|StatusUnauthorized|StatusForbidden)\s*\)$
+                  - kind: call_expression
+                    regex: ^\w+\.(AbortWithStatus|AbortWithStatusJSON|JSON|String|Status|WriteHeader)\(\s*(40[13]|http\.Status(Unauthorized|Forbidden))\b
+    - all:
+      - has:
+          field: function
+          kind: selector_expression
+          all:
+          - has:
+              field: field
+              kind: field_identifier
+              not:
+                kind: field_identifier
+                regex: ^(Exec|Query|QueryRow|Queryx|QueryRowx|Begin|BeginTx|Beginx|BeginTxx|Prepare|Preparex|PrepareNamed|NamedExec|NamedQuery|MustExec|MustBegin|SendBatch|CopyFrom|Acquire|Ping|Commit|Rollback|Raw|Do|Exec)(Context)?$|Context$
+          - has:
+              field: operand
+              any:
+              - kind: identifier
+                pattern:
+                  context: func ($X T) f() {}
+                  selector: identifier
+              - kind: selector_expression
+                all:
+                - has:
+                    field: operand
+                    kind: identifier
+                    pattern:
+                      context: func ($X T) f() {}
+                      selector: identifier
+                - has:
+                    field: field
+                    kind: field_identifier
+                    not:
+                      kind: field_identifier
+                      regex: ^(?i:db|tx|conn|pool|pg|pgx|sqlx|sql|gorm|orm|ent|client|rdb|redis|cache|q|queries|mongo|coll|collection|store_?db|database|c|ctx|r|req|e|w|\w*log|\w*logger|span|tracer|wg|mu|g|eg)$
+      - inside:
+          stopBy: end
+          kind: method_declaration
+          has:
+            field: receiver
+            kind: parameter_list
+            has:
+              kind: parameter_declaration
+              has:
+                field: name
+                kind: identifier
+                pattern:
+                  context: func ($X T) f() {}
+                  selector: identifier
+    - all:
+      - has:
+          field: function
+          kind: selector_expression
+          all:
+          - has:
+              field: field
+              kind: field_identifier
+              not:
+                kind: field_identifier
+                regex: ^(Exec|Query|QueryRow|Queryx|QueryRowx|Begin|BeginTx|Beginx|BeginTxx|Prepare|Preparex|PrepareNamed|NamedExec|NamedQuery|MustExec|MustBegin|SendBatch|CopyFrom|Acquire|Ping|Commit|Rollback|Raw|Do|Exec)(Context)?$|Context$
+          - has:
+              field: operand
+              kind: identifier
+              pattern:
+                context: func ($X T) f() {}
+                selector: identifier
+              not:
+                kind: identifier
+                regex: ^(?i:db|tx|conn|pool|pg|pgx|sqlx|sql|gorm|orm|ent|client|rdb|redis|cache|q|queries|mongo|coll|collection|store_?db|database|c|ctx|r|req|e|w|\w*log|\w*logger|span|tracer|wg|mu|g|eg)$
+      - inside:
+          stopBy: end
+          any:
+          - kind: function_declaration
+          - kind: method_declaration
+          - kind: func_literal
+          has:
+            stopBy: end
+            any:
+            - kind: short_var_declaration
+              all:
+              - has:
+                  field: left
+                  has:
+                    kind: identifier
+                    pattern:
+                      context: func ($X T) f() {}
+                      selector: identifier
+              - has:
+                  field: right
+                  has:
+                    any:
+                    - kind: type_assertion_expression
+                      has:
+                        field: operand
+                        kind: call_expression
+                        regex: ^\w+\.(MustGet|Get)\(
+                    - kind: call_expression
+                      has:
+                        field: function
+                        kind: identifier
+            - kind: var_spec
+              all:
+              - has:
+                  field: name
+                  kind: identifier
+                  pattern:
+                    context: func ($X T) f() {}
+                    selector: identifier
+              - has:
+                  field: value
+                  has:
+                    any:
+                    - kind: type_assertion_expression
+                      has:
+                        field: operand
+                        kind: call_expression
+                        regex: ^\w+\.(MustGet|Get)\(
+                    - kind: call_expression
+                      has:
+                        field: function
+                        kind: identifier
+            - kind: parameter_declaration
+              has:
+                field: name
+                kind: identifier
+                pattern:
+                  context: func ($X T) f() {}
+                  selector: identifier
+min_engine: 0.39.0

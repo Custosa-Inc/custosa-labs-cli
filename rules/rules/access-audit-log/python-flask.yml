@@ -1,0 +1,214 @@
+id: access-audit-log.python-flask.read-handler
+practice_id: access-audit-log
+language: python
+frameworks:
+- flask
+kind: items
+rule:
+  all:
+  - kind: decorated_definition
+  - any:
+    - all:
+      - has:
+          kind: decorator
+          regex: '(?-u)^@(app|bp|\w*blueprint|\w*_bp)\.route\s*\('
+      - not:
+          has:
+            kind: decorator
+            regex: '^@\w+\.route\s*\(.*methods\s*=\s*\[[^\]]*\]'
+    - has:
+        kind: decorator
+        regex: '^@(app|bp|\w*blueprint|\w*_bp)\.route\s*\(.*methods\s*=\s*\[[^\]]*[''\x22]GET[''\x22]'
+  - not:
+      has:
+        kind: decorator
+        regex: '^@[\w.]*([Aa]udit|AUDIT|[Aa]ccess_?[Ll]ogs?|ACCESS_?LOGS?|[Ll]og_?[Aa]ccess|LOG_?ACCESS|[Rr]ecord_?[Aa]ccess|[Aa]ccess_?[Ee]vents?|ACCESS_?EVENTS?|[Pp]hi_?[Aa]ccess|PHI_?ACCESS|[Aa]ctivity_?[Ll]ogs?|ACTIVITY_?LOGS?)'
+  - not:
+      all:
+      - has:
+          field: definition
+          kind: function_definition
+          has:
+            field: body
+            has:
+              stopBy: end
+              kind: call
+              all:
+              - &id003
+                has:
+                  field: function
+                  any:
+                  - kind: identifier
+                    regex: '([Aa]udit|AUDIT|[Aa]ccess_?[Ll]ogs?|ACCESS_?LOGS?|[Ll]og_?[Aa]ccess|LOG_?ACCESS|[Rr]ecord_?[Aa]ccess|[Aa]ccess_?[Ee]vents?|ACCESS_?EVENTS?|[Pp]hi_?[Aa]ccess|PHI_?ACCESS|[Aa]ctivity_?[Ll]ogs?|ACTIVITY_?LOGS?)'
+                  - kind: attribute
+                    regex: '([Aa]udit|AUDIT|[Aa]ccess_?[Ll]ogs?|ACCESS_?LOGS?|[Ll]og_?[Aa]ccess|LOG_?ACCESS|[Rr]ecord_?[Aa]ccess|[Aa]ccess_?[Ee]vents?|ACCESS_?EVENTS?|[Pp]hi_?[Aa]ccess|PHI_?ACCESS|[Aa]ctivity_?[Ll]ogs?|ACTIVITY_?LOGS?)'
+              - &id004
+                not:
+                  has:
+                    field: function
+                    any:
+                    - kind: identifier
+                      regex: '([Ss]kip|SKIP|[Dd]isable|DISABLE|[Ww]ithout|[Bb]ypass|[Nn]o_?[Aa]udit|NO_?AUDIT|[Nn]o_?[Ll]og|NO_?LOG)'
+                    - kind: attribute
+                      regex: '([Ss]kip|SKIP|[Dd]isable|DISABLE|[Ww]ithout|[Bb]ypass|[Nn]o_?[Aa]udit|NO_?AUDIT|[Nn]o_?[Ll]og|NO_?LOG)'
+                    - kind: attribute
+                      regex: '(?-u)\.(count\w*|filter|get\w*|is_\w+|set_\w+|clear|reset|invalidate\w*|disable\w*|enable\w*)$'
+                    - kind: identifier
+                      regex: '^(is|has|get|set)_'
+      - not: &id005
+          has:
+            field: definition
+            kind: function_definition
+            has:
+              field: body
+              kind: block
+              all:
+              - has:
+                  kind: expression_statement
+                  has:
+                    any:
+                    - &id002
+                      kind: call
+                      all:
+                      - any:
+                        - has:
+                            field: function
+                            kind: attribute
+                            regex: '(?-u)^([A-Z]?\w*[Aa]udit\w*|AccessLog|ActivityLog|SecurityEvent)\.objects\.(create|bulk_create)$'
+                        - has:
+                            field: function
+                            kind: attribute
+                            regex: '^([A-Z]?\w*[Aa]udit\w*|AccessLog|ActivityLog|SecurityEvent)\([\s\S]*\)\.save$'
+                        - all:
+                          - has:
+                              field: function
+                              kind: attribute
+                              regex: '\.(add|add_all|merge)$'
+                          - has:
+                              field: arguments
+                              kind: argument_list
+                              has:
+                                kind: call
+                                has:
+                                  field: function
+                                  kind: identifier
+                                  regex: '(Audit|AccessLog|AccessEvent|PhiAccess|ActivityLog)'
+                        - all:
+                          - has:
+                              field: function
+                              any:
+                              - kind: identifier
+                                regex: '^insert$'
+                              - kind: attribute
+                                regex: '\.insert$'
+                          - has:
+                              field: arguments
+                              kind: argument_list
+                              has:
+                                any:
+                                - kind: identifier
+                                  regex: '(?-u)(?i)audit|access_?logs?'
+                                - kind: attribute
+                                  regex: '(?-u)(?i)audit|access_?logs?'
+                        - has:
+                            field: function
+                            kind: attribute
+                            regex: '^[A-Z]?[^.\s(]*(Audit|AccessLog|AccessEvent|PhiAccess|ActivityLog)[^.\s(]*\.create$'
+                        - has:
+                            field: function
+                            kind: attribute
+                            regex: '\.table\(\s*[''\x22][^''\x22]*(audit|access_log)[^''\x22]*[''\x22]\s*\)\s*\.insert\b'
+                        - all:
+                          - has:
+                              field: function
+                              kind: attribute
+                              regex: '\.execute$'
+                          - has:
+                              field: arguments
+                              kind: argument_list
+                              has:
+                                stopBy: end
+                                kind: call
+                                all:
+                                - has:
+                                    field: function
+                                    kind: identifier
+                                    regex: '^insert$'
+                                - has:
+                                    field: arguments
+                                    kind: argument_list
+                                    has:
+                                      any:
+                                      - kind: identifier
+                                        regex: '(?-u)(?i)audit|access_?logs?'
+                                      - kind: attribute
+                                        regex: '(?-u)(?i)audit|access_?logs?'
+                        - all:
+                          - has:
+                              field: function
+                              kind: attribute
+                              regex: '\.(execute|exec_driver_sql)$'
+                          - has:
+                              field: arguments
+                              kind: argument_list
+                              has:
+                                stopBy: end
+                                kind: string
+                                regex: '(?i)\binsert\s+into\s+[`\x22]?(?:\w+\.)?[`\x22]?[^\s(`\x22]*(audit|access_log|access_event|phi_access|activity_log|security_event)'
+                      - not:
+                          inside:
+                            kind: expression_statement
+                            inside:
+                              kind: block
+                              inside: &id001
+                                kind: if_statement
+                      - not:
+                          inside:
+                            kind: await
+                            inside:
+                              kind: expression_statement
+                              inside:
+                                kind: block
+                                inside: *id001
+                    - kind: await
+                      has: *id002
+              - not:
+                  has:
+                    kind: return_statement
+                    precedes:
+                      any:
+                      - kind: expression_statement
+                      - kind: return_statement
+                      - kind: if_statement
+                      - kind: comment
+  - not:
+      has:
+        field: definition
+        kind: function_definition
+        has:
+          field: body
+          has:
+            stopBy: end
+            kind: call
+            pattern: '$HELPER($$$HA)'
+            has:
+              field: function
+              kind: identifier
+            inside:
+              stopBy: end
+              kind: module
+              has:
+                kind: function_definition
+                pattern:
+                  context: 'def $HELPER($$$HP): $$$HB'
+                  selector: function_definition
+                has:
+                  stopBy: end
+                  any:
+                  - kind: call
+                    all:
+                    - *id003
+                    - *id004
+                  - *id002
+control: *id005
+min_engine: 0.45.3

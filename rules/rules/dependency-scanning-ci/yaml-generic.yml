@@ -1,0 +1,467 @@
+# dependency-scanning-ci (T23 B56a). Written by scripts/gen_depscan_rules.py: edit
+# that script, never this file. The practice function reads the pieces by name: lockfile-<eco>, scan-<eco> or
+# scan-all, and update-bot-<eco> or update-bot-renovate (NAMING.md).
+# The regexes are written for the inspector's Rust regex engine, where $ is the very end of the text. Don't run them in
+# JS RegExp or Python re: some don't compile in Node, and some take seconds on a long folded run there (C221).
+
+# update-bot-npm: a dependabot.yml (version: 2) updates entry for npm (package-ecosystem npm) that leaves version
+# updates on (open-pull-requests-limit not 0). Evidence: the update-bot piece for npm.
+id: dependency-scanning-ci.yaml-generic.update-bot-npm
+practice_id: dependency-scanning-ci
+language: yaml
+frameworks:
+- generic
+kind: evidence
+path_regex: ^\.github/dependabot\.ya?ml$
+rule:
+  kind: block_sequence_item
+  inside:
+    kind: block_sequence
+    inside:
+      kind: block_node
+      inside:
+        kind: block_mapping_pair
+        has:
+          field: key
+          kind: flow_node
+          regex: ^(updates)$
+  all:
+  - has:
+      kind: block_node
+      has:
+        kind: block_mapping
+        has:
+          kind: block_mapping_pair
+          has:
+            field: key
+            kind: flow_node
+            regex: ^(package-ecosystem)$
+          regex: ^package-ecosystem\s*:\s*['\"]?(npm)['\"]?\s*$
+  - not:
+      has:
+        kind: block_node
+        has:
+          kind: block_mapping
+          has:
+            kind: block_mapping_pair
+            has:
+              field: key
+              kind: flow_node
+              regex: ^(open-pull-requests-limit)$
+            regex: ^open-pull-requests-limit\s*:\s*['\"]?0['\"]?\s*$
+  - inside:
+      stopBy: end
+      kind: document
+      has:
+        kind: block_node
+        has:
+          kind: block_mapping
+          has:
+            kind: block_mapping_pair
+            has:
+              field: key
+              kind: flow_node
+              regex: ^(version)$
+            regex: ^version\s*:\s*['\"]?2['\"]?\s*$
+min_engine: 0.45.3
+---
+# update-bot-pip: a dependabot.yml (version: 2) updates entry for pip (package-ecosystem pip or uv) that leaves
+# version updates on (open-pull-requests-limit not 0). Evidence: the update-bot piece for pip.
+id: dependency-scanning-ci.yaml-generic.update-bot-pip
+practice_id: dependency-scanning-ci
+language: yaml
+frameworks:
+- generic
+kind: evidence
+path_regex: ^\.github/dependabot\.ya?ml$
+rule:
+  kind: block_sequence_item
+  inside:
+    kind: block_sequence
+    inside:
+      kind: block_node
+      inside:
+        kind: block_mapping_pair
+        has:
+          field: key
+          kind: flow_node
+          regex: ^(updates)$
+  all:
+  - has:
+      kind: block_node
+      has:
+        kind: block_mapping
+        has:
+          kind: block_mapping_pair
+          has:
+            field: key
+            kind: flow_node
+            regex: ^(package-ecosystem)$
+          regex: ^package-ecosystem\s*:\s*['\"]?(pip|uv)['\"]?\s*$
+  - not:
+      has:
+        kind: block_node
+        has:
+          kind: block_mapping
+          has:
+            kind: block_mapping_pair
+            has:
+              field: key
+              kind: flow_node
+              regex: ^(open-pull-requests-limit)$
+            regex: ^open-pull-requests-limit\s*:\s*['\"]?0['\"]?\s*$
+  - inside:
+      stopBy: end
+      kind: document
+      has:
+        kind: block_node
+        has:
+          kind: block_mapping
+          has:
+            kind: block_mapping_pair
+            has:
+              field: key
+              kind: flow_node
+              regex: ^(version)$
+            regex: ^version\s*:\s*['\"]?2['\"]?\s*$
+min_engine: 0.45.3
+---
+# update-bot-bundler: a dependabot.yml (version: 2) updates entry for bundler (package-ecosystem bundler) that leaves
+# version updates on (open-pull-requests-limit not 0). Evidence: the update-bot piece for bundler.
+id: dependency-scanning-ci.yaml-generic.update-bot-bundler
+practice_id: dependency-scanning-ci
+language: yaml
+frameworks:
+- generic
+kind: evidence
+path_regex: ^\.github/dependabot\.ya?ml$
+rule:
+  kind: block_sequence_item
+  inside:
+    kind: block_sequence
+    inside:
+      kind: block_node
+      inside:
+        kind: block_mapping_pair
+        has:
+          field: key
+          kind: flow_node
+          regex: ^(updates)$
+  all:
+  - has:
+      kind: block_node
+      has:
+        kind: block_mapping
+        has:
+          kind: block_mapping_pair
+          has:
+            field: key
+            kind: flow_node
+            regex: ^(package-ecosystem)$
+          regex: ^package-ecosystem\s*:\s*['\"]?(bundler)['\"]?\s*$
+  - not:
+      has:
+        kind: block_node
+        has:
+          kind: block_mapping
+          has:
+            kind: block_mapping_pair
+            has:
+              field: key
+              kind: flow_node
+              regex: ^(open-pull-requests-limit)$
+            regex: ^open-pull-requests-limit\s*:\s*['\"]?0['\"]?\s*$
+  - inside:
+      stopBy: end
+      kind: document
+      has:
+        kind: block_node
+        has:
+          kind: block_mapping
+          has:
+            kind: block_mapping_pair
+            has:
+              field: key
+              kind: flow_node
+              regex: ^(version)$
+            regex: ^version\s*:\s*['\"]?2['\"]?\s*$
+min_engine: 0.45.3
+---
+# update-bot-gomod: a dependabot.yml (version: 2) updates entry for gomod (package-ecosystem gomod) that leaves
+# version updates on (open-pull-requests-limit not 0). Evidence: the update-bot piece for gomod.
+id: dependency-scanning-ci.yaml-generic.update-bot-gomod
+practice_id: dependency-scanning-ci
+language: yaml
+frameworks:
+- generic
+kind: evidence
+path_regex: ^\.github/dependabot\.ya?ml$
+rule:
+  kind: block_sequence_item
+  inside:
+    kind: block_sequence
+    inside:
+      kind: block_node
+      inside:
+        kind: block_mapping_pair
+        has:
+          field: key
+          kind: flow_node
+          regex: ^(updates)$
+  all:
+  - has:
+      kind: block_node
+      has:
+        kind: block_mapping
+        has:
+          kind: block_mapping_pair
+          has:
+            field: key
+            kind: flow_node
+            regex: ^(package-ecosystem)$
+          regex: ^package-ecosystem\s*:\s*['\"]?(gomod)['\"]?\s*$
+  - not:
+      has:
+        kind: block_node
+        has:
+          kind: block_mapping
+          has:
+            kind: block_mapping_pair
+            has:
+              field: key
+              kind: flow_node
+              regex: ^(open-pull-requests-limit)$
+            regex: ^open-pull-requests-limit\s*:\s*['\"]?0['\"]?\s*$
+  - inside:
+      stopBy: end
+      kind: document
+      has:
+        kind: block_node
+        has:
+          kind: block_mapping
+          has:
+            kind: block_mapping_pair
+            has:
+              field: key
+              kind: flow_node
+              regex: ^(version)$
+            regex: ^version\s*:\s*['\"]?2['\"]?\s*$
+min_engine: 0.45.3
+---
+# update-bot-maven: a dependabot.yml (version: 2) updates entry for maven (package-ecosystem maven) that leaves
+# version updates on (open-pull-requests-limit not 0). Evidence: the update-bot piece for maven.
+id: dependency-scanning-ci.yaml-generic.update-bot-maven
+practice_id: dependency-scanning-ci
+language: yaml
+frameworks:
+- generic
+kind: evidence
+path_regex: ^\.github/dependabot\.ya?ml$
+rule:
+  kind: block_sequence_item
+  inside:
+    kind: block_sequence
+    inside:
+      kind: block_node
+      inside:
+        kind: block_mapping_pair
+        has:
+          field: key
+          kind: flow_node
+          regex: ^(updates)$
+  all:
+  - has:
+      kind: block_node
+      has:
+        kind: block_mapping
+        has:
+          kind: block_mapping_pair
+          has:
+            field: key
+            kind: flow_node
+            regex: ^(package-ecosystem)$
+          regex: ^package-ecosystem\s*:\s*['\"]?(maven)['\"]?\s*$
+  - not:
+      has:
+        kind: block_node
+        has:
+          kind: block_mapping
+          has:
+            kind: block_mapping_pair
+            has:
+              field: key
+              kind: flow_node
+              regex: ^(open-pull-requests-limit)$
+            regex: ^open-pull-requests-limit\s*:\s*['\"]?0['\"]?\s*$
+  - inside:
+      stopBy: end
+      kind: document
+      has:
+        kind: block_node
+        has:
+          kind: block_mapping
+          has:
+            kind: block_mapping_pair
+            has:
+              field: key
+              kind: flow_node
+              regex: ^(version)$
+            regex: ^version\s*:\s*['\"]?2['\"]?\s*$
+min_engine: 0.45.3
+---
+# update-bot-gradle: a dependabot.yml (version: 2) updates entry for gradle (package-ecosystem gradle) that leaves
+# version updates on (open-pull-requests-limit not 0). Evidence: the update-bot piece for gradle.
+id: dependency-scanning-ci.yaml-generic.update-bot-gradle
+practice_id: dependency-scanning-ci
+language: yaml
+frameworks:
+- generic
+kind: evidence
+path_regex: ^\.github/dependabot\.ya?ml$
+rule:
+  kind: block_sequence_item
+  inside:
+    kind: block_sequence
+    inside:
+      kind: block_node
+      inside:
+        kind: block_mapping_pair
+        has:
+          field: key
+          kind: flow_node
+          regex: ^(updates)$
+  all:
+  - has:
+      kind: block_node
+      has:
+        kind: block_mapping
+        has:
+          kind: block_mapping_pair
+          has:
+            field: key
+            kind: flow_node
+            regex: ^(package-ecosystem)$
+          regex: ^package-ecosystem\s*:\s*['\"]?(gradle)['\"]?\s*$
+  - not:
+      has:
+        kind: block_node
+        has:
+          kind: block_mapping
+          has:
+            kind: block_mapping_pair
+            has:
+              field: key
+              kind: flow_node
+              regex: ^(open-pull-requests-limit)$
+            regex: ^open-pull-requests-limit\s*:\s*['\"]?0['\"]?\s*$
+  - inside:
+      stopBy: end
+      kind: document
+      has:
+        kind: block_node
+        has:
+          kind: block_mapping
+          has:
+            kind: block_mapping_pair
+            has:
+              field: key
+              kind: flow_node
+              regex: ^(version)$
+            regex: ^version\s*:\s*['\"]?2['\"]?\s*$
+min_engine: 0.45.3
+---
+# update-bot-composer: a dependabot.yml (version: 2) updates entry for composer (package-ecosystem composer) that
+# leaves version updates on (open-pull-requests-limit not 0). Evidence: the update-bot piece for composer.
+id: dependency-scanning-ci.yaml-generic.update-bot-composer
+practice_id: dependency-scanning-ci
+language: yaml
+frameworks:
+- generic
+kind: evidence
+path_regex: ^\.github/dependabot\.ya?ml$
+rule:
+  kind: block_sequence_item
+  inside:
+    kind: block_sequence
+    inside:
+      kind: block_node
+      inside:
+        kind: block_mapping_pair
+        has:
+          field: key
+          kind: flow_node
+          regex: ^(updates)$
+  all:
+  - has:
+      kind: block_node
+      has:
+        kind: block_mapping
+        has:
+          kind: block_mapping_pair
+          has:
+            field: key
+            kind: flow_node
+            regex: ^(package-ecosystem)$
+          regex: ^package-ecosystem\s*:\s*['\"]?(composer)['\"]?\s*$
+  - not:
+      has:
+        kind: block_node
+        has:
+          kind: block_mapping
+          has:
+            kind: block_mapping_pair
+            has:
+              field: key
+              kind: flow_node
+              regex: ^(open-pull-requests-limit)$
+            regex: ^open-pull-requests-limit\s*:\s*['\"]?0['\"]?\s*$
+  - inside:
+      stopBy: end
+      kind: document
+      has:
+        kind: block_node
+        has:
+          kind: block_mapping
+          has:
+            kind: block_mapping_pair
+            has:
+              field: key
+              kind: flow_node
+              regex: ^(version)$
+            regex: ^version\s*:\s*['\"]?2['\"]?\s*$
+min_engine: 0.45.3
+---
+# workspace-declared: a workspace root: a top-level workspaces key in a package.json, or a packages: list in a
+# pnpm-workspace.yaml. Evidence for the one-app check (B56c).
+id: dependency-scanning-ci.yaml-generic.workspace-declared
+practice_id: dependency-scanning-ci
+language: yaml
+frameworks:
+- generic
+kind: evidence
+path_regex: (^|/)pnpm-workspace\.yaml$
+rule:
+  kind: block_mapping_pair
+  has:
+    field: key
+    kind: flow_node
+    regex: ^(packages)$
+  inside:
+    kind: block_mapping
+    inside:
+      kind: block_node
+      inside:
+        kind: document
+min_engine: 0.45.3
+---
+# pnpm-lock-present: a committed pnpm-lock.yaml (one match on the file). Evidence for the one-lockfile check (B56c).
+id: dependency-scanning-ci.yaml-generic.pnpm-lock-present
+practice_id: dependency-scanning-ci
+language: yaml
+frameworks:
+- generic
+kind: evidence
+path_regex: (^|/)pnpm-lock\.yaml$
+rule:
+  kind: document
+min_engine: 0.45.3

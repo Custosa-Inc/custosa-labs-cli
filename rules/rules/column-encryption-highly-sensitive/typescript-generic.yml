@@ -1,0 +1,29 @@
+id: column-encryption-highly-sensitive.typescript-generic.app-encryption
+practice_id: column-encryption-highly-sensitive
+language: typescript
+frameworks:
+- generic
+kind: evidence
+rule:
+  any:
+  - kind: call_expression
+    regex: (?i)^(crypto\.)?createCipheriv\(\s*['\"](aes-(128|192|256)-gcm|chacha20-poly1305|aes-256-ocb)['\"]
+  - kind: call_expression
+    regex: ^(crypto\.subtle|subtle|window\.crypto\.subtle)\.encrypt\(\s*\{\s*name\s*:\s*['\"]AES-GCM['\"]
+  - kind: call_expression
+    regex: ^(sodium\.)?crypto_(secretbox_easy|aead_\w+_encrypt)\(
+min_engine: 0.39.0
+---
+id: column-encryption-highly-sensitive.typescript-generic.weak-cipher
+practice_id: column-encryption-highly-sensitive
+language: typescript
+frameworks:
+- generic
+kind: violation
+rule:
+  any:
+  - kind: call_expression
+    regex: (?i)^(crypto\.)?createCipheriv\(\s*['\"](\w+-ecb|des[\w-]*|rc4|bf[\w-]*|aes-\d+-ecb)['\"]
+  - kind: call_expression
+    regex: ^(crypto\.)?createCipher\(
+min_engine: 0.39.0

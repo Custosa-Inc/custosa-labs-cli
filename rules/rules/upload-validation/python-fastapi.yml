@@ -1,0 +1,1228 @@
+id: upload-validation.python-fastapi.handler
+practice_id: upload-validation
+language: python
+frameworks:
+- fastapi
+kind: items
+rule:
+  all:
+  - any:
+    - kind: function_definition
+  - has:
+      stopBy: end
+      any:
+      - kind: attribute
+        regex: ^request\.(FILES|files)$
+      - kind: type
+        regex: ^UploadFile$
+control:
+  any:
+  - has:
+      stopBy:
+        any:
+        - kind: function_definition
+        - kind: lambda
+      kind: if_statement
+      all:
+      - has:
+          field: condition
+          any:
+          - &id003
+            any:
+            - all:
+              - kind: attribute
+              - has:
+                  field: attribute
+                  kind: identifier
+                  regex: ^(is_infected|infected|has_virus|virus_found|is_malicious|malicious)$
+              - has:
+                  field: object
+                  any:
+                  - &id002
+                    all: &id001
+                    - kind: call
+                      regex: ^([A-Za-z0-9_$.>:-]*[0-9_$.>:-])?(?i:(clam|clamav|clamd|clamscan|virus|viruses|virustotal|antivirus|malware|antimalware|quahog|cloudmersive|scanii|metadefender|opswat))(\(|[A-Z0-9_$.>:-][A-Za-z0-9_$.>:-]*\()|^[A-Za-z0-9_$.>:-]*(Clam|ClamAV|Clamav|Clamd|Clamscan|CLAMAV|CLAMD|Virus|Viruses|VirusTotal|Antivirus|AntiVirus|Malware|AntiMalware|Quahog|Cloudmersive|Scanii|MetaDefender|Opswat|OPSWAT)(\(|[A-Z0-9_$.>:-][A-Za-z0-9_$.>:-]*\()|^([A-Za-z0-9_$.>:-]*[.>:])?(is_?[iI]nfected|instream|scan_stream)\(
+                    - not:
+                        kind: call
+                        regex: (?i)(queue|job|task|enqueue|delay|apply_async|publish|dispatch|schedule|enabled|configured|available|definition|signature|update|fresh|version|health|ping)
+                  - has:
+                      stopBy: end
+                      all: *id001
+              - not:
+                  inside:
+                    kind: not_operator
+            - all:
+              - kind: not_operator
+              - has:
+                  kind: attribute
+                  all:
+                  - has:
+                      field: attribute
+                      kind: identifier
+                      regex: ^(is_clean|clean)$
+                  - has:
+                      field: object
+                      any:
+                      - *id002
+                      - has:
+                          stopBy: end
+                          all: *id001
+          - has:
+              stopBy: end
+              any:
+              - *id003
+      - has:
+          field: consequence
+          any:
+          - &id004
+            kind: return_statement
+          - &id005
+            kind: raise_statement
+          - &id006
+            kind: call
+            regex: ^(flask\.)?abort\(
+          - has:
+              stopBy: end
+              any:
+              - *id004
+              - *id005
+              - *id006
+  - all:
+    - has:
+        stopBy:
+          any:
+          - kind: function_definition
+          - kind: lambda
+        all:
+        - kind: assignment
+          all:
+          - pattern: $V = $E
+          - has:
+              field: left
+              kind: identifier
+        - has:
+            stopBy: end
+            any:
+            - kind: call
+              regex: ^([A-Za-z0-9_$.>:-]*[0-9_$.>:-])?(?i:(clam|clamav|clamd|clamscan|virus|viruses|virustotal|antivirus|malware|antimalware|quahog|cloudmersive|scanii|metadefender|opswat))(\(|[A-Z0-9_$.>:-][A-Za-z0-9_$.>:-]*\()|^[A-Za-z0-9_$.>:-]*(Clam|ClamAV|Clamav|Clamd|Clamscan|CLAMAV|CLAMD|Virus|Viruses|VirusTotal|Antivirus|AntiVirus|Malware|AntiMalware|Quahog|Cloudmersive|Scanii|MetaDefender|Opswat|OPSWAT)(\(|[A-Z0-9_$.>:-][A-Za-z0-9_$.>:-]*\()|^([A-Za-z0-9_$.>:-]*[.>:])?(is_?[iI]nfected|instream|scan_stream)\(
+        - not:
+            has:
+              stopBy: end
+              any:
+              - kind: call
+                regex: (?i)(queue|job|task|enqueue|delay|apply_async|publish|dispatch|schedule|enabled|configured|available|definition|signature|update|fresh|version|health|ping)
+    - has:
+        stopBy:
+          any:
+          - kind: function_definition
+          - kind: lambda
+        kind: if_statement
+        all:
+        - has:
+            field: condition
+            any:
+            - &id007
+              all:
+              - pattern: $V.$P
+              - regex: ^[A-Za-z0-9_]+\.(is_infected|infected|has_virus|virus_found|is_malicious|malicious|viruses|threats)$
+              - not:
+                  inside:
+                    kind: not_operator
+            - &id008
+              all:
+              - kind: not_operator
+              - regex: ^not\s+[A-Za-z0-9_]+\.(is_clean|clean)$
+              - has:
+                  pattern: $V.$P
+            - &id009
+              all:
+              - kind: comparison_operator
+              - regex: (?i)^[A-Za-z0-9_]+(\.(status|verdict|result)|\[['"]stream['"]\]\[0\])\s*(!=\s*['"](clean|ok|passed)['"]|==\s*['"](infected|found|malicious|virus)['"])$
+              - has:
+                  stopBy: end
+                  kind: identifier
+                  pattern:
+                    context: $V.x
+                    selector: identifier
+            - has:
+                stopBy: end
+                any:
+                - *id007
+                - *id008
+                - *id009
+        - has:
+            field: consequence
+            any:
+            - *id004
+            - *id005
+            - *id006
+            - has:
+                stopBy: end
+                any:
+                - *id004
+                - *id005
+                - *id006
+min_engine: 0.39.0
+---
+id: upload-validation.python-fastapi.scan-candidate
+practice_id: upload-validation
+language: python
+frameworks:
+- fastapi
+kind: evidence
+rule:
+  any:
+  - all:
+    - any:
+      - kind: call
+        regex: (?i)^[A-Za-z0-9_$.>:-]*(scan|clamav|clamd|clamscan|virus|malware)[A-Za-z0-9_$.>:-]*\(
+      - kind: call
+        regex: ^([A-Za-z0-9_$.>:-]*[0-9_$.>:-])?(?i:(clam|clamav|clamd|clamscan|virus|viruses|virustotal|antivirus|malware|antimalware|quahog|cloudmersive|scanii|metadefender|opswat))(\(|[A-Z0-9_$.>:-][A-Za-z0-9_$.>:-]*\()|^[A-Za-z0-9_$.>:-]*(Clam|ClamAV|Clamav|Clamd|Clamscan|CLAMAV|CLAMD|Virus|Viruses|VirusTotal|Antivirus|AntiVirus|Malware|AntiMalware|Quahog|Cloudmersive|Scanii|MetaDefender|Opswat|OPSWAT)(\(|[A-Z0-9_$.>:-][A-Za-z0-9_$.>:-]*\()|^([A-Za-z0-9_$.>:-]*[.>:])?(is_?[iI]nfected|instream|scan_stream)\(
+    - not:
+        kind: call
+        regex: (?i)^[A-Za-z0-9_$.>:-]*(queue|enabled|configured|available)[A-Za-z0-9_$.>:-]*\(
+min_engine: 0.39.0
+---
+id: upload-validation.python-fastapi.scan-unchecked
+practice_id: upload-validation
+language: python
+frameworks:
+- fastapi
+kind: evidence
+rule:
+  all:
+  - all:
+    - any:
+      - kind: function_definition
+    - has:
+        stopBy: end
+        any:
+        - kind: attribute
+          regex: ^request\.(FILES|files)$
+        - kind: type
+          regex: ^UploadFile$
+  - not:
+      any:
+      - has:
+          stopBy:
+            any:
+            - kind: function_definition
+            - kind: lambda
+          kind: if_statement
+          all:
+          - has:
+              field: condition
+              any:
+              - &id003
+                any:
+                - all:
+                  - kind: attribute
+                  - has:
+                      field: attribute
+                      kind: identifier
+                      regex: ^(is_infected|infected|has_virus|virus_found|is_malicious|malicious)$
+                  - has:
+                      field: object
+                      any:
+                      - &id002
+                        all: &id001
+                        - kind: call
+                          regex: ^([A-Za-z0-9_$.>:-]*[0-9_$.>:-])?(?i:(clam|clamav|clamd|clamscan|virus|viruses|virustotal|antivirus|malware|antimalware|quahog|cloudmersive|scanii|metadefender|opswat))(\(|[A-Z0-9_$.>:-][A-Za-z0-9_$.>:-]*\()|^[A-Za-z0-9_$.>:-]*(Clam|ClamAV|Clamav|Clamd|Clamscan|CLAMAV|CLAMD|Virus|Viruses|VirusTotal|Antivirus|AntiVirus|Malware|AntiMalware|Quahog|Cloudmersive|Scanii|MetaDefender|Opswat|OPSWAT)(\(|[A-Z0-9_$.>:-][A-Za-z0-9_$.>:-]*\()|^([A-Za-z0-9_$.>:-]*[.>:])?(is_?[iI]nfected|instream|scan_stream)\(
+                        - not:
+                            kind: call
+                            regex: (?i)(queue|job|task|enqueue|delay|apply_async|publish|dispatch|schedule|enabled|configured|available|definition|signature|update|fresh|version|health|ping)
+                      - has:
+                          stopBy: end
+                          all: *id001
+                  - not:
+                      inside:
+                        kind: not_operator
+                - all:
+                  - kind: not_operator
+                  - has:
+                      kind: attribute
+                      all:
+                      - has:
+                          field: attribute
+                          kind: identifier
+                          regex: ^(is_clean|clean)$
+                      - has:
+                          field: object
+                          any:
+                          - *id002
+                          - has:
+                              stopBy: end
+                              all: *id001
+              - has:
+                  stopBy: end
+                  any:
+                  - *id003
+          - has:
+              field: consequence
+              any:
+              - &id004
+                kind: return_statement
+              - &id005
+                kind: raise_statement
+              - &id006
+                kind: call
+                regex: ^(flask\.)?abort\(
+              - has:
+                  stopBy: end
+                  any:
+                  - *id004
+                  - *id005
+                  - *id006
+      - all:
+        - has:
+            stopBy:
+              any:
+              - kind: function_definition
+              - kind: lambda
+            all:
+            - kind: assignment
+              all:
+              - pattern: $V = $E
+              - has:
+                  field: left
+                  kind: identifier
+            - has:
+                stopBy: end
+                any:
+                - kind: call
+                  regex: ^([A-Za-z0-9_$.>:-]*[0-9_$.>:-])?(?i:(clam|clamav|clamd|clamscan|virus|viruses|virustotal|antivirus|malware|antimalware|quahog|cloudmersive|scanii|metadefender|opswat))(\(|[A-Z0-9_$.>:-][A-Za-z0-9_$.>:-]*\()|^[A-Za-z0-9_$.>:-]*(Clam|ClamAV|Clamav|Clamd|Clamscan|CLAMAV|CLAMD|Virus|Viruses|VirusTotal|Antivirus|AntiVirus|Malware|AntiMalware|Quahog|Cloudmersive|Scanii|MetaDefender|Opswat|OPSWAT)(\(|[A-Z0-9_$.>:-][A-Za-z0-9_$.>:-]*\()|^([A-Za-z0-9_$.>:-]*[.>:])?(is_?[iI]nfected|instream|scan_stream)\(
+            - not:
+                has:
+                  stopBy: end
+                  any:
+                  - kind: call
+                    regex: (?i)(queue|job|task|enqueue|delay|apply_async|publish|dispatch|schedule|enabled|configured|available|definition|signature|update|fresh|version|health|ping)
+        - has:
+            stopBy:
+              any:
+              - kind: function_definition
+              - kind: lambda
+            kind: if_statement
+            all:
+            - has:
+                field: condition
+                any:
+                - &id007
+                  all:
+                  - pattern: $V.$P
+                  - regex: ^[A-Za-z0-9_]+\.(is_infected|infected|has_virus|virus_found|is_malicious|malicious|viruses|threats)$
+                  - not:
+                      inside:
+                        kind: not_operator
+                - &id008
+                  all:
+                  - kind: not_operator
+                  - regex: ^not\s+[A-Za-z0-9_]+\.(is_clean|clean)$
+                  - has:
+                      pattern: $V.$P
+                - &id009
+                  all:
+                  - kind: comparison_operator
+                  - regex: (?i)^[A-Za-z0-9_]+(\.(status|verdict|result)|\[['"]stream['"]\]\[0\])\s*(!=\s*['"](clean|ok|passed)['"]|==\s*['"](infected|found|malicious|virus)['"])$
+                  - has:
+                      stopBy: end
+                      kind: identifier
+                      pattern:
+                        context: $V.x
+                        selector: identifier
+                - has:
+                    stopBy: end
+                    any:
+                    - *id007
+                    - *id008
+                    - *id009
+            - has:
+                field: consequence
+                any:
+                - *id004
+                - *id005
+                - *id006
+                - has:
+                    stopBy: end
+                    any:
+                    - *id004
+                    - *id005
+                    - *id006
+  - has:
+      stopBy:
+        any:
+        - kind: function_definition
+        - kind: lambda
+      any:
+      - all:
+        - any:
+          - kind: call
+            regex: (?i)^[A-Za-z0-9_$.>:-]*(scan|clamav|clamd|clamscan|virus|malware)[A-Za-z0-9_$.>:-]*\(
+          - kind: call
+            regex: ^([A-Za-z0-9_$.>:-]*[0-9_$.>:-])?(?i:(clam|clamav|clamd|clamscan|virus|viruses|virustotal|antivirus|malware|antimalware|quahog|cloudmersive|scanii|metadefender|opswat))(\(|[A-Z0-9_$.>:-][A-Za-z0-9_$.>:-]*\()|^[A-Za-z0-9_$.>:-]*(Clam|ClamAV|Clamav|Clamd|Clamscan|CLAMAV|CLAMD|Virus|Viruses|VirusTotal|Antivirus|AntiVirus|Malware|AntiMalware|Quahog|Cloudmersive|Scanii|MetaDefender|Opswat|OPSWAT)(\(|[A-Z0-9_$.>:-][A-Za-z0-9_$.>:-]*\()|^([A-Za-z0-9_$.>:-]*[.>:])?(is_?[iI]nfected|instream|scan_stream)\(
+        - not:
+            kind: call
+            regex: (?i)^[A-Za-z0-9_$.>:-]*(queue|enabled|configured|available)[A-Za-z0-9_$.>:-]*\(
+min_engine: 0.39.0
+---
+id: upload-validation.python-fastapi.no-content-type-check
+practice_id: upload-validation
+language: python
+frameworks:
+- fastapi
+kind: violation
+rule:
+  all:
+  - all:
+    - any:
+      - kind: function_definition
+    - has:
+        stopBy: end
+        any:
+        - kind: attribute
+          regex: ^request\.(FILES|files)$
+        - kind: type
+          regex: ^UploadFile$
+  - not:
+      any:
+      - all:
+        - has:
+            stopBy:
+              any:
+              - kind: function_definition
+              - kind: lambda
+            all:
+            - kind: assignment
+              all:
+              - pattern: $V = $E
+              - has:
+                  field: left
+                  kind: identifier
+            - has:
+                stopBy: end
+                any:
+                - kind: call
+                  regex: (magic\.from_(buffer|file)|filetype\.guess|puremagic\.\w+|imghdr\.what)\(
+        - has:
+            stopBy:
+              any:
+              - kind: function_definition
+              - kind: lambda
+            kind: if_statement
+            all:
+            - has:
+                field: condition
+                any:
+                - &id001
+                  pattern: $V not in $X
+                - &id002
+                  pattern: $V != $X
+                - &id003
+                  all:
+                  - pattern: $V.$P not in $X
+                  - regex: \.(mime|extension)\s
+                - &id004
+                  all:
+                  - pattern: $V.$P != $X
+                  - regex: \.(mime|extension)\s
+                - has:
+                    stopBy: end
+                    any:
+                    - *id001
+                    - *id002
+                    - *id003
+                    - *id004
+            - has:
+                field: consequence
+                any:
+                - &id005
+                  kind: return_statement
+                - &id006
+                  kind: raise_statement
+                - &id007
+                  kind: call
+                  regex: ^(flask\.)?abort\(
+                - has:
+                    stopBy: end
+                    any:
+                    - *id005
+                    - *id006
+                    - *id007
+  - not:
+      any:
+      - all:
+        - has:
+            stopBy: end
+            any:
+            - kind: call
+              regex: (magic\.from_(buffer|file)|filetype\.guess|puremagic\.\w+|imghdr\.what)\(
+        - not:
+            all:
+            - has:
+                stopBy: end
+                all:
+                - kind: assignment
+                  all:
+                  - pattern: $V = $E
+                  - has:
+                      field: left
+                      kind: identifier
+                - has:
+                    stopBy: end
+                    any:
+                    - kind: call
+                      regex: (magic\.from_(buffer|file)|filetype\.guess|puremagic\.\w+|imghdr\.what)\(
+            - not:
+                has:
+                  stopBy: end
+                  all:
+                  - kind: identifier
+                    pattern:
+                      context: $V.x
+                      selector: identifier
+                  - not:
+                      inside:
+                        kind: assignment
+                        field: left
+      - has:
+          stopBy: end
+          any:
+          - kind: call
+            regex: (?i)^[A-Za-z0-9_$.>:-]*(check|assert|validate|ensure|verify|is|allowed|sniff)[A-Za-z0-9_]*(type|mime|magic|filetype|allowed|content)[A-Za-z0-9_]*\(
+min_engine: 0.39.0
+---
+id: upload-validation.python-fastapi.type-candidate
+practice_id: upload-validation
+language: python
+frameworks:
+- fastapi
+kind: evidence
+rule:
+  all:
+  - all:
+    - any:
+      - kind: function_definition
+    - has:
+        stopBy: end
+        any:
+        - kind: attribute
+          regex: ^request\.(FILES|files)$
+        - kind: type
+          regex: ^UploadFile$
+  - not:
+      any:
+      - all:
+        - has:
+            stopBy:
+              any:
+              - kind: function_definition
+              - kind: lambda
+            all:
+            - kind: assignment
+              all:
+              - pattern: $V = $E
+              - has:
+                  field: left
+                  kind: identifier
+            - has:
+                stopBy: end
+                any:
+                - kind: call
+                  regex: (magic\.from_(buffer|file)|filetype\.guess|puremagic\.\w+|imghdr\.what)\(
+        - has:
+            stopBy:
+              any:
+              - kind: function_definition
+              - kind: lambda
+            kind: if_statement
+            all:
+            - has:
+                field: condition
+                any:
+                - &id001
+                  pattern: $V not in $X
+                - &id002
+                  pattern: $V != $X
+                - &id003
+                  all:
+                  - pattern: $V.$P not in $X
+                  - regex: \.(mime|extension)\s
+                - &id004
+                  all:
+                  - pattern: $V.$P != $X
+                  - regex: \.(mime|extension)\s
+                - has:
+                    stopBy: end
+                    any:
+                    - *id001
+                    - *id002
+                    - *id003
+                    - *id004
+            - has:
+                field: consequence
+                any:
+                - &id005
+                  kind: return_statement
+                - &id006
+                  kind: raise_statement
+                - &id007
+                  kind: call
+                  regex: ^(flask\.)?abort\(
+                - has:
+                    stopBy: end
+                    any:
+                    - *id005
+                    - *id006
+                    - *id007
+  - any:
+    - all:
+      - has:
+          stopBy: end
+          any:
+          - kind: call
+            regex: (magic\.from_(buffer|file)|filetype\.guess|puremagic\.\w+|imghdr\.what)\(
+      - not:
+          all:
+          - has:
+              stopBy: end
+              all:
+              - kind: assignment
+                all:
+                - pattern: $V = $E
+                - has:
+                    field: left
+                    kind: identifier
+              - has:
+                  stopBy: end
+                  any:
+                  - kind: call
+                    regex: (magic\.from_(buffer|file)|filetype\.guess|puremagic\.\w+|imghdr\.what)\(
+          - not:
+              has:
+                stopBy: end
+                all:
+                - kind: identifier
+                  pattern:
+                    context: $V.x
+                    selector: identifier
+                - not:
+                    inside:
+                      kind: assignment
+                      field: left
+    - has:
+        stopBy: end
+        any:
+        - kind: call
+          regex: (?i)^[A-Za-z0-9_$.>:-]*(check|assert|validate|ensure|verify|is|allowed|sniff)[A-Za-z0-9_]*(type|mime|magic|filetype|allowed|content)[A-Za-z0-9_]*\(
+min_engine: 0.39.0
+---
+id: upload-validation.python-fastapi.no-size-limit
+practice_id: upload-validation
+language: python
+frameworks:
+- fastapi
+kind: violation
+rule:
+  all:
+  - all:
+    - any:
+      - kind: function_definition
+    - has:
+        stopBy: end
+        any:
+        - kind: attribute
+          regex: ^request\.(FILES|files)$
+        - kind: type
+          regex: ^UploadFile$
+  - not:
+      any:
+      - has:
+          stopBy:
+            any:
+            - kind: function_definition
+            - kind: lambda
+          kind: if_statement
+          all:
+          - has:
+              field: condition
+              any:
+              - &id001
+                kind: comparison_operator
+                regex: ^((file|f|upload|uploaded|uploaded_file|attachment|document|doc|[a-z][a-z0-9_]*_file|request\.files\[[^\]]+\])\.size|(request|req)\.content_length)\s*>=?\s*(self::|static::|this\.|\$this->|self\.|cls\.)?([A-Z][A-Z0-9_]*(MAX|LIMIT)[A-Z0-9_]*|(MAX|LIMIT)[A-Z0-9_]*|[a-z][A-Za-z0-9]*(Max|Limit)[A-Za-z0-9]*|(Max|Limit)[A-Za-z0-9]*|max[A-Z][A-Za-z0-9]*|limit[A-Z][A-Za-z0-9]*|[1-9][0-9_]{3,}|[0-9]+\s*\*\s*1024(\s*\*\s*1024)?)$
+              - has:
+                  stopBy: end
+                  any:
+                  - *id001
+          - has:
+              field: consequence
+              any:
+              - &id002
+                kind: return_statement
+              - &id003
+                kind: raise_statement
+              - &id004
+                kind: call
+                regex: ^(flask\.)?abort\(
+              - has:
+                  stopBy: end
+                  any:
+                  - *id002
+                  - *id003
+                  - *id004
+      - all:
+        - has:
+            stopBy:
+              any:
+              - kind: function_definition
+              - kind: lambda
+            all:
+            - kind: assignment
+              all:
+              - pattern: $V = $E
+              - has:
+                  field: left
+                  kind: identifier
+            - has:
+                stopBy: end
+                any:
+                - kind: call
+                  regex: \.read\(
+        - has:
+            stopBy:
+              any:
+              - kind: function_definition
+              - kind: lambda
+            kind: if_statement
+            all:
+            - has:
+                field: condition
+                any:
+                - &id005
+                  all:
+                  - pattern: len($V) > $L
+                  - regex: '>=?\s*(self::|static::|this\.|\$this->|self\.|cls\.)?([A-Z][A-Z0-9_]*(MAX|LIMIT)[A-Z0-9_]*|(MAX|LIMIT)[A-Z0-9_]*|[a-z][A-Za-z0-9]*(Max|Limit)[A-Za-z0-9]*|(Max|Limit)[A-Za-z0-9]*|max[A-Z][A-Za-z0-9]*|limit[A-Z][A-Za-z0-9]*|[1-9][0-9_]{3,}|[0-9]+\s*\*\s*1024(\s*\*\s*1024)?)$'
+                - &id006
+                  all:
+                  - pattern: len($V) >= $L
+                  - regex: '>=?\s*(self::|static::|this\.|\$this->|self\.|cls\.)?([A-Z][A-Z0-9_]*(MAX|LIMIT)[A-Z0-9_]*|(MAX|LIMIT)[A-Z0-9_]*|[a-z][A-Za-z0-9]*(Max|Limit)[A-Za-z0-9]*|(Max|Limit)[A-Za-z0-9]*|max[A-Z][A-Za-z0-9]*|limit[A-Z][A-Za-z0-9]*|[1-9][0-9_]{3,}|[0-9]+\s*\*\s*1024(\s*\*\s*1024)?)$'
+                - has:
+                    stopBy: end
+                    any:
+                    - *id005
+                    - *id006
+            - has:
+                field: consequence
+                any:
+                - *id002
+                - *id003
+                - *id004
+                - has:
+                    stopBy: end
+                    any:
+                    - *id002
+                    - *id003
+                    - *id004
+  - not:
+      any:
+      - has:
+          stopBy: end
+          kind: if_statement
+          all:
+          - has:
+              field: condition
+              any:
+              - &id007
+                kind: comparison_operator
+                regex: (?i)(^([^<>]|->)*(size|length|bytes|len\()([^<>]|->)*\s>=?\s|\s<=?\s([^<>]|->)*(size|length|bytes|len\()([^<>]|->)*$)
+              - has:
+                  stopBy: end
+                  any:
+                  - *id007
+          - has:
+              field: consequence
+              any:
+              - *id002
+              - *id003
+              - *id004
+              - has:
+                  stopBy: end
+                  any:
+                  - *id002
+                  - *id003
+                  - *id004
+      - has:
+          stopBy: end
+          any:
+          - kind: call
+            regex: (?i)^[A-Za-z0-9_$.>:-]*(check|assert|validate|ensure|enforce|limit|verify)[A-Za-z0-9_]*(size|bytes|length)[A-Za-z0-9_]*\(
+      - inside:
+          stopBy: end
+          kind: module
+          has:
+            stopBy: end
+            any:
+            - kind: identifier
+              regex: ^(DATA_UPLOAD_MAX_MEMORY_SIZE|FILE_UPLOAD_MAX_MEMORY_SIZE|MAX_CONTENT_LENGTH)$
+            - kind: string
+              regex: ^['"](MAX_CONTENT_LENGTH|DATA_UPLOAD_MAX_MEMORY_SIZE)['"]$
+min_engine: 0.39.0
+---
+id: upload-validation.python-fastapi.size-candidate
+practice_id: upload-validation
+language: python
+frameworks:
+- fastapi
+kind: evidence
+rule:
+  all:
+  - all:
+    - any:
+      - kind: function_definition
+    - has:
+        stopBy: end
+        any:
+        - kind: attribute
+          regex: ^request\.(FILES|files)$
+        - kind: type
+          regex: ^UploadFile$
+  - not:
+      any:
+      - has:
+          stopBy:
+            any:
+            - kind: function_definition
+            - kind: lambda
+          kind: if_statement
+          all:
+          - has:
+              field: condition
+              any:
+              - &id001
+                kind: comparison_operator
+                regex: ^((file|f|upload|uploaded|uploaded_file|attachment|document|doc|[a-z][a-z0-9_]*_file|request\.files\[[^\]]+\])\.size|(request|req)\.content_length)\s*>=?\s*(self::|static::|this\.|\$this->|self\.|cls\.)?([A-Z][A-Z0-9_]*(MAX|LIMIT)[A-Z0-9_]*|(MAX|LIMIT)[A-Z0-9_]*|[a-z][A-Za-z0-9]*(Max|Limit)[A-Za-z0-9]*|(Max|Limit)[A-Za-z0-9]*|max[A-Z][A-Za-z0-9]*|limit[A-Z][A-Za-z0-9]*|[1-9][0-9_]{3,}|[0-9]+\s*\*\s*1024(\s*\*\s*1024)?)$
+              - has:
+                  stopBy: end
+                  any:
+                  - *id001
+          - has:
+              field: consequence
+              any:
+              - &id002
+                kind: return_statement
+              - &id003
+                kind: raise_statement
+              - &id004
+                kind: call
+                regex: ^(flask\.)?abort\(
+              - has:
+                  stopBy: end
+                  any:
+                  - *id002
+                  - *id003
+                  - *id004
+      - all:
+        - has:
+            stopBy:
+              any:
+              - kind: function_definition
+              - kind: lambda
+            all:
+            - kind: assignment
+              all:
+              - pattern: $V = $E
+              - has:
+                  field: left
+                  kind: identifier
+            - has:
+                stopBy: end
+                any:
+                - kind: call
+                  regex: \.read\(
+        - has:
+            stopBy:
+              any:
+              - kind: function_definition
+              - kind: lambda
+            kind: if_statement
+            all:
+            - has:
+                field: condition
+                any:
+                - &id005
+                  all:
+                  - pattern: len($V) > $L
+                  - regex: '>=?\s*(self::|static::|this\.|\$this->|self\.|cls\.)?([A-Z][A-Z0-9_]*(MAX|LIMIT)[A-Z0-9_]*|(MAX|LIMIT)[A-Z0-9_]*|[a-z][A-Za-z0-9]*(Max|Limit)[A-Za-z0-9]*|(Max|Limit)[A-Za-z0-9]*|max[A-Z][A-Za-z0-9]*|limit[A-Z][A-Za-z0-9]*|[1-9][0-9_]{3,}|[0-9]+\s*\*\s*1024(\s*\*\s*1024)?)$'
+                - &id006
+                  all:
+                  - pattern: len($V) >= $L
+                  - regex: '>=?\s*(self::|static::|this\.|\$this->|self\.|cls\.)?([A-Z][A-Z0-9_]*(MAX|LIMIT)[A-Z0-9_]*|(MAX|LIMIT)[A-Z0-9_]*|[a-z][A-Za-z0-9]*(Max|Limit)[A-Za-z0-9]*|(Max|Limit)[A-Za-z0-9]*|max[A-Z][A-Za-z0-9]*|limit[A-Z][A-Za-z0-9]*|[1-9][0-9_]{3,}|[0-9]+\s*\*\s*1024(\s*\*\s*1024)?)$'
+                - has:
+                    stopBy: end
+                    any:
+                    - *id005
+                    - *id006
+            - has:
+                field: consequence
+                any:
+                - *id002
+                - *id003
+                - *id004
+                - has:
+                    stopBy: end
+                    any:
+                    - *id002
+                    - *id003
+                    - *id004
+  - any:
+    - has:
+        stopBy: end
+        kind: if_statement
+        all:
+        - has:
+            field: condition
+            any:
+            - &id007
+              kind: comparison_operator
+              regex: (?i)(^([^<>]|->)*(size|length|bytes|len\()([^<>]|->)*\s>=?\s|\s<=?\s([^<>]|->)*(size|length|bytes|len\()([^<>]|->)*$)
+            - has:
+                stopBy: end
+                any:
+                - *id007
+        - has:
+            field: consequence
+            any:
+            - *id002
+            - *id003
+            - *id004
+            - has:
+                stopBy: end
+                any:
+                - *id002
+                - *id003
+                - *id004
+    - has:
+        stopBy: end
+        any:
+        - kind: call
+          regex: (?i)^[A-Za-z0-9_$.>:-]*(check|assert|validate|ensure|enforce|limit|verify)[A-Za-z0-9_]*(size|bytes|length)[A-Za-z0-9_]*\(
+    - inside:
+        stopBy: end
+        kind: module
+        has:
+          stopBy: end
+          any:
+          - kind: identifier
+            regex: ^(DATA_UPLOAD_MAX_MEMORY_SIZE|FILE_UPLOAD_MAX_MEMORY_SIZE|MAX_CONTENT_LENGTH)$
+          - kind: string
+            regex: ^['"](MAX_CONTENT_LENGTH|DATA_UPLOAD_MAX_MEMORY_SIZE)['"]$
+min_engine: 0.39.0
+---
+id: upload-validation.python-fastapi.no-authorization
+practice_id: upload-validation
+language: python
+frameworks:
+- fastapi
+kind: violation
+rule:
+  all:
+  - all:
+    - any:
+      - kind: function_definition
+    - has:
+        stopBy: end
+        any:
+        - kind: attribute
+          regex: ^request\.(FILES|files)$
+        - kind: type
+          regex: ^UploadFile$
+  - not:
+      any:
+      - inside:
+          kind: decorated_definition
+          has:
+            kind: decorator
+            regex: ^@(flask_login\.)?(login_required|permission_required|jwt_required|auth_required|requires_auth)(?-u:\b)
+      - has:
+          field: parameters
+          has:
+            stopBy: end
+            kind: call
+            regex: ^(Depends|Security)\(\s*([A-Za-z0-9_]+\.)?(get_current_user|get_current_active_user|get_current_[a-z_]*user|current_user|current_active_user|require_user|require_auth|authenticated_user|get_authenticated_user)\s*[,)]
+      - has:
+          stopBy:
+            any:
+            - kind: function_definition
+            - kind: lambda
+          kind: call
+          regex: ^(flask_jwt_extended\.)?verify_jwt_in_request\(
+      - has:
+          stopBy:
+            any:
+            - kind: function_definition
+            - kind: lambda
+          kind: if_statement
+          all:
+          - has:
+              field: condition
+              any:
+              - &id001
+                kind: not_operator
+                regex: ^not\s+(request\.user|current_user)\.is_authenticated$
+              - has:
+                  stopBy: end
+                  any:
+                  - *id001
+          - has:
+              field: consequence
+              any:
+              - &id002
+                kind: return_statement
+              - &id003
+                kind: raise_statement
+              - &id004
+                kind: call
+                regex: ^(flask\.)?abort\(
+              - has:
+                  stopBy: end
+                  any:
+                  - *id002
+                  - *id003
+                  - *id004
+  - all:
+    - inside:
+        kind: decorated_definition
+        has:
+          kind: decorator
+          has:
+            kind: call
+            all:
+            - pattern: $APP.$M($$$A)
+            - regex: ^[A-Za-z_][A-Za-z0-9_]*\.(route|post|put|patch)\(
+            - not:
+                kind: call
+                regex: dependencies\s*=
+    - inside:
+        stopBy: end
+        kind: module
+        has:
+          stopBy: end
+          kind: assignment
+          all:
+          - any:
+            - pattern: $APP = Flask($$$X)
+            - pattern: $APP = FastAPI($$$X)
+          - not:
+              kind: assignment
+              regex: (dependencies|middleware)\s*=
+    - not:
+        inside:
+          stopBy: end
+          kind: module
+          has:
+            stopBy: end
+            any:
+            - kind: decorator
+              regex: before_(app_)?request
+            - kind: call
+              regex: before_(app_)?request\(
+            - kind: call
+              regex: \.add_middleware\(
+            - kind: call
+              pattern: $APP.middleware($$$MW)
+            - kind: call
+              all:
+              - any:
+                - pattern: $F($APP)
+                - pattern: $F($APP, $$$X)
+                - pattern: $F($$$X, $APP)
+                - has:
+                    field: arguments
+                    has:
+                      kind: attribute
+                      regex: ^[A-Za-z_][A-Za-z0-9_]*\.(wsgi_app|asgi_app)$
+              - not:
+                  kind: call
+                  regex: ^(CORS|Migrate|SQLAlchemy|Marshmallow|Mail|Cache|Compress|Bootstrap|Moment|Babel|CSRFProtect|Talisman|Swagger|TestClient|run_simple|make_server|serve|uvicorn\.run|(db|migrate|cors|mail|cache|ma|babel|csrf|compress|bootstrap|moment|limiter)\.init_app)\(
+    - not:
+        any:
+        - has:
+            stopBy: end
+            any:
+            - kind: attribute
+              regex: ^(request\.(user|auth)|current_user|g\.user|flask_login\.current_user)
+            - kind: call
+              regex: (?i)^(Depends|Security)\(|(get_current_user|verify_jwt|jwt\.decode|check_permission|has_perm|authorize|authenticate|login_required|session\.get)
+            - kind: subscript
+              regex: ^session\[
+        - inside:
+            kind: decorated_definition
+            has:
+              kind: decorator
+              not:
+                kind: decorator
+                regex: ^@[A-Za-z_][A-Za-z0-9_]*\.(route|post|put|patch|get|delete)\(
+min_engine: 0.39.0
+---
+id: upload-validation.python-fastapi.auth-unobserved
+practice_id: upload-validation
+language: python
+frameworks:
+- fastapi
+kind: evidence
+rule:
+  all:
+  - all:
+    - any:
+      - kind: function_definition
+    - has:
+        stopBy: end
+        any:
+        - kind: attribute
+          regex: ^request\.(FILES|files)$
+        - kind: type
+          regex: ^UploadFile$
+  - not:
+      any:
+      - inside:
+          kind: decorated_definition
+          has:
+            kind: decorator
+            regex: ^@(flask_login\.)?(login_required|permission_required|jwt_required|auth_required|requires_auth)(?-u:\b)
+      - has:
+          field: parameters
+          has:
+            stopBy: end
+            kind: call
+            regex: ^(Depends|Security)\(\s*([A-Za-z0-9_]+\.)?(get_current_user|get_current_active_user|get_current_[a-z_]*user|current_user|current_active_user|require_user|require_auth|authenticated_user|get_authenticated_user)\s*[,)]
+      - has:
+          stopBy:
+            any:
+            - kind: function_definition
+            - kind: lambda
+          kind: call
+          regex: ^(flask_jwt_extended\.)?verify_jwt_in_request\(
+      - has:
+          stopBy:
+            any:
+            - kind: function_definition
+            - kind: lambda
+          kind: if_statement
+          all:
+          - has:
+              field: condition
+              any:
+              - &id001
+                kind: not_operator
+                regex: ^not\s+(request\.user|current_user)\.is_authenticated$
+              - has:
+                  stopBy: end
+                  any:
+                  - *id001
+          - has:
+              field: consequence
+              any:
+              - &id002
+                kind: return_statement
+              - &id003
+                kind: raise_statement
+              - &id004
+                kind: call
+                regex: ^(flask\.)?abort\(
+              - has:
+                  stopBy: end
+                  any:
+                  - *id002
+                  - *id003
+                  - *id004
+  - not:
+      all:
+      - inside:
+          kind: decorated_definition
+          has:
+            kind: decorator
+            has:
+              kind: call
+              all:
+              - pattern: $APP.$M($$$A)
+              - regex: ^[A-Za-z_][A-Za-z0-9_]*\.(route|post|put|patch)\(
+              - not:
+                  kind: call
+                  regex: dependencies\s*=
+      - inside:
+          stopBy: end
+          kind: module
+          has:
+            stopBy: end
+            kind: assignment
+            all:
+            - any:
+              - pattern: $APP = Flask($$$X)
+              - pattern: $APP = FastAPI($$$X)
+            - not:
+                kind: assignment
+                regex: (dependencies|middleware)\s*=
+      - not:
+          inside:
+            stopBy: end
+            kind: module
+            has:
+              stopBy: end
+              any:
+              - kind: decorator
+                regex: before_(app_)?request
+              - kind: call
+                regex: before_(app_)?request\(
+              - kind: call
+                regex: \.add_middleware\(
+              - kind: call
+                pattern: $APP.middleware($$$MW)
+              - kind: call
+                all:
+                - any:
+                  - pattern: $F($APP)
+                  - pattern: $F($APP, $$$X)
+                  - pattern: $F($$$X, $APP)
+                  - has:
+                      field: arguments
+                      has:
+                        kind: attribute
+                        regex: ^[A-Za-z_][A-Za-z0-9_]*\.(wsgi_app|asgi_app)$
+                - not:
+                    kind: call
+                    regex: ^(CORS|Migrate|SQLAlchemy|Marshmallow|Mail|Cache|Compress|Bootstrap|Moment|Babel|CSRFProtect|Talisman|Swagger|TestClient|run_simple|make_server|serve|uvicorn\.run|(db|migrate|cors|mail|cache|ma|babel|csrf|compress|bootstrap|moment|limiter)\.init_app)\(
+      - not:
+          any:
+          - has:
+              stopBy: end
+              any:
+              - kind: attribute
+                regex: ^(request\.(user|auth)|current_user|g\.user|flask_login\.current_user)
+              - kind: call
+                regex: (?i)^(Depends|Security)\(|(get_current_user|verify_jwt|jwt\.decode|check_permission|has_perm|authorize|authenticate|login_required|session\.get)
+              - kind: subscript
+                regex: ^session\[
+          - inside:
+              kind: decorated_definition
+              has:
+                kind: decorator
+                not:
+                  kind: decorator
+                  regex: ^@[A-Za-z_][A-Za-z0-9_]*\.(route|post|put|patch|get|delete)\(
+min_engine: 0.39.0
+---
+id: upload-validation.python-fastapi.original-name-key
+practice_id: upload-validation
+language: python
+frameworks:
+- fastapi
+kind: violation
+rule:
+  any:
+  - kind: attribute
+    regex: ^[0-9A-Za-z_]+\.(filename|name)$
+    any:
+    - inside:
+        stopBy: end
+        kind: call
+        regex: ^[0-9A-Za-z_.]*(os\.path\.join|\.save|upload_fileobj|put_object|open)\(
+min_engine: 0.39.0

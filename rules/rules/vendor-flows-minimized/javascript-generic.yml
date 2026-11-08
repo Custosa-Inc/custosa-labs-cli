@@ -1,0 +1,1816 @@
+# vendor-flows-minimized (T23 B40 and B40b, design v3 2.6.3 and G9; the design notes are
+# docs/b40-plan.md and docs/b40b-plan.md under products/developer-checks). Written by scripts/gen_vendor_rules.py:
+# edit that script, never this file.
+# Two evidence rules name vendor calls and links out for a person, and two violation rules fail a patient identifier
+# in a third-party URL and a whole record sent to a third-party host. A third-party host is a written-out host with
+# a dot that is not loopback, private or link-local, under an internal-only or reserved suffix (local, localhost,
+# localdomain, internal, intranet, corp, lan, svc, test, example, invalid, home.arpa) or example.com/.org/.net. A
+# host built at runtime is not seen, so the practice stays open there; comments and docstrings are never call
+# arguments or joins. Test files are set aside by the practice function (vendors.in_test_file): rules can't see
+# paths. Sentry and RUM initialisations are error-tracking-no-phi's rules, which this practice judges too (its YAML's
+# evaluate.judges_rules_of, T27 F14): an error-tracking SDK at its defaults sends request data to its vendor.
+
+# vendor-call: A fetch, axios, ky, got or node http(s) call (any receiver's get, post, put, patch, delete, head,
+# options, request, create or extend) whose first argument names a third-party host (a string or template literal, a +
+# join opening with one, or a const a module-level statement assigns one), or whose options object has url, baseURL,
+# baseUrl or prefixUrl naming one; a call on a client a module-level const creates with such a base;
+# navigator.sendBeacon to one; an XMLHttpRequest opened on one; new URL(path, base) resolved against one. Evidence.
+id: vendor-flows-minimized.javascript-generic.vendor-call
+practice_id: vendor-flows-minimized
+language: javascript
+frameworks:
+- generic
+kind: evidence
+rule:
+  any:
+  - any:
+    - all:
+      - kind: call_expression
+      - has:
+          field: function
+          any:
+          - kind: identifier
+            regex: ^(fetch|globalThis\.fetch|window\.fetch|self\.fetch|ky|got|axios|\$fetch|ofetch)$|\.(get|post|put|patch|delete|head|options|request|create|extend)$
+          - kind: member_expression
+            regex: ^(fetch|globalThis\.fetch|window\.fetch|self\.fetch|ky|got|axios|\$fetch|ofetch)$|\.(get|post|put|patch|delete|head|options|request|create|extend)$
+      - any:
+        - has:
+            field: arguments
+            kind: arguments
+            regex: ^\(\s*((//[^\n]*\n|/\*([^*]|\*+[^*/])*\*+/)\s*)*["'\x60][hH][tT][tT][pP][sS]?://([^/@\s"'\x60]+@)?[A-Za-z0-9-]+(\.[A-Za-z0-9-]+)+([:/?#"'\x60]|$)
+            not:
+              kind: arguments
+              regex: ^\(\s*((//[^\n]*\n|/\*([^*]|\*+[^*/])*\*+/)\s*)*["'\x60][hH][tT][tT][pP][sS]?://([^/@\s"'\x60]+@)?(127\.[0-9]|0\.0\.0\.0([:/?#"'\x60]|$)|10\.[0-9]+\.|192\.168\.|172\.(1[6-9]|2[0-9]|3[01])\.|169\.254\.|([A-Za-z0-9-]+\.)*(?i:local|localhost|localdomain|internal|intranet|corp|lan|svc|test|example|invalid|home\.arpa)([:/?#"'\x60]|$)|([A-Za-z0-9-]+\.)*(?i:example\.(com|org|net))([:/?#"'\x60]|$))
+        - has:
+            field: arguments
+            has:
+              kind: object
+              has:
+                kind: pair
+                all:
+                - has:
+                    field: key
+                    kind: property_identifier
+                    regex: ^(url|baseURL|baseUrl|prefixUrl)$
+                - has:
+                    field: value
+                    any:
+                    - any:
+                      - kind: string
+                        regex: ^["'\x60][hH][tT][tT][pP][sS]?://([^/@\s"'\x60]+@)?[A-Za-z0-9-]+(\.[A-Za-z0-9-]+)+([:/?#"'\x60]|$)
+                        not:
+                          kind: string
+                          regex: ^["'\x60][hH][tT][tT][pP][sS]?://([^/@\s"'\x60]+@)?(127\.[0-9]|0\.0\.0\.0([:/?#"'\x60]|$)|10\.[0-9]+\.|192\.168\.|172\.(1[6-9]|2[0-9]|3[01])\.|169\.254\.|([A-Za-z0-9-]+\.)*(?i:local|localhost|localdomain|internal|intranet|corp|lan|svc|test|example|invalid|home\.arpa)([:/?#"'\x60]|$)|([A-Za-z0-9-]+\.)*(?i:example\.(com|org|net))([:/?#"'\x60]|$))
+                      - kind: template_string
+                        regex: ^["'\x60][hH][tT][tT][pP][sS]?://([^/@\s"'\x60]+@)?[A-Za-z0-9-]+(\.[A-Za-z0-9-]+)+([:/?#"'\x60]|$)
+                        not:
+                          kind: template_string
+                          regex: ^["'\x60][hH][tT][tT][pP][sS]?://([^/@\s"'\x60]+@)?(127\.[0-9]|0\.0\.0\.0([:/?#"'\x60]|$)|10\.[0-9]+\.|192\.168\.|172\.(1[6-9]|2[0-9]|3[01])\.|169\.254\.|([A-Za-z0-9-]+\.)*(?i:local|localhost|localdomain|internal|intranet|corp|lan|svc|test|example|invalid|home\.arpa)([:/?#"'\x60]|$)|([A-Za-z0-9-]+\.)*(?i:example\.(com|org|net))([:/?#"'\x60]|$))
+                    - kind: binary_expression
+                      has:
+                        stopBy: end
+                        any:
+                        - kind: string
+                          regex: ^["'\x60][hH][tT][tT][pP][sS]?://([^/@\s"'\x60]+@)?[A-Za-z0-9-]+(\.[A-Za-z0-9-]+)+([:/?#"'\x60]|$)
+                          not:
+                            kind: string
+                            regex: ^["'\x60][hH][tT][tT][pP][sS]?://([^/@\s"'\x60]+@)?(127\.[0-9]|0\.0\.0\.0([:/?#"'\x60]|$)|10\.[0-9]+\.|192\.168\.|172\.(1[6-9]|2[0-9]|3[01])\.|169\.254\.|([A-Za-z0-9-]+\.)*(?i:local|localhost|localdomain|internal|intranet|corp|lan|svc|test|example|invalid|home\.arpa)([:/?#"'\x60]|$)|([A-Za-z0-9-]+\.)*(?i:example\.(com|org|net))([:/?#"'\x60]|$))
+                        - kind: template_string
+                          regex: ^["'\x60][hH][tT][tT][pP][sS]?://([^/@\s"'\x60]+@)?[A-Za-z0-9-]+(\.[A-Za-z0-9-]+)+([:/?#"'\x60]|$)
+                          not:
+                            kind: template_string
+                            regex: ^["'\x60][hH][tT][tT][pP][sS]?://([^/@\s"'\x60]+@)?(127\.[0-9]|0\.0\.0\.0([:/?#"'\x60]|$)|10\.[0-9]+\.|192\.168\.|172\.(1[6-9]|2[0-9]|3[01])\.|169\.254\.|([A-Za-z0-9-]+\.)*(?i:local|localhost|localdomain|internal|intranet|corp|lan|svc|test|example|invalid|home\.arpa)([:/?#"'\x60]|$)|([A-Za-z0-9-]+\.)*(?i:example\.(com|org|net))([:/?#"'\x60]|$))
+        - all:
+          - any:
+            - pattern: $F($NAME + $X)
+            - pattern: $F($NAME + $X, $$$R)
+            - pattern: $F($NAME)
+            - pattern: $F($NAME, $$$R)
+          - all:
+            - inside:
+                stopBy: end
+                kind: program
+                has:
+                  any:
+                  - kind: lexical_declaration
+                    regex: ^const\s
+                    has:
+                      kind: variable_declarator
+                      all:
+                      - has:
+                          field: name
+                          pattern:
+                            context: ($NAME)
+                            selector: identifier
+                      - has:
+                          field: value
+                          any:
+                          - any:
+                            - kind: string
+                              regex: ^["'\x60][hH][tT][tT][pP][sS]?://([^/@\s"'\x60]+@)?[A-Za-z0-9-]+(\.[A-Za-z0-9-]+)+([:/?#"'\x60]|$)
+                              not:
+                                kind: string
+                                regex: ^["'\x60][hH][tT][tT][pP][sS]?://([^/@\s"'\x60]+@)?(127\.[0-9]|0\.0\.0\.0([:/?#"'\x60]|$)|10\.[0-9]+\.|192\.168\.|172\.(1[6-9]|2[0-9]|3[01])\.|169\.254\.|([A-Za-z0-9-]+\.)*(?i:local|localhost|localdomain|internal|intranet|corp|lan|svc|test|example|invalid|home\.arpa)([:/?#"'\x60]|$)|([A-Za-z0-9-]+\.)*(?i:example\.(com|org|net))([:/?#"'\x60]|$))
+                            - kind: template_string
+                              regex: ^["'\x60][hH][tT][tT][pP][sS]?://([^/@\s"'\x60]+@)?[A-Za-z0-9-]+(\.[A-Za-z0-9-]+)+([:/?#"'\x60]|$)
+                              not:
+                                kind: template_string
+                                regex: ^["'\x60][hH][tT][tT][pP][sS]?://([^/@\s"'\x60]+@)?(127\.[0-9]|0\.0\.0\.0([:/?#"'\x60]|$)|10\.[0-9]+\.|192\.168\.|172\.(1[6-9]|2[0-9]|3[01])\.|169\.254\.|([A-Za-z0-9-]+\.)*(?i:local|localhost|localdomain|internal|intranet|corp|lan|svc|test|example|invalid|home\.arpa)([:/?#"'\x60]|$)|([A-Za-z0-9-]+\.)*(?i:example\.(com|org|net))([:/?#"'\x60]|$))
+                          - kind: binary_expression
+                            has:
+                              field: left
+                              any:
+                              - kind: string
+                                regex: ^["'\x60][hH][tT][tT][pP][sS]?://([^/@\s"'\x60]+@)?[A-Za-z0-9-]+(\.[A-Za-z0-9-]+)+([:/?#"'\x60]|$)
+                                not:
+                                  kind: string
+                                  regex: ^["'\x60][hH][tT][tT][pP][sS]?://([^/@\s"'\x60]+@)?(127\.[0-9]|0\.0\.0\.0([:/?#"'\x60]|$)|10\.[0-9]+\.|192\.168\.|172\.(1[6-9]|2[0-9]|3[01])\.|169\.254\.|([A-Za-z0-9-]+\.)*(?i:local|localhost|localdomain|internal|intranet|corp|lan|svc|test|example|invalid|home\.arpa)([:/?#"'\x60]|$)|([A-Za-z0-9-]+\.)*(?i:example\.(com|org|net))([:/?#"'\x60]|$))
+                              - kind: template_string
+                                regex: ^["'\x60][hH][tT][tT][pP][sS]?://([^/@\s"'\x60]+@)?[A-Za-z0-9-]+(\.[A-Za-z0-9-]+)+([:/?#"'\x60]|$)
+                                not:
+                                  kind: template_string
+                                  regex: ^["'\x60][hH][tT][tT][pP][sS]?://([^/@\s"'\x60]+@)?(127\.[0-9]|0\.0\.0\.0([:/?#"'\x60]|$)|10\.[0-9]+\.|192\.168\.|172\.(1[6-9]|2[0-9]|3[01])\.|169\.254\.|([A-Za-z0-9-]+\.)*(?i:local|localhost|localdomain|internal|intranet|corp|lan|svc|test|example|invalid|home\.arpa)([:/?#"'\x60]|$)|([A-Za-z0-9-]+\.)*(?i:example\.(com|org|net))([:/?#"'\x60]|$))
+                  - kind: export_statement
+                    has:
+                      kind: lexical_declaration
+                      regex: ^const\s
+                      has:
+                        kind: variable_declarator
+                        all:
+                        - has:
+                            field: name
+                            pattern:
+                              context: ($NAME)
+                              selector: identifier
+                        - has:
+                            field: value
+                            any:
+                            - any:
+                              - kind: string
+                                regex: ^["'\x60][hH][tT][tT][pP][sS]?://([^/@\s"'\x60]+@)?[A-Za-z0-9-]+(\.[A-Za-z0-9-]+)+([:/?#"'\x60]|$)
+                                not:
+                                  kind: string
+                                  regex: ^["'\x60][hH][tT][tT][pP][sS]?://([^/@\s"'\x60]+@)?(127\.[0-9]|0\.0\.0\.0([:/?#"'\x60]|$)|10\.[0-9]+\.|192\.168\.|172\.(1[6-9]|2[0-9]|3[01])\.|169\.254\.|([A-Za-z0-9-]+\.)*(?i:local|localhost|localdomain|internal|intranet|corp|lan|svc|test|example|invalid|home\.arpa)([:/?#"'\x60]|$)|([A-Za-z0-9-]+\.)*(?i:example\.(com|org|net))([:/?#"'\x60]|$))
+                              - kind: template_string
+                                regex: ^["'\x60][hH][tT][tT][pP][sS]?://([^/@\s"'\x60]+@)?[A-Za-z0-9-]+(\.[A-Za-z0-9-]+)+([:/?#"'\x60]|$)
+                                not:
+                                  kind: template_string
+                                  regex: ^["'\x60][hH][tT][tT][pP][sS]?://([^/@\s"'\x60]+@)?(127\.[0-9]|0\.0\.0\.0([:/?#"'\x60]|$)|10\.[0-9]+\.|192\.168\.|172\.(1[6-9]|2[0-9]|3[01])\.|169\.254\.|([A-Za-z0-9-]+\.)*(?i:local|localhost|localdomain|internal|intranet|corp|lan|svc|test|example|invalid|home\.arpa)([:/?#"'\x60]|$)|([A-Za-z0-9-]+\.)*(?i:example\.(com|org|net))([:/?#"'\x60]|$))
+                            - kind: binary_expression
+                              has:
+                                field: left
+                                any:
+                                - kind: string
+                                  regex: ^["'\x60][hH][tT][tT][pP][sS]?://([^/@\s"'\x60]+@)?[A-Za-z0-9-]+(\.[A-Za-z0-9-]+)+([:/?#"'\x60]|$)
+                                  not:
+                                    kind: string
+                                    regex: ^["'\x60][hH][tT][tT][pP][sS]?://([^/@\s"'\x60]+@)?(127\.[0-9]|0\.0\.0\.0([:/?#"'\x60]|$)|10\.[0-9]+\.|192\.168\.|172\.(1[6-9]|2[0-9]|3[01])\.|169\.254\.|([A-Za-z0-9-]+\.)*(?i:local|localhost|localdomain|internal|intranet|corp|lan|svc|test|example|invalid|home\.arpa)([:/?#"'\x60]|$)|([A-Za-z0-9-]+\.)*(?i:example\.(com|org|net))([:/?#"'\x60]|$))
+                                - kind: template_string
+                                  regex: ^["'\x60][hH][tT][tT][pP][sS]?://([^/@\s"'\x60]+@)?[A-Za-z0-9-]+(\.[A-Za-z0-9-]+)+([:/?#"'\x60]|$)
+                                  not:
+                                    kind: template_string
+                                    regex: ^["'\x60][hH][tT][tT][pP][sS]?://([^/@\s"'\x60]+@)?(127\.[0-9]|0\.0\.0\.0([:/?#"'\x60]|$)|10\.[0-9]+\.|192\.168\.|172\.(1[6-9]|2[0-9]|3[01])\.|169\.254\.|([A-Za-z0-9-]+\.)*(?i:local|localhost|localdomain|internal|intranet|corp|lan|svc|test|example|invalid|home\.arpa)([:/?#"'\x60]|$)|([A-Za-z0-9-]+\.)*(?i:example\.(com|org|net))([:/?#"'\x60]|$))
+            - not:
+                inside:
+                  stopBy: end
+                  any:
+                  - kind: function_declaration
+                  - kind: function_expression
+                  - kind: arrow_function
+                  - kind: method_definition
+                  - kind: generator_function_declaration
+                  has:
+                    stopBy: end
+                    kind: variable_declarator
+                    has:
+                      field: name
+                      pattern:
+                        context: ($NAME)
+                        selector: identifier
+    - all:
+      - kind: call_expression
+      - has:
+          field: function
+          kind: member_expression
+          all:
+          - has:
+              field: object
+              pattern:
+                context: ($CLIENT)
+                selector: identifier
+          - has:
+              field: property
+              kind: property_identifier
+              regex: ^(get|post|put|patch|delete|head|options|request)$
+      - inside:
+          stopBy: end
+          kind: program
+          has:
+            any:
+            - kind: lexical_declaration
+              regex: ^const\s
+              has:
+                kind: variable_declarator
+                all:
+                - has:
+                    field: name
+                    pattern:
+                      context: ($CLIENT)
+                      selector: identifier
+                - has:
+                    field: value
+                    kind: call_expression
+                    all:
+                    - has:
+                        field: function
+                        any:
+                        - kind: identifier
+                          regex: ^(axios|ky|got)\.(create|extend)$
+                        - kind: member_expression
+                          regex: ^(axios|ky|got)\.(create|extend)$
+                    - has:
+                        field: arguments
+                        has:
+                          kind: object
+                          has:
+                            kind: pair
+                            all:
+                            - has:
+                                field: key
+                                kind: property_identifier
+                                regex: ^(url|baseURL|baseUrl|prefixUrl)$
+                            - has:
+                                field: value
+                                any:
+                                - any:
+                                  - kind: string
+                                    regex: ^["'\x60][hH][tT][tT][pP][sS]?://([^/@\s"'\x60]+@)?[A-Za-z0-9-]+(\.[A-Za-z0-9-]+)+([:/?#"'\x60]|$)
+                                    not:
+                                      kind: string
+                                      regex: ^["'\x60][hH][tT][tT][pP][sS]?://([^/@\s"'\x60]+@)?(127\.[0-9]|0\.0\.0\.0([:/?#"'\x60]|$)|10\.[0-9]+\.|192\.168\.|172\.(1[6-9]|2[0-9]|3[01])\.|169\.254\.|([A-Za-z0-9-]+\.)*(?i:local|localhost|localdomain|internal|intranet|corp|lan|svc|test|example|invalid|home\.arpa)([:/?#"'\x60]|$)|([A-Za-z0-9-]+\.)*(?i:example\.(com|org|net))([:/?#"'\x60]|$))
+                                  - kind: template_string
+                                    regex: ^["'\x60][hH][tT][tT][pP][sS]?://([^/@\s"'\x60]+@)?[A-Za-z0-9-]+(\.[A-Za-z0-9-]+)+([:/?#"'\x60]|$)
+                                    not:
+                                      kind: template_string
+                                      regex: ^["'\x60][hH][tT][tT][pP][sS]?://([^/@\s"'\x60]+@)?(127\.[0-9]|0\.0\.0\.0([:/?#"'\x60]|$)|10\.[0-9]+\.|192\.168\.|172\.(1[6-9]|2[0-9]|3[01])\.|169\.254\.|([A-Za-z0-9-]+\.)*(?i:local|localhost|localdomain|internal|intranet|corp|lan|svc|test|example|invalid|home\.arpa)([:/?#"'\x60]|$)|([A-Za-z0-9-]+\.)*(?i:example\.(com|org|net))([:/?#"'\x60]|$))
+                                - kind: binary_expression
+                                  has:
+                                    stopBy: end
+                                    any:
+                                    - kind: string
+                                      regex: ^["'\x60][hH][tT][tT][pP][sS]?://([^/@\s"'\x60]+@)?[A-Za-z0-9-]+(\.[A-Za-z0-9-]+)+([:/?#"'\x60]|$)
+                                      not:
+                                        kind: string
+                                        regex: ^["'\x60][hH][tT][tT][pP][sS]?://([^/@\s"'\x60]+@)?(127\.[0-9]|0\.0\.0\.0([:/?#"'\x60]|$)|10\.[0-9]+\.|192\.168\.|172\.(1[6-9]|2[0-9]|3[01])\.|169\.254\.|([A-Za-z0-9-]+\.)*(?i:local|localhost|localdomain|internal|intranet|corp|lan|svc|test|example|invalid|home\.arpa)([:/?#"'\x60]|$)|([A-Za-z0-9-]+\.)*(?i:example\.(com|org|net))([:/?#"'\x60]|$))
+                                    - kind: template_string
+                                      regex: ^["'\x60][hH][tT][tT][pP][sS]?://([^/@\s"'\x60]+@)?[A-Za-z0-9-]+(\.[A-Za-z0-9-]+)+([:/?#"'\x60]|$)
+                                      not:
+                                        kind: template_string
+                                        regex: ^["'\x60][hH][tT][tT][pP][sS]?://([^/@\s"'\x60]+@)?(127\.[0-9]|0\.0\.0\.0([:/?#"'\x60]|$)|10\.[0-9]+\.|192\.168\.|172\.(1[6-9]|2[0-9]|3[01])\.|169\.254\.|([A-Za-z0-9-]+\.)*(?i:local|localhost|localdomain|internal|intranet|corp|lan|svc|test|example|invalid|home\.arpa)([:/?#"'\x60]|$)|([A-Za-z0-9-]+\.)*(?i:example\.(com|org|net))([:/?#"'\x60]|$))
+            - kind: export_statement
+              has:
+                kind: lexical_declaration
+                regex: ^const\s
+                has:
+                  kind: variable_declarator
+                  all:
+                  - has:
+                      field: name
+                      pattern:
+                        context: ($CLIENT)
+                        selector: identifier
+                  - has:
+                      field: value
+                      kind: call_expression
+                      all:
+                      - has:
+                          field: function
+                          any:
+                          - kind: identifier
+                            regex: ^(axios|ky|got)\.(create|extend)$
+                          - kind: member_expression
+                            regex: ^(axios|ky|got)\.(create|extend)$
+                      - has:
+                          field: arguments
+                          has:
+                            kind: object
+                            has:
+                              kind: pair
+                              all:
+                              - has:
+                                  field: key
+                                  kind: property_identifier
+                                  regex: ^(url|baseURL|baseUrl|prefixUrl)$
+                              - has:
+                                  field: value
+                                  any:
+                                  - any:
+                                    - kind: string
+                                      regex: ^["'\x60][hH][tT][tT][pP][sS]?://([^/@\s"'\x60]+@)?[A-Za-z0-9-]+(\.[A-Za-z0-9-]+)+([:/?#"'\x60]|$)
+                                      not:
+                                        kind: string
+                                        regex: ^["'\x60][hH][tT][tT][pP][sS]?://([^/@\s"'\x60]+@)?(127\.[0-9]|0\.0\.0\.0([:/?#"'\x60]|$)|10\.[0-9]+\.|192\.168\.|172\.(1[6-9]|2[0-9]|3[01])\.|169\.254\.|([A-Za-z0-9-]+\.)*(?i:local|localhost|localdomain|internal|intranet|corp|lan|svc|test|example|invalid|home\.arpa)([:/?#"'\x60]|$)|([A-Za-z0-9-]+\.)*(?i:example\.(com|org|net))([:/?#"'\x60]|$))
+                                    - kind: template_string
+                                      regex: ^["'\x60][hH][tT][tT][pP][sS]?://([^/@\s"'\x60]+@)?[A-Za-z0-9-]+(\.[A-Za-z0-9-]+)+([:/?#"'\x60]|$)
+                                      not:
+                                        kind: template_string
+                                        regex: ^["'\x60][hH][tT][tT][pP][sS]?://([^/@\s"'\x60]+@)?(127\.[0-9]|0\.0\.0\.0([:/?#"'\x60]|$)|10\.[0-9]+\.|192\.168\.|172\.(1[6-9]|2[0-9]|3[01])\.|169\.254\.|([A-Za-z0-9-]+\.)*(?i:local|localhost|localdomain|internal|intranet|corp|lan|svc|test|example|invalid|home\.arpa)([:/?#"'\x60]|$)|([A-Za-z0-9-]+\.)*(?i:example\.(com|org|net))([:/?#"'\x60]|$))
+                                  - kind: binary_expression
+                                    has:
+                                      stopBy: end
+                                      any:
+                                      - kind: string
+                                        regex: ^["'\x60][hH][tT][tT][pP][sS]?://([^/@\s"'\x60]+@)?[A-Za-z0-9-]+(\.[A-Za-z0-9-]+)+([:/?#"'\x60]|$)
+                                        not:
+                                          kind: string
+                                          regex: ^["'\x60][hH][tT][tT][pP][sS]?://([^/@\s"'\x60]+@)?(127\.[0-9]|0\.0\.0\.0([:/?#"'\x60]|$)|10\.[0-9]+\.|192\.168\.|172\.(1[6-9]|2[0-9]|3[01])\.|169\.254\.|([A-Za-z0-9-]+\.)*(?i:local|localhost|localdomain|internal|intranet|corp|lan|svc|test|example|invalid|home\.arpa)([:/?#"'\x60]|$)|([A-Za-z0-9-]+\.)*(?i:example\.(com|org|net))([:/?#"'\x60]|$))
+                                      - kind: template_string
+                                        regex: ^["'\x60][hH][tT][tT][pP][sS]?://([^/@\s"'\x60]+@)?[A-Za-z0-9-]+(\.[A-Za-z0-9-]+)+([:/?#"'\x60]|$)
+                                        not:
+                                          kind: template_string
+                                          regex: ^["'\x60][hH][tT][tT][pP][sS]?://([^/@\s"'\x60]+@)?(127\.[0-9]|0\.0\.0\.0([:/?#"'\x60]|$)|10\.[0-9]+\.|192\.168\.|172\.(1[6-9]|2[0-9]|3[01])\.|169\.254\.|([A-Za-z0-9-]+\.)*(?i:local|localhost|localdomain|internal|intranet|corp|lan|svc|test|example|invalid|home\.arpa)([:/?#"'\x60]|$)|([A-Za-z0-9-]+\.)*(?i:example\.(com|org|net))([:/?#"'\x60]|$))
+    - all:
+      - kind: call_expression
+      - has:
+          field: function
+          any:
+          - kind: identifier
+            regex: ^(navigator\.|window\.navigator\.)?sendBeacon$
+          - kind: member_expression
+            regex: ^(navigator\.|window\.navigator\.)?sendBeacon$
+      - has:
+          field: arguments
+          kind: arguments
+          regex: ^\(\s*((//[^\n]*\n|/\*([^*]|\*+[^*/])*\*+/)\s*)*["'\x60][hH][tT][tT][pP][sS]?://([^/@\s"'\x60]+@)?[A-Za-z0-9-]+(\.[A-Za-z0-9-]+)+([:/?#"'\x60]|$)
+          not:
+            kind: arguments
+            regex: ^\(\s*((//[^\n]*\n|/\*([^*]|\*+[^*/])*\*+/)\s*)*["'\x60][hH][tT][tT][pP][sS]?://([^/@\s"'\x60]+@)?(127\.[0-9]|0\.0\.0\.0([:/?#"'\x60]|$)|10\.[0-9]+\.|192\.168\.|172\.(1[6-9]|2[0-9]|3[01])\.|169\.254\.|([A-Za-z0-9-]+\.)*(?i:local|localhost|localdomain|internal|intranet|corp|lan|svc|test|example|invalid|home\.arpa)([:/?#"'\x60]|$)|([A-Za-z0-9-]+\.)*(?i:example\.(com|org|net))([:/?#"'\x60]|$))
+    - all:
+      - kind: call_expression
+      - has:
+          field: function
+          any:
+          - kind: identifier
+            regex: \.open$
+          - kind: member_expression
+            regex: \.open$
+      - has:
+          field: arguments
+          kind: arguments
+          regex: ^\(\s*((//[^\n]*\n|/\*([^*]|\*+[^*/])*\*+/)\s*)*[^,()]+,\s*((//[^\n]*\n|/\*([^*]|\*+[^*/])*\*+/)\s*)*["'\x60][hH][tT][tT][pP][sS]?://([^/@\s"'\x60]+@)?[A-Za-z0-9-]+(\.[A-Za-z0-9-]+)+([:/?#"'\x60]|$)
+          not:
+            kind: arguments
+            regex: ^\(\s*((//[^\n]*\n|/\*([^*]|\*+[^*/])*\*+/)\s*)*[^,()]+,\s*((//[^\n]*\n|/\*([^*]|\*+[^*/])*\*+/)\s*)*["'\x60][hH][tT][tT][pP][sS]?://([^/@\s"'\x60]+@)?(127\.[0-9]|0\.0\.0\.0([:/?#"'\x60]|$)|10\.[0-9]+\.|192\.168\.|172\.(1[6-9]|2[0-9]|3[01])\.|169\.254\.|([A-Za-z0-9-]+\.)*(?i:local|localhost|localdomain|internal|intranet|corp|lan|svc|test|example|invalid|home\.arpa)([:/?#"'\x60]|$)|([A-Za-z0-9-]+\.)*(?i:example\.(com|org|net))([:/?#"'\x60]|$))
+  - all:
+    - kind: new_expression
+    - has:
+        field: constructor
+        kind: identifier
+        regex: ^URL$
+    - has:
+        field: arguments
+        kind: arguments
+        regex: ^\(\s*((//[^\n]*\n|/\*([^*]|\*+[^*/])*\*+/)\s*)*[^,()]+,\s*((//[^\n]*\n|/\*([^*]|\*+[^*/])*\*+/)\s*)*["'\x60][hH][tT][tT][pP][sS]?://([^/@\s"'\x60]+@)?[A-Za-z0-9-]+(\.[A-Za-z0-9-]+)+([:/?#"'\x60]|$)
+        not:
+          kind: arguments
+          regex: ^\(\s*((//[^\n]*\n|/\*([^*]|\*+[^*/])*\*+/)\s*)*[^,()]+,\s*((//[^\n]*\n|/\*([^*]|\*+[^*/])*\*+/)\s*)*["'\x60][hH][tT][tT][pP][sS]?://([^/@\s"'\x60]+@)?(127\.[0-9]|0\.0\.0\.0([:/?#"'\x60]|$)|10\.[0-9]+\.|192\.168\.|172\.(1[6-9]|2[0-9]|3[01])\.|169\.254\.|([A-Za-z0-9-]+\.)*(?i:local|localhost|localdomain|internal|intranet|corp|lan|svc|test|example|invalid|home\.arpa)([:/?#"'\x60]|$)|([A-Za-z0-9-]+\.)*(?i:example\.(com|org|net))([:/?#"'\x60]|$))
+min_engine: 0.39.0
+---
+# vendor-url-built: A third-party URL joined with a value (a template substitution, the outermost + join), with no
+# patient identifier in it: a link out or a request URL built from data. Evidence.
+id: vendor-flows-minimized.javascript-generic.vendor-url-built
+practice_id: vendor-flows-minimized
+language: javascript
+frameworks:
+- generic
+kind: evidence
+rule:
+  all:
+  - any:
+    - all:
+      - kind: binary_expression
+      - not:
+          inside:
+            kind: binary_expression
+      - has:
+          stopBy: end
+          any:
+          - kind: string
+            regex: ^["'\x60][hH][tT][tT][pP][sS]?://([^/@\s"'\x60]+@)?[A-Za-z0-9-]+(\.[A-Za-z0-9-]+)+([:/?#"'\x60]|$)
+            not:
+              kind: string
+              regex: ^["'\x60][hH][tT][tT][pP][sS]?://([^/@\s"'\x60]+@)?(127\.[0-9]|0\.0\.0\.0([:/?#"'\x60]|$)|10\.[0-9]+\.|192\.168\.|172\.(1[6-9]|2[0-9]|3[01])\.|169\.254\.|([A-Za-z0-9-]+\.)*(?i:local|localhost|localdomain|internal|intranet|corp|lan|svc|test|example|invalid|home\.arpa)([:/?#"'\x60]|$)|([A-Za-z0-9-]+\.)*(?i:example\.(com|org|net))([:/?#"'\x60]|$))
+          - kind: template_string
+            regex: ^["'\x60][hH][tT][tT][pP][sS]?://([^/@\s"'\x60]+@)?[A-Za-z0-9-]+(\.[A-Za-z0-9-]+)+([:/?#"'\x60]|$)
+            not:
+              kind: template_string
+              regex: ^["'\x60][hH][tT][tT][pP][sS]?://([^/@\s"'\x60]+@)?(127\.[0-9]|0\.0\.0\.0([:/?#"'\x60]|$)|10\.[0-9]+\.|192\.168\.|172\.(1[6-9]|2[0-9]|3[01])\.|169\.254\.|([A-Za-z0-9-]+\.)*(?i:local|localhost|localdomain|internal|intranet|corp|lan|svc|test|example|invalid|home\.arpa)([:/?#"'\x60]|$)|([A-Za-z0-9-]+\.)*(?i:example\.(com|org|net))([:/?#"'\x60]|$))
+      - has:
+          stopBy: end
+          any:
+          - kind: identifier
+          - kind: member_expression
+          - kind: call_expression
+          - kind: subscript_expression
+    - all:
+      - kind: template_string
+        regex: ^["'\x60][hH][tT][tT][pP][sS]?://([^/@\s"'\x60]+@)?[A-Za-z0-9-]+(\.[A-Za-z0-9-]+)+([:/?#"'\x60]|$)
+        not:
+          kind: template_string
+          regex: ^["'\x60][hH][tT][tT][pP][sS]?://([^/@\s"'\x60]+@)?(127\.[0-9]|0\.0\.0\.0([:/?#"'\x60]|$)|10\.[0-9]+\.|192\.168\.|172\.(1[6-9]|2[0-9]|3[01])\.|169\.254\.|([A-Za-z0-9-]+\.)*(?i:local|localhost|localdomain|internal|intranet|corp|lan|svc|test|example|invalid|home\.arpa)([:/?#"'\x60]|$)|([A-Za-z0-9-]+\.)*(?i:example\.(com|org|net))([:/?#"'\x60]|$))
+      - has:
+          kind: template_substitution
+      - not:
+          inside:
+            kind: binary_expression
+  - not:
+      has:
+        stopBy: end
+        any:
+        - kind: identifier
+          regex: ^([A-Za-z0-9]*_)*(?i:first_?name|last_?name|full_?name|given_?name|family_?name|middle_?name|maiden_?name|patient_?name|sur_?name|dob|date_?of_?birth|birth_?date|birthday|ssn|social_?security(_?(number|no))?|mrn|medical_?record(_?(number|no))?|street(_?(name|number|no|address|line_?[0-9]?))?|postal_?code|post_?code|diagnos(is|es)(_?codes?)?|phone(_?(number|no))?|mobile(_?(phone|number|no))?|cell_?phone|tele_?phone|fax(_?(number|no))?|e_?mail(_?address)?|ip(_?(addr(ess)?|v[46]))?)$|^[A-Za-z0-9_$]*[a-z0-9]((First|Last|Full|Given|Family|Middle|Maiden|Patient)Name|Surname|Dob|DOB|DateOfBirth|BirthDate|Birthday|Ssn|SSN|SocialSecurity(Number|No)?|Mrn|MRN|MedicalRecord(Number|No)?|Street(Name|Number|No|Address|Line[0-9]?)?|PostalCode|Postcode|PostCode|Diagnos(is|es)(Codes?)?|Phone(Number|No)?|Mobile(Phone|Number|No)?|CellPhone|Telephone|Fax(Number|No)?|E[Mm]ail(Address)?|I[Pp](Addr(ess)?|v[46])?|IPv[46])$|^(?i:(([A-Za-z0-9]*_)*(home|mailing|street|postal|patient|billing|residential|physical|current|permanent|primary|secondary|user|member|guardian|contact|shipping|delivery|personal|address)_?)?(address(_?(line_?[0-9]?|[0-9]))?|zip(_?code)?))$
+          not:
+            any:
+            - kind: identifier
+              inside:
+                kind: call_expression
+                field: function
+            - kind: identifier
+              inside:
+                kind: member_expression
+                field: property
+                inside:
+                  kind: call_expression
+                  field: function
+            - kind: identifier
+              not:
+                kind: identifier
+                regex: (?i)patient|member|client
+              inside:
+                field: property
+                any:
+                - kind: member_expression
+                  regex: (?i)(^|[._])(clinic|facility|hospital|practice|pharmacy|lab|laboratory|office|provider|organi[sz]ation|org|company|location|site|store|branch|vendor|business|tenant|account|server|node|host)s?\.[A-Za-z0-9_]+$
+                - kind: member_expression
+                  regex: (?i)(^|[._])(doctor|physician|provider|practitioner|nurse|staff|owner|dentist|therapist|clinician|clinic|practice)s?\.(phone(_?(number|no))?|mobile(_?(phone|number|no))?|cell_?phone|tele_?phone|fax(_?(number|no))?|e_?mail(_?address)?)$
+            - kind: identifier
+              regex: (?i)(server|host|bind|listen|proxy|gateway|router|node|smtp|from|sender|reply_?to|support|admin|no_?reply|default|system|office|clinic|company|business|practice|sales|notification|webmaster|dns|subnet|vpn|nat|machine|device|container|pod|cluster)_?(phone(_?(number|no))?|mobile(_?(phone|number|no))?|cell_?phone|tele_?phone|fax(_?(number|no))?|e_?mail(_?address)?|ip(_?(addr(ess)?|v[46]))?)$
+            - kind: identifier
+              regex: ^(?i:(doctor|physician|provider|practitioner|nurse|staff|owner|dentist|therapist|clinician|clinic|practice)s?_?(phone(_?(number|no))?|mobile(_?(phone|number|no))?|cell_?phone|tele_?phone|fax(_?(number|no))?|e_?mail(_?address)?))$
+              not:
+                kind: identifier
+                regex: (?i)patient|member|client
+        - kind: property_identifier
+          regex: ^([A-Za-z0-9]*_)*(?i:first_?name|last_?name|full_?name|given_?name|family_?name|middle_?name|maiden_?name|patient_?name|sur_?name|dob|date_?of_?birth|birth_?date|birthday|ssn|social_?security(_?(number|no))?|mrn|medical_?record(_?(number|no))?|street(_?(name|number|no|address|line_?[0-9]?))?|postal_?code|post_?code|diagnos(is|es)(_?codes?)?|phone(_?(number|no))?|mobile(_?(phone|number|no))?|cell_?phone|tele_?phone|fax(_?(number|no))?|e_?mail(_?address)?|ip(_?(addr(ess)?|v[46]))?)$|^[A-Za-z0-9_$]*[a-z0-9]((First|Last|Full|Given|Family|Middle|Maiden|Patient)Name|Surname|Dob|DOB|DateOfBirth|BirthDate|Birthday|Ssn|SSN|SocialSecurity(Number|No)?|Mrn|MRN|MedicalRecord(Number|No)?|Street(Name|Number|No|Address|Line[0-9]?)?|PostalCode|Postcode|PostCode|Diagnos(is|es)(Codes?)?|Phone(Number|No)?|Mobile(Phone|Number|No)?|CellPhone|Telephone|Fax(Number|No)?|E[Mm]ail(Address)?|I[Pp](Addr(ess)?|v[46])?|IPv[46])$|^(?i:(([A-Za-z0-9]*_)*(home|mailing|street|postal|patient|billing|residential|physical|current|permanent|primary|secondary|user|member|guardian|contact|shipping|delivery|personal|address)_?)?(address(_?(line_?[0-9]?|[0-9]))?|zip(_?code)?))$
+          not:
+            any:
+            - kind: property_identifier
+              inside:
+                kind: call_expression
+                field: function
+            - kind: property_identifier
+              inside:
+                kind: member_expression
+                field: property
+                inside:
+                  kind: call_expression
+                  field: function
+            - kind: property_identifier
+              not:
+                kind: property_identifier
+                regex: (?i)patient|member|client
+              inside:
+                field: property
+                any:
+                - kind: member_expression
+                  regex: (?i)(^|[._])(clinic|facility|hospital|practice|pharmacy|lab|laboratory|office|provider|organi[sz]ation|org|company|location|site|store|branch|vendor|business|tenant|account|server|node|host)s?\.[A-Za-z0-9_]+$
+                - kind: member_expression
+                  regex: (?i)(^|[._])(doctor|physician|provider|practitioner|nurse|staff|owner|dentist|therapist|clinician|clinic|practice)s?\.(phone(_?(number|no))?|mobile(_?(phone|number|no))?|cell_?phone|tele_?phone|fax(_?(number|no))?|e_?mail(_?address)?)$
+            - kind: property_identifier
+              regex: (?i)(server|host|bind|listen|proxy|gateway|router|node|smtp|from|sender|reply_?to|support|admin|no_?reply|default|system|office|clinic|company|business|practice|sales|notification|webmaster|dns|subnet|vpn|nat|machine|device|container|pod|cluster)_?(phone(_?(number|no))?|mobile(_?(phone|number|no))?|cell_?phone|tele_?phone|fax(_?(number|no))?|e_?mail(_?address)?|ip(_?(addr(ess)?|v[46]))?)$
+            - kind: property_identifier
+              regex: ^(?i:(doctor|physician|provider|practitioner|nurse|staff|owner|dentist|therapist|clinician|clinic|practice)s?_?(phone(_?(number|no))?|mobile(_?(phone|number|no))?|cell_?phone|tele_?phone|fax(_?(number|no))?|e_?mail(_?address)?))$
+              not:
+                kind: property_identifier
+                regex: (?i)patient|member|client
+        - kind: shorthand_property_identifier
+          regex: ^([A-Za-z0-9]*_)*(?i:first_?name|last_?name|full_?name|given_?name|family_?name|middle_?name|maiden_?name|patient_?name|sur_?name|dob|date_?of_?birth|birth_?date|birthday|ssn|social_?security(_?(number|no))?|mrn|medical_?record(_?(number|no))?|street(_?(name|number|no|address|line_?[0-9]?))?|postal_?code|post_?code|diagnos(is|es)(_?codes?)?|phone(_?(number|no))?|mobile(_?(phone|number|no))?|cell_?phone|tele_?phone|fax(_?(number|no))?|e_?mail(_?address)?|ip(_?(addr(ess)?|v[46]))?)$|^[A-Za-z0-9_$]*[a-z0-9]((First|Last|Full|Given|Family|Middle|Maiden|Patient)Name|Surname|Dob|DOB|DateOfBirth|BirthDate|Birthday|Ssn|SSN|SocialSecurity(Number|No)?|Mrn|MRN|MedicalRecord(Number|No)?|Street(Name|Number|No|Address|Line[0-9]?)?|PostalCode|Postcode|PostCode|Diagnos(is|es)(Codes?)?|Phone(Number|No)?|Mobile(Phone|Number|No)?|CellPhone|Telephone|Fax(Number|No)?|E[Mm]ail(Address)?|I[Pp](Addr(ess)?|v[46])?|IPv[46])$|^(?i:(([A-Za-z0-9]*_)*(home|mailing|street|postal|patient|billing|residential|physical|current|permanent|primary|secondary|user|member|guardian|contact|shipping|delivery|personal|address)_?)?(address(_?(line_?[0-9]?|[0-9]))?|zip(_?code)?))$
+          not:
+            any:
+            - kind: shorthand_property_identifier
+              inside:
+                kind: call_expression
+                field: function
+            - kind: shorthand_property_identifier
+              inside:
+                kind: member_expression
+                field: property
+                inside:
+                  kind: call_expression
+                  field: function
+            - kind: shorthand_property_identifier
+              not:
+                kind: shorthand_property_identifier
+                regex: (?i)patient|member|client
+              inside:
+                field: property
+                any:
+                - kind: member_expression
+                  regex: (?i)(^|[._])(clinic|facility|hospital|practice|pharmacy|lab|laboratory|office|provider|organi[sz]ation|org|company|location|site|store|branch|vendor|business|tenant|account|server|node|host)s?\.[A-Za-z0-9_]+$
+                - kind: member_expression
+                  regex: (?i)(^|[._])(doctor|physician|provider|practitioner|nurse|staff|owner|dentist|therapist|clinician|clinic|practice)s?\.(phone(_?(number|no))?|mobile(_?(phone|number|no))?|cell_?phone|tele_?phone|fax(_?(number|no))?|e_?mail(_?address)?)$
+            - kind: shorthand_property_identifier
+              regex: (?i)(server|host|bind|listen|proxy|gateway|router|node|smtp|from|sender|reply_?to|support|admin|no_?reply|default|system|office|clinic|company|business|practice|sales|notification|webmaster|dns|subnet|vpn|nat|machine|device|container|pod|cluster)_?(phone(_?(number|no))?|mobile(_?(phone|number|no))?|cell_?phone|tele_?phone|fax(_?(number|no))?|e_?mail(_?address)?|ip(_?(addr(ess)?|v[46]))?)$
+            - kind: shorthand_property_identifier
+              regex: ^(?i:(doctor|physician|provider|practitioner|nurse|staff|owner|dentist|therapist|clinician|clinic|practice)s?_?(phone(_?(number|no))?|mobile(_?(phone|number|no))?|cell_?phone|tele_?phone|fax(_?(number|no))?|e_?mail(_?address)?))$
+              not:
+                kind: shorthand_property_identifier
+                regex: (?i)patient|member|client
+        - kind: string
+          regex: ^["'\x60](?i:first_?name|last_?name|full_?name|given_?name|family_?name|middle_?name|maiden_?name|patient_?name|sur_?name|dob|date_?of_?birth|birth_?date|birthday|ssn|social_?security(_?(number|no))?|mrn|medical_?record(_?(number|no))?|street(_?(name|number|no|address|line_?[0-9]?))?|postal_?code|post_?code|diagnos(is|es)(_?codes?)?|phone(_?(number|no))?|mobile(_?(phone|number|no))?|cell_?phone|tele_?phone|fax(_?(number|no))?|e_?mail(_?address)?|ip(_?(addr(ess)?|v[46]))?|((home|mailing|street|postal|patient|billing|residential|physical|current|permanent|primary|secondary|user|member|guardian|contact|shipping|delivery|personal|address)_?)?(address(_?(line_?[0-9]?|[0-9]))?|zip(_?code)?))["'\x60]$
+          any:
+          - inside:
+              kind: pair
+              field: key
+          - inside:
+              kind: subscript_expression
+              field: index
+min_engine: 0.39.0
+---
+# identifiers-in-url: A patient identifier (a name, birth date, SSN, MRN, street address part, postal code, phone,
+# fax, email, IP address or diagnosis, by the name of a value, property or key, never a string value, a facility's
+# property or a workforce member's or organisation's own contact) in a third-party URL: the join, or the params,
+# searchParams or query of any vendor call (as vendor-call). Violation.
+id: vendor-flows-minimized.javascript-generic.identifiers-in-url
+practice_id: vendor-flows-minimized
+language: javascript
+frameworks:
+- generic
+kind: violation
+rule:
+  any:
+  - all:
+    - any:
+      - all:
+        - kind: binary_expression
+        - not:
+            inside:
+              kind: binary_expression
+        - has:
+            stopBy: end
+            any:
+            - kind: string
+              regex: ^["'\x60][hH][tT][tT][pP][sS]?://([^/@\s"'\x60]+@)?[A-Za-z0-9-]+(\.[A-Za-z0-9-]+)+([:/?#"'\x60]|$)
+              not:
+                kind: string
+                regex: ^["'\x60][hH][tT][tT][pP][sS]?://([^/@\s"'\x60]+@)?(127\.[0-9]|0\.0\.0\.0([:/?#"'\x60]|$)|10\.[0-9]+\.|192\.168\.|172\.(1[6-9]|2[0-9]|3[01])\.|169\.254\.|([A-Za-z0-9-]+\.)*(?i:local|localhost|localdomain|internal|intranet|corp|lan|svc|test|example|invalid|home\.arpa)([:/?#"'\x60]|$)|([A-Za-z0-9-]+\.)*(?i:example\.(com|org|net))([:/?#"'\x60]|$))
+            - kind: template_string
+              regex: ^["'\x60][hH][tT][tT][pP][sS]?://([^/@\s"'\x60]+@)?[A-Za-z0-9-]+(\.[A-Za-z0-9-]+)+([:/?#"'\x60]|$)
+              not:
+                kind: template_string
+                regex: ^["'\x60][hH][tT][tT][pP][sS]?://([^/@\s"'\x60]+@)?(127\.[0-9]|0\.0\.0\.0([:/?#"'\x60]|$)|10\.[0-9]+\.|192\.168\.|172\.(1[6-9]|2[0-9]|3[01])\.|169\.254\.|([A-Za-z0-9-]+\.)*(?i:local|localhost|localdomain|internal|intranet|corp|lan|svc|test|example|invalid|home\.arpa)([:/?#"'\x60]|$)|([A-Za-z0-9-]+\.)*(?i:example\.(com|org|net))([:/?#"'\x60]|$))
+        - has:
+            stopBy: end
+            any:
+            - kind: identifier
+            - kind: member_expression
+            - kind: call_expression
+            - kind: subscript_expression
+      - all:
+        - kind: template_string
+          regex: ^["'\x60][hH][tT][tT][pP][sS]?://([^/@\s"'\x60]+@)?[A-Za-z0-9-]+(\.[A-Za-z0-9-]+)+([:/?#"'\x60]|$)
+          not:
+            kind: template_string
+            regex: ^["'\x60][hH][tT][tT][pP][sS]?://([^/@\s"'\x60]+@)?(127\.[0-9]|0\.0\.0\.0([:/?#"'\x60]|$)|10\.[0-9]+\.|192\.168\.|172\.(1[6-9]|2[0-9]|3[01])\.|169\.254\.|([A-Za-z0-9-]+\.)*(?i:local|localhost|localdomain|internal|intranet|corp|lan|svc|test|example|invalid|home\.arpa)([:/?#"'\x60]|$)|([A-Za-z0-9-]+\.)*(?i:example\.(com|org|net))([:/?#"'\x60]|$))
+        - has:
+            kind: template_substitution
+        - not:
+            inside:
+              kind: binary_expression
+    - has:
+        stopBy: end
+        any:
+        - kind: identifier
+          regex: ^([A-Za-z0-9]*_)*(?i:first_?name|last_?name|full_?name|given_?name|family_?name|middle_?name|maiden_?name|patient_?name|sur_?name|dob|date_?of_?birth|birth_?date|birthday|ssn|social_?security(_?(number|no))?|mrn|medical_?record(_?(number|no))?|street(_?(name|number|no|address|line_?[0-9]?))?|postal_?code|post_?code|diagnos(is|es)(_?codes?)?|phone(_?(number|no))?|mobile(_?(phone|number|no))?|cell_?phone|tele_?phone|fax(_?(number|no))?|e_?mail(_?address)?|ip(_?(addr(ess)?|v[46]))?)$|^[A-Za-z0-9_$]*[a-z0-9]((First|Last|Full|Given|Family|Middle|Maiden|Patient)Name|Surname|Dob|DOB|DateOfBirth|BirthDate|Birthday|Ssn|SSN|SocialSecurity(Number|No)?|Mrn|MRN|MedicalRecord(Number|No)?|Street(Name|Number|No|Address|Line[0-9]?)?|PostalCode|Postcode|PostCode|Diagnos(is|es)(Codes?)?|Phone(Number|No)?|Mobile(Phone|Number|No)?|CellPhone|Telephone|Fax(Number|No)?|E[Mm]ail(Address)?|I[Pp](Addr(ess)?|v[46])?|IPv[46])$|^(?i:(([A-Za-z0-9]*_)*(home|mailing|street|postal|patient|billing|residential|physical|current|permanent|primary|secondary|user|member|guardian|contact|shipping|delivery|personal|address)_?)?(address(_?(line_?[0-9]?|[0-9]))?|zip(_?code)?))$
+          not:
+            any:
+            - kind: identifier
+              inside:
+                kind: call_expression
+                field: function
+            - kind: identifier
+              inside:
+                kind: member_expression
+                field: property
+                inside:
+                  kind: call_expression
+                  field: function
+            - kind: identifier
+              not:
+                kind: identifier
+                regex: (?i)patient|member|client
+              inside:
+                field: property
+                any:
+                - kind: member_expression
+                  regex: (?i)(^|[._])(clinic|facility|hospital|practice|pharmacy|lab|laboratory|office|provider|organi[sz]ation|org|company|location|site|store|branch|vendor|business|tenant|account|server|node|host)s?\.[A-Za-z0-9_]+$
+                - kind: member_expression
+                  regex: (?i)(^|[._])(doctor|physician|provider|practitioner|nurse|staff|owner|dentist|therapist|clinician|clinic|practice)s?\.(phone(_?(number|no))?|mobile(_?(phone|number|no))?|cell_?phone|tele_?phone|fax(_?(number|no))?|e_?mail(_?address)?)$
+            - kind: identifier
+              regex: (?i)(server|host|bind|listen|proxy|gateway|router|node|smtp|from|sender|reply_?to|support|admin|no_?reply|default|system|office|clinic|company|business|practice|sales|notification|webmaster|dns|subnet|vpn|nat|machine|device|container|pod|cluster)_?(phone(_?(number|no))?|mobile(_?(phone|number|no))?|cell_?phone|tele_?phone|fax(_?(number|no))?|e_?mail(_?address)?|ip(_?(addr(ess)?|v[46]))?)$
+            - kind: identifier
+              regex: ^(?i:(doctor|physician|provider|practitioner|nurse|staff|owner|dentist|therapist|clinician|clinic|practice)s?_?(phone(_?(number|no))?|mobile(_?(phone|number|no))?|cell_?phone|tele_?phone|fax(_?(number|no))?|e_?mail(_?address)?))$
+              not:
+                kind: identifier
+                regex: (?i)patient|member|client
+        - kind: property_identifier
+          regex: ^([A-Za-z0-9]*_)*(?i:first_?name|last_?name|full_?name|given_?name|family_?name|middle_?name|maiden_?name|patient_?name|sur_?name|dob|date_?of_?birth|birth_?date|birthday|ssn|social_?security(_?(number|no))?|mrn|medical_?record(_?(number|no))?|street(_?(name|number|no|address|line_?[0-9]?))?|postal_?code|post_?code|diagnos(is|es)(_?codes?)?|phone(_?(number|no))?|mobile(_?(phone|number|no))?|cell_?phone|tele_?phone|fax(_?(number|no))?|e_?mail(_?address)?|ip(_?(addr(ess)?|v[46]))?)$|^[A-Za-z0-9_$]*[a-z0-9]((First|Last|Full|Given|Family|Middle|Maiden|Patient)Name|Surname|Dob|DOB|DateOfBirth|BirthDate|Birthday|Ssn|SSN|SocialSecurity(Number|No)?|Mrn|MRN|MedicalRecord(Number|No)?|Street(Name|Number|No|Address|Line[0-9]?)?|PostalCode|Postcode|PostCode|Diagnos(is|es)(Codes?)?|Phone(Number|No)?|Mobile(Phone|Number|No)?|CellPhone|Telephone|Fax(Number|No)?|E[Mm]ail(Address)?|I[Pp](Addr(ess)?|v[46])?|IPv[46])$|^(?i:(([A-Za-z0-9]*_)*(home|mailing|street|postal|patient|billing|residential|physical|current|permanent|primary|secondary|user|member|guardian|contact|shipping|delivery|personal|address)_?)?(address(_?(line_?[0-9]?|[0-9]))?|zip(_?code)?))$
+          not:
+            any:
+            - kind: property_identifier
+              inside:
+                kind: call_expression
+                field: function
+            - kind: property_identifier
+              inside:
+                kind: member_expression
+                field: property
+                inside:
+                  kind: call_expression
+                  field: function
+            - kind: property_identifier
+              not:
+                kind: property_identifier
+                regex: (?i)patient|member|client
+              inside:
+                field: property
+                any:
+                - kind: member_expression
+                  regex: (?i)(^|[._])(clinic|facility|hospital|practice|pharmacy|lab|laboratory|office|provider|organi[sz]ation|org|company|location|site|store|branch|vendor|business|tenant|account|server|node|host)s?\.[A-Za-z0-9_]+$
+                - kind: member_expression
+                  regex: (?i)(^|[._])(doctor|physician|provider|practitioner|nurse|staff|owner|dentist|therapist|clinician|clinic|practice)s?\.(phone(_?(number|no))?|mobile(_?(phone|number|no))?|cell_?phone|tele_?phone|fax(_?(number|no))?|e_?mail(_?address)?)$
+            - kind: property_identifier
+              regex: (?i)(server|host|bind|listen|proxy|gateway|router|node|smtp|from|sender|reply_?to|support|admin|no_?reply|default|system|office|clinic|company|business|practice|sales|notification|webmaster|dns|subnet|vpn|nat|machine|device|container|pod|cluster)_?(phone(_?(number|no))?|mobile(_?(phone|number|no))?|cell_?phone|tele_?phone|fax(_?(number|no))?|e_?mail(_?address)?|ip(_?(addr(ess)?|v[46]))?)$
+            - kind: property_identifier
+              regex: ^(?i:(doctor|physician|provider|practitioner|nurse|staff|owner|dentist|therapist|clinician|clinic|practice)s?_?(phone(_?(number|no))?|mobile(_?(phone|number|no))?|cell_?phone|tele_?phone|fax(_?(number|no))?|e_?mail(_?address)?))$
+              not:
+                kind: property_identifier
+                regex: (?i)patient|member|client
+        - kind: shorthand_property_identifier
+          regex: ^([A-Za-z0-9]*_)*(?i:first_?name|last_?name|full_?name|given_?name|family_?name|middle_?name|maiden_?name|patient_?name|sur_?name|dob|date_?of_?birth|birth_?date|birthday|ssn|social_?security(_?(number|no))?|mrn|medical_?record(_?(number|no))?|street(_?(name|number|no|address|line_?[0-9]?))?|postal_?code|post_?code|diagnos(is|es)(_?codes?)?|phone(_?(number|no))?|mobile(_?(phone|number|no))?|cell_?phone|tele_?phone|fax(_?(number|no))?|e_?mail(_?address)?|ip(_?(addr(ess)?|v[46]))?)$|^[A-Za-z0-9_$]*[a-z0-9]((First|Last|Full|Given|Family|Middle|Maiden|Patient)Name|Surname|Dob|DOB|DateOfBirth|BirthDate|Birthday|Ssn|SSN|SocialSecurity(Number|No)?|Mrn|MRN|MedicalRecord(Number|No)?|Street(Name|Number|No|Address|Line[0-9]?)?|PostalCode|Postcode|PostCode|Diagnos(is|es)(Codes?)?|Phone(Number|No)?|Mobile(Phone|Number|No)?|CellPhone|Telephone|Fax(Number|No)?|E[Mm]ail(Address)?|I[Pp](Addr(ess)?|v[46])?|IPv[46])$|^(?i:(([A-Za-z0-9]*_)*(home|mailing|street|postal|patient|billing|residential|physical|current|permanent|primary|secondary|user|member|guardian|contact|shipping|delivery|personal|address)_?)?(address(_?(line_?[0-9]?|[0-9]))?|zip(_?code)?))$
+          not:
+            any:
+            - kind: shorthand_property_identifier
+              inside:
+                kind: call_expression
+                field: function
+            - kind: shorthand_property_identifier
+              inside:
+                kind: member_expression
+                field: property
+                inside:
+                  kind: call_expression
+                  field: function
+            - kind: shorthand_property_identifier
+              not:
+                kind: shorthand_property_identifier
+                regex: (?i)patient|member|client
+              inside:
+                field: property
+                any:
+                - kind: member_expression
+                  regex: (?i)(^|[._])(clinic|facility|hospital|practice|pharmacy|lab|laboratory|office|provider|organi[sz]ation|org|company|location|site|store|branch|vendor|business|tenant|account|server|node|host)s?\.[A-Za-z0-9_]+$
+                - kind: member_expression
+                  regex: (?i)(^|[._])(doctor|physician|provider|practitioner|nurse|staff|owner|dentist|therapist|clinician|clinic|practice)s?\.(phone(_?(number|no))?|mobile(_?(phone|number|no))?|cell_?phone|tele_?phone|fax(_?(number|no))?|e_?mail(_?address)?)$
+            - kind: shorthand_property_identifier
+              regex: (?i)(server|host|bind|listen|proxy|gateway|router|node|smtp|from|sender|reply_?to|support|admin|no_?reply|default|system|office|clinic|company|business|practice|sales|notification|webmaster|dns|subnet|vpn|nat|machine|device|container|pod|cluster)_?(phone(_?(number|no))?|mobile(_?(phone|number|no))?|cell_?phone|tele_?phone|fax(_?(number|no))?|e_?mail(_?address)?|ip(_?(addr(ess)?|v[46]))?)$
+            - kind: shorthand_property_identifier
+              regex: ^(?i:(doctor|physician|provider|practitioner|nurse|staff|owner|dentist|therapist|clinician|clinic|practice)s?_?(phone(_?(number|no))?|mobile(_?(phone|number|no))?|cell_?phone|tele_?phone|fax(_?(number|no))?|e_?mail(_?address)?))$
+              not:
+                kind: shorthand_property_identifier
+                regex: (?i)patient|member|client
+        - kind: string
+          regex: ^["'\x60](?i:first_?name|last_?name|full_?name|given_?name|family_?name|middle_?name|maiden_?name|patient_?name|sur_?name|dob|date_?of_?birth|birth_?date|birthday|ssn|social_?security(_?(number|no))?|mrn|medical_?record(_?(number|no))?|street(_?(name|number|no|address|line_?[0-9]?))?|postal_?code|post_?code|diagnos(is|es)(_?codes?)?|phone(_?(number|no))?|mobile(_?(phone|number|no))?|cell_?phone|tele_?phone|fax(_?(number|no))?|e_?mail(_?address)?|ip(_?(addr(ess)?|v[46]))?|((home|mailing|street|postal|patient|billing|residential|physical|current|permanent|primary|secondary|user|member|guardian|contact|shipping|delivery|personal|address)_?)?(address(_?(line_?[0-9]?|[0-9]))?|zip(_?code)?))["'\x60]$
+          any:
+          - inside:
+              kind: pair
+              field: key
+          - inside:
+              kind: subscript_expression
+              field: index
+  - all:
+    - any:
+      - all:
+        - kind: call_expression
+        - has:
+            field: function
+            any:
+            - kind: identifier
+              regex: ^(fetch|globalThis\.fetch|window\.fetch|self\.fetch|ky|got|axios|\$fetch|ofetch)$|\.(get|post|put|patch|delete|head|options|request|create|extend)$
+            - kind: member_expression
+              regex: ^(fetch|globalThis\.fetch|window\.fetch|self\.fetch|ky|got|axios|\$fetch|ofetch)$|\.(get|post|put|patch|delete|head|options|request|create|extend)$
+        - any:
+          - has:
+              field: arguments
+              kind: arguments
+              regex: ^\(\s*((//[^\n]*\n|/\*([^*]|\*+[^*/])*\*+/)\s*)*["'\x60][hH][tT][tT][pP][sS]?://([^/@\s"'\x60]+@)?[A-Za-z0-9-]+(\.[A-Za-z0-9-]+)+([:/?#"'\x60]|$)
+              not:
+                kind: arguments
+                regex: ^\(\s*((//[^\n]*\n|/\*([^*]|\*+[^*/])*\*+/)\s*)*["'\x60][hH][tT][tT][pP][sS]?://([^/@\s"'\x60]+@)?(127\.[0-9]|0\.0\.0\.0([:/?#"'\x60]|$)|10\.[0-9]+\.|192\.168\.|172\.(1[6-9]|2[0-9]|3[01])\.|169\.254\.|([A-Za-z0-9-]+\.)*(?i:local|localhost|localdomain|internal|intranet|corp|lan|svc|test|example|invalid|home\.arpa)([:/?#"'\x60]|$)|([A-Za-z0-9-]+\.)*(?i:example\.(com|org|net))([:/?#"'\x60]|$))
+          - has:
+              field: arguments
+              has:
+                kind: object
+                has:
+                  kind: pair
+                  all:
+                  - has:
+                      field: key
+                      kind: property_identifier
+                      regex: ^(url|baseURL|baseUrl|prefixUrl)$
+                  - has:
+                      field: value
+                      any:
+                      - any:
+                        - kind: string
+                          regex: ^["'\x60][hH][tT][tT][pP][sS]?://([^/@\s"'\x60]+@)?[A-Za-z0-9-]+(\.[A-Za-z0-9-]+)+([:/?#"'\x60]|$)
+                          not:
+                            kind: string
+                            regex: ^["'\x60][hH][tT][tT][pP][sS]?://([^/@\s"'\x60]+@)?(127\.[0-9]|0\.0\.0\.0([:/?#"'\x60]|$)|10\.[0-9]+\.|192\.168\.|172\.(1[6-9]|2[0-9]|3[01])\.|169\.254\.|([A-Za-z0-9-]+\.)*(?i:local|localhost|localdomain|internal|intranet|corp|lan|svc|test|example|invalid|home\.arpa)([:/?#"'\x60]|$)|([A-Za-z0-9-]+\.)*(?i:example\.(com|org|net))([:/?#"'\x60]|$))
+                        - kind: template_string
+                          regex: ^["'\x60][hH][tT][tT][pP][sS]?://([^/@\s"'\x60]+@)?[A-Za-z0-9-]+(\.[A-Za-z0-9-]+)+([:/?#"'\x60]|$)
+                          not:
+                            kind: template_string
+                            regex: ^["'\x60][hH][tT][tT][pP][sS]?://([^/@\s"'\x60]+@)?(127\.[0-9]|0\.0\.0\.0([:/?#"'\x60]|$)|10\.[0-9]+\.|192\.168\.|172\.(1[6-9]|2[0-9]|3[01])\.|169\.254\.|([A-Za-z0-9-]+\.)*(?i:local|localhost|localdomain|internal|intranet|corp|lan|svc|test|example|invalid|home\.arpa)([:/?#"'\x60]|$)|([A-Za-z0-9-]+\.)*(?i:example\.(com|org|net))([:/?#"'\x60]|$))
+                      - kind: binary_expression
+                        has:
+                          stopBy: end
+                          any:
+                          - kind: string
+                            regex: ^["'\x60][hH][tT][tT][pP][sS]?://([^/@\s"'\x60]+@)?[A-Za-z0-9-]+(\.[A-Za-z0-9-]+)+([:/?#"'\x60]|$)
+                            not:
+                              kind: string
+                              regex: ^["'\x60][hH][tT][tT][pP][sS]?://([^/@\s"'\x60]+@)?(127\.[0-9]|0\.0\.0\.0([:/?#"'\x60]|$)|10\.[0-9]+\.|192\.168\.|172\.(1[6-9]|2[0-9]|3[01])\.|169\.254\.|([A-Za-z0-9-]+\.)*(?i:local|localhost|localdomain|internal|intranet|corp|lan|svc|test|example|invalid|home\.arpa)([:/?#"'\x60]|$)|([A-Za-z0-9-]+\.)*(?i:example\.(com|org|net))([:/?#"'\x60]|$))
+                          - kind: template_string
+                            regex: ^["'\x60][hH][tT][tT][pP][sS]?://([^/@\s"'\x60]+@)?[A-Za-z0-9-]+(\.[A-Za-z0-9-]+)+([:/?#"'\x60]|$)
+                            not:
+                              kind: template_string
+                              regex: ^["'\x60][hH][tT][tT][pP][sS]?://([^/@\s"'\x60]+@)?(127\.[0-9]|0\.0\.0\.0([:/?#"'\x60]|$)|10\.[0-9]+\.|192\.168\.|172\.(1[6-9]|2[0-9]|3[01])\.|169\.254\.|([A-Za-z0-9-]+\.)*(?i:local|localhost|localdomain|internal|intranet|corp|lan|svc|test|example|invalid|home\.arpa)([:/?#"'\x60]|$)|([A-Za-z0-9-]+\.)*(?i:example\.(com|org|net))([:/?#"'\x60]|$))
+          - all:
+            - any:
+              - pattern: $F($NAME + $X)
+              - pattern: $F($NAME + $X, $$$R)
+              - pattern: $F($NAME)
+              - pattern: $F($NAME, $$$R)
+            - all:
+              - inside:
+                  stopBy: end
+                  kind: program
+                  has:
+                    any:
+                    - kind: lexical_declaration
+                      regex: ^const\s
+                      has:
+                        kind: variable_declarator
+                        all:
+                        - has:
+                            field: name
+                            pattern:
+                              context: ($NAME)
+                              selector: identifier
+                        - has:
+                            field: value
+                            any:
+                            - any:
+                              - kind: string
+                                regex: ^["'\x60][hH][tT][tT][pP][sS]?://([^/@\s"'\x60]+@)?[A-Za-z0-9-]+(\.[A-Za-z0-9-]+)+([:/?#"'\x60]|$)
+                                not:
+                                  kind: string
+                                  regex: ^["'\x60][hH][tT][tT][pP][sS]?://([^/@\s"'\x60]+@)?(127\.[0-9]|0\.0\.0\.0([:/?#"'\x60]|$)|10\.[0-9]+\.|192\.168\.|172\.(1[6-9]|2[0-9]|3[01])\.|169\.254\.|([A-Za-z0-9-]+\.)*(?i:local|localhost|localdomain|internal|intranet|corp|lan|svc|test|example|invalid|home\.arpa)([:/?#"'\x60]|$)|([A-Za-z0-9-]+\.)*(?i:example\.(com|org|net))([:/?#"'\x60]|$))
+                              - kind: template_string
+                                regex: ^["'\x60][hH][tT][tT][pP][sS]?://([^/@\s"'\x60]+@)?[A-Za-z0-9-]+(\.[A-Za-z0-9-]+)+([:/?#"'\x60]|$)
+                                not:
+                                  kind: template_string
+                                  regex: ^["'\x60][hH][tT][tT][pP][sS]?://([^/@\s"'\x60]+@)?(127\.[0-9]|0\.0\.0\.0([:/?#"'\x60]|$)|10\.[0-9]+\.|192\.168\.|172\.(1[6-9]|2[0-9]|3[01])\.|169\.254\.|([A-Za-z0-9-]+\.)*(?i:local|localhost|localdomain|internal|intranet|corp|lan|svc|test|example|invalid|home\.arpa)([:/?#"'\x60]|$)|([A-Za-z0-9-]+\.)*(?i:example\.(com|org|net))([:/?#"'\x60]|$))
+                            - kind: binary_expression
+                              has:
+                                field: left
+                                any:
+                                - kind: string
+                                  regex: ^["'\x60][hH][tT][tT][pP][sS]?://([^/@\s"'\x60]+@)?[A-Za-z0-9-]+(\.[A-Za-z0-9-]+)+([:/?#"'\x60]|$)
+                                  not:
+                                    kind: string
+                                    regex: ^["'\x60][hH][tT][tT][pP][sS]?://([^/@\s"'\x60]+@)?(127\.[0-9]|0\.0\.0\.0([:/?#"'\x60]|$)|10\.[0-9]+\.|192\.168\.|172\.(1[6-9]|2[0-9]|3[01])\.|169\.254\.|([A-Za-z0-9-]+\.)*(?i:local|localhost|localdomain|internal|intranet|corp|lan|svc|test|example|invalid|home\.arpa)([:/?#"'\x60]|$)|([A-Za-z0-9-]+\.)*(?i:example\.(com|org|net))([:/?#"'\x60]|$))
+                                - kind: template_string
+                                  regex: ^["'\x60][hH][tT][tT][pP][sS]?://([^/@\s"'\x60]+@)?[A-Za-z0-9-]+(\.[A-Za-z0-9-]+)+([:/?#"'\x60]|$)
+                                  not:
+                                    kind: template_string
+                                    regex: ^["'\x60][hH][tT][tT][pP][sS]?://([^/@\s"'\x60]+@)?(127\.[0-9]|0\.0\.0\.0([:/?#"'\x60]|$)|10\.[0-9]+\.|192\.168\.|172\.(1[6-9]|2[0-9]|3[01])\.|169\.254\.|([A-Za-z0-9-]+\.)*(?i:local|localhost|localdomain|internal|intranet|corp|lan|svc|test|example|invalid|home\.arpa)([:/?#"'\x60]|$)|([A-Za-z0-9-]+\.)*(?i:example\.(com|org|net))([:/?#"'\x60]|$))
+                    - kind: export_statement
+                      has:
+                        kind: lexical_declaration
+                        regex: ^const\s
+                        has:
+                          kind: variable_declarator
+                          all:
+                          - has:
+                              field: name
+                              pattern:
+                                context: ($NAME)
+                                selector: identifier
+                          - has:
+                              field: value
+                              any:
+                              - any:
+                                - kind: string
+                                  regex: ^["'\x60][hH][tT][tT][pP][sS]?://([^/@\s"'\x60]+@)?[A-Za-z0-9-]+(\.[A-Za-z0-9-]+)+([:/?#"'\x60]|$)
+                                  not:
+                                    kind: string
+                                    regex: ^["'\x60][hH][tT][tT][pP][sS]?://([^/@\s"'\x60]+@)?(127\.[0-9]|0\.0\.0\.0([:/?#"'\x60]|$)|10\.[0-9]+\.|192\.168\.|172\.(1[6-9]|2[0-9]|3[01])\.|169\.254\.|([A-Za-z0-9-]+\.)*(?i:local|localhost|localdomain|internal|intranet|corp|lan|svc|test|example|invalid|home\.arpa)([:/?#"'\x60]|$)|([A-Za-z0-9-]+\.)*(?i:example\.(com|org|net))([:/?#"'\x60]|$))
+                                - kind: template_string
+                                  regex: ^["'\x60][hH][tT][tT][pP][sS]?://([^/@\s"'\x60]+@)?[A-Za-z0-9-]+(\.[A-Za-z0-9-]+)+([:/?#"'\x60]|$)
+                                  not:
+                                    kind: template_string
+                                    regex: ^["'\x60][hH][tT][tT][pP][sS]?://([^/@\s"'\x60]+@)?(127\.[0-9]|0\.0\.0\.0([:/?#"'\x60]|$)|10\.[0-9]+\.|192\.168\.|172\.(1[6-9]|2[0-9]|3[01])\.|169\.254\.|([A-Za-z0-9-]+\.)*(?i:local|localhost|localdomain|internal|intranet|corp|lan|svc|test|example|invalid|home\.arpa)([:/?#"'\x60]|$)|([A-Za-z0-9-]+\.)*(?i:example\.(com|org|net))([:/?#"'\x60]|$))
+                              - kind: binary_expression
+                                has:
+                                  field: left
+                                  any:
+                                  - kind: string
+                                    regex: ^["'\x60][hH][tT][tT][pP][sS]?://([^/@\s"'\x60]+@)?[A-Za-z0-9-]+(\.[A-Za-z0-9-]+)+([:/?#"'\x60]|$)
+                                    not:
+                                      kind: string
+                                      regex: ^["'\x60][hH][tT][tT][pP][sS]?://([^/@\s"'\x60]+@)?(127\.[0-9]|0\.0\.0\.0([:/?#"'\x60]|$)|10\.[0-9]+\.|192\.168\.|172\.(1[6-9]|2[0-9]|3[01])\.|169\.254\.|([A-Za-z0-9-]+\.)*(?i:local|localhost|localdomain|internal|intranet|corp|lan|svc|test|example|invalid|home\.arpa)([:/?#"'\x60]|$)|([A-Za-z0-9-]+\.)*(?i:example\.(com|org|net))([:/?#"'\x60]|$))
+                                  - kind: template_string
+                                    regex: ^["'\x60][hH][tT][tT][pP][sS]?://([^/@\s"'\x60]+@)?[A-Za-z0-9-]+(\.[A-Za-z0-9-]+)+([:/?#"'\x60]|$)
+                                    not:
+                                      kind: template_string
+                                      regex: ^["'\x60][hH][tT][tT][pP][sS]?://([^/@\s"'\x60]+@)?(127\.[0-9]|0\.0\.0\.0([:/?#"'\x60]|$)|10\.[0-9]+\.|192\.168\.|172\.(1[6-9]|2[0-9]|3[01])\.|169\.254\.|([A-Za-z0-9-]+\.)*(?i:local|localhost|localdomain|internal|intranet|corp|lan|svc|test|example|invalid|home\.arpa)([:/?#"'\x60]|$)|([A-Za-z0-9-]+\.)*(?i:example\.(com|org|net))([:/?#"'\x60]|$))
+              - not:
+                  inside:
+                    stopBy: end
+                    any:
+                    - kind: function_declaration
+                    - kind: function_expression
+                    - kind: arrow_function
+                    - kind: method_definition
+                    - kind: generator_function_declaration
+                    has:
+                      stopBy: end
+                      kind: variable_declarator
+                      has:
+                        field: name
+                        pattern:
+                          context: ($NAME)
+                          selector: identifier
+      - all:
+        - kind: call_expression
+        - has:
+            field: function
+            kind: member_expression
+            all:
+            - has:
+                field: object
+                pattern:
+                  context: ($CLIENT)
+                  selector: identifier
+            - has:
+                field: property
+                kind: property_identifier
+                regex: ^(get|post|put|patch|delete|head|options|request)$
+        - inside:
+            stopBy: end
+            kind: program
+            has:
+              any:
+              - kind: lexical_declaration
+                regex: ^const\s
+                has:
+                  kind: variable_declarator
+                  all:
+                  - has:
+                      field: name
+                      pattern:
+                        context: ($CLIENT)
+                        selector: identifier
+                  - has:
+                      field: value
+                      kind: call_expression
+                      all:
+                      - has:
+                          field: function
+                          any:
+                          - kind: identifier
+                            regex: ^(axios|ky|got)\.(create|extend)$
+                          - kind: member_expression
+                            regex: ^(axios|ky|got)\.(create|extend)$
+                      - has:
+                          field: arguments
+                          has:
+                            kind: object
+                            has:
+                              kind: pair
+                              all:
+                              - has:
+                                  field: key
+                                  kind: property_identifier
+                                  regex: ^(url|baseURL|baseUrl|prefixUrl)$
+                              - has:
+                                  field: value
+                                  any:
+                                  - any:
+                                    - kind: string
+                                      regex: ^["'\x60][hH][tT][tT][pP][sS]?://([^/@\s"'\x60]+@)?[A-Za-z0-9-]+(\.[A-Za-z0-9-]+)+([:/?#"'\x60]|$)
+                                      not:
+                                        kind: string
+                                        regex: ^["'\x60][hH][tT][tT][pP][sS]?://([^/@\s"'\x60]+@)?(127\.[0-9]|0\.0\.0\.0([:/?#"'\x60]|$)|10\.[0-9]+\.|192\.168\.|172\.(1[6-9]|2[0-9]|3[01])\.|169\.254\.|([A-Za-z0-9-]+\.)*(?i:local|localhost|localdomain|internal|intranet|corp|lan|svc|test|example|invalid|home\.arpa)([:/?#"'\x60]|$)|([A-Za-z0-9-]+\.)*(?i:example\.(com|org|net))([:/?#"'\x60]|$))
+                                    - kind: template_string
+                                      regex: ^["'\x60][hH][tT][tT][pP][sS]?://([^/@\s"'\x60]+@)?[A-Za-z0-9-]+(\.[A-Za-z0-9-]+)+([:/?#"'\x60]|$)
+                                      not:
+                                        kind: template_string
+                                        regex: ^["'\x60][hH][tT][tT][pP][sS]?://([^/@\s"'\x60]+@)?(127\.[0-9]|0\.0\.0\.0([:/?#"'\x60]|$)|10\.[0-9]+\.|192\.168\.|172\.(1[6-9]|2[0-9]|3[01])\.|169\.254\.|([A-Za-z0-9-]+\.)*(?i:local|localhost|localdomain|internal|intranet|corp|lan|svc|test|example|invalid|home\.arpa)([:/?#"'\x60]|$)|([A-Za-z0-9-]+\.)*(?i:example\.(com|org|net))([:/?#"'\x60]|$))
+                                  - kind: binary_expression
+                                    has:
+                                      stopBy: end
+                                      any:
+                                      - kind: string
+                                        regex: ^["'\x60][hH][tT][tT][pP][sS]?://([^/@\s"'\x60]+@)?[A-Za-z0-9-]+(\.[A-Za-z0-9-]+)+([:/?#"'\x60]|$)
+                                        not:
+                                          kind: string
+                                          regex: ^["'\x60][hH][tT][tT][pP][sS]?://([^/@\s"'\x60]+@)?(127\.[0-9]|0\.0\.0\.0([:/?#"'\x60]|$)|10\.[0-9]+\.|192\.168\.|172\.(1[6-9]|2[0-9]|3[01])\.|169\.254\.|([A-Za-z0-9-]+\.)*(?i:local|localhost|localdomain|internal|intranet|corp|lan|svc|test|example|invalid|home\.arpa)([:/?#"'\x60]|$)|([A-Za-z0-9-]+\.)*(?i:example\.(com|org|net))([:/?#"'\x60]|$))
+                                      - kind: template_string
+                                        regex: ^["'\x60][hH][tT][tT][pP][sS]?://([^/@\s"'\x60]+@)?[A-Za-z0-9-]+(\.[A-Za-z0-9-]+)+([:/?#"'\x60]|$)
+                                        not:
+                                          kind: template_string
+                                          regex: ^["'\x60][hH][tT][tT][pP][sS]?://([^/@\s"'\x60]+@)?(127\.[0-9]|0\.0\.0\.0([:/?#"'\x60]|$)|10\.[0-9]+\.|192\.168\.|172\.(1[6-9]|2[0-9]|3[01])\.|169\.254\.|([A-Za-z0-9-]+\.)*(?i:local|localhost|localdomain|internal|intranet|corp|lan|svc|test|example|invalid|home\.arpa)([:/?#"'\x60]|$)|([A-Za-z0-9-]+\.)*(?i:example\.(com|org|net))([:/?#"'\x60]|$))
+              - kind: export_statement
+                has:
+                  kind: lexical_declaration
+                  regex: ^const\s
+                  has:
+                    kind: variable_declarator
+                    all:
+                    - has:
+                        field: name
+                        pattern:
+                          context: ($CLIENT)
+                          selector: identifier
+                    - has:
+                        field: value
+                        kind: call_expression
+                        all:
+                        - has:
+                            field: function
+                            any:
+                            - kind: identifier
+                              regex: ^(axios|ky|got)\.(create|extend)$
+                            - kind: member_expression
+                              regex: ^(axios|ky|got)\.(create|extend)$
+                        - has:
+                            field: arguments
+                            has:
+                              kind: object
+                              has:
+                                kind: pair
+                                all:
+                                - has:
+                                    field: key
+                                    kind: property_identifier
+                                    regex: ^(url|baseURL|baseUrl|prefixUrl)$
+                                - has:
+                                    field: value
+                                    any:
+                                    - any:
+                                      - kind: string
+                                        regex: ^["'\x60][hH][tT][tT][pP][sS]?://([^/@\s"'\x60]+@)?[A-Za-z0-9-]+(\.[A-Za-z0-9-]+)+([:/?#"'\x60]|$)
+                                        not:
+                                          kind: string
+                                          regex: ^["'\x60][hH][tT][tT][pP][sS]?://([^/@\s"'\x60]+@)?(127\.[0-9]|0\.0\.0\.0([:/?#"'\x60]|$)|10\.[0-9]+\.|192\.168\.|172\.(1[6-9]|2[0-9]|3[01])\.|169\.254\.|([A-Za-z0-9-]+\.)*(?i:local|localhost|localdomain|internal|intranet|corp|lan|svc|test|example|invalid|home\.arpa)([:/?#"'\x60]|$)|([A-Za-z0-9-]+\.)*(?i:example\.(com|org|net))([:/?#"'\x60]|$))
+                                      - kind: template_string
+                                        regex: ^["'\x60][hH][tT][tT][pP][sS]?://([^/@\s"'\x60]+@)?[A-Za-z0-9-]+(\.[A-Za-z0-9-]+)+([:/?#"'\x60]|$)
+                                        not:
+                                          kind: template_string
+                                          regex: ^["'\x60][hH][tT][tT][pP][sS]?://([^/@\s"'\x60]+@)?(127\.[0-9]|0\.0\.0\.0([:/?#"'\x60]|$)|10\.[0-9]+\.|192\.168\.|172\.(1[6-9]|2[0-9]|3[01])\.|169\.254\.|([A-Za-z0-9-]+\.)*(?i:local|localhost|localdomain|internal|intranet|corp|lan|svc|test|example|invalid|home\.arpa)([:/?#"'\x60]|$)|([A-Za-z0-9-]+\.)*(?i:example\.(com|org|net))([:/?#"'\x60]|$))
+                                    - kind: binary_expression
+                                      has:
+                                        stopBy: end
+                                        any:
+                                        - kind: string
+                                          regex: ^["'\x60][hH][tT][tT][pP][sS]?://([^/@\s"'\x60]+@)?[A-Za-z0-9-]+(\.[A-Za-z0-9-]+)+([:/?#"'\x60]|$)
+                                          not:
+                                            kind: string
+                                            regex: ^["'\x60][hH][tT][tT][pP][sS]?://([^/@\s"'\x60]+@)?(127\.[0-9]|0\.0\.0\.0([:/?#"'\x60]|$)|10\.[0-9]+\.|192\.168\.|172\.(1[6-9]|2[0-9]|3[01])\.|169\.254\.|([A-Za-z0-9-]+\.)*(?i:local|localhost|localdomain|internal|intranet|corp|lan|svc|test|example|invalid|home\.arpa)([:/?#"'\x60]|$)|([A-Za-z0-9-]+\.)*(?i:example\.(com|org|net))([:/?#"'\x60]|$))
+                                        - kind: template_string
+                                          regex: ^["'\x60][hH][tT][tT][pP][sS]?://([^/@\s"'\x60]+@)?[A-Za-z0-9-]+(\.[A-Za-z0-9-]+)+([:/?#"'\x60]|$)
+                                          not:
+                                            kind: template_string
+                                            regex: ^["'\x60][hH][tT][tT][pP][sS]?://([^/@\s"'\x60]+@)?(127\.[0-9]|0\.0\.0\.0([:/?#"'\x60]|$)|10\.[0-9]+\.|192\.168\.|172\.(1[6-9]|2[0-9]|3[01])\.|169\.254\.|([A-Za-z0-9-]+\.)*(?i:local|localhost|localdomain|internal|intranet|corp|lan|svc|test|example|invalid|home\.arpa)([:/?#"'\x60]|$)|([A-Za-z0-9-]+\.)*(?i:example\.(com|org|net))([:/?#"'\x60]|$))
+      - all:
+        - kind: call_expression
+        - has:
+            field: function
+            any:
+            - kind: identifier
+              regex: ^(navigator\.|window\.navigator\.)?sendBeacon$
+            - kind: member_expression
+              regex: ^(navigator\.|window\.navigator\.)?sendBeacon$
+        - has:
+            field: arguments
+            kind: arguments
+            regex: ^\(\s*((//[^\n]*\n|/\*([^*]|\*+[^*/])*\*+/)\s*)*["'\x60][hH][tT][tT][pP][sS]?://([^/@\s"'\x60]+@)?[A-Za-z0-9-]+(\.[A-Za-z0-9-]+)+([:/?#"'\x60]|$)
+            not:
+              kind: arguments
+              regex: ^\(\s*((//[^\n]*\n|/\*([^*]|\*+[^*/])*\*+/)\s*)*["'\x60][hH][tT][tT][pP][sS]?://([^/@\s"'\x60]+@)?(127\.[0-9]|0\.0\.0\.0([:/?#"'\x60]|$)|10\.[0-9]+\.|192\.168\.|172\.(1[6-9]|2[0-9]|3[01])\.|169\.254\.|([A-Za-z0-9-]+\.)*(?i:local|localhost|localdomain|internal|intranet|corp|lan|svc|test|example|invalid|home\.arpa)([:/?#"'\x60]|$)|([A-Za-z0-9-]+\.)*(?i:example\.(com|org|net))([:/?#"'\x60]|$))
+      - all:
+        - kind: call_expression
+        - has:
+            field: function
+            any:
+            - kind: identifier
+              regex: \.open$
+            - kind: member_expression
+              regex: \.open$
+        - has:
+            field: arguments
+            kind: arguments
+            regex: ^\(\s*((//[^\n]*\n|/\*([^*]|\*+[^*/])*\*+/)\s*)*[^,()]+,\s*((//[^\n]*\n|/\*([^*]|\*+[^*/])*\*+/)\s*)*["'\x60][hH][tT][tT][pP][sS]?://([^/@\s"'\x60]+@)?[A-Za-z0-9-]+(\.[A-Za-z0-9-]+)+([:/?#"'\x60]|$)
+            not:
+              kind: arguments
+              regex: ^\(\s*((//[^\n]*\n|/\*([^*]|\*+[^*/])*\*+/)\s*)*[^,()]+,\s*((//[^\n]*\n|/\*([^*]|\*+[^*/])*\*+/)\s*)*["'\x60][hH][tT][tT][pP][sS]?://([^/@\s"'\x60]+@)?(127\.[0-9]|0\.0\.0\.0([:/?#"'\x60]|$)|10\.[0-9]+\.|192\.168\.|172\.(1[6-9]|2[0-9]|3[01])\.|169\.254\.|([A-Za-z0-9-]+\.)*(?i:local|localhost|localdomain|internal|intranet|corp|lan|svc|test|example|invalid|home\.arpa)([:/?#"'\x60]|$)|([A-Za-z0-9-]+\.)*(?i:example\.(com|org|net))([:/?#"'\x60]|$))
+    - has:
+        field: arguments
+        has:
+          kind: object
+          has:
+            kind: pair
+            all:
+            - has:
+                field: key
+                kind: property_identifier
+                regex: ^(params|searchParams|query)$
+            - has:
+                field: value
+                any:
+                - any:
+                  - kind: identifier
+                    regex: ^([A-Za-z0-9]*_)*(?i:first_?name|last_?name|full_?name|given_?name|family_?name|middle_?name|maiden_?name|patient_?name|sur_?name|dob|date_?of_?birth|birth_?date|birthday|ssn|social_?security(_?(number|no))?|mrn|medical_?record(_?(number|no))?|street(_?(name|number|no|address|line_?[0-9]?))?|postal_?code|post_?code|diagnos(is|es)(_?codes?)?|phone(_?(number|no))?|mobile(_?(phone|number|no))?|cell_?phone|tele_?phone|fax(_?(number|no))?|e_?mail(_?address)?|ip(_?(addr(ess)?|v[46]))?)$|^[A-Za-z0-9_$]*[a-z0-9]((First|Last|Full|Given|Family|Middle|Maiden|Patient)Name|Surname|Dob|DOB|DateOfBirth|BirthDate|Birthday|Ssn|SSN|SocialSecurity(Number|No)?|Mrn|MRN|MedicalRecord(Number|No)?|Street(Name|Number|No|Address|Line[0-9]?)?|PostalCode|Postcode|PostCode|Diagnos(is|es)(Codes?)?|Phone(Number|No)?|Mobile(Phone|Number|No)?|CellPhone|Telephone|Fax(Number|No)?|E[Mm]ail(Address)?|I[Pp](Addr(ess)?|v[46])?|IPv[46])$|^(?i:(([A-Za-z0-9]*_)*(home|mailing|street|postal|patient|billing|residential|physical|current|permanent|primary|secondary|user|member|guardian|contact|shipping|delivery|personal|address)_?)?(address(_?(line_?[0-9]?|[0-9]))?|zip(_?code)?))$
+                    not:
+                      any:
+                      - kind: identifier
+                        inside:
+                          kind: call_expression
+                          field: function
+                      - kind: identifier
+                        inside:
+                          kind: member_expression
+                          field: property
+                          inside:
+                            kind: call_expression
+                            field: function
+                      - kind: identifier
+                        not:
+                          kind: identifier
+                          regex: (?i)patient|member|client
+                        inside:
+                          field: property
+                          any:
+                          - kind: member_expression
+                            regex: (?i)(^|[._])(clinic|facility|hospital|practice|pharmacy|lab|laboratory|office|provider|organi[sz]ation|org|company|location|site|store|branch|vendor|business|tenant|account|server|node|host)s?\.[A-Za-z0-9_]+$
+                          - kind: member_expression
+                            regex: (?i)(^|[._])(doctor|physician|provider|practitioner|nurse|staff|owner|dentist|therapist|clinician|clinic|practice)s?\.(phone(_?(number|no))?|mobile(_?(phone|number|no))?|cell_?phone|tele_?phone|fax(_?(number|no))?|e_?mail(_?address)?)$
+                      - kind: identifier
+                        regex: (?i)(server|host|bind|listen|proxy|gateway|router|node|smtp|from|sender|reply_?to|support|admin|no_?reply|default|system|office|clinic|company|business|practice|sales|notification|webmaster|dns|subnet|vpn|nat|machine|device|container|pod|cluster)_?(phone(_?(number|no))?|mobile(_?(phone|number|no))?|cell_?phone|tele_?phone|fax(_?(number|no))?|e_?mail(_?address)?|ip(_?(addr(ess)?|v[46]))?)$
+                      - kind: identifier
+                        regex: ^(?i:(doctor|physician|provider|practitioner|nurse|staff|owner|dentist|therapist|clinician|clinic|practice)s?_?(phone(_?(number|no))?|mobile(_?(phone|number|no))?|cell_?phone|tele_?phone|fax(_?(number|no))?|e_?mail(_?address)?))$
+                        not:
+                          kind: identifier
+                          regex: (?i)patient|member|client
+                  - kind: property_identifier
+                    regex: ^([A-Za-z0-9]*_)*(?i:first_?name|last_?name|full_?name|given_?name|family_?name|middle_?name|maiden_?name|patient_?name|sur_?name|dob|date_?of_?birth|birth_?date|birthday|ssn|social_?security(_?(number|no))?|mrn|medical_?record(_?(number|no))?|street(_?(name|number|no|address|line_?[0-9]?))?|postal_?code|post_?code|diagnos(is|es)(_?codes?)?|phone(_?(number|no))?|mobile(_?(phone|number|no))?|cell_?phone|tele_?phone|fax(_?(number|no))?|e_?mail(_?address)?|ip(_?(addr(ess)?|v[46]))?)$|^[A-Za-z0-9_$]*[a-z0-9]((First|Last|Full|Given|Family|Middle|Maiden|Patient)Name|Surname|Dob|DOB|DateOfBirth|BirthDate|Birthday|Ssn|SSN|SocialSecurity(Number|No)?|Mrn|MRN|MedicalRecord(Number|No)?|Street(Name|Number|No|Address|Line[0-9]?)?|PostalCode|Postcode|PostCode|Diagnos(is|es)(Codes?)?|Phone(Number|No)?|Mobile(Phone|Number|No)?|CellPhone|Telephone|Fax(Number|No)?|E[Mm]ail(Address)?|I[Pp](Addr(ess)?|v[46])?|IPv[46])$|^(?i:(([A-Za-z0-9]*_)*(home|mailing|street|postal|patient|billing|residential|physical|current|permanent|primary|secondary|user|member|guardian|contact|shipping|delivery|personal|address)_?)?(address(_?(line_?[0-9]?|[0-9]))?|zip(_?code)?))$
+                    not:
+                      any:
+                      - kind: property_identifier
+                        inside:
+                          kind: call_expression
+                          field: function
+                      - kind: property_identifier
+                        inside:
+                          kind: member_expression
+                          field: property
+                          inside:
+                            kind: call_expression
+                            field: function
+                      - kind: property_identifier
+                        not:
+                          kind: property_identifier
+                          regex: (?i)patient|member|client
+                        inside:
+                          field: property
+                          any:
+                          - kind: member_expression
+                            regex: (?i)(^|[._])(clinic|facility|hospital|practice|pharmacy|lab|laboratory|office|provider|organi[sz]ation|org|company|location|site|store|branch|vendor|business|tenant|account|server|node|host)s?\.[A-Za-z0-9_]+$
+                          - kind: member_expression
+                            regex: (?i)(^|[._])(doctor|physician|provider|practitioner|nurse|staff|owner|dentist|therapist|clinician|clinic|practice)s?\.(phone(_?(number|no))?|mobile(_?(phone|number|no))?|cell_?phone|tele_?phone|fax(_?(number|no))?|e_?mail(_?address)?)$
+                      - kind: property_identifier
+                        regex: (?i)(server|host|bind|listen|proxy|gateway|router|node|smtp|from|sender|reply_?to|support|admin|no_?reply|default|system|office|clinic|company|business|practice|sales|notification|webmaster|dns|subnet|vpn|nat|machine|device|container|pod|cluster)_?(phone(_?(number|no))?|mobile(_?(phone|number|no))?|cell_?phone|tele_?phone|fax(_?(number|no))?|e_?mail(_?address)?|ip(_?(addr(ess)?|v[46]))?)$
+                      - kind: property_identifier
+                        regex: ^(?i:(doctor|physician|provider|practitioner|nurse|staff|owner|dentist|therapist|clinician|clinic|practice)s?_?(phone(_?(number|no))?|mobile(_?(phone|number|no))?|cell_?phone|tele_?phone|fax(_?(number|no))?|e_?mail(_?address)?))$
+                        not:
+                          kind: property_identifier
+                          regex: (?i)patient|member|client
+                  - kind: shorthand_property_identifier
+                    regex: ^([A-Za-z0-9]*_)*(?i:first_?name|last_?name|full_?name|given_?name|family_?name|middle_?name|maiden_?name|patient_?name|sur_?name|dob|date_?of_?birth|birth_?date|birthday|ssn|social_?security(_?(number|no))?|mrn|medical_?record(_?(number|no))?|street(_?(name|number|no|address|line_?[0-9]?))?|postal_?code|post_?code|diagnos(is|es)(_?codes?)?|phone(_?(number|no))?|mobile(_?(phone|number|no))?|cell_?phone|tele_?phone|fax(_?(number|no))?|e_?mail(_?address)?|ip(_?(addr(ess)?|v[46]))?)$|^[A-Za-z0-9_$]*[a-z0-9]((First|Last|Full|Given|Family|Middle|Maiden|Patient)Name|Surname|Dob|DOB|DateOfBirth|BirthDate|Birthday|Ssn|SSN|SocialSecurity(Number|No)?|Mrn|MRN|MedicalRecord(Number|No)?|Street(Name|Number|No|Address|Line[0-9]?)?|PostalCode|Postcode|PostCode|Diagnos(is|es)(Codes?)?|Phone(Number|No)?|Mobile(Phone|Number|No)?|CellPhone|Telephone|Fax(Number|No)?|E[Mm]ail(Address)?|I[Pp](Addr(ess)?|v[46])?|IPv[46])$|^(?i:(([A-Za-z0-9]*_)*(home|mailing|street|postal|patient|billing|residential|physical|current|permanent|primary|secondary|user|member|guardian|contact|shipping|delivery|personal|address)_?)?(address(_?(line_?[0-9]?|[0-9]))?|zip(_?code)?))$
+                    not:
+                      any:
+                      - kind: shorthand_property_identifier
+                        inside:
+                          kind: call_expression
+                          field: function
+                      - kind: shorthand_property_identifier
+                        inside:
+                          kind: member_expression
+                          field: property
+                          inside:
+                            kind: call_expression
+                            field: function
+                      - kind: shorthand_property_identifier
+                        not:
+                          kind: shorthand_property_identifier
+                          regex: (?i)patient|member|client
+                        inside:
+                          field: property
+                          any:
+                          - kind: member_expression
+                            regex: (?i)(^|[._])(clinic|facility|hospital|practice|pharmacy|lab|laboratory|office|provider|organi[sz]ation|org|company|location|site|store|branch|vendor|business|tenant|account|server|node|host)s?\.[A-Za-z0-9_]+$
+                          - kind: member_expression
+                            regex: (?i)(^|[._])(doctor|physician|provider|practitioner|nurse|staff|owner|dentist|therapist|clinician|clinic|practice)s?\.(phone(_?(number|no))?|mobile(_?(phone|number|no))?|cell_?phone|tele_?phone|fax(_?(number|no))?|e_?mail(_?address)?)$
+                      - kind: shorthand_property_identifier
+                        regex: (?i)(server|host|bind|listen|proxy|gateway|router|node|smtp|from|sender|reply_?to|support|admin|no_?reply|default|system|office|clinic|company|business|practice|sales|notification|webmaster|dns|subnet|vpn|nat|machine|device|container|pod|cluster)_?(phone(_?(number|no))?|mobile(_?(phone|number|no))?|cell_?phone|tele_?phone|fax(_?(number|no))?|e_?mail(_?address)?|ip(_?(addr(ess)?|v[46]))?)$
+                      - kind: shorthand_property_identifier
+                        regex: ^(?i:(doctor|physician|provider|practitioner|nurse|staff|owner|dentist|therapist|clinician|clinic|practice)s?_?(phone(_?(number|no))?|mobile(_?(phone|number|no))?|cell_?phone|tele_?phone|fax(_?(number|no))?|e_?mail(_?address)?))$
+                        not:
+                          kind: shorthand_property_identifier
+                          regex: (?i)patient|member|client
+                  - kind: string
+                    regex: ^["'\x60](?i:first_?name|last_?name|full_?name|given_?name|family_?name|middle_?name|maiden_?name|patient_?name|sur_?name|dob|date_?of_?birth|birth_?date|birthday|ssn|social_?security(_?(number|no))?|mrn|medical_?record(_?(number|no))?|street(_?(name|number|no|address|line_?[0-9]?))?|postal_?code|post_?code|diagnos(is|es)(_?codes?)?|phone(_?(number|no))?|mobile(_?(phone|number|no))?|cell_?phone|tele_?phone|fax(_?(number|no))?|e_?mail(_?address)?|ip(_?(addr(ess)?|v[46]))?|((home|mailing|street|postal|patient|billing|residential|physical|current|permanent|primary|secondary|user|member|guardian|contact|shipping|delivery|personal|address)_?)?(address(_?(line_?[0-9]?|[0-9]))?|zip(_?code)?))["'\x60]$
+                    any:
+                    - inside:
+                        kind: pair
+                        field: key
+                    - inside:
+                        kind: subscript_expression
+                        field: index
+                - has:
+                    stopBy: end
+                    any:
+                    - kind: identifier
+                      regex: ^([A-Za-z0-9]*_)*(?i:first_?name|last_?name|full_?name|given_?name|family_?name|middle_?name|maiden_?name|patient_?name|sur_?name|dob|date_?of_?birth|birth_?date|birthday|ssn|social_?security(_?(number|no))?|mrn|medical_?record(_?(number|no))?|street(_?(name|number|no|address|line_?[0-9]?))?|postal_?code|post_?code|diagnos(is|es)(_?codes?)?|phone(_?(number|no))?|mobile(_?(phone|number|no))?|cell_?phone|tele_?phone|fax(_?(number|no))?|e_?mail(_?address)?|ip(_?(addr(ess)?|v[46]))?)$|^[A-Za-z0-9_$]*[a-z0-9]((First|Last|Full|Given|Family|Middle|Maiden|Patient)Name|Surname|Dob|DOB|DateOfBirth|BirthDate|Birthday|Ssn|SSN|SocialSecurity(Number|No)?|Mrn|MRN|MedicalRecord(Number|No)?|Street(Name|Number|No|Address|Line[0-9]?)?|PostalCode|Postcode|PostCode|Diagnos(is|es)(Codes?)?|Phone(Number|No)?|Mobile(Phone|Number|No)?|CellPhone|Telephone|Fax(Number|No)?|E[Mm]ail(Address)?|I[Pp](Addr(ess)?|v[46])?|IPv[46])$|^(?i:(([A-Za-z0-9]*_)*(home|mailing|street|postal|patient|billing|residential|physical|current|permanent|primary|secondary|user|member|guardian|contact|shipping|delivery|personal|address)_?)?(address(_?(line_?[0-9]?|[0-9]))?|zip(_?code)?))$
+                      not:
+                        any:
+                        - kind: identifier
+                          inside:
+                            kind: call_expression
+                            field: function
+                        - kind: identifier
+                          inside:
+                            kind: member_expression
+                            field: property
+                            inside:
+                              kind: call_expression
+                              field: function
+                        - kind: identifier
+                          not:
+                            kind: identifier
+                            regex: (?i)patient|member|client
+                          inside:
+                            field: property
+                            any:
+                            - kind: member_expression
+                              regex: (?i)(^|[._])(clinic|facility|hospital|practice|pharmacy|lab|laboratory|office|provider|organi[sz]ation|org|company|location|site|store|branch|vendor|business|tenant|account|server|node|host)s?\.[A-Za-z0-9_]+$
+                            - kind: member_expression
+                              regex: (?i)(^|[._])(doctor|physician|provider|practitioner|nurse|staff|owner|dentist|therapist|clinician|clinic|practice)s?\.(phone(_?(number|no))?|mobile(_?(phone|number|no))?|cell_?phone|tele_?phone|fax(_?(number|no))?|e_?mail(_?address)?)$
+                        - kind: identifier
+                          regex: (?i)(server|host|bind|listen|proxy|gateway|router|node|smtp|from|sender|reply_?to|support|admin|no_?reply|default|system|office|clinic|company|business|practice|sales|notification|webmaster|dns|subnet|vpn|nat|machine|device|container|pod|cluster)_?(phone(_?(number|no))?|mobile(_?(phone|number|no))?|cell_?phone|tele_?phone|fax(_?(number|no))?|e_?mail(_?address)?|ip(_?(addr(ess)?|v[46]))?)$
+                        - kind: identifier
+                          regex: ^(?i:(doctor|physician|provider|practitioner|nurse|staff|owner|dentist|therapist|clinician|clinic|practice)s?_?(phone(_?(number|no))?|mobile(_?(phone|number|no))?|cell_?phone|tele_?phone|fax(_?(number|no))?|e_?mail(_?address)?))$
+                          not:
+                            kind: identifier
+                            regex: (?i)patient|member|client
+                    - kind: property_identifier
+                      regex: ^([A-Za-z0-9]*_)*(?i:first_?name|last_?name|full_?name|given_?name|family_?name|middle_?name|maiden_?name|patient_?name|sur_?name|dob|date_?of_?birth|birth_?date|birthday|ssn|social_?security(_?(number|no))?|mrn|medical_?record(_?(number|no))?|street(_?(name|number|no|address|line_?[0-9]?))?|postal_?code|post_?code|diagnos(is|es)(_?codes?)?|phone(_?(number|no))?|mobile(_?(phone|number|no))?|cell_?phone|tele_?phone|fax(_?(number|no))?|e_?mail(_?address)?|ip(_?(addr(ess)?|v[46]))?)$|^[A-Za-z0-9_$]*[a-z0-9]((First|Last|Full|Given|Family|Middle|Maiden|Patient)Name|Surname|Dob|DOB|DateOfBirth|BirthDate|Birthday|Ssn|SSN|SocialSecurity(Number|No)?|Mrn|MRN|MedicalRecord(Number|No)?|Street(Name|Number|No|Address|Line[0-9]?)?|PostalCode|Postcode|PostCode|Diagnos(is|es)(Codes?)?|Phone(Number|No)?|Mobile(Phone|Number|No)?|CellPhone|Telephone|Fax(Number|No)?|E[Mm]ail(Address)?|I[Pp](Addr(ess)?|v[46])?|IPv[46])$|^(?i:(([A-Za-z0-9]*_)*(home|mailing|street|postal|patient|billing|residential|physical|current|permanent|primary|secondary|user|member|guardian|contact|shipping|delivery|personal|address)_?)?(address(_?(line_?[0-9]?|[0-9]))?|zip(_?code)?))$
+                      not:
+                        any:
+                        - kind: property_identifier
+                          inside:
+                            kind: call_expression
+                            field: function
+                        - kind: property_identifier
+                          inside:
+                            kind: member_expression
+                            field: property
+                            inside:
+                              kind: call_expression
+                              field: function
+                        - kind: property_identifier
+                          not:
+                            kind: property_identifier
+                            regex: (?i)patient|member|client
+                          inside:
+                            field: property
+                            any:
+                            - kind: member_expression
+                              regex: (?i)(^|[._])(clinic|facility|hospital|practice|pharmacy|lab|laboratory|office|provider|organi[sz]ation|org|company|location|site|store|branch|vendor|business|tenant|account|server|node|host)s?\.[A-Za-z0-9_]+$
+                            - kind: member_expression
+                              regex: (?i)(^|[._])(doctor|physician|provider|practitioner|nurse|staff|owner|dentist|therapist|clinician|clinic|practice)s?\.(phone(_?(number|no))?|mobile(_?(phone|number|no))?|cell_?phone|tele_?phone|fax(_?(number|no))?|e_?mail(_?address)?)$
+                        - kind: property_identifier
+                          regex: (?i)(server|host|bind|listen|proxy|gateway|router|node|smtp|from|sender|reply_?to|support|admin|no_?reply|default|system|office|clinic|company|business|practice|sales|notification|webmaster|dns|subnet|vpn|nat|machine|device|container|pod|cluster)_?(phone(_?(number|no))?|mobile(_?(phone|number|no))?|cell_?phone|tele_?phone|fax(_?(number|no))?|e_?mail(_?address)?|ip(_?(addr(ess)?|v[46]))?)$
+                        - kind: property_identifier
+                          regex: ^(?i:(doctor|physician|provider|practitioner|nurse|staff|owner|dentist|therapist|clinician|clinic|practice)s?_?(phone(_?(number|no))?|mobile(_?(phone|number|no))?|cell_?phone|tele_?phone|fax(_?(number|no))?|e_?mail(_?address)?))$
+                          not:
+                            kind: property_identifier
+                            regex: (?i)patient|member|client
+                    - kind: shorthand_property_identifier
+                      regex: ^([A-Za-z0-9]*_)*(?i:first_?name|last_?name|full_?name|given_?name|family_?name|middle_?name|maiden_?name|patient_?name|sur_?name|dob|date_?of_?birth|birth_?date|birthday|ssn|social_?security(_?(number|no))?|mrn|medical_?record(_?(number|no))?|street(_?(name|number|no|address|line_?[0-9]?))?|postal_?code|post_?code|diagnos(is|es)(_?codes?)?|phone(_?(number|no))?|mobile(_?(phone|number|no))?|cell_?phone|tele_?phone|fax(_?(number|no))?|e_?mail(_?address)?|ip(_?(addr(ess)?|v[46]))?)$|^[A-Za-z0-9_$]*[a-z0-9]((First|Last|Full|Given|Family|Middle|Maiden|Patient)Name|Surname|Dob|DOB|DateOfBirth|BirthDate|Birthday|Ssn|SSN|SocialSecurity(Number|No)?|Mrn|MRN|MedicalRecord(Number|No)?|Street(Name|Number|No|Address|Line[0-9]?)?|PostalCode|Postcode|PostCode|Diagnos(is|es)(Codes?)?|Phone(Number|No)?|Mobile(Phone|Number|No)?|CellPhone|Telephone|Fax(Number|No)?|E[Mm]ail(Address)?|I[Pp](Addr(ess)?|v[46])?|IPv[46])$|^(?i:(([A-Za-z0-9]*_)*(home|mailing|street|postal|patient|billing|residential|physical|current|permanent|primary|secondary|user|member|guardian|contact|shipping|delivery|personal|address)_?)?(address(_?(line_?[0-9]?|[0-9]))?|zip(_?code)?))$
+                      not:
+                        any:
+                        - kind: shorthand_property_identifier
+                          inside:
+                            kind: call_expression
+                            field: function
+                        - kind: shorthand_property_identifier
+                          inside:
+                            kind: member_expression
+                            field: property
+                            inside:
+                              kind: call_expression
+                              field: function
+                        - kind: shorthand_property_identifier
+                          not:
+                            kind: shorthand_property_identifier
+                            regex: (?i)patient|member|client
+                          inside:
+                            field: property
+                            any:
+                            - kind: member_expression
+                              regex: (?i)(^|[._])(clinic|facility|hospital|practice|pharmacy|lab|laboratory|office|provider|organi[sz]ation|org|company|location|site|store|branch|vendor|business|tenant|account|server|node|host)s?\.[A-Za-z0-9_]+$
+                            - kind: member_expression
+                              regex: (?i)(^|[._])(doctor|physician|provider|practitioner|nurse|staff|owner|dentist|therapist|clinician|clinic|practice)s?\.(phone(_?(number|no))?|mobile(_?(phone|number|no))?|cell_?phone|tele_?phone|fax(_?(number|no))?|e_?mail(_?address)?)$
+                        - kind: shorthand_property_identifier
+                          regex: (?i)(server|host|bind|listen|proxy|gateway|router|node|smtp|from|sender|reply_?to|support|admin|no_?reply|default|system|office|clinic|company|business|practice|sales|notification|webmaster|dns|subnet|vpn|nat|machine|device|container|pod|cluster)_?(phone(_?(number|no))?|mobile(_?(phone|number|no))?|cell_?phone|tele_?phone|fax(_?(number|no))?|e_?mail(_?address)?|ip(_?(addr(ess)?|v[46]))?)$
+                        - kind: shorthand_property_identifier
+                          regex: ^(?i:(doctor|physician|provider|practitioner|nurse|staff|owner|dentist|therapist|clinician|clinic|practice)s?_?(phone(_?(number|no))?|mobile(_?(phone|number|no))?|cell_?phone|tele_?phone|fax(_?(number|no))?|e_?mail(_?address)?))$
+                          not:
+                            kind: shorthand_property_identifier
+                            regex: (?i)patient|member|client
+                    - kind: string
+                      regex: ^["'\x60](?i:first_?name|last_?name|full_?name|given_?name|family_?name|middle_?name|maiden_?name|patient_?name|sur_?name|dob|date_?of_?birth|birth_?date|birthday|ssn|social_?security(_?(number|no))?|mrn|medical_?record(_?(number|no))?|street(_?(name|number|no|address|line_?[0-9]?))?|postal_?code|post_?code|diagnos(is|es)(_?codes?)?|phone(_?(number|no))?|mobile(_?(phone|number|no))?|cell_?phone|tele_?phone|fax(_?(number|no))?|e_?mail(_?address)?|ip(_?(addr(ess)?|v[46]))?|((home|mailing|street|postal|patient|billing|residential|physical|current|permanent|primary|secondary|user|member|guardian|contact|shipping|delivery|personal|address)_?)?(address(_?(line_?[0-9]?|[0-9]))?|zip(_?code)?))["'\x60]$
+                      any:
+                      - inside:
+                          kind: pair
+                          field: key
+                      - inside:
+                          kind: subscript_expression
+                          field: index
+min_engine: 0.39.0
+---
+# whole-record: A vendor call (as vendor-call) whose body is a whole record: body: JSON.stringify(x), json: x or data:
+# x, or the second argument of a post, put or patch (a client instance's too), or the body of a beacon or of an
+# XMLHttpRequest opened on a third-party host, where x is a name ending in patient, record, chart, encounter, visit,
+# appointment, resource or profile, or an object spreading one ({...patient}). Violation.
+id: vendor-flows-minimized.javascript-generic.whole-record
+practice_id: vendor-flows-minimized
+language: javascript
+frameworks:
+- generic
+kind: violation
+rule:
+  any:
+  - all:
+    - any:
+      - all:
+        - kind: call_expression
+        - has:
+            field: function
+            any:
+            - kind: identifier
+              regex: ^(fetch|globalThis\.fetch|window\.fetch|self\.fetch|ky|got|axios|\$fetch|ofetch)$|\.(get|post|put|patch|delete|head|options|request|create|extend)$
+            - kind: member_expression
+              regex: ^(fetch|globalThis\.fetch|window\.fetch|self\.fetch|ky|got|axios|\$fetch|ofetch)$|\.(get|post|put|patch|delete|head|options|request|create|extend)$
+        - any:
+          - has:
+              field: arguments
+              kind: arguments
+              regex: ^\(\s*((//[^\n]*\n|/\*([^*]|\*+[^*/])*\*+/)\s*)*["'\x60][hH][tT][tT][pP][sS]?://([^/@\s"'\x60]+@)?[A-Za-z0-9-]+(\.[A-Za-z0-9-]+)+([:/?#"'\x60]|$)
+              not:
+                kind: arguments
+                regex: ^\(\s*((//[^\n]*\n|/\*([^*]|\*+[^*/])*\*+/)\s*)*["'\x60][hH][tT][tT][pP][sS]?://([^/@\s"'\x60]+@)?(127\.[0-9]|0\.0\.0\.0([:/?#"'\x60]|$)|10\.[0-9]+\.|192\.168\.|172\.(1[6-9]|2[0-9]|3[01])\.|169\.254\.|([A-Za-z0-9-]+\.)*(?i:local|localhost|localdomain|internal|intranet|corp|lan|svc|test|example|invalid|home\.arpa)([:/?#"'\x60]|$)|([A-Za-z0-9-]+\.)*(?i:example\.(com|org|net))([:/?#"'\x60]|$))
+          - has:
+              field: arguments
+              has:
+                kind: object
+                has:
+                  kind: pair
+                  all:
+                  - has:
+                      field: key
+                      kind: property_identifier
+                      regex: ^(url|baseURL|baseUrl|prefixUrl)$
+                  - has:
+                      field: value
+                      any:
+                      - any:
+                        - kind: string
+                          regex: ^["'\x60][hH][tT][tT][pP][sS]?://([^/@\s"'\x60]+@)?[A-Za-z0-9-]+(\.[A-Za-z0-9-]+)+([:/?#"'\x60]|$)
+                          not:
+                            kind: string
+                            regex: ^["'\x60][hH][tT][tT][pP][sS]?://([^/@\s"'\x60]+@)?(127\.[0-9]|0\.0\.0\.0([:/?#"'\x60]|$)|10\.[0-9]+\.|192\.168\.|172\.(1[6-9]|2[0-9]|3[01])\.|169\.254\.|([A-Za-z0-9-]+\.)*(?i:local|localhost|localdomain|internal|intranet|corp|lan|svc|test|example|invalid|home\.arpa)([:/?#"'\x60]|$)|([A-Za-z0-9-]+\.)*(?i:example\.(com|org|net))([:/?#"'\x60]|$))
+                        - kind: template_string
+                          regex: ^["'\x60][hH][tT][tT][pP][sS]?://([^/@\s"'\x60]+@)?[A-Za-z0-9-]+(\.[A-Za-z0-9-]+)+([:/?#"'\x60]|$)
+                          not:
+                            kind: template_string
+                            regex: ^["'\x60][hH][tT][tT][pP][sS]?://([^/@\s"'\x60]+@)?(127\.[0-9]|0\.0\.0\.0([:/?#"'\x60]|$)|10\.[0-9]+\.|192\.168\.|172\.(1[6-9]|2[0-9]|3[01])\.|169\.254\.|([A-Za-z0-9-]+\.)*(?i:local|localhost|localdomain|internal|intranet|corp|lan|svc|test|example|invalid|home\.arpa)([:/?#"'\x60]|$)|([A-Za-z0-9-]+\.)*(?i:example\.(com|org|net))([:/?#"'\x60]|$))
+                      - kind: binary_expression
+                        has:
+                          stopBy: end
+                          any:
+                          - kind: string
+                            regex: ^["'\x60][hH][tT][tT][pP][sS]?://([^/@\s"'\x60]+@)?[A-Za-z0-9-]+(\.[A-Za-z0-9-]+)+([:/?#"'\x60]|$)
+                            not:
+                              kind: string
+                              regex: ^["'\x60][hH][tT][tT][pP][sS]?://([^/@\s"'\x60]+@)?(127\.[0-9]|0\.0\.0\.0([:/?#"'\x60]|$)|10\.[0-9]+\.|192\.168\.|172\.(1[6-9]|2[0-9]|3[01])\.|169\.254\.|([A-Za-z0-9-]+\.)*(?i:local|localhost|localdomain|internal|intranet|corp|lan|svc|test|example|invalid|home\.arpa)([:/?#"'\x60]|$)|([A-Za-z0-9-]+\.)*(?i:example\.(com|org|net))([:/?#"'\x60]|$))
+                          - kind: template_string
+                            regex: ^["'\x60][hH][tT][tT][pP][sS]?://([^/@\s"'\x60]+@)?[A-Za-z0-9-]+(\.[A-Za-z0-9-]+)+([:/?#"'\x60]|$)
+                            not:
+                              kind: template_string
+                              regex: ^["'\x60][hH][tT][tT][pP][sS]?://([^/@\s"'\x60]+@)?(127\.[0-9]|0\.0\.0\.0([:/?#"'\x60]|$)|10\.[0-9]+\.|192\.168\.|172\.(1[6-9]|2[0-9]|3[01])\.|169\.254\.|([A-Za-z0-9-]+\.)*(?i:local|localhost|localdomain|internal|intranet|corp|lan|svc|test|example|invalid|home\.arpa)([:/?#"'\x60]|$)|([A-Za-z0-9-]+\.)*(?i:example\.(com|org|net))([:/?#"'\x60]|$))
+          - all:
+            - any:
+              - pattern: $F($NAME + $X)
+              - pattern: $F($NAME + $X, $$$R)
+              - pattern: $F($NAME)
+              - pattern: $F($NAME, $$$R)
+            - all:
+              - inside:
+                  stopBy: end
+                  kind: program
+                  has:
+                    any:
+                    - kind: lexical_declaration
+                      regex: ^const\s
+                      has:
+                        kind: variable_declarator
+                        all:
+                        - has:
+                            field: name
+                            pattern:
+                              context: ($NAME)
+                              selector: identifier
+                        - has:
+                            field: value
+                            any:
+                            - any:
+                              - kind: string
+                                regex: ^["'\x60][hH][tT][tT][pP][sS]?://([^/@\s"'\x60]+@)?[A-Za-z0-9-]+(\.[A-Za-z0-9-]+)+([:/?#"'\x60]|$)
+                                not:
+                                  kind: string
+                                  regex: ^["'\x60][hH][tT][tT][pP][sS]?://([^/@\s"'\x60]+@)?(127\.[0-9]|0\.0\.0\.0([:/?#"'\x60]|$)|10\.[0-9]+\.|192\.168\.|172\.(1[6-9]|2[0-9]|3[01])\.|169\.254\.|([A-Za-z0-9-]+\.)*(?i:local|localhost|localdomain|internal|intranet|corp|lan|svc|test|example|invalid|home\.arpa)([:/?#"'\x60]|$)|([A-Za-z0-9-]+\.)*(?i:example\.(com|org|net))([:/?#"'\x60]|$))
+                              - kind: template_string
+                                regex: ^["'\x60][hH][tT][tT][pP][sS]?://([^/@\s"'\x60]+@)?[A-Za-z0-9-]+(\.[A-Za-z0-9-]+)+([:/?#"'\x60]|$)
+                                not:
+                                  kind: template_string
+                                  regex: ^["'\x60][hH][tT][tT][pP][sS]?://([^/@\s"'\x60]+@)?(127\.[0-9]|0\.0\.0\.0([:/?#"'\x60]|$)|10\.[0-9]+\.|192\.168\.|172\.(1[6-9]|2[0-9]|3[01])\.|169\.254\.|([A-Za-z0-9-]+\.)*(?i:local|localhost|localdomain|internal|intranet|corp|lan|svc|test|example|invalid|home\.arpa)([:/?#"'\x60]|$)|([A-Za-z0-9-]+\.)*(?i:example\.(com|org|net))([:/?#"'\x60]|$))
+                            - kind: binary_expression
+                              has:
+                                field: left
+                                any:
+                                - kind: string
+                                  regex: ^["'\x60][hH][tT][tT][pP][sS]?://([^/@\s"'\x60]+@)?[A-Za-z0-9-]+(\.[A-Za-z0-9-]+)+([:/?#"'\x60]|$)
+                                  not:
+                                    kind: string
+                                    regex: ^["'\x60][hH][tT][tT][pP][sS]?://([^/@\s"'\x60]+@)?(127\.[0-9]|0\.0\.0\.0([:/?#"'\x60]|$)|10\.[0-9]+\.|192\.168\.|172\.(1[6-9]|2[0-9]|3[01])\.|169\.254\.|([A-Za-z0-9-]+\.)*(?i:local|localhost|localdomain|internal|intranet|corp|lan|svc|test|example|invalid|home\.arpa)([:/?#"'\x60]|$)|([A-Za-z0-9-]+\.)*(?i:example\.(com|org|net))([:/?#"'\x60]|$))
+                                - kind: template_string
+                                  regex: ^["'\x60][hH][tT][tT][pP][sS]?://([^/@\s"'\x60]+@)?[A-Za-z0-9-]+(\.[A-Za-z0-9-]+)+([:/?#"'\x60]|$)
+                                  not:
+                                    kind: template_string
+                                    regex: ^["'\x60][hH][tT][tT][pP][sS]?://([^/@\s"'\x60]+@)?(127\.[0-9]|0\.0\.0\.0([:/?#"'\x60]|$)|10\.[0-9]+\.|192\.168\.|172\.(1[6-9]|2[0-9]|3[01])\.|169\.254\.|([A-Za-z0-9-]+\.)*(?i:local|localhost|localdomain|internal|intranet|corp|lan|svc|test|example|invalid|home\.arpa)([:/?#"'\x60]|$)|([A-Za-z0-9-]+\.)*(?i:example\.(com|org|net))([:/?#"'\x60]|$))
+                    - kind: export_statement
+                      has:
+                        kind: lexical_declaration
+                        regex: ^const\s
+                        has:
+                          kind: variable_declarator
+                          all:
+                          - has:
+                              field: name
+                              pattern:
+                                context: ($NAME)
+                                selector: identifier
+                          - has:
+                              field: value
+                              any:
+                              - any:
+                                - kind: string
+                                  regex: ^["'\x60][hH][tT][tT][pP][sS]?://([^/@\s"'\x60]+@)?[A-Za-z0-9-]+(\.[A-Za-z0-9-]+)+([:/?#"'\x60]|$)
+                                  not:
+                                    kind: string
+                                    regex: ^["'\x60][hH][tT][tT][pP][sS]?://([^/@\s"'\x60]+@)?(127\.[0-9]|0\.0\.0\.0([:/?#"'\x60]|$)|10\.[0-9]+\.|192\.168\.|172\.(1[6-9]|2[0-9]|3[01])\.|169\.254\.|([A-Za-z0-9-]+\.)*(?i:local|localhost|localdomain|internal|intranet|corp|lan|svc|test|example|invalid|home\.arpa)([:/?#"'\x60]|$)|([A-Za-z0-9-]+\.)*(?i:example\.(com|org|net))([:/?#"'\x60]|$))
+                                - kind: template_string
+                                  regex: ^["'\x60][hH][tT][tT][pP][sS]?://([^/@\s"'\x60]+@)?[A-Za-z0-9-]+(\.[A-Za-z0-9-]+)+([:/?#"'\x60]|$)
+                                  not:
+                                    kind: template_string
+                                    regex: ^["'\x60][hH][tT][tT][pP][sS]?://([^/@\s"'\x60]+@)?(127\.[0-9]|0\.0\.0\.0([:/?#"'\x60]|$)|10\.[0-9]+\.|192\.168\.|172\.(1[6-9]|2[0-9]|3[01])\.|169\.254\.|([A-Za-z0-9-]+\.)*(?i:local|localhost|localdomain|internal|intranet|corp|lan|svc|test|example|invalid|home\.arpa)([:/?#"'\x60]|$)|([A-Za-z0-9-]+\.)*(?i:example\.(com|org|net))([:/?#"'\x60]|$))
+                              - kind: binary_expression
+                                has:
+                                  field: left
+                                  any:
+                                  - kind: string
+                                    regex: ^["'\x60][hH][tT][tT][pP][sS]?://([^/@\s"'\x60]+@)?[A-Za-z0-9-]+(\.[A-Za-z0-9-]+)+([:/?#"'\x60]|$)
+                                    not:
+                                      kind: string
+                                      regex: ^["'\x60][hH][tT][tT][pP][sS]?://([^/@\s"'\x60]+@)?(127\.[0-9]|0\.0\.0\.0([:/?#"'\x60]|$)|10\.[0-9]+\.|192\.168\.|172\.(1[6-9]|2[0-9]|3[01])\.|169\.254\.|([A-Za-z0-9-]+\.)*(?i:local|localhost|localdomain|internal|intranet|corp|lan|svc|test|example|invalid|home\.arpa)([:/?#"'\x60]|$)|([A-Za-z0-9-]+\.)*(?i:example\.(com|org|net))([:/?#"'\x60]|$))
+                                  - kind: template_string
+                                    regex: ^["'\x60][hH][tT][tT][pP][sS]?://([^/@\s"'\x60]+@)?[A-Za-z0-9-]+(\.[A-Za-z0-9-]+)+([:/?#"'\x60]|$)
+                                    not:
+                                      kind: template_string
+                                      regex: ^["'\x60][hH][tT][tT][pP][sS]?://([^/@\s"'\x60]+@)?(127\.[0-9]|0\.0\.0\.0([:/?#"'\x60]|$)|10\.[0-9]+\.|192\.168\.|172\.(1[6-9]|2[0-9]|3[01])\.|169\.254\.|([A-Za-z0-9-]+\.)*(?i:local|localhost|localdomain|internal|intranet|corp|lan|svc|test|example|invalid|home\.arpa)([:/?#"'\x60]|$)|([A-Za-z0-9-]+\.)*(?i:example\.(com|org|net))([:/?#"'\x60]|$))
+              - not:
+                  inside:
+                    stopBy: end
+                    any:
+                    - kind: function_declaration
+                    - kind: function_expression
+                    - kind: arrow_function
+                    - kind: method_definition
+                    - kind: generator_function_declaration
+                    has:
+                      stopBy: end
+                      kind: variable_declarator
+                      has:
+                        field: name
+                        pattern:
+                          context: ($NAME)
+                          selector: identifier
+      - all:
+        - kind: call_expression
+        - has:
+            field: function
+            kind: member_expression
+            all:
+            - has:
+                field: object
+                pattern:
+                  context: ($CLIENT)
+                  selector: identifier
+            - has:
+                field: property
+                kind: property_identifier
+                regex: ^(get|post|put|patch|delete|head|options|request)$
+        - inside:
+            stopBy: end
+            kind: program
+            has:
+              any:
+              - kind: lexical_declaration
+                regex: ^const\s
+                has:
+                  kind: variable_declarator
+                  all:
+                  - has:
+                      field: name
+                      pattern:
+                        context: ($CLIENT)
+                        selector: identifier
+                  - has:
+                      field: value
+                      kind: call_expression
+                      all:
+                      - has:
+                          field: function
+                          any:
+                          - kind: identifier
+                            regex: ^(axios|ky|got)\.(create|extend)$
+                          - kind: member_expression
+                            regex: ^(axios|ky|got)\.(create|extend)$
+                      - has:
+                          field: arguments
+                          has:
+                            kind: object
+                            has:
+                              kind: pair
+                              all:
+                              - has:
+                                  field: key
+                                  kind: property_identifier
+                                  regex: ^(url|baseURL|baseUrl|prefixUrl)$
+                              - has:
+                                  field: value
+                                  any:
+                                  - any:
+                                    - kind: string
+                                      regex: ^["'\x60][hH][tT][tT][pP][sS]?://([^/@\s"'\x60]+@)?[A-Za-z0-9-]+(\.[A-Za-z0-9-]+)+([:/?#"'\x60]|$)
+                                      not:
+                                        kind: string
+                                        regex: ^["'\x60][hH][tT][tT][pP][sS]?://([^/@\s"'\x60]+@)?(127\.[0-9]|0\.0\.0\.0([:/?#"'\x60]|$)|10\.[0-9]+\.|192\.168\.|172\.(1[6-9]|2[0-9]|3[01])\.|169\.254\.|([A-Za-z0-9-]+\.)*(?i:local|localhost|localdomain|internal|intranet|corp|lan|svc|test|example|invalid|home\.arpa)([:/?#"'\x60]|$)|([A-Za-z0-9-]+\.)*(?i:example\.(com|org|net))([:/?#"'\x60]|$))
+                                    - kind: template_string
+                                      regex: ^["'\x60][hH][tT][tT][pP][sS]?://([^/@\s"'\x60]+@)?[A-Za-z0-9-]+(\.[A-Za-z0-9-]+)+([:/?#"'\x60]|$)
+                                      not:
+                                        kind: template_string
+                                        regex: ^["'\x60][hH][tT][tT][pP][sS]?://([^/@\s"'\x60]+@)?(127\.[0-9]|0\.0\.0\.0([:/?#"'\x60]|$)|10\.[0-9]+\.|192\.168\.|172\.(1[6-9]|2[0-9]|3[01])\.|169\.254\.|([A-Za-z0-9-]+\.)*(?i:local|localhost|localdomain|internal|intranet|corp|lan|svc|test|example|invalid|home\.arpa)([:/?#"'\x60]|$)|([A-Za-z0-9-]+\.)*(?i:example\.(com|org|net))([:/?#"'\x60]|$))
+                                  - kind: binary_expression
+                                    has:
+                                      stopBy: end
+                                      any:
+                                      - kind: string
+                                        regex: ^["'\x60][hH][tT][tT][pP][sS]?://([^/@\s"'\x60]+@)?[A-Za-z0-9-]+(\.[A-Za-z0-9-]+)+([:/?#"'\x60]|$)
+                                        not:
+                                          kind: string
+                                          regex: ^["'\x60][hH][tT][tT][pP][sS]?://([^/@\s"'\x60]+@)?(127\.[0-9]|0\.0\.0\.0([:/?#"'\x60]|$)|10\.[0-9]+\.|192\.168\.|172\.(1[6-9]|2[0-9]|3[01])\.|169\.254\.|([A-Za-z0-9-]+\.)*(?i:local|localhost|localdomain|internal|intranet|corp|lan|svc|test|example|invalid|home\.arpa)([:/?#"'\x60]|$)|([A-Za-z0-9-]+\.)*(?i:example\.(com|org|net))([:/?#"'\x60]|$))
+                                      - kind: template_string
+                                        regex: ^["'\x60][hH][tT][tT][pP][sS]?://([^/@\s"'\x60]+@)?[A-Za-z0-9-]+(\.[A-Za-z0-9-]+)+([:/?#"'\x60]|$)
+                                        not:
+                                          kind: template_string
+                                          regex: ^["'\x60][hH][tT][tT][pP][sS]?://([^/@\s"'\x60]+@)?(127\.[0-9]|0\.0\.0\.0([:/?#"'\x60]|$)|10\.[0-9]+\.|192\.168\.|172\.(1[6-9]|2[0-9]|3[01])\.|169\.254\.|([A-Za-z0-9-]+\.)*(?i:local|localhost|localdomain|internal|intranet|corp|lan|svc|test|example|invalid|home\.arpa)([:/?#"'\x60]|$)|([A-Za-z0-9-]+\.)*(?i:example\.(com|org|net))([:/?#"'\x60]|$))
+              - kind: export_statement
+                has:
+                  kind: lexical_declaration
+                  regex: ^const\s
+                  has:
+                    kind: variable_declarator
+                    all:
+                    - has:
+                        field: name
+                        pattern:
+                          context: ($CLIENT)
+                          selector: identifier
+                    - has:
+                        field: value
+                        kind: call_expression
+                        all:
+                        - has:
+                            field: function
+                            any:
+                            - kind: identifier
+                              regex: ^(axios|ky|got)\.(create|extend)$
+                            - kind: member_expression
+                              regex: ^(axios|ky|got)\.(create|extend)$
+                        - has:
+                            field: arguments
+                            has:
+                              kind: object
+                              has:
+                                kind: pair
+                                all:
+                                - has:
+                                    field: key
+                                    kind: property_identifier
+                                    regex: ^(url|baseURL|baseUrl|prefixUrl)$
+                                - has:
+                                    field: value
+                                    any:
+                                    - any:
+                                      - kind: string
+                                        regex: ^["'\x60][hH][tT][tT][pP][sS]?://([^/@\s"'\x60]+@)?[A-Za-z0-9-]+(\.[A-Za-z0-9-]+)+([:/?#"'\x60]|$)
+                                        not:
+                                          kind: string
+                                          regex: ^["'\x60][hH][tT][tT][pP][sS]?://([^/@\s"'\x60]+@)?(127\.[0-9]|0\.0\.0\.0([:/?#"'\x60]|$)|10\.[0-9]+\.|192\.168\.|172\.(1[6-9]|2[0-9]|3[01])\.|169\.254\.|([A-Za-z0-9-]+\.)*(?i:local|localhost|localdomain|internal|intranet|corp|lan|svc|test|example|invalid|home\.arpa)([:/?#"'\x60]|$)|([A-Za-z0-9-]+\.)*(?i:example\.(com|org|net))([:/?#"'\x60]|$))
+                                      - kind: template_string
+                                        regex: ^["'\x60][hH][tT][tT][pP][sS]?://([^/@\s"'\x60]+@)?[A-Za-z0-9-]+(\.[A-Za-z0-9-]+)+([:/?#"'\x60]|$)
+                                        not:
+                                          kind: template_string
+                                          regex: ^["'\x60][hH][tT][tT][pP][sS]?://([^/@\s"'\x60]+@)?(127\.[0-9]|0\.0\.0\.0([:/?#"'\x60]|$)|10\.[0-9]+\.|192\.168\.|172\.(1[6-9]|2[0-9]|3[01])\.|169\.254\.|([A-Za-z0-9-]+\.)*(?i:local|localhost|localdomain|internal|intranet|corp|lan|svc|test|example|invalid|home\.arpa)([:/?#"'\x60]|$)|([A-Za-z0-9-]+\.)*(?i:example\.(com|org|net))([:/?#"'\x60]|$))
+                                    - kind: binary_expression
+                                      has:
+                                        stopBy: end
+                                        any:
+                                        - kind: string
+                                          regex: ^["'\x60][hH][tT][tT][pP][sS]?://([^/@\s"'\x60]+@)?[A-Za-z0-9-]+(\.[A-Za-z0-9-]+)+([:/?#"'\x60]|$)
+                                          not:
+                                            kind: string
+                                            regex: ^["'\x60][hH][tT][tT][pP][sS]?://([^/@\s"'\x60]+@)?(127\.[0-9]|0\.0\.0\.0([:/?#"'\x60]|$)|10\.[0-9]+\.|192\.168\.|172\.(1[6-9]|2[0-9]|3[01])\.|169\.254\.|([A-Za-z0-9-]+\.)*(?i:local|localhost|localdomain|internal|intranet|corp|lan|svc|test|example|invalid|home\.arpa)([:/?#"'\x60]|$)|([A-Za-z0-9-]+\.)*(?i:example\.(com|org|net))([:/?#"'\x60]|$))
+                                        - kind: template_string
+                                          regex: ^["'\x60][hH][tT][tT][pP][sS]?://([^/@\s"'\x60]+@)?[A-Za-z0-9-]+(\.[A-Za-z0-9-]+)+([:/?#"'\x60]|$)
+                                          not:
+                                            kind: template_string
+                                            regex: ^["'\x60][hH][tT][tT][pP][sS]?://([^/@\s"'\x60]+@)?(127\.[0-9]|0\.0\.0\.0([:/?#"'\x60]|$)|10\.[0-9]+\.|192\.168\.|172\.(1[6-9]|2[0-9]|3[01])\.|169\.254\.|([A-Za-z0-9-]+\.)*(?i:local|localhost|localdomain|internal|intranet|corp|lan|svc|test|example|invalid|home\.arpa)([:/?#"'\x60]|$)|([A-Za-z0-9-]+\.)*(?i:example\.(com|org|net))([:/?#"'\x60]|$))
+      - all:
+        - kind: call_expression
+        - has:
+            field: function
+            any:
+            - kind: identifier
+              regex: ^(navigator\.|window\.navigator\.)?sendBeacon$
+            - kind: member_expression
+              regex: ^(navigator\.|window\.navigator\.)?sendBeacon$
+        - has:
+            field: arguments
+            kind: arguments
+            regex: ^\(\s*((//[^\n]*\n|/\*([^*]|\*+[^*/])*\*+/)\s*)*["'\x60][hH][tT][tT][pP][sS]?://([^/@\s"'\x60]+@)?[A-Za-z0-9-]+(\.[A-Za-z0-9-]+)+([:/?#"'\x60]|$)
+            not:
+              kind: arguments
+              regex: ^\(\s*((//[^\n]*\n|/\*([^*]|\*+[^*/])*\*+/)\s*)*["'\x60][hH][tT][tT][pP][sS]?://([^/@\s"'\x60]+@)?(127\.[0-9]|0\.0\.0\.0([:/?#"'\x60]|$)|10\.[0-9]+\.|192\.168\.|172\.(1[6-9]|2[0-9]|3[01])\.|169\.254\.|([A-Za-z0-9-]+\.)*(?i:local|localhost|localdomain|internal|intranet|corp|lan|svc|test|example|invalid|home\.arpa)([:/?#"'\x60]|$)|([A-Za-z0-9-]+\.)*(?i:example\.(com|org|net))([:/?#"'\x60]|$))
+      - all:
+        - kind: call_expression
+        - has:
+            field: function
+            any:
+            - kind: identifier
+              regex: \.open$
+            - kind: member_expression
+              regex: \.open$
+        - has:
+            field: arguments
+            kind: arguments
+            regex: ^\(\s*((//[^\n]*\n|/\*([^*]|\*+[^*/])*\*+/)\s*)*[^,()]+,\s*((//[^\n]*\n|/\*([^*]|\*+[^*/])*\*+/)\s*)*["'\x60][hH][tT][tT][pP][sS]?://([^/@\s"'\x60]+@)?[A-Za-z0-9-]+(\.[A-Za-z0-9-]+)+([:/?#"'\x60]|$)
+            not:
+              kind: arguments
+              regex: ^\(\s*((//[^\n]*\n|/\*([^*]|\*+[^*/])*\*+/)\s*)*[^,()]+,\s*((//[^\n]*\n|/\*([^*]|\*+[^*/])*\*+/)\s*)*["'\x60][hH][tT][tT][pP][sS]?://([^/@\s"'\x60]+@)?(127\.[0-9]|0\.0\.0\.0([:/?#"'\x60]|$)|10\.[0-9]+\.|192\.168\.|172\.(1[6-9]|2[0-9]|3[01])\.|169\.254\.|([A-Za-z0-9-]+\.)*(?i:local|localhost|localdomain|internal|intranet|corp|lan|svc|test|example|invalid|home\.arpa)([:/?#"'\x60]|$)|([A-Za-z0-9-]+\.)*(?i:example\.(com|org|net))([:/?#"'\x60]|$))
+    - any:
+      - has:
+          field: arguments
+          has:
+            kind: object
+            has:
+              kind: pair
+              all:
+              - has:
+                  field: key
+                  kind: property_identifier
+                  regex: ^(body|json|data)$
+              - has:
+                  field: value
+                  any:
+                  - any:
+                    - kind: identifier
+                      regex: ^([A-Za-z0-9_$]*[._])?([a-z0-9]*_)?(?i:patient|record|chart|encounter|visit|appointment|resource|profile)s?$|^[A-Za-z0-9_$.]*[a-z0-9](Patient|Record|Chart|Encounter|Visit|Appointment|Resource|Profile)s?$
+                    - kind: member_expression
+                      regex: ^([A-Za-z0-9_$]*[._])?([a-z0-9]*_)?(?i:patient|record|chart|encounter|visit|appointment|resource|profile)s?$|^[A-Za-z0-9_$.]*[a-z0-9](Patient|Record|Chart|Encounter|Visit|Appointment|Resource|Profile)s?$
+                  - kind: object
+                    has:
+                      kind: spread_element
+                      has:
+                        any:
+                        - kind: identifier
+                          regex: ^([A-Za-z0-9_$]*[._])?([a-z0-9]*_)?(?i:patient|record|chart|encounter|visit|appointment|resource|profile)s?$|^[A-Za-z0-9_$.]*[a-z0-9](Patient|Record|Chart|Encounter|Visit|Appointment|Resource|Profile)s?$
+                        - kind: member_expression
+                          regex: ^([A-Za-z0-9_$]*[._])?([a-z0-9]*_)?(?i:patient|record|chart|encounter|visit|appointment|resource|profile)s?$|^[A-Za-z0-9_$.]*[a-z0-9](Patient|Record|Chart|Encounter|Visit|Appointment|Resource|Profile)s?$
+                  - all:
+                    - kind: call_expression
+                      regex: ^JSON\.stringify\(
+                    - has:
+                        field: arguments
+                        has:
+                          any:
+                          - any:
+                            - kind: identifier
+                              regex: ^([A-Za-z0-9_$]*[._])?([a-z0-9]*_)?(?i:patient|record|chart|encounter|visit|appointment|resource|profile)s?$|^[A-Za-z0-9_$.]*[a-z0-9](Patient|Record|Chart|Encounter|Visit|Appointment|Resource|Profile)s?$
+                            - kind: member_expression
+                              regex: ^([A-Za-z0-9_$]*[._])?([a-z0-9]*_)?(?i:patient|record|chart|encounter|visit|appointment|resource|profile)s?$|^[A-Za-z0-9_$.]*[a-z0-9](Patient|Record|Chart|Encounter|Visit|Appointment|Resource|Profile)s?$
+                          - kind: object
+                            has:
+                              kind: spread_element
+                              has:
+                                any:
+                                - kind: identifier
+                                  regex: ^([A-Za-z0-9_$]*[._])?([a-z0-9]*_)?(?i:patient|record|chart|encounter|visit|appointment|resource|profile)s?$|^[A-Za-z0-9_$.]*[a-z0-9](Patient|Record|Chart|Encounter|Visit|Appointment|Resource|Profile)s?$
+                                - kind: member_expression
+                                  regex: ^([A-Za-z0-9_$]*[._])?([a-z0-9]*_)?(?i:patient|record|chart|encounter|visit|appointment|resource|profile)s?$|^[A-Za-z0-9_$.]*[a-z0-9](Patient|Record|Chart|Encounter|Visit|Appointment|Resource|Profile)s?$
+      - all:
+        - has:
+            field: function
+            any:
+            - kind: identifier
+              regex: \.(post|put|patch)$
+            - kind: member_expression
+              regex: \.(post|put|patch)$
+        - has:
+            field: arguments
+            kind: arguments
+            regex: ^\(\s*[^,]+,\s*([A-Za-z0-9_$]*[._])?([a-z0-9]*_)?(?i:patient|record|chart|encounter|visit|appointment|resource|profile)s?\s*[,)]|^\(\s*[^,]+,\s*[A-Za-z0-9_$.]*[a-z0-9](Patient|Record|Chart|Encounter|Visit|Appointment|Resource|Profile)s?\s*[,)]
+      - all:
+        - has:
+            field: function
+            any:
+            - kind: identifier
+              regex: \.(post|put|patch)$
+            - kind: member_expression
+              regex: \.(post|put|patch)$
+        - has:
+            field: arguments
+            kind: arguments
+            has:
+              kind: object
+              has:
+                kind: spread_element
+                has:
+                  any:
+                  - kind: identifier
+                    regex: ^([A-Za-z0-9_$]*[._])?([a-z0-9]*_)?(?i:patient|record|chart|encounter|visit|appointment|resource|profile)s?$|^[A-Za-z0-9_$.]*[a-z0-9](Patient|Record|Chart|Encounter|Visit|Appointment|Resource|Profile)s?$
+                  - kind: member_expression
+                    regex: ^([A-Za-z0-9_$]*[._])?([a-z0-9]*_)?(?i:patient|record|chart|encounter|visit|appointment|resource|profile)s?$|^[A-Za-z0-9_$.]*[a-z0-9](Patient|Record|Chart|Encounter|Visit|Appointment|Resource|Profile)s?$
+  - all:
+    - any:
+      - all:
+        - kind: call_expression
+        - has:
+            field: function
+            any:
+            - kind: identifier
+              regex: ^(navigator\.|window\.navigator\.)?sendBeacon$
+            - kind: member_expression
+              regex: ^(navigator\.|window\.navigator\.)?sendBeacon$
+        - has:
+            field: arguments
+            kind: arguments
+            regex: ^\(\s*((//[^\n]*\n|/\*([^*]|\*+[^*/])*\*+/)\s*)*["'\x60][hH][tT][tT][pP][sS]?://([^/@\s"'\x60]+@)?[A-Za-z0-9-]+(\.[A-Za-z0-9-]+)+([:/?#"'\x60]|$)
+            not:
+              kind: arguments
+              regex: ^\(\s*((//[^\n]*\n|/\*([^*]|\*+[^*/])*\*+/)\s*)*["'\x60][hH][tT][tT][pP][sS]?://([^/@\s"'\x60]+@)?(127\.[0-9]|0\.0\.0\.0([:/?#"'\x60]|$)|10\.[0-9]+\.|192\.168\.|172\.(1[6-9]|2[0-9]|3[01])\.|169\.254\.|([A-Za-z0-9-]+\.)*(?i:local|localhost|localdomain|internal|intranet|corp|lan|svc|test|example|invalid|home\.arpa)([:/?#"'\x60]|$)|([A-Za-z0-9-]+\.)*(?i:example\.(com|org|net))([:/?#"'\x60]|$))
+      - all:
+        - kind: call_expression
+        - has:
+            field: function
+            kind: member_expression
+            all:
+            - has:
+                field: object
+                pattern:
+                  context: ($XHR)
+                  selector: identifier
+            - has:
+                field: property
+                kind: property_identifier
+                regex: ^send$
+        - inside:
+            stopBy: end
+            any:
+            - kind: function_declaration
+            - kind: function_expression
+            - kind: arrow_function
+            - kind: method_definition
+            - kind: generator_function_declaration
+            - kind: program
+            has:
+              stopBy: end
+              kind: call_expression
+              all:
+              - has:
+                  field: function
+                  kind: member_expression
+                  all:
+                  - has:
+                      field: object
+                      pattern:
+                        context: ($XHR)
+                        selector: identifier
+                  - has:
+                      field: property
+                      kind: property_identifier
+                      regex: ^open$
+              - has:
+                  field: arguments
+                  kind: arguments
+                  regex: ^\(\s*((//[^\n]*\n|/\*([^*]|\*+[^*/])*\*+/)\s*)*[^,()]+,\s*((//[^\n]*\n|/\*([^*]|\*+[^*/])*\*+/)\s*)*["'\x60][hH][tT][tT][pP][sS]?://([^/@\s"'\x60]+@)?[A-Za-z0-9-]+(\.[A-Za-z0-9-]+)+([:/?#"'\x60]|$)
+                  not:
+                    kind: arguments
+                    regex: ^\(\s*((//[^\n]*\n|/\*([^*]|\*+[^*/])*\*+/)\s*)*[^,()]+,\s*((//[^\n]*\n|/\*([^*]|\*+[^*/])*\*+/)\s*)*["'\x60][hH][tT][tT][pP][sS]?://([^/@\s"'\x60]+@)?(127\.[0-9]|0\.0\.0\.0([:/?#"'\x60]|$)|10\.[0-9]+\.|192\.168\.|172\.(1[6-9]|2[0-9]|3[01])\.|169\.254\.|([A-Za-z0-9-]+\.)*(?i:local|localhost|localdomain|internal|intranet|corp|lan|svc|test|example|invalid|home\.arpa)([:/?#"'\x60]|$)|([A-Za-z0-9-]+\.)*(?i:example\.(com|org|net))([:/?#"'\x60]|$))
+    - has:
+        field: arguments
+        kind: arguments
+        has:
+          any:
+          - any:
+            - kind: identifier
+              regex: ^([A-Za-z0-9_$]*[._])?([a-z0-9]*_)?(?i:patient|record|chart|encounter|visit|appointment|resource|profile)s?$|^[A-Za-z0-9_$.]*[a-z0-9](Patient|Record|Chart|Encounter|Visit|Appointment|Resource|Profile)s?$
+            - kind: member_expression
+              regex: ^([A-Za-z0-9_$]*[._])?([a-z0-9]*_)?(?i:patient|record|chart|encounter|visit|appointment|resource|profile)s?$|^[A-Za-z0-9_$.]*[a-z0-9](Patient|Record|Chart|Encounter|Visit|Appointment|Resource|Profile)s?$
+          - kind: object
+            has:
+              kind: spread_element
+              has:
+                any:
+                - kind: identifier
+                  regex: ^([A-Za-z0-9_$]*[._])?([a-z0-9]*_)?(?i:patient|record|chart|encounter|visit|appointment|resource|profile)s?$|^[A-Za-z0-9_$.]*[a-z0-9](Patient|Record|Chart|Encounter|Visit|Appointment|Resource|Profile)s?$
+                - kind: member_expression
+                  regex: ^([A-Za-z0-9_$]*[._])?([a-z0-9]*_)?(?i:patient|record|chart|encounter|visit|appointment|resource|profile)s?$|^[A-Za-z0-9_$.]*[a-z0-9](Patient|Record|Chart|Encounter|Visit|Appointment|Resource|Profile)s?$
+          - all:
+            - kind: call_expression
+              regex: ^JSON\.stringify\(
+            - has:
+                field: arguments
+                has:
+                  any:
+                  - any:
+                    - kind: identifier
+                      regex: ^([A-Za-z0-9_$]*[._])?([a-z0-9]*_)?(?i:patient|record|chart|encounter|visit|appointment|resource|profile)s?$|^[A-Za-z0-9_$.]*[a-z0-9](Patient|Record|Chart|Encounter|Visit|Appointment|Resource|Profile)s?$
+                    - kind: member_expression
+                      regex: ^([A-Za-z0-9_$]*[._])?([a-z0-9]*_)?(?i:patient|record|chart|encounter|visit|appointment|resource|profile)s?$|^[A-Za-z0-9_$.]*[a-z0-9](Patient|Record|Chart|Encounter|Visit|Appointment|Resource|Profile)s?$
+                  - kind: object
+                    has:
+                      kind: spread_element
+                      has:
+                        any:
+                        - kind: identifier
+                          regex: ^([A-Za-z0-9_$]*[._])?([a-z0-9]*_)?(?i:patient|record|chart|encounter|visit|appointment|resource|profile)s?$|^[A-Za-z0-9_$.]*[a-z0-9](Patient|Record|Chart|Encounter|Visit|Appointment|Resource|Profile)s?$
+                        - kind: member_expression
+                          regex: ^([A-Za-z0-9_$]*[._])?([a-z0-9]*_)?(?i:patient|record|chart|encounter|visit|appointment|resource|profile)s?$|^[A-Za-z0-9_$.]*[a-z0-9](Patient|Record|Chart|Encounter|Visit|Appointment|Resource|Profile)s?$
+min_engine: 0.39.0

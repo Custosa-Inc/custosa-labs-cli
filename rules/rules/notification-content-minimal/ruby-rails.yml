@@ -1,0 +1,208 @@
+# Patient values in push, email and SMS content (T23 B56d). Written by
+# scripts/gen_notification_rules.py: don't edit. The practice is capped at needs_review.
+id: notification-content-minimal.ruby-rails.send
+practice_id: notification-content-minimal
+language: ruby
+frameworks:
+- rails
+kind: evidence
+rule:
+  kind: call
+  any:
+  - all:
+    - has:
+        field: method
+        kind: identifier
+        regex: ^mail$
+    - kind: call
+      regex: ^mail\b
+    - inside:
+        stopBy: end
+        kind: class
+        has:
+          field: superclass
+          kind: superclass
+          regex: Mailer$
+  - all:
+    - has:
+        field: method
+        kind: identifier
+        regex: ^create$
+    - has:
+        field: receiver
+        kind: call
+        regex: ^(?i:@?(\w*twilio\w*|client))\s*\.\s*messages$
+min_engine: 0.39.0
+---
+id: notification-content-minimal.ruby-rails.clinical-interpolated
+practice_id: notification-content-minimal
+language: ruby
+frameworks:
+- rails
+kind: violation
+rule:
+  any:
+  - kind: string
+    has:
+      kind: interpolation
+      has:
+        stopBy: end
+        kind: identifier
+        regex: ^(?i:\w*(diagnos|condition|medication|prescription|dosage|lab_?results?|test_?results?|results?_?value|reason_?for_?visit|appointment_?reason|visit_?reason|procedure|medical_?record_?number|date_?of_?birth)\w*|(get_?)?(mrn|dob|ssn))$
+  - kind: binary
+    regex: \+
+    all:
+    - has:
+        kind: string
+    - has:
+        stopBy: end
+        kind: identifier
+        regex: ^(?i:\w*(diagnos|condition|medication|prescription|dosage|lab_?results?|test_?results?|results?_?value|reason_?for_?visit|appointment_?reason|visit_?reason|procedure|medical_?record_?number|date_?of_?birth)\w*|(get_?)?(mrn|dob|ssn))$
+  - kind: call
+    all:
+    - has:
+        field: method
+        kind: identifier
+        regex: ^(format|sprintf)$
+    - has:
+        field: arguments
+        has:
+          stopBy: end
+          kind: identifier
+          regex: ^(?i:\w*(diagnos|condition|medication|prescription|dosage|lab_?results?|test_?results?|results?_?value|reason_?for_?visit|appointment_?reason|visit_?reason|procedure|medical_?record_?number|date_?of_?birth)\w*|(get_?)?(mrn|dob|ssn))$
+  - kind: call
+    has:
+      field: method
+      kind: identifier
+      regex: ^(?i:\w*(diagnos|condition|medication|prescription|dosage|lab_?results?|test_?results?|results?_?value|reason_?for_?visit|appointment_?reason|visit_?reason|procedure|medical_?record_?number|date_?of_?birth)\w*|(get_?)?(mrn|dob|ssn))$
+  - kind: identifier
+    regex: ^(?i:\w*(diagnos|condition|medication|prescription|dosage|lab_?results?|test_?results?|results?_?value|reason_?for_?visit|appointment_?reason|visit_?reason|procedure|medical_?record_?number|date_?of_?birth)\w*|(get_?)?(mrn|dob|ssn))$
+  inside:
+    kind: pair
+    all:
+    - has:
+        field: key
+        any:
+        - kind: hash_key_symbol
+          regex: ^(subject|body|title)$
+        - kind: simple_symbol
+          regex: ^:(subject|body|title)$
+        - kind: string
+          regex: ^[\"'](?i:subject|body|title)[\"']$
+    - inside:
+        kind: argument_list
+        inside:
+          kind: call
+          any:
+          - all:
+            - has:
+                field: method
+                kind: identifier
+                regex: ^mail$
+            - kind: call
+              regex: ^mail\b
+            - inside:
+                stopBy: end
+                kind: class
+                has:
+                  field: superclass
+                  kind: superclass
+                  regex: Mailer$
+          - all:
+            - has:
+                field: method
+                kind: identifier
+                regex: ^create$
+            - has:
+                field: receiver
+                kind: call
+                regex: ^(?i:@?(\w*twilio\w*|client))\s*\.\s*messages$
+min_engine: 0.39.0
+---
+id: notification-content-minimal.ruby-rails.identifying-interpolated
+practice_id: notification-content-minimal
+language: ruby
+frameworks:
+- rails
+kind: evidence
+rule:
+  any:
+  - kind: string
+    has:
+      kind: interpolation
+      has:
+        stopBy: end
+        any: &id001
+        - kind: identifier
+          regex: ^(?i:(first|last|full|given|family|middle|display|preferred)_?name)$
+        - kind: call
+          regex: ^(?i:@?([\w$]+\s*\.\s*)*(patient|user|member|recipient|person|client|customer)\s*\.\s*name)$
+  - kind: binary
+    regex: \+
+    all:
+    - has:
+        kind: string
+    - has:
+        stopBy: end
+        any: *id001
+  - kind: call
+    all:
+    - has:
+        field: method
+        kind: identifier
+        regex: ^(format|sprintf)$
+    - has:
+        field: arguments
+        has:
+          stopBy: end
+          any: *id001
+  - kind: call
+    has:
+      field: method
+      kind: identifier
+      regex: ^(?i:(first|last|full|given|family|middle|display|preferred)_?name)$
+  - kind: call
+    regex: ^(?i:@?([\w$]+\s*\.\s*)*(patient|user|member|recipient|person|client|customer)\s*\.\s*name)$
+  - kind: identifier
+    regex: ^(?i:(first|last|full|given|family|middle|display|preferred)_?name)$
+  inside:
+    kind: pair
+    all:
+    - has:
+        field: key
+        any:
+        - kind: hash_key_symbol
+          regex: ^(subject|body|title)$
+        - kind: simple_symbol
+          regex: ^:(subject|body|title)$
+        - kind: string
+          regex: ^[\"'](?i:subject|body|title)[\"']$
+    - inside:
+        kind: argument_list
+        inside:
+          kind: call
+          any:
+          - all:
+            - has:
+                field: method
+                kind: identifier
+                regex: ^mail$
+            - kind: call
+              regex: ^mail\b
+            - inside:
+                stopBy: end
+                kind: class
+                has:
+                  field: superclass
+                  kind: superclass
+                  regex: Mailer$
+          - all:
+            - has:
+                field: method
+                kind: identifier
+                regex: ^create$
+            - has:
+                field: receiver
+                kind: call
+                regex: ^(?i:@?(\w*twilio\w*|client))\s*\.\s*messages$
+min_engine: 0.39.0

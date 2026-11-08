@@ -1,0 +1,21 @@
+id: encryption-key-rotation.php-generic.hardcoded-key
+practice_id: encryption-key-rotation
+language: php
+frameworks:
+- generic
+kind: violation
+rule:
+  kind: function_call_expression
+  regex: ^openssl_(en|de)crypt\([^,]+,[^,]+,\s*['\"][^'\"]{8,}['\"]
+min_engine: 0.39.0
+---
+id: encryption-key-rotation.php-generic.fixed-iv
+practice_id: encryption-key-rotation
+language: php
+frameworks:
+- generic
+kind: violation
+rule:
+  kind: function_call_expression
+  regex: ^openssl_encrypt\([^,]+,[^,]+,[^,]+,[^,]+,\s*(['\"][^'\"]*['\"]|str_repeat\()
+min_engine: 0.39.0

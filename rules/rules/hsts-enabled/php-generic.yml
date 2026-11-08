@@ -1,0 +1,27 @@
+# hsts-enabled (T23 B56b). Written by scripts/gen_hsts_rules.py: edit that script,
+# never this file. The practice function reads the pieces by name: header-<form> and redirect-<form> (NAMING.md).
+
+# app-construction: a call that makes an app: in JS and TS express(), require('express')(), new Koa(), new Hono(), new
+# Elysia(), fastify(), NestFactory.create, polka(), feathers(), createApp() from h3, connect() from connect; in Go
+# gin.Default(), gin.New(), echo.New(), fiber.New(), chi.NewRouter(), mux.NewRouter(), http.NewServeMux(); in Java
+# SpringApplication.run(...); in PHP Application::configure, new Illuminate\Foundation\Application,
+# AppFactory::create() and each class extending a Kernel. Evidence the function counts.
+id: hsts-enabled.php-generic.app-construction
+practice_id: hsts-enabled
+language: php
+frameworks:
+- generic
+kind: evidence
+rule:
+  any:
+  - kind: scoped_call_expression
+    regex: ^(\\?Illuminate\\Foundation\\)?Application::configure\s*\(
+  - kind: object_creation_expression
+    regex: ^new\s+\\?Illuminate\\Foundation\\Application\b
+  - kind: scoped_call_expression
+    regex: ^(\\?Slim\\Factory\\)?AppFactory::create\s*\(
+  - kind: class_declaration
+    has:
+      kind: base_clause
+      regex: Kernel$
+min_engine: 0.45.3

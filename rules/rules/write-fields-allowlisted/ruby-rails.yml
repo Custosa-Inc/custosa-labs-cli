@@ -1,0 +1,152 @@
+id: write-fields-allowlisted.ruby-rails.write
+practice_id: write-fields-allowlisted
+language: ruby
+frameworks:
+- rails
+kind: items
+rule:
+  kind: method
+  all:
+  - inside:
+      kind: class
+      stopBy: end
+      has:
+        field: name
+        kind: constant
+        regex: Controller$
+  - has:
+      stopBy: end
+      kind: call
+      has:
+        field: method
+        kind: identifier
+        regex: ^(create|create!|new|update|update!|insert|insert_all|upsert|upsert_all|update_attributes|assign_attributes)$
+      all:
+      - has:
+          field: arguments
+          kind: argument_list
+control:
+  any:
+  - has:
+      stopBy: end
+      kind: call
+      has:
+        field: method
+        kind: identifier
+        regex: ^permit$
+      all:
+      - has:
+          field: arguments
+          kind: argument_list
+  - all:
+    - has:
+        stopBy: end
+        kind: identifier
+        regex: ^\w+_params$
+    - inside:
+        kind: class
+        stopBy: end
+        has:
+          stopBy: end
+          kind: method
+          all:
+          - has:
+              field: name
+              kind: identifier
+              regex: ^\w+_params$
+          - has:
+              stopBy: end
+              kind: call
+              has:
+                field: method
+                kind: identifier
+                regex: ^permit$
+              all:
+              - has:
+                  field: arguments
+                  kind: argument_list
+min_engine: 0.39.0
+---
+id: write-fields-allowlisted.ruby-rails.permit-all
+practice_id: write-fields-allowlisted
+language: ruby
+frameworks:
+- rails
+kind: violation
+rule:
+  any:
+  - pattern: params.permit!
+  - pattern: params.require($X).permit!
+  - kind: call
+    regex: ^params(\[[^\]]+\]|\.require\([^)]*\))?\.to_unsafe_h
+  - all:
+    - kind: call
+    - has:
+        field: method
+        kind: identifier
+        regex: ^(new|create|create!|update|update!|update_attributes|assign_attributes|insert|insert_all|upsert)$
+    - has:
+        field: arguments
+        has:
+          kind: element_reference
+          regex: ^params\[
+  - all:
+    - kind: assignment
+    - has:
+        field: left
+        kind: call
+        regex: \.attributes$
+    - has:
+        field: right
+        kind: element_reference
+        regex: ^params\b
+min_engine: 0.39.0
+---
+id: write-fields-allowlisted.ruby-rails.denylist
+practice_id: write-fields-allowlisted
+language: ruby
+frameworks:
+- rails
+kind: violation
+rule:
+  any:
+  - kind: call
+    regex: ^params(\.require\([^)]*\))?(\.permit(!|\([^)]*\)))?\.except\(
+  - kind: call
+    regex: '^(params\[[^\]]+\]|\w+_params)\.delete\(:'
+min_engine: 0.39.0
+---
+id: write-fields-allowlisted.ruby-rails.strong-params
+practice_id: write-fields-allowlisted
+language: ruby
+frameworks:
+- rails
+kind: evidence
+rule:
+  all:
+  - kind: call
+    regex: ^params\.require\(:\w+\)\.permit\(
+  - not:
+      has:
+        field: arguments
+        has:
+          kind: simple_symbol
+          regex: ^:(user|user_id|owner|owner_id|tenant|tenant_id|org_id|organization_id|account_id|clinic_id|provider_id|created_by|updated_by|author_id|role|roles|role_id|admin|is_admin|staff)$
+min_engine: 0.39.0
+---
+id: write-fields-allowlisted.ruby-rails.identity-permitted
+practice_id: write-fields-allowlisted
+language: ruby
+frameworks:
+- rails
+kind: violation
+rule:
+  all:
+  - kind: call
+    regex: ^params(\.require\(:\w+\))?\.permit\(
+  - has:
+      field: arguments
+      has:
+        kind: simple_symbol
+        regex: ^:(user|user_id|owner|owner_id|tenant|tenant_id|org_id|organization_id|account_id|clinic_id|provider_id|created_by|updated_by|author_id|role|roles|role_id|admin|is_admin|staff)$
+min_engine: 0.39.0

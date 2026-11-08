@@ -1,0 +1,247 @@
+# Auth that a missing setting turns off (T23 B56d). Written by
+# scripts/gen_auth_default_rules.py: don't edit. The practice is capped at needs_review.
+id: auth-on-by-default.python-generic.off-when-unset
+practice_id: auth-on-by-default
+language: python
+frameworks:
+- generic
+kind: violation
+rule:
+  any:
+  - kind: comparison_operator
+    all:
+    - has:
+        stopBy: end
+        any:
+        - kind: call
+          all: &id001
+          - kind: call
+            has:
+              field: function
+              any:
+              - kind: identifier
+                regex: ^(os\s*\.\s*(getenv|environ\s*\.\s*get)|environ\s*\.\s*get|getenv|config|env(\s*\.\s*(bool|str))?)$
+              - kind: attribute
+                regex: ^(os\s*\.\s*(getenv|environ\s*\.\s*get)|environ\s*\.\s*get|getenv|config|env(\s*\.\s*(bool|str))?)$
+              - kind: attribute
+                pattern: $E.get
+                inside:
+                  stopBy: end
+                  kind: module
+                  has:
+                    stopBy: end
+                    any:
+                    - pattern: $E = os.environ
+                    - pattern: $E = environ
+          has:
+            kind: argument_list
+            regex: ^\(\s*["'](?i:(AUTH|AUTHENTICATION|SECURITY)_(ENABLED|REQUIRED|ON)|(ENABLE|REQUIRE)_AUTH(ENTICATION)?)["']\s*\)$
+        - kind: call
+          all: *id001
+          has:
+            kind: argument_list
+            regex: ^\(\s*["'](?i:(AUTH|AUTHENTICATION|SECURITY)_(ENABLED|REQUIRED|ON)|(ENABLE|REQUIRE)_AUTH(ENTICATION)?)["']\s*,\s*(default\s*=\s*)?(["'](?i:false|0|no|off|disabled|)["']|False|false|0)\s*[,)]|^\(\s*["'](?i:(AUTH|AUTHENTICATION|SECURITY)_(ENABLED|REQUIRED|ON)|(ENABLE|REQUIRE)_AUTH(ENTICATION)?)["']\s*,[\s\S]*\bdefault\s*=\s*(["'](?i:false|0|no|off|disabled|)["']|False|false|0)\s*[,)]
+        - kind: subscript
+          regex: ^(os\s*\.\s*)?environ\s*\[\s*["'](?i:(AUTH|AUTHENTICATION|SECURITY)_(ENABLED|REQUIRED|ON)|(ENABLE|REQUIRE)_AUTH(ENTICATION)?)["']\s*\]$
+    - has:
+        any:
+        - &id002
+          kind: string
+          regex: ^["'](?i:true|1|yes|on|enabled)["']$
+        - kind: tuple
+          has: *id002
+        - kind: list
+          has: *id002
+        - kind: set
+          has: *id002
+  - kind: comparison_operator
+    all:
+    - has:
+        stopBy: end
+        any:
+        - kind: call
+          all: *id001
+          has:
+            kind: argument_list
+            regex: ^\(\s*["'](?i:(DISABLE|SKIP|NO)_AUTH(ENTICATION)?|AUTH_DISABLED)["']\s*\)$
+        - kind: call
+          all: *id001
+          has:
+            kind: argument_list
+            regex: ^\(\s*["'](?i:(DISABLE|SKIP|NO)_AUTH(ENTICATION)?|AUTH_DISABLED)["']\s*,\s*(default\s*=\s*)?(["'](?i:false|0|no|off|disabled|)["']|False|false|0)\s*[,)]|^\(\s*["'](?i:(DISABLE|SKIP|NO)_AUTH(ENTICATION)?|AUTH_DISABLED)["']\s*,[\s\S]*\bdefault\s*=\s*(["'](?i:false|0|no|off|disabled|)["']|False|false|0)\s*[,)]
+        - kind: subscript
+          regex: ^(os\s*\.\s*)?environ\s*\[\s*["'](?i:(DISABLE|SKIP|NO)_AUTH(ENTICATION)?|AUTH_DISABLED)["']\s*\]$
+    - has:
+        any:
+        - &id003
+          kind: string
+          regex: ^(["'](?i:false|0|no|off|disabled|)["']|False|false|0)$
+        - kind: tuple
+          has: *id003
+        - kind: list
+          has: *id003
+        - kind: set
+          has: *id003
+  - kind: call
+    all: *id001
+    has:
+      kind: argument_list
+      regex: ^\(\s*["'](?i:(AUTH|AUTHENTICATION|SECURITY)_(ENABLED|REQUIRED|ON)|(ENABLE|REQUIRE)_AUTH(ENTICATION)?)["']\s*,\s*(default\s*=\s*)?(["'](?i:false|0|no|off|disabled|)["']|False|false|0)\s*[,)]|^\(\s*["'](?i:(AUTH|AUTHENTICATION|SECURITY)_(ENABLED|REQUIRED|ON)|(ENABLE|REQUIRE)_AUTH(ENTICATION)?)["']\s*,[\s\S]*\bdefault\s*=\s*(["'](?i:false|0|no|off|disabled|)["']|False|false|0)\s*[,)]
+  - kind: call
+    all: *id001
+    has:
+      kind: argument_list
+      regex: ^\(\s*["'](?i:(DISABLE|SKIP|NO)_AUTH(ENTICATION)?|AUTH_DISABLED)["']\s*,\s*(default\s*=\s*)?["'](?i:true|1|yes|on|enabled)["']\s*[,)]|^\(\s*["'](?i:(DISABLE|SKIP|NO)_AUTH(ENTICATION)?|AUTH_DISABLED)["']\s*,[\s\S]*\bdefault\s*=\s*["'](?i:true|1|yes|on|enabled)["']\s*[,)]
+  - kind: call
+    all: *id001
+    has:
+      kind: argument_list
+      regex: ^\(\s*["'](?i:AUTH_(MODE|TYPE))["']\s*,\s*(default\s*=\s*)?["'](?i:none|off|disabled|noauth|no-auth|anonymous|public)["']\s*[,)]|^\(\s*["'](?i:AUTH_(MODE|TYPE))["']\s*,[\s\S]*\bdefault\s*=\s*["'](?i:none|off|disabled|noauth|no-auth|anonymous|public)["']\s*[,)]
+  - any:
+    - kind: call
+      all: *id001
+      has:
+        kind: argument_list
+        regex: ^\(\s*["'](?i:(AUTH|AUTHENTICATION|SECURITY)_(ENABLED|REQUIRED|ON)|(ENABLE|REQUIRE)_AUTH(ENTICATION)?)["']\s*\)$
+    - kind: call
+      all: *id001
+      has:
+        kind: argument_list
+        regex: ^\(\s*["'](?i:(AUTH|AUTHENTICATION|SECURITY)_(ENABLED|REQUIRED|ON)|(ENABLE|REQUIRE)_AUTH(ENTICATION)?)["']\s*,\s*(default\s*=\s*)?(["'](?i:false|0|no|off|disabled|)["']|False|false|0)\s*[,)]|^\(\s*["'](?i:(AUTH|AUTHENTICATION|SECURITY)_(ENABLED|REQUIRED|ON)|(ENABLE|REQUIRE)_AUTH(ENTICATION)?)["']\s*,[\s\S]*\bdefault\s*=\s*(["'](?i:false|0|no|off|disabled|)["']|False|false|0)\s*[,)]
+    - kind: subscript
+      regex: ^(os\s*\.\s*)?environ\s*\[\s*["'](?i:(AUTH|AUTHENTICATION|SECURITY)_(ENABLED|REQUIRED|ON)|(ENABLE|REQUIRE)_AUTH(ENTICATION)?)["']\s*\]$
+    inside:
+      any:
+      - kind: if_statement
+      - kind: elif_clause
+      - kind: argument_list
+        inside:
+          kind: call
+          has:
+            field: function
+            kind: identifier
+            regex: ^bool$
+  - any:
+    - kind: call
+      all: *id001
+      has:
+        kind: argument_list
+        regex: ^\(\s*["'](?i:(AUTH|AUTHENTICATION|SECURITY)_(ENABLED|REQUIRED|ON)|(ENABLE|REQUIRE)_AUTH(ENTICATION)?)["']\s*\)$
+    - kind: call
+      all: *id001
+      has:
+        kind: argument_list
+        regex: ^\(\s*["'](?i:(AUTH|AUTHENTICATION|SECURITY)_(ENABLED|REQUIRED|ON)|(ENABLE|REQUIRE)_AUTH(ENTICATION)?)["']\s*,\s*(default\s*=\s*)?(["'](?i:false|0|no|off|disabled|)["']|False|false|0)\s*[,)]|^\(\s*["'](?i:(AUTH|AUTHENTICATION|SECURITY)_(ENABLED|REQUIRED|ON)|(ENABLE|REQUIRE)_AUTH(ENTICATION)?)["']\s*,[\s\S]*\bdefault\s*=\s*(["'](?i:false|0|no|off|disabled|)["']|False|false|0)\s*[,)]
+    - kind: subscript
+      regex: ^(os\s*\.\s*)?environ\s*\[\s*["'](?i:(AUTH|AUTHENTICATION|SECURITY)_(ENABLED|REQUIRED|ON)|(ENABLE|REQUIRE)_AUTH(ENTICATION)?)["']\s*\]$
+    inside:
+      kind: not_operator
+min_engine: 0.39.0
+---
+id: auth-on-by-default.python-generic.bypass-flag
+practice_id: auth-on-by-default
+language: python
+frameworks:
+- generic
+kind: evidence
+rule:
+  any:
+  - kind: comparison_operator
+    all:
+    - has:
+        stopBy: end
+        any:
+        - kind: call
+          all: &id001
+          - kind: call
+            has:
+              field: function
+              any:
+              - kind: identifier
+                regex: ^(os\s*\.\s*(getenv|environ\s*\.\s*get)|environ\s*\.\s*get|getenv|config|env(\s*\.\s*(bool|str))?)$
+              - kind: attribute
+                regex: ^(os\s*\.\s*(getenv|environ\s*\.\s*get)|environ\s*\.\s*get|getenv|config|env(\s*\.\s*(bool|str))?)$
+              - kind: attribute
+                pattern: $E.get
+                inside:
+                  stopBy: end
+                  kind: module
+                  has:
+                    stopBy: end
+                    any:
+                    - pattern: $E = os.environ
+                    - pattern: $E = environ
+          has:
+            kind: argument_list
+            regex: ^\(\s*["'](?i:(DISABLE|SKIP|NO)_AUTH(ENTICATION)?|AUTH_DISABLED)["']\s*\)$
+        - kind: call
+          all: *id001
+          has:
+            kind: argument_list
+            regex: ^\(\s*["'](?i:(DISABLE|SKIP|NO)_AUTH(ENTICATION)?|AUTH_DISABLED)["']\s*,\s*(default\s*=\s*)?(["'](?i:false|0|no|off|disabled|)["']|False|false|0)\s*[,)]|^\(\s*["'](?i:(DISABLE|SKIP|NO)_AUTH(ENTICATION)?|AUTH_DISABLED)["']\s*,[\s\S]*\bdefault\s*=\s*(["'](?i:false|0|no|off|disabled|)["']|False|false|0)\s*[,)]
+        - kind: subscript
+          regex: ^(os\s*\.\s*)?environ\s*\[\s*["'](?i:(DISABLE|SKIP|NO)_AUTH(ENTICATION)?|AUTH_DISABLED)["']\s*\]$
+    - has:
+        any:
+        - &id002
+          kind: string
+          regex: ^["'](?i:true|1|yes|on|enabled)["']$
+        - kind: tuple
+          has: *id002
+        - kind: list
+          has: *id002
+        - kind: set
+          has: *id002
+  - kind: comparison_operator
+    all:
+    - has:
+        stopBy: end
+        any:
+        - kind: call
+          all: *id001
+          has:
+            kind: argument_list
+            regex: ^\(\s*["'](?i:(AUTH|AUTHENTICATION|SECURITY)_(ENABLED|REQUIRED|ON)|(ENABLE|REQUIRE)_AUTH(ENTICATION)?)["']\s*\)$
+        - kind: call
+          all: *id001
+          has:
+            kind: argument_list
+            regex: ^\(\s*["'](?i:(AUTH|AUTHENTICATION|SECURITY)_(ENABLED|REQUIRED|ON)|(ENABLE|REQUIRE)_AUTH(ENTICATION)?)["']\s*,\s*(default\s*=\s*)?(["'](?i:false|0|no|off|disabled|)["']|False|false|0)\s*[,)]|^\(\s*["'](?i:(AUTH|AUTHENTICATION|SECURITY)_(ENABLED|REQUIRED|ON)|(ENABLE|REQUIRE)_AUTH(ENTICATION)?)["']\s*,[\s\S]*\bdefault\s*=\s*(["'](?i:false|0|no|off|disabled|)["']|False|false|0)\s*[,)]
+        - kind: subscript
+          regex: ^(os\s*\.\s*)?environ\s*\[\s*["'](?i:(AUTH|AUTHENTICATION|SECURITY)_(ENABLED|REQUIRED|ON)|(ENABLE|REQUIRE)_AUTH(ENTICATION)?)["']\s*\]$
+    - has:
+        any:
+        - &id003
+          kind: string
+          regex: ^(["'](?i:false|0|no|off|disabled|)["']|False|false|0)$
+        - kind: tuple
+          has: *id003
+        - kind: list
+          has: *id003
+        - kind: set
+          has: *id003
+  - any:
+    - kind: call
+      all: *id001
+      has:
+        kind: argument_list
+        regex: ^\(\s*["'](?i:(DISABLE|SKIP|NO)_AUTH(ENTICATION)?|AUTH_DISABLED)["']\s*\)$
+    - kind: call
+      all: *id001
+      has:
+        kind: argument_list
+        regex: ^\(\s*["'](?i:(DISABLE|SKIP|NO)_AUTH(ENTICATION)?|AUTH_DISABLED)["']\s*,\s*(default\s*=\s*)?(["'](?i:false|0|no|off|disabled|)["']|False|false|0)\s*[,)]|^\(\s*["'](?i:(DISABLE|SKIP|NO)_AUTH(ENTICATION)?|AUTH_DISABLED)["']\s*,[\s\S]*\bdefault\s*=\s*(["'](?i:false|0|no|off|disabled|)["']|False|false|0)\s*[,)]
+    - kind: subscript
+      regex: ^(os\s*\.\s*)?environ\s*\[\s*["'](?i:(DISABLE|SKIP|NO)_AUTH(ENTICATION)?|AUTH_DISABLED)["']\s*\]$
+    inside:
+      any:
+      - kind: if_statement
+      - kind: elif_clause
+      - kind: argument_list
+        inside:
+          kind: call
+          has:
+            field: function
+            kind: identifier
+            regex: ^bool$
+min_engine: 0.39.0

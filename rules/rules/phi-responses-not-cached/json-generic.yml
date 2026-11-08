@@ -1,0 +1,39 @@
+# phi-responses-not-cached (T23 B34, design v3 2.2.6, docs/b34-plan.md). Written by scripts/gen_nocache_rules.py:
+# edit that script, never this file. The rule id's last part is the form (items-handler, unobserved-header,
+# violation-shared, static-page). unobserved-header matches the items-handler node itself, so judge holds that item
+# at its own path and line.
+
+# cdn-header: vercel.json: a headers entry setting Cache-Control with public, s-maxage or stale-while-revalidate. Its
+# source may hold public pages only: named for a person, never failed.
+id: phi-responses-not-cached.json-generic.cdn-header
+practice_id: phi-responses-not-cached
+language: json
+frameworks:
+- generic
+kind: evidence
+rule:
+  all:
+  - kind: pair
+  - has:
+      field: key
+      kind: string
+      regex: ^"value"$
+  - has:
+      field: value
+      kind: string
+      regex: (?i)(public|s-maxage|stale-while-revalidate)
+  - inside:
+      kind: object
+      has:
+        kind: pair
+        all:
+        - has:
+            field: key
+            kind: string
+            regex: ^"key"$
+        - has:
+            field: value
+            kind: string
+            regex: (?i)^"cache-control"$
+path_regex: (^|/)vercel\.json$
+min_engine: 0.45.3

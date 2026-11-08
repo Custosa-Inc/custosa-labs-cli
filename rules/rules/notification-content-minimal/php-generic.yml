@@ -1,0 +1,234 @@
+# Patient values in push, email and SMS content (T23 B56d). Written by
+# scripts/gen_notification_rules.py: don't edit. The practice is capped at needs_review.
+id: notification-content-minimal.php-generic.send
+practice_id: notification-content-minimal
+language: php
+frameworks:
+- generic
+kind: evidence
+rule:
+  any:
+  - kind: member_call_expression
+    all:
+    - has:
+        field: name
+        kind: name
+        regex: ^create$
+    - has:
+        field: object
+        kind: member_access_expression
+        regex: ->\s*messages$
+    - inside:
+        stopBy: end
+        kind: program
+        has:
+          kind: namespace_use_declaration
+          regex: \bTwilio\\
+  - kind: scoped_call_expression
+    regex: ^Mail\s*::\s*(to|send|raw|queue|later)\b
+  - kind: object_creation_expression
+    has:
+      kind: name
+      regex: ^(MailMessage|Email)$
+  - kind: method_declaration
+    has:
+      field: name
+      kind: name
+      regex: ^to(Mail|Sms|Vonage|Twilio)$
+  - kind: function_call_expression
+    has:
+      field: function
+      kind: name
+      regex: ^mail$
+min_engine: 0.39.0
+---
+id: notification-content-minimal.php-generic.clinical-interpolated
+practice_id: notification-content-minimal
+language: php
+frameworks:
+- generic
+kind: violation
+rule:
+  any:
+  - any:
+    - kind: encapsed_string
+      has:
+        stopBy: end
+        kind: name
+        regex: ^(?i:\w*(diagnos|condition|medication|prescription|dosage|lab_?results?|test_?results?|results?_?value|reason_?for_?visit|appointment_?reason|visit_?reason|procedure|medical_?record_?number|date_?of_?birth)\w*|(get_?)?(mrn|dob|ssn))$
+    - kind: binary_expression
+      regex: \.
+      all:
+      - has:
+          any:
+          - kind: encapsed_string
+          - kind: string
+      - has:
+          stopBy: end
+          kind: name
+          regex: ^(?i:\w*(diagnos|condition|medication|prescription|dosage|lab_?results?|test_?results?|results?_?value|reason_?for_?visit|appointment_?reason|visit_?reason|procedure|medical_?record_?number|date_?of_?birth)\w*|(get_?)?(mrn|dob|ssn))$
+    - kind: function_call_expression
+      all:
+      - has:
+          field: function
+          kind: name
+          regex: ^v?sprintf$
+      - has:
+          field: arguments
+          has:
+            stopBy: end
+            kind: name
+            regex: ^(?i:\w*(diagnos|condition|medication|prescription|dosage|lab_?results?|test_?results?|results?_?value|reason_?for_?visit|appointment_?reason|visit_?reason|procedure|medical_?record_?number|date_?of_?birth)\w*|(get_?)?(mrn|dob|ssn))$
+    inside:
+      stopBy: end
+      any:
+      - kind: arguments
+        inside: &id001
+          any:
+          - kind: member_call_expression
+            has:
+              field: name
+              kind: name
+              regex: ^(subject|line|greeting|salutation|introLines|outroLines)$
+          - kind: function_call_expression
+            has:
+              field: function
+              kind: name
+              regex: ^mail$
+      - &id002
+        kind: array_element_initializer
+        has:
+          any:
+          - kind: string
+            regex: ^['\"](?i:body)['\"]$
+          - kind: encapsed_string
+            regex: ^['\"](?i:body)['\"]$
+        inside:
+          stopBy: end
+          kind: arguments
+          inside:
+            kind: member_call_expression
+            all:
+            - has:
+                field: name
+                kind: name
+                regex: ^create$
+            - has:
+                field: object
+                kind: member_access_expression
+                regex: ->\s*messages$
+            - inside:
+                stopBy: end
+                kind: program
+                has:
+                  kind: namespace_use_declaration
+                  regex: \bTwilio\\
+  - kind: member_access_expression
+    has:
+      field: name
+      kind: name
+      regex: ^(?i:\w*(diagnos|condition|medication|prescription|dosage|lab_?results?|test_?results?|results?_?value|reason_?for_?visit|appointment_?reason|visit_?reason|procedure|medical_?record_?number|date_?of_?birth)\w*|(get_?)?(mrn|dob|ssn))$
+    inside:
+      any:
+      - kind: argument
+        inside:
+          kind: arguments
+          inside: *id001
+      - *id002
+min_engine: 0.39.0
+---
+id: notification-content-minimal.php-generic.identifying-interpolated
+practice_id: notification-content-minimal
+language: php
+frameworks:
+- generic
+kind: evidence
+rule:
+  any:
+  - any:
+    - kind: encapsed_string
+      has:
+        stopBy: end
+        any: &id001
+        - kind: name
+          regex: ^(?i:(first|last|full|given|family|middle|display|preferred)_?name)$
+        - kind: member_access_expression
+          regex: ^(?i:\$?([\w$]+\s*->\s*)*(patient|user|member|recipient|person|client|customer)\s*->\s*name)$
+    - kind: binary_expression
+      regex: \.
+      all:
+      - has:
+          any:
+          - kind: encapsed_string
+          - kind: string
+      - has:
+          stopBy: end
+          any: *id001
+    - kind: function_call_expression
+      all:
+      - has:
+          field: function
+          kind: name
+          regex: ^v?sprintf$
+      - has:
+          field: arguments
+          has:
+            stopBy: end
+            any: *id001
+    inside:
+      stopBy: end
+      any:
+      - kind: arguments
+        inside: &id002
+          any:
+          - kind: member_call_expression
+            has:
+              field: name
+              kind: name
+              regex: ^(subject|line|greeting|salutation|introLines|outroLines)$
+          - kind: function_call_expression
+            has:
+              field: function
+              kind: name
+              regex: ^mail$
+      - &id003
+        kind: array_element_initializer
+        has:
+          any:
+          - kind: string
+            regex: ^['\"](?i:body)['\"]$
+          - kind: encapsed_string
+            regex: ^['\"](?i:body)['\"]$
+        inside:
+          stopBy: end
+          kind: arguments
+          inside:
+            kind: member_call_expression
+            all:
+            - has:
+                field: name
+                kind: name
+                regex: ^create$
+            - has:
+                field: object
+                kind: member_access_expression
+                regex: ->\s*messages$
+            - inside:
+                stopBy: end
+                kind: program
+                has:
+                  kind: namespace_use_declaration
+                  regex: \bTwilio\\
+  - kind: member_access_expression
+    has:
+      field: name
+      kind: name
+      regex: ^(?i:(first|last|full|given|family|middle|display|preferred)_?name)$
+    inside:
+      any:
+      - kind: argument
+        inside:
+          kind: arguments
+          inside: *id002
+      - *id003
+min_engine: 0.39.0

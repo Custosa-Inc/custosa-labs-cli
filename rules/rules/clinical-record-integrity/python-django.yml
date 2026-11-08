@@ -1,0 +1,41 @@
+id: clinical-record-integrity.python-django.django-model
+practice_id: clinical-record-integrity
+language: python
+frameworks:
+- django
+kind: items
+rule:
+  all:
+  - kind: class_definition
+  - has:
+      field: superclasses
+      kind: argument_list
+      regex: \bmodels\.Model\b
+control:
+  any:
+  - has:
+      field: body
+      has:
+        any:
+        - kind: expression_statement
+          regex: ^history\s*=\s*HistoricalRecords\(
+        - kind: decorated_definition
+          regex: ^history\s*=\s*HistoricalRecords\(
+        - kind: function_definition
+          regex: ^history\s*=\s*HistoricalRecords\(
+  - has:
+      field: body
+      has:
+        any:
+        - kind: expression_statement
+          regex: (?s)def\s+(save|delete)\s*\(\s*self.*(signed|done|validated|finali[sz]ed|locked|completed|closed|approved).*raise
+        - kind: decorated_definition
+          regex: (?s)def\s+(save|delete)\s*\(\s*self.*(signed|done|validated|finali[sz]ed|locked|completed|closed|approved).*raise
+        - kind: function_definition
+          regex: (?s)def\s+(save|delete)\s*\(\s*self.*(signed|done|validated|finali[sz]ed|locked|completed|closed|approved).*raise
+  - inside:
+      kind: decorated_definition
+      has:
+        kind: decorator
+        regex: ^@reversion\.register
+min_engine: 0.39.0

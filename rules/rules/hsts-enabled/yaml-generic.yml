@@ -1,0 +1,364 @@
+# hsts-enabled (T23 B56b). Written by scripts/gen_hsts_rules.py: edit that script,
+# never this file. The practice function reads the pieces by name: header-<form> and redirect-<form> (NAMING.md).
+
+# header-traefik: a Traefik dynamic-config headers middleware (http.middlewares.<name>.headers) with stsSeconds of a
+# year or more, in a Traefik config file (traefik.yml, traefik/dynamic.yml). A platform piece: it never passes, it
+# holds for "confirm this app is served through Traefik".
+id: hsts-enabled.yaml-generic.header-traefik
+practice_id: hsts-enabled
+language: yaml
+frameworks:
+- generic
+kind: evidence
+path_regex: ^((deploy|infra|ops|docker|k8s|kubernetes|configs?|traefik)/)*(traefik([-_]dynamic)?|traefik/(dynamic|middlewares?))\.ya?ml$
+rule:
+  kind: block_mapping_pair
+  has:
+    field: key
+    kind: flow_node
+    regex: ^(stsSeconds)$
+  inside:
+    kind: block_mapping
+    inside:
+      kind: block_node
+      inside:
+        kind: block_mapping_pair
+        has:
+          field: key
+          kind: flow_node
+          regex: ^(headers)$
+        inside:
+          kind: block_mapping
+          inside:
+            kind: block_node
+            inside:
+              kind: block_mapping_pair
+              inside:
+                kind: block_mapping
+                inside:
+                  kind: block_node
+                  inside:
+                    kind: block_mapping_pair
+                    has:
+                      field: key
+                      kind: flow_node
+                      regex: ^(middlewares)$
+                    inside:
+                      kind: block_mapping
+                      inside:
+                        kind: block_node
+                        inside:
+                          kind: block_mapping_pair
+                          has:
+                            field: key
+                            kind: flow_node
+                            regex: ^(http)$
+                          inside:
+                            kind: block_mapping
+                            inside:
+                              kind: block_node
+                              inside:
+                                kind: document
+  regex: ^stsSeconds\s*:\s*['\"]?((3153[6-9]\d{3}|315[4-9]\d{4}|31[6-9]\d{5}|3[2-9]\d{6}|[4-9]\d{7}|[1-9]\d{8,}))['\"]?\s*$
+min_engine: 0.45.3
+---
+# redirect-traefik: a Traefik entry point that redirects to https
+# (entryPoints.<name>.http.redirections.entryPoint.scheme: https), in a Traefik config file (traefik.yml,
+# traefik/dynamic.yml). A platform piece: it only holds.
+id: hsts-enabled.yaml-generic.redirect-traefik
+practice_id: hsts-enabled
+language: yaml
+frameworks:
+- generic
+kind: evidence
+path_regex: ^((deploy|infra|ops|docker|k8s|kubernetes|configs?|traefik)/)*(traefik([-_]dynamic)?|traefik/(dynamic|middlewares?))\.ya?ml$
+rule:
+  kind: block_mapping_pair
+  has:
+    field: key
+    kind: flow_node
+    regex: ^(scheme)$
+  regex: ^scheme\s*:\s*['\"]?(https)['\"]?\s*$
+  inside:
+    kind: block_mapping
+    inside:
+      kind: block_node
+      inside:
+        kind: block_mapping_pair
+        has:
+          field: key
+          kind: flow_node
+          regex: ^(entryPoint)$
+        inside:
+          kind: block_mapping
+          inside:
+            kind: block_node
+            inside:
+              kind: block_mapping_pair
+              has:
+                field: key
+                kind: flow_node
+                regex: ^(redirections)$
+              inside:
+                kind: block_mapping
+                inside:
+                  kind: block_node
+                  inside:
+                    kind: block_mapping_pair
+                    has:
+                      field: key
+                      kind: flow_node
+                      regex: ^(http)$
+                    inside:
+                      kind: block_mapping
+                      inside:
+                        kind: block_node
+                        inside:
+                          kind: block_mapping_pair
+                          inside:
+                            kind: block_mapping
+                            inside:
+                              kind: block_node
+                              inside:
+                                kind: block_mapping_pair
+                                has:
+                                  field: key
+                                  kind: flow_node
+                                  regex: ^(entryPoints)$
+                                inside:
+                                  kind: block_mapping
+                                  inside:
+                                    kind: block_node
+                                    inside:
+                                      kind: document
+min_engine: 0.45.3
+---
+# header-ingress: hsts-max-age of a year or more in the data of a ConfigMap, in an ingress ConfigMap file such as
+# ingress-nginx-config.yaml, with hsts not set false there. A platform piece: it only holds.
+id: hsts-enabled.yaml-generic.header-ingress
+practice_id: hsts-enabled
+language: yaml
+frameworks:
+- generic
+kind: evidence
+path_regex: ^((deploy|infra|ops|docker|k8s|kubernetes|configs?|traefik)/)*(nginx-)?ingress(-nginx)?(-controller)?-(config(map)?|cm)\.ya?ml$
+rule:
+  kind: block_mapping_pair
+  has:
+    field: key
+    kind: flow_node
+    regex: ^(hsts-max-age)$
+  inside:
+    kind: block_mapping
+    inside:
+      kind: block_node
+      inside:
+        kind: block_mapping_pair
+        has:
+          field: key
+          kind: flow_node
+          regex: ^(data)$
+        inside:
+          kind: block_mapping
+          inside:
+            kind: block_node
+            inside:
+              kind: document
+  all:
+  - inside:
+      stopBy: end
+      kind: document
+      regex: (?m)^kind\s*:\s*['\"]?ConfigMap['\"]?\s*$
+  regex: ^hsts-max-age\s*:\s*['\"]?((3153[6-9]\d{3}|315[4-9]\d{4}|31[6-9]\d{5}|3[2-9]\d{6}|[4-9]\d{7}|[1-9]\d{8,}))['\"]?\s*$
+  not:
+    inside:
+      kind: block_mapping
+      has:
+        kind: block_mapping_pair
+        regex: ^hsts\s*:\s*['\"]?(false|False|FALSE)['\"]?\s*$
+min_engine: 0.45.3
+---
+# short-max-age: an HSTS age below a year, as a literal: helmet's maxAge, a Strict-Transport-Security value in a
+# next.config entry, a header call or vercel.json; Rails ssl_options hsts: { expires: } in production.rb or
+# application.rb; Django SECURE_HSTS_SECONDS in an allowlisted settings file; a Traefik headers middleware's
+# stsSeconds; an ingress ConfigMap's hsts-max-age. Fail.
+id: hsts-enabled.yaml-generic.short-max-age
+practice_id: hsts-enabled
+language: yaml
+frameworks:
+- generic
+kind: violation
+path_regex: ^((deploy|infra|ops|docker|k8s|kubernetes|configs?|traefik)/)*((traefik([-_]dynamic)?|traefik/(dynamic|middlewares?))\.ya?ml|(nginx-)?ingress(-nginx)?(-controller)?-(config(map)?|cm)\.ya?ml)$
+rule:
+  any:
+  - kind: block_mapping_pair
+    has:
+      field: key
+      kind: flow_node
+      regex: ^(stsSeconds)$
+    inside:
+      kind: block_mapping
+      inside:
+        kind: block_node
+        inside:
+          kind: block_mapping_pair
+          has:
+            field: key
+            kind: flow_node
+            regex: ^(headers)$
+          inside:
+            kind: block_mapping
+            inside:
+              kind: block_node
+              inside:
+                kind: block_mapping_pair
+                inside:
+                  kind: block_mapping
+                  inside:
+                    kind: block_node
+                    inside:
+                      kind: block_mapping_pair
+                      has:
+                        field: key
+                        kind: flow_node
+                        regex: ^(middlewares)$
+                      inside:
+                        kind: block_mapping
+                        inside:
+                          kind: block_node
+                          inside:
+                            kind: block_mapping_pair
+                            has:
+                              field: key
+                              kind: flow_node
+                              regex: ^(http)$
+                            inside:
+                              kind: block_mapping
+                              inside:
+                                kind: block_node
+                                inside:
+                                  kind: document
+    regex: ^stsSeconds\s*:\s*['\"]?([1-9]\d*)['\"]?\s*$
+    not:
+      kind: block_mapping_pair
+      regex: ^stsSeconds\s*:\s*['\"]?((3153[6-9]\d{3}|315[4-9]\d{4}|31[6-9]\d{5}|3[2-9]\d{6}|[4-9]\d{7}|[1-9]\d{8,}))['\"]?\s*$
+  - kind: block_mapping_pair
+    has:
+      field: key
+      kind: flow_node
+      regex: ^(hsts-max-age)$
+    inside:
+      kind: block_mapping
+      inside:
+        kind: block_node
+        inside:
+          kind: block_mapping_pair
+          has:
+            field: key
+            kind: flow_node
+            regex: ^(data)$
+          inside:
+            kind: block_mapping
+            inside:
+              kind: block_node
+              inside:
+                kind: document
+    all:
+    - inside:
+        stopBy: end
+        kind: document
+        regex: (?m)^kind\s*:\s*['\"]?ConfigMap['\"]?\s*$
+    regex: ^hsts-max-age\s*:\s*['\"]?([1-9]\d*)['\"]?\s*$
+    not:
+      kind: block_mapping_pair
+      regex: ^hsts-max-age\s*:\s*['\"]?((3153[6-9]\d{3}|315[4-9]\d{4}|31[6-9]\d{5}|3[2-9]\d{6}|[4-9]\d{7}|[1-9]\d{8,}))['\"]?\s*$
+min_engine: 0.45.3
+---
+# hsts-off: HSTS turned off: helmet({ hsts: false }) or helmet({ strictTransportSecurity: false }); Rails ssl_options
+# hsts: false in production.rb or application.rb; Django SECURE_HSTS_SECONDS = 0 in an allowlisted settings file; a
+# Traefik headers middleware's stsSeconds: 0; hsts: "false" in an ingress ConfigMap's data. Fail.
+id: hsts-enabled.yaml-generic.hsts-off
+practice_id: hsts-enabled
+language: yaml
+frameworks:
+- generic
+kind: violation
+path_regex: ^((deploy|infra|ops|docker|k8s|kubernetes|configs?|traefik)/)*((traefik([-_]dynamic)?|traefik/(dynamic|middlewares?))\.ya?ml|(nginx-)?ingress(-nginx)?(-controller)?-(config(map)?|cm)\.ya?ml)$
+rule:
+  any:
+  - kind: block_mapping_pair
+    has:
+      field: key
+      kind: flow_node
+      regex: ^(stsSeconds)$
+    inside:
+      kind: block_mapping
+      inside:
+        kind: block_node
+        inside:
+          kind: block_mapping_pair
+          has:
+            field: key
+            kind: flow_node
+            regex: ^(headers)$
+          inside:
+            kind: block_mapping
+            inside:
+              kind: block_node
+              inside:
+                kind: block_mapping_pair
+                inside:
+                  kind: block_mapping
+                  inside:
+                    kind: block_node
+                    inside:
+                      kind: block_mapping_pair
+                      has:
+                        field: key
+                        kind: flow_node
+                        regex: ^(middlewares)$
+                      inside:
+                        kind: block_mapping
+                        inside:
+                          kind: block_node
+                          inside:
+                            kind: block_mapping_pair
+                            has:
+                              field: key
+                              kind: flow_node
+                              regex: ^(http)$
+                            inside:
+                              kind: block_mapping
+                              inside:
+                                kind: block_node
+                                inside:
+                                  kind: document
+    regex: ^stsSeconds\s*:\s*['\"]?(0+)['\"]?\s*$
+  - kind: block_mapping_pair
+    has:
+      field: key
+      kind: flow_node
+      regex: ^(hsts)$
+    inside:
+      kind: block_mapping
+      inside:
+        kind: block_node
+        inside:
+          kind: block_mapping_pair
+          has:
+            field: key
+            kind: flow_node
+            regex: ^(data)$
+          inside:
+            kind: block_mapping
+            inside:
+              kind: block_node
+              inside:
+                kind: document
+    regex: ^hsts\s*:\s*['\"]?(false|False|FALSE)['\"]?\s*$
+    all:
+    - inside:
+        stopBy: end
+        kind: document
+        regex: (?m)^kind\s*:\s*['\"]?ConfigMap['\"]?\s*$
+min_engine: 0.45.3

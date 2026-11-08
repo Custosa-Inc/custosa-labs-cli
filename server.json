@@ -1,0 +1,43 @@
+{
+  "$schema": "https://static.modelcontextprotocol.io/schemas/2025-12-11/server.schema.json",
+  "name": "com.custosa/phi-schema-check",
+  "title": "PHI Schema Check",
+  "description": "Checks how a health app handles patient data in its schema, code and settings. Pay per use.",
+  "version": "0.1.1",
+  "websiteUrl": "https://custosa.com/labs/setup",
+  "repository": {
+    "url": "https://github.com/Custosa-Inc/custosa-labs-cli",
+    "source": "github"
+  },
+  "icons": [
+    {
+      "src": "https://custosa.com/favicon.svg",
+      "mimeType": "image/svg+xml",
+      "sizes": [
+        "any"
+      ]
+    }
+  ],
+  "packages": [
+    {
+      "registryType": "npm",
+      "registryBaseUrl": "https://registry.npmjs.org",
+      "identifier": "custosa",
+      "version": "0.1.1",
+      "runtimeHint": "npx",
+      "transport": {
+        "type": "stdio"
+      },
+      "packageArguments": [
+        {
+          "type": "positional",
+          "value": "inspect"
+        },
+        {
+          "type": "named",
+          "name": "--stdio"
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,25 @@
+{
+ "version": 3,
+ "etag": "BwXfixture1=",
+ "bindings": [
+  {
+   "role": "roles/owner",
+   "members": [
+    "user:owner@example.com"
+   ]
+  }
+ ],
+ "auditConfigs": [
+  {
+   "service": "cloudsql.googleapis.com",
+   "auditLogConfigs": [
+    {
+     "logType": "DATA_READ"
+    },
+    {
+     "logType": "ADMIN_READ"
+    }
+   ]
+  }
+ ]
+}

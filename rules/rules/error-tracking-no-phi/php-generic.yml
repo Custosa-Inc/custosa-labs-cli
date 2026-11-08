@@ -1,0 +1,51 @@
+id: error-tracking-no-phi.php-generic.sentry-init
+practice_id: error-tracking-no-phi
+language: php
+frameworks:
+- generic
+kind: items
+rule:
+  all:
+  - kind: function_call_expression
+  - regex: '(?-u)^\\?Sentry\\init\s*\(\s*\['
+control:
+  all:
+  - has:
+      stopBy: end
+      kind: array_element_initializer
+      has:
+        kind: string
+        regex: '^[''"]before_send[''"]$'
+  - not:
+      has:
+        stopBy: end
+        kind: array_element_initializer
+        all:
+        - has:
+            kind: string
+            regex: '^[''"]send_default_pii[''"]$'
+        - has:
+            kind: boolean
+            regex: '(?-u)^(?i:true)$'
+min_engine: 0.45.3
+---
+id: error-tracking-no-phi.php-generic.pii-on
+practice_id: error-tracking-no-phi
+language: php
+frameworks:
+- generic
+kind: violation
+rule:
+  all:
+  - kind: array_element_initializer
+  - has:
+      kind: string
+      regex: '^[''"]send_default_pii[''"]$'
+  - any:
+    - has:
+        kind: boolean
+        regex: '^(?i:true)$'
+    - has:
+        kind: function_call_expression
+        regex: '^env\s*\(\s*[''"]SENTRY_SEND_DEFAULT_PII[''"]\s*,\s*true\s*\)$'
+min_engine: 0.45.3

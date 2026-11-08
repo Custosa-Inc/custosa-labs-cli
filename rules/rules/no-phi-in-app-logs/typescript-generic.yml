@@ -1,0 +1,404 @@
+id: no-phi-in-app-logs.typescript-generic.request-body
+practice_id: no-phi-in-app-logs
+language: typescript
+frameworks:
+- generic
+kind: violation
+rule:
+  all:
+  - kind: call_expression
+  - has:
+      field: function
+      any:
+      - kind: member_expression
+        regex: '^(console|logger|log|LOG|Logger|pino|winston|globalLogger|this\.logger|this\.log|this\._logger|req\.log|request\.log|ctx\.log|fastify\.log|app\.log|server\.log)(\.child\([^)]*\))?\.(log|info|debug|warn|error|trace|fatal|verbose|silly)$'
+      - kind: subscript_expression
+        regex: '^console\[[''\x22](log|info|debug|warn|error|trace)[''\x22]\]$'
+  - has:
+      field: arguments
+      kind: arguments
+      has:
+        stopBy: end
+        all:
+        - any:
+          - kind: member_expression
+            regex: '^(req|request|ctx\.request|ctx|event)\??\.(body|query|params|rawBody)$'
+          - kind: call_expression
+            regex: '^(c\.req|ctx\.req|req|request)\??\.(json|text|formData|parseBody)\(\)$'
+          - kind: await_expression
+            regex: '^await\s+(c\.req|ctx\.req|req|request)\??\.(json|text|formData|parseBody)\(\)$'
+        - not:
+            inside:
+              kind: member_expression
+              field: object
+        - not:
+            inside:
+              kind: arguments
+              inside:
+                kind: call_expression
+                not:
+                  has:
+                    field: function
+                    any:
+                    - kind: member_expression
+                      regex: '^(console|logger|log|LOG|Logger|pino|winston|globalLogger|this\.logger|this\.log|this\._logger|req\.log|request\.log|ctx\.log|fastify\.log|app\.log|server\.log)(\.child\([^)]*\))?\.(log|info|debug|warn|error|trace|fatal|verbose|silly)$|^JSON\.stringify$|^util\.inspect$'
+                    - kind: identifier
+                      regex: '^(String|inspect)$'
+                    - kind: subscript_expression
+                      regex: '^console\[[''\x22](log|info|debug|warn|error|trace)[''\x22]\]$'
+min_engine: 0.45.3
+---
+id: no-phi-in-app-logs.typescript-generic.request-body-destructured
+practice_id: no-phi-in-app-logs
+language: typescript
+frameworks:
+- generic
+kind: violation
+rule:
+  all:
+  - kind: call_expression
+  - has:
+      field: function
+      any:
+      - kind: member_expression
+        regex: '^(console|logger|log|LOG|Logger|pino|winston|globalLogger|this\.logger|this\.log|this\._logger|req\.log|request\.log|ctx\.log|fastify\.log|app\.log|server\.log)(\.child\([^)]*\))?\.(log|info|debug|warn|error|trace|fatal|verbose|silly)$'
+      - kind: subscript_expression
+        regex: '^console\[[''\x22](log|info|debug|warn|error|trace)[''\x22]\]$'
+  - has:
+      field: arguments
+      kind: arguments
+      has:
+        kind: identifier
+        regex: '^body$'
+  - inside:
+      stopBy: end
+      any:
+      - kind: statement_block
+      - kind: program
+      has:
+        any:
+        - kind: lexical_declaration
+        - kind: variable_declaration
+        has:
+          kind: variable_declarator
+          all:
+          - has:
+              field: name
+              kind: object_pattern
+              has:
+                kind: shorthand_property_identifier_pattern
+                regex: '^body$'
+          - has:
+              field: value
+              kind: identifier
+              regex: '^(req|request)$'
+min_engine: 0.45.3
+---
+id: no-phi-in-app-logs.typescript-generic.request-body-alias
+practice_id: no-phi-in-app-logs
+language: typescript
+frameworks:
+- generic
+kind: violation
+rule:
+  all:
+  - pattern: '$ALIAS($$$ARGS)'
+  - has:
+      field: arguments
+      kind: arguments
+      has:
+        kind: member_expression
+        regex: '^(req|request|ctx\.request|ctx|event)\??\.(body|query|params|rawBody)$'
+  - inside:
+      stopBy: end
+      any:
+      - kind: statement_block
+      - kind: program
+      has:
+        any:
+        - kind: lexical_declaration
+        - kind: variable_declaration
+        has:
+          kind: variable_declarator
+          all:
+          - pattern:
+              context: 'const $ALIAS = $LOGGER'
+              selector: variable_declarator
+          - has:
+              field: value
+              kind: member_expression
+              regex: '^(console|logger|log|LOG|Logger|pino|winston|globalLogger|this\.logger|this\.log|this\._logger|req\.log|request\.log|ctx\.log|fastify\.log|app\.log|server\.log)(\.child\([^)]*\))?\.(log|info|debug|warn|error|trace|fatal|verbose|silly)$'
+min_engine: 0.45.3
+---
+id: no-phi-in-app-logs.typescript-generic.patient-fields
+practice_id: no-phi-in-app-logs
+language: typescript
+frameworks:
+- generic
+kind: violation
+rule:
+  all:
+  - kind: call_expression
+  - has:
+      field: function
+      any:
+      - kind: member_expression
+        regex: '^(console|logger|log|LOG|Logger|pino|winston|globalLogger|this\.logger|this\.log|this\._logger|req\.log|request\.log|ctx\.log|fastify\.log|app\.log|server\.log)(\.child\([^)]*\))?\.(log|info|debug|warn|error|trace|fatal|verbose|silly)$'
+      - kind: subscript_expression
+        regex: '^console\[[''\x22](log|info|debug|warn|error|trace)[''\x22]\]$'
+  - has:
+      field: arguments
+      kind: arguments
+      has:
+        stopBy: end
+        all:
+        - any:
+          - all:
+            - kind: member_expression
+            - regex: '\.(ssn|SSN|socialSecurityNumber|social_security_number|dob|DOB|dateOfBirth|date_of_birth|birthDate|birth_date|diagnosis|diagnoses|mrn|MRN|medicalRecordNumber|medical_record_number|insuranceNumber|insurance_number|clinicalNotes|clinical_notes)$'
+          - all:
+            - kind: member_expression
+            - regex: '^(patient|patientData|patientRecord|patientRow|currentPatient)\??\.(name|firstName|lastName|first_name|last_name|fullName|full_name|email|phone|phoneNumber|phone_number|address|notes)$'
+          - all:
+            - kind: identifier
+            - regex: '^(patient|patients|patientData|patientRecord|patientRow|patientRows|currentPatient)$'
+            - not:
+                any:
+                - inside:
+                    kind: member_expression
+                    field: object
+                - inside:
+                    kind: subscript_expression
+                    field: object
+          - all:
+            - kind: shorthand_property_identifier
+            - regex: '^(patient|patients|patientData|patientRecord|patientRow|patientRows|currentPatient)$'
+          - kind: subscript_expression
+            regex: '\[\s*[''\x22](ssn|SSN|dob|DOB|dateOfBirth|date_of_birth|birthDate|diagnosis|mrn|MRN|firstName|lastName|first_name|last_name)[''\x22]\s*\]$'
+          - kind: spread_element
+            regex: '^\.\.\.(patient|patients|patientData|patientRecord|patientRow|currentPatient)$'
+        - not:
+            inside:
+              kind: member_expression
+              field: object
+        - not:
+            inside:
+              kind: arguments
+              inside:
+                kind: call_expression
+                not:
+                  has:
+                    field: function
+                    any:
+                    - kind: member_expression
+                      regex: '^(console|logger|log|LOG|Logger|pino|winston|globalLogger|this\.logger|this\.log|this\._logger|req\.log|request\.log|ctx\.log|fastify\.log|app\.log|server\.log)(\.child\([^)]*\))?\.(log|info|debug|warn|error|trace|fatal|verbose|silly)$|^JSON\.stringify$|^util\.inspect$'
+                    - kind: identifier
+                      regex: '^(String|inspect)$'
+                    - kind: subscript_expression
+                      regex: '^console\[[''\x22](log|info|debug|warn|error|trace)[''\x22]\]$'
+min_engine: 0.45.3
+---
+id: no-phi-in-app-logs.typescript-generic.credential
+practice_id: no-phi-in-app-logs
+language: typescript
+frameworks:
+- generic
+kind: violation
+rule:
+  all:
+  - kind: call_expression
+  - has:
+      field: function
+      any:
+      - kind: member_expression
+        regex: '^(console|logger|log|LOG|Logger|pino|winston|globalLogger|this\.logger|this\.log|this\._logger|req\.log|request\.log|ctx\.log|fastify\.log|app\.log|server\.log)(\.child\([^)]*\))?\.(log|info|debug|warn|error|trace|fatal|verbose|silly)$'
+      - kind: subscript_expression
+        regex: '^console\[[''\x22](log|info|debug|warn|error|trace)[''\x22]\]$'
+  - has:
+      field: arguments
+      kind: arguments
+      has:
+        stopBy: end
+        all:
+        - any:
+          - all:
+            - kind: identifier
+            - regex: '^(?i:password|passwd|secret|clientSecret|client_secret|token|accessToken|access_token|refreshToken|refresh_token|idToken|apiKey|api_key|privateKey|private_key|encryptionKey|encryption_key|dsn|connectionString|connection_string|databaseUrl|database_url)$'
+          - all:
+            - kind: shorthand_property_identifier
+            - regex: '^(?i:password|passwd|secret|clientSecret|client_secret|token|accessToken|access_token|refreshToken|refresh_token|idToken|apiKey|api_key|privateKey|private_key|encryptionKey|encryption_key|dsn|connectionString|connection_string|databaseUrl|database_url)$'
+          - all:
+            - kind: member_expression
+            - regex: '\.(?i:password|passwd|secret|clientSecret|client_secret|token|accessToken|access_token|refreshToken|refresh_token|idToken|apiKey|api_key|privateKey|private_key|encryptionKey|encryption_key|dsn|connectionString|connection_string|databaseUrl|database_url|authorization)$'
+        - not:
+            inside:
+              kind: member_expression
+              field: object
+        - not:
+            inside:
+              kind: arguments
+              inside:
+                kind: call_expression
+                not:
+                  has:
+                    field: function
+                    any:
+                    - kind: member_expression
+                      regex: '^(console|logger|log|LOG|Logger|pino|winston|globalLogger|this\.logger|this\.log|this\._logger|req\.log|request\.log|ctx\.log|fastify\.log|app\.log|server\.log)(\.child\([^)]*\))?\.(log|info|debug|warn|error|trace|fatal|verbose|silly)$|^JSON\.stringify$|^util\.inspect$'
+                    - kind: identifier
+                      regex: '^(String|inspect)$'
+                    - kind: subscript_expression
+                      regex: '^console\[[''\x22](log|info|debug|warn|error|trace)[''\x22]\]$'
+min_engine: 0.45.3
+---
+id: no-phi-in-app-logs.typescript-generic.orm-query-log
+practice_id: no-phi-in-app-logs
+language: typescript
+frameworks:
+- generic
+kind: violation
+rule:
+  any:
+  - all:
+    - pattern: 'new PrismaClient($$$)'
+    - has:
+        stopBy: end
+        kind: pair
+        all:
+        - has:
+            field: key
+            kind: property_identifier
+            regex: '^log$'
+        - has:
+            field: value
+            kind: array
+            any:
+            - has:
+                kind: string
+                regex: '^[''"]query[''"]$'
+            - has:
+                kind: object
+                has:
+                  kind: pair
+                  has:
+                    field: value
+                    kind: string
+                    regex: '^[''"]query[''"]$'
+  - all:
+    - any:
+      - pattern: 'new Sequelize($$$)'
+      - pattern: 'new DataSource($$$)'
+      - pattern: 'createConnection($$$)'
+      - pattern: 'TypeOrmModule.forRoot($$$)'
+      - pattern: 'knex($$$)'
+      - pattern: 'Knex($$$)'
+    - has:
+        stopBy: end
+        kind: pair
+        any:
+        - all:
+          - has:
+              field: key
+              kind: property_identifier
+              regex: '^(logging|debug)$'
+          - has:
+              field: value
+              kind: 'true'
+        - all:
+          - has:
+              field: key
+              kind: property_identifier
+              regex: '^logging$'
+          - has:
+              field: value
+              kind: member_expression
+              regex: '^console\.(log|info|debug)$'
+        - all:
+          - has:
+              field: key
+              kind: property_identifier
+              regex: '^logging$'
+          - has:
+              field: value
+              any:
+              - kind: string
+                regex: '^[''"](query|all)[''"]$'
+              - kind: array
+                has:
+                  kind: string
+                  regex: '^[''"](query|all)[''"]$'
+min_engine: 0.45.3
+---
+id: no-phi-in-app-logs.typescript-generic.debug-level
+practice_id: no-phi-in-app-logs
+language: typescript
+frameworks:
+- generic
+kind: violation
+rule:
+  all:
+  - kind: pair
+  - has:
+      field: key
+      kind: property_identifier
+      regex: '^level$'
+  - has:
+      field: value
+      any:
+      - kind: string
+        regex: '^[''"](debug|trace|silly|verbose)[''"]$'
+      - kind: binary_expression
+        regex: '(\|\||\?\?)\s*[''"](debug|trace|silly|verbose)[''"]$'
+  - inside:
+      stopBy: end
+      any:
+      - pattern: 'pino($$$)'
+      - pattern: 'winston.createLogger($$$)'
+      - pattern: 'createLogger($$$)'
+      - pattern: 'Fastify($$$)'
+      - pattern: 'fastify($$$)'
+min_engine: 0.45.3
+---
+id: no-phi-in-app-logs.typescript-generic.pino-redact
+practice_id: no-phi-in-app-logs
+language: typescript
+frameworks:
+- generic
+kind: evidence
+rule:
+  all:
+  - kind: pair
+  - has:
+      field: key
+      kind: property_identifier
+      regex: '^redact$'
+  - has:
+      field: value
+      any:
+      - kind: array
+        has:
+          kind: string
+          regex: '(?-u)(?i)(body|password|passwd|authorization|cookie|token|secret|ssn|dob|birth|email|phone|name|address|patient|diagnosis|mrn)'
+      - all:
+        - kind: object
+        - has:
+            kind: pair
+            all:
+            - has:
+                field: key
+                kind: property_identifier
+                regex: '^paths$'
+            - has:
+                field: value
+                kind: array
+                has:
+                  kind: string
+                  regex: '(?-u)(?i)(body|password|passwd|authorization|cookie|token|secret|ssn|dob|birth|email|phone|name|address|patient|diagnosis|mrn)'
+  - inside:
+      stopBy: end
+      any:
+      - pattern: 'pino($$$)'
+      - pattern: 'pinoHttp($$$)'
+      - pattern: 'Fastify($$$)'
+      - pattern: 'fastify($$$)'
+min_engine: 0.45.3

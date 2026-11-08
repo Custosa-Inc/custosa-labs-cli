@@ -1,0 +1,16 @@
+create schema auth;
+create function auth.uid() returns uuid language sql stable as $$ select nullif(current_setting('request.jwt.claim.sub', true),'')::uuid $$;
+create function auth.jwt() returns jsonb language sql stable as $$ select coalesce(nullif(current_setting('request.jwt.claims', true),''),'{}')::jsonb $$;
+create type public.tag as (v text);
+create function public.tag_to_text(public.tag) returns text language sql stable as $$ select current_setting('request.jwt.claim.sub', true) $$;
+create cast (public.tag as text) with function public.tag_to_text(public.tag) as implicit;
+create function public.always(text, uuid) returns boolean language sql immutable as $$ select true $$;
+create operator public.= (leftarg = text, rightarg = uuid, function = public.always);
+create function public.jx(jsonb, text) returns text language sql immutable as $$ select 'x' $$;
+create operator public.->> (leftarg = jsonb, rightarg = text, function = public.jx);
+create table public.t(id int, user_id uuid, owner text, tg public.tag, tenant_id text);
+alter table public.t enable row level security;
+create policy b01 on t for select using (tg = (auth.jwt() ->> 'sub'));
+create policy b02 on t for select using (owner = auth.uid());
+create policy b03 on t for select using (tenant_id = (auth.jwt() ->> 'tenant_id'));
+create policy b04 on t for select using (tg::text = auth.uid()::text);

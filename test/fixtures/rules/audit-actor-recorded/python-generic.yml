@@ -1,0 +1,12 @@
+id: audit-actor-recorded.python-generic.audit-call
+practice_id: audit-actor-recorded
+language: python
+frameworks: [generic]
+kind: evidence
+rule:
+  pattern: audit_log($$$ARGS)
+  has:
+    kind: keyword_argument
+    regex: ^actor\s*=
+    stopBy: end
+min_engine: 0.45.0

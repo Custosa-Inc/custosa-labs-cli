@@ -1,0 +1,1588 @@
+{
+  "ruleset_id": "2026-11-07.bde7fe90",
+  "min_engine": "0.45.3",
+  "files": [
+    {
+      "path": "queries/advisor.sql",
+      "sha256": "424328b79fe978579c33bef6292c0b014b48d35438dc8e079a7fb55f898a3d41"
+    },
+    {
+      "path": "queries/audit.sql",
+      "sha256": "f91dbe7e40e35b4711d61e082c1e356d8a81d73bbd3ae60ba7b9dbec9e0594d0"
+    },
+    {
+      "path": "queries/connected_roles.sql",
+      "sha256": "cc1b089d53039d367a71d8df3a1e7b3af711030334918638f016020370d643e8"
+    },
+    {
+      "path": "queries/constraints.sql",
+      "sha256": "1c62e6a2a3b08502fed4756c22a8cfc027b48fb547c56bedb296a6a68b88cd03"
+    },
+    {
+      "path": "queries/default_acl.sql",
+      "sha256": "95760d8883588ca00564b0acc20ca410f75ff6836a0ac0909a1b45f64dc88c01"
+    },
+    {
+      "path": "queries/definer_functions.sql",
+      "sha256": "53202519aad0dc7c0546f41950d4a54430ce9a10f27d7b09331be193a368276f"
+    },
+    {
+      "path": "queries/exposed_schemas.sql",
+      "sha256": "516e115e36786593a274edee31d1a0ac871a507fc037b29994cc0a82f50afcb2"
+    },
+    {
+      "path": "queries/logging.sql",
+      "sha256": "7b24bd3e8c26ce1872aef6d4631404006acb7b0e55c5b6335fdf00d9e7b25062"
+    },
+    {
+      "path": "queries/preflight.sql",
+      "sha256": "2bfc6d0a9f6255692cfa96623744d867815043e6becb36ef28bbfa9beecd8604"
+    },
+    {
+      "path": "queries/realtime_publication.sql",
+      "sha256": "fb546f5e09cd02166d008cb7838b54d0924182a28eb353b860cbfa460e352f1e"
+    },
+    {
+      "path": "queries/rls_policies.sql",
+      "sha256": "8179a77f2b189d4b0017d696311541a545edda79f3e2b54065364eacfccaec58"
+    },
+    {
+      "path": "queries/rls_status.sql",
+      "sha256": "1fa50bbbbd8bb9b812bc5069eb7b9dbdad5b03058fdd1b9caef4a17691b04234"
+    },
+    {
+      "path": "queries/roles.sql",
+      "sha256": "8748fcd80fcf255b00e9e27d6c8ade3ef475ae7785fd0718e3ea5065d17bc638"
+    },
+    {
+      "path": "queries/schema_privileges.sql",
+      "sha256": "7fd40f48fcbc2ae737fdcba8f09309cc171bb9f26438666e8c0d9836a96359c7"
+    },
+    {
+      "path": "queries/secrets.yml",
+      "sha256": "7b262d9244aaac21509ec676759cfe1e981f99cbaaec2be2b6ea19b781426ab7"
+    },
+    {
+      "path": "queries/self_hosted.sql",
+      "sha256": "f5032c6ed77b5bfa09a503c9d63d01bcb5451117e06b5de82effc001f2b5827d"
+    },
+    {
+      "path": "queries/storage_buckets.sql",
+      "sha256": "28b94377b4690db274b4263deae26e8ce5c6479c79c2714d3ea3fe5b0ba63c7c"
+    },
+    {
+      "path": "queries/table_columns.sql",
+      "sha256": "3bf2ceea6fa8ac536c87e85f4215b358e9465ce8da34c0b15280fdd541b95e10"
+    },
+    {
+      "path": "queries/table_grants.sql",
+      "sha256": "eaccdbd28392f2c739a6d78bae6634843406a856d6edafd228c78f94dbafd794"
+    },
+    {
+      "path": "queries/transport.sql",
+      "sha256": "5b71b599bbd2ddf68e4b25b044b64fd7a50cd38c9df898c3135cef0000e5b4f9"
+    },
+    {
+      "path": "queries/triggers.sql",
+      "sha256": "c245be7b33989ab6471c955ceca16d45d6f9b99b4e905e694678453470de921e"
+    },
+    {
+      "path": "queries/views.sql",
+      "sha256": "cf0d5f72dc6dc1128ad7f08373eca6b33370b70faada52a0877b7a1aca84f022"
+    },
+    {
+      "path": "rules/access-audit-log/go-gin.yml",
+      "sha256": "d8ece88ca87adda8f76681e57675d06dadadc1207b8ce1e6868bf7292855c819"
+    },
+    {
+      "path": "rules/access-audit-log/java-spring.yml",
+      "sha256": "bd4b53c600e093712e283154fef729dbf504d8c62bf48a86600a11eb29a624e1"
+    },
+    {
+      "path": "rules/access-audit-log/javascript-express.yml",
+      "sha256": "58ab46befd9cb6d11065aa243638d95debd3ea8537319a18aed7565890edc1e5"
+    },
+    {
+      "path": "rules/access-audit-log/javascript-nextjs.yml",
+      "sha256": "0c920d9c095fa3e6aeaa1823b7ae0eca0fff87bc4cb68f138334d530a8195e6c"
+    },
+    {
+      "path": "rules/access-audit-log/php-generic.yml",
+      "sha256": "b7a8a119b7f00b9ead73f944276fc5f3a4917b41108adc0a5dd15f0778ea1e0b"
+    },
+    {
+      "path": "rules/access-audit-log/python-fastapi.yml",
+      "sha256": "ec5f449153644d14ab7d898dd29c43c3386272421414ca34c61c93ed85badcfe"
+    },
+    {
+      "path": "rules/access-audit-log/python-flask.yml",
+      "sha256": "9cc41cce96c9ac959ada200e8a0efee1684b62ef9c61733cfd44426b4a373468"
+    },
+    {
+      "path": "rules/access-audit-log/ruby-rails.yml",
+      "sha256": "4244896c6df939adf16dc4b0cb5566d17b8eb72e6fb9d0b47c11976d03ce9078"
+    },
+    {
+      "path": "rules/access-audit-log/tsx-express.yml",
+      "sha256": "f5c017393e18948f9b84f38e77ae9ede028eef5e0e2da67346b8528ebf86badb"
+    },
+    {
+      "path": "rules/access-audit-log/tsx-nextjs.yml",
+      "sha256": "2cbec24ed31c9b2a88b62200daf299b92ba3d8d30144dbf30711991b819995d3"
+    },
+    {
+      "path": "rules/access-audit-log/typescript-express.yml",
+      "sha256": "8f2b3e5dcf55cc1d294e7a1312ddc068d425939556cfd28019874e8e0bdb8b0b"
+    },
+    {
+      "path": "rules/access-audit-log/typescript-nestjs.yml",
+      "sha256": "cbd363d7962d87c4af92c464d0293b9f3c74c40c46408e8d601f1ecfdc426351"
+    },
+    {
+      "path": "rules/access-audit-log/typescript-nextjs.yml",
+      "sha256": "21241d5128430da2b62f93a29290743e2b43f82c299fa10e0c4a98ea60b452d7"
+    },
+    {
+      "path": "rules/ai-agent-tools-least-privilege/javascript-generic.yml",
+      "sha256": "a5d2e1585f2b20da3e31e811d32f83810963efc73d5bf142f9457c56fc6c0581"
+    },
+    {
+      "path": "rules/ai-agent-tools-least-privilege/python-generic.yml",
+      "sha256": "5b0b4f64b685a4007528d5548c3714a9cda76cdb785ccc8bf0e035ee7c66dc1b"
+    },
+    {
+      "path": "rules/ai-agent-tools-least-privilege/tsx-generic.yml",
+      "sha256": "e5a8ab67f5c0cfea2b01481d7820cad994f26d77de62e0874d59fc54d97281cb"
+    },
+    {
+      "path": "rules/ai-agent-tools-least-privilege/typescript-generic.yml",
+      "sha256": "6b15c779db8add3e1815dba440ed2c099464551d8ba8e24686b9cccbeb9823f0"
+    },
+    {
+      "path": "rules/ai-provider-retention/javascript-generic.yml",
+      "sha256": "3df9518f683809604db7bf179a40e21c971c3741def63f016eaf6447f68381db"
+    },
+    {
+      "path": "rules/ai-provider-retention/python-generic.yml",
+      "sha256": "718d8015832017c3ab4db6b3c2abba6b556e695f99c0c37be7d2056f517449ae"
+    },
+    {
+      "path": "rules/ai-provider-retention/tsx-generic.yml",
+      "sha256": "33f5909671746cb061c3b10074672d8f441544a93bd5c8ed4dc525c75ad64be9"
+    },
+    {
+      "path": "rules/ai-provider-retention/typescript-generic.yml",
+      "sha256": "e747d45830251fdc35130885a2d265f040a4759ae18579258c02e29ca77ca969"
+    },
+    {
+      "path": "rules/ai-trace-redaction/javascript-generic.yml",
+      "sha256": "a0a8b70f98f9980920372fcf2a785550a9773b6b660c97d985c10e3cc6215908"
+    },
+    {
+      "path": "rules/ai-trace-redaction/python-generic.yml",
+      "sha256": "0cab2bdcd7d344b976ca20f38cfcc3d9117220ab2b0e494a13b41c72a2322ae1"
+    },
+    {
+      "path": "rules/ai-trace-redaction/tsx-generic.yml",
+      "sha256": "3be71ebb4053e5f8a9d8a531160a2fbdb8299e909da41487e57710d403dbd5f5"
+    },
+    {
+      "path": "rules/ai-trace-redaction/typescript-generic.yml",
+      "sha256": "f936f1e84e2bab6556b26e5185604c62ad1e270ab9706616df4ceea448418043"
+    },
+    {
+      "path": "rules/audit-actor-recorded/go-generic.yml",
+      "sha256": "e9275a0fb36fc317d4142606cf6c4ce4150215ea878792a165217a0e8a024888"
+    },
+    {
+      "path": "rules/audit-actor-recorded/java-generic.yml",
+      "sha256": "0f09a29ad1dae1e3c44555034f0f473798d1ff29866dd2ad853136b1a17270fd"
+    },
+    {
+      "path": "rules/audit-actor-recorded/javascript-generic.yml",
+      "sha256": "b0d6c6a59b54177e6a2c8e2033efac3cac68206bb767fa25248056847fb444d1"
+    },
+    {
+      "path": "rules/audit-actor-recorded/php-generic.yml",
+      "sha256": "31db7fefb4a0e77eaa0ac8ca5be02ee08413070dec83de1f9aa232e6a9e7d5bc"
+    },
+    {
+      "path": "rules/audit-actor-recorded/python-generic.yml",
+      "sha256": "588bb433ede9b5124e6cf2a11f3cb88838c1894c33a89878dd731f17d62392a5"
+    },
+    {
+      "path": "rules/audit-actor-recorded/tsx-generic.yml",
+      "sha256": "265b8abcd166c518736286fef9622ab483772178d397df84b818c03e8fe3745a"
+    },
+    {
+      "path": "rules/audit-actor-recorded/typescript-generic.yml",
+      "sha256": "a6fb2c7db6226df88366527a694d460ba4cef873e8b543f4f70bdd273465e880"
+    },
+    {
+      "path": "rules/audit-actor-recorded/yaml-spring.yml",
+      "sha256": "26004cbf43934959e80450652a85a844f444c4561d84058a97b637fe2b5727da"
+    },
+    {
+      "path": "rules/audit-log-append-only/go-generic.yml",
+      "sha256": "ef4bab4b613216ef214d736543cdbfda2ea9b9041a7be555660a931d4b6d8866"
+    },
+    {
+      "path": "rules/audit-log-append-only/java-generic.yml",
+      "sha256": "01c7aa7f192990b85b03d835bd916b7be6d9328d667f305d9eb6c936dbed6242"
+    },
+    {
+      "path": "rules/audit-log-append-only/javascript-generic.yml",
+      "sha256": "75d6345d375fd4f0aabb7f720388e2930fadfe31c6bbe15a3a1133087e5f6ee9"
+    },
+    {
+      "path": "rules/audit-log-append-only/php-generic.yml",
+      "sha256": "aeb815b09b96669c7bd28048bf2cdea597daaf62bf099910b27a50f78544ac0c"
+    },
+    {
+      "path": "rules/audit-log-append-only/python-generic.yml",
+      "sha256": "10b653188cce652ddf1f989814e5233c702b7de77a04f0ea65657a8acfbe2cc6"
+    },
+    {
+      "path": "rules/audit-log-append-only/tsx-generic.yml",
+      "sha256": "4f89e32ec683d648c705b9b0274117a079eee0bb5d57c6bf36f83e7f42ff4167"
+    },
+    {
+      "path": "rules/audit-log-append-only/typescript-generic.yml",
+      "sha256": "8e47682ef8e26cc1d93b616562a23bfed09e658f30fa12ea00c378a34c8f6e12"
+    },
+    {
+      "path": "rules/audit-patient-recorded/javascript-generic.yml",
+      "sha256": "2679fb87204be9baaa5f8aba0e8a749d54997230d6a6631d54788fe10e916405"
+    },
+    {
+      "path": "rules/audit-patient-recorded/php-generic.yml",
+      "sha256": "5cd2aa48aa28bcaacf072f8b721ea87ac1da314ec22f8aa4eb2ef9d32a798206"
+    },
+    {
+      "path": "rules/audit-patient-recorded/python-generic.yml",
+      "sha256": "2794cb6e83104818d9fc13d26a3b76cabce4de97b165cdc001b438500125c27f"
+    },
+    {
+      "path": "rules/audit-patient-recorded/tsx-generic.yml",
+      "sha256": "11c9a3346b3d43b0404a066dc73fa830a22eb9a3c622a8fed18239771a33540c"
+    },
+    {
+      "path": "rules/audit-patient-recorded/typescript-generic.yml",
+      "sha256": "1071086a9d98557e4163608951c1a9f5a8930619b03f07382a0e23356232f131"
+    },
+    {
+      "path": "rules/auth-login-throttling/go-generic.yml",
+      "sha256": "3633017682ed3f66f995473ebd08d03cb457c45954d18898439876b9407713b2"
+    },
+    {
+      "path": "rules/auth-login-throttling/java-spring.yml",
+      "sha256": "a2c71ea75b7e14a0ad80df4a642040ce922113b19d22c838be67fa5c78c3c56f"
+    },
+    {
+      "path": "rules/auth-login-throttling/javascript-express.yml",
+      "sha256": "d11fcf70b638c34e3e0af46fcc4c83c6c60e08fb3a7ef4bf0ddad93aa0bcab27"
+    },
+    {
+      "path": "rules/auth-login-throttling/php-generic.yml",
+      "sha256": "62a0322b9c0c09585e5cb83ec22b88804b257780ced561b0ef7eeb5005bd70ab"
+    },
+    {
+      "path": "rules/auth-login-throttling/php-laravel.yml",
+      "sha256": "74bd7477919b53df7f478b801509b57f2d1933b7ee52299f9cff18c74c2f5051"
+    },
+    {
+      "path": "rules/auth-login-throttling/python-django.yml",
+      "sha256": "bb68cc7a44bbadb7f0e8aca54c5fce4c2142babb72d8fa4741c1c48de92b0f93"
+    },
+    {
+      "path": "rules/auth-login-throttling/python-fastapi.yml",
+      "sha256": "781bcd00b1aafbf4f8cd7416942bf652d36e45d7ef25f38a99f0f629c749836a"
+    },
+    {
+      "path": "rules/auth-login-throttling/python-flask.yml",
+      "sha256": "756ca2cb3ab02ee0004e461b206c2ad1994b7fd3f77a4e1db01a5aa5e3ee2b6f"
+    },
+    {
+      "path": "rules/auth-login-throttling/ruby-rails.yml",
+      "sha256": "5fd67250ae7d481222bb7ba08a13bdfbda18a0f77a2b01d5fad3d101dc24c03f"
+    },
+    {
+      "path": "rules/auth-login-throttling/typescript-express.yml",
+      "sha256": "fa217aae81945d698701b4379bf915642a95bf4f7547610807c1f313880b9d9d"
+    },
+    {
+      "path": "rules/auth-login-throttling/typescript-nextjs.yml",
+      "sha256": "dab452c5470170e2124c7b18d63595ed730f8902b47b188e030f56166e372b86"
+    },
+    {
+      "path": "rules/auth-on-by-default/go-generic.yml",
+      "sha256": "6694ab0714cfdb29b1aa7f66656659a4322ade613d67c5f74183023d331df0a4"
+    },
+    {
+      "path": "rules/auth-on-by-default/java-spring.yml",
+      "sha256": "1397a39f3fe13940f6e5917cde828c6ca340949b9606202eb4bbb61d4e0e15f5"
+    },
+    {
+      "path": "rules/auth-on-by-default/javascript-generic.yml",
+      "sha256": "24f8ef8f6dc1f142f7df33dca88bf489d61b9da138bec6f66d178bd01a4ff753"
+    },
+    {
+      "path": "rules/auth-on-by-default/kotlin-spring.yml",
+      "sha256": "7e0f28c2a692071115ac5cb00f01737a8af04b09232572386ce861570012326b"
+    },
+    {
+      "path": "rules/auth-on-by-default/php-generic.yml",
+      "sha256": "7a7e6f3899ce9bbfbc79d75c019e1e440e5b35c1b7041dad3198fdc1f989cc1c"
+    },
+    {
+      "path": "rules/auth-on-by-default/python-django.yml",
+      "sha256": "51a129930eec4af315100de07b2610e90a878b91b7ad871b36ef0002770f9c7a"
+    },
+    {
+      "path": "rules/auth-on-by-default/python-generic.yml",
+      "sha256": "f465c043989fe5e8f1027934ac9a75e8a9c690c4446e1aba6ea7007dca8cbdb1"
+    },
+    {
+      "path": "rules/auth-on-by-default/ruby-rails.yml",
+      "sha256": "ef8a56ab32934d1b78412042a9600db82a950ba7c187ee835165fe9a0b495f7c"
+    },
+    {
+      "path": "rules/auth-on-by-default/typescript-generic.yml",
+      "sha256": "db0981508d27ce07393c22831655ceb6c8ec6c47c51b9fa5fce7366c944efc3d"
+    },
+    {
+      "path": "rules/auth-on-by-default/yaml-generic.yml",
+      "sha256": "bcc99d4fd189e6ed76b50448d4a38f4037327b4797ab337fd94c464894ec43ba"
+    },
+    {
+      "path": "rules/auth-on-by-default/yaml-spring.yml",
+      "sha256": "5a073106cde99c617d2f274bdc6a4afd13313482de3278150053d08883194bca"
+    },
+    {
+      "path": "rules/auth-session-revocation/java-spring.yml",
+      "sha256": "327cd6f646b8ffb2365e2c1ded9fd1b4879b4655ab4221c4b1fb4dab56d41ccf"
+    },
+    {
+      "path": "rules/auth-session-revocation/javascript-generic.yml",
+      "sha256": "887379d8e40c33a246a7bbdef8e004c35f0f44cb006187b6b82dfdbc86f7361a"
+    },
+    {
+      "path": "rules/auth-session-revocation/php-generic.yml",
+      "sha256": "f71cf287a11b1dd73e9fb974a4209967a769ccfe6cf3a58bc51e336f877ea3e8"
+    },
+    {
+      "path": "rules/auth-session-revocation/php-laravel.yml",
+      "sha256": "c28a356e9eefa1948e0cd481e8362be7b29334a26744c92d7214d204b02dd3ad"
+    },
+    {
+      "path": "rules/auth-session-revocation/python-django.yml",
+      "sha256": "c11211ab466d96e41d8ebcf456e9754edc75dad516bb434e461caf619df5e420"
+    },
+    {
+      "path": "rules/auth-session-revocation/ruby-rails.yml",
+      "sha256": "5963d85bd8bcab020dc8c02908235de30dc2a8b9fd760c4d0c4556f1e5a52b67"
+    },
+    {
+      "path": "rules/auth-session-revocation/typescript-generic.yml",
+      "sha256": "d9af2823a108a5cc62e94b7f6acf5ac92ebf201b51ad030361a16567d661a721"
+    },
+    {
+      "path": "rules/authz-every-handler/go-generic.yml",
+      "sha256": "2cf13d61d8a89ce89341c5d4c866c5e9cff015ceefb95f2fb814979e1096d36b"
+    },
+    {
+      "path": "rules/authz-every-handler/java-spring.yml",
+      "sha256": "358b67e42078ddb63a7a76690dd70f59b964ef0a597dae7fe36bbd0e25baf955"
+    },
+    {
+      "path": "rules/authz-every-handler/javascript-express.yml",
+      "sha256": "8e3560bf87d9aa5683aa35db83bb3cd1dbb5a2870e896bd9299da6d09fc3af96"
+    },
+    {
+      "path": "rules/authz-every-handler/javascript-nextjs.yml",
+      "sha256": "e7a05c31fb650e9a63d4defe79567e37230ab63065176e226c99df45984348f0"
+    },
+    {
+      "path": "rules/authz-every-handler/kotlin-spring.yml",
+      "sha256": "38fed0156841fe59f14a589aebad855b128ce796f32185c8f34dbd20a5505a74"
+    },
+    {
+      "path": "rules/authz-every-handler/php-generic.yml",
+      "sha256": "42391a593358884aca6b0f011524e0eb70cc67ff5b187094dba810b3d34966d4"
+    },
+    {
+      "path": "rules/authz-every-handler/python-django.yml",
+      "sha256": "8f4b2548bd3d3eec9565039d76dde7cfe32d75937f0d4f996f7d19d61427cccf"
+    },
+    {
+      "path": "rules/authz-every-handler/python-fastapi.yml",
+      "sha256": "fd3a97e967d86777727b955b1d194c898ca1bd3c956835bebdaebc70d220912e"
+    },
+    {
+      "path": "rules/authz-every-handler/python-flask.yml",
+      "sha256": "6a33eca4a0612fde3f5c7b0febaf84b2d3f82dd3863e4e1cb45e99c446148ddf"
+    },
+    {
+      "path": "rules/authz-every-handler/ruby-rails.yml",
+      "sha256": "8f12c5cae2ed44aa105314b2d310dbb73ee7a13e032c115b43d85524f12ced34"
+    },
+    {
+      "path": "rules/authz-every-handler/tsx-nextjs.yml",
+      "sha256": "80fc2a7a0d17f7127100fef4551fd69418ba38a57a3f2e1292e6ee0bb26e7ce7"
+    },
+    {
+      "path": "rules/authz-every-handler/typescript-express.yml",
+      "sha256": "2384a0b7fa6e69f42a7e3b064aa7e1eb09039cf7310550285f0bf0dc32671f81"
+    },
+    {
+      "path": "rules/authz-every-handler/typescript-nestjs.yml",
+      "sha256": "0b2bc35db8e5c0c7e61718821034419cfde446396d61f9843d45368212996a82"
+    },
+    {
+      "path": "rules/authz-every-handler/typescript-nextjs.yml",
+      "sha256": "287530d74089639a64a417fb4b9b0a66615cee32d0c60c4444edcbcd4ec5b477"
+    },
+    {
+      "path": "rules/break-glass-access/javascript-generic.yml",
+      "sha256": "fee1722d71549c6bd22f4332ea70f9ee842e052ef7b22dae73b7ff7cd2d239b9"
+    },
+    {
+      "path": "rules/break-glass-access/php-generic.yml",
+      "sha256": "8a4282804700d42294c9d739c043b8d5793e9d0438fae5add49aab781f79e26f"
+    },
+    {
+      "path": "rules/break-glass-access/python-generic.yml",
+      "sha256": "2886631418d8c63a97e55e039cd2e649e7a4e8b3cf5834b8b69d116aec0ff3ba"
+    },
+    {
+      "path": "rules/break-glass-access/typescript-generic.yml",
+      "sha256": "159a09fbaebd6e961372a861236783b7116bfdec60373c1abdd9e8eaacf3a898"
+    },
+    {
+      "path": "rules/clinical-record-integrity/java-spring.yml",
+      "sha256": "b072755760fc35b5b9f15c273b57d145e3fc7a32cfde911edb349e7d7a109518"
+    },
+    {
+      "path": "rules/clinical-record-integrity/python-django.yml",
+      "sha256": "128699f543e9abf689294eadf75d55da5da08d8eb300a4bcc2a033b1fd2e7973"
+    },
+    {
+      "path": "rules/clinical-record-integrity/python-generic.yml",
+      "sha256": "49d2874aa71617ebf3efb8bef6dde47adb8e6df2083c093e4bd27dd7a3c4164c"
+    },
+    {
+      "path": "rules/clinical-record-integrity/ruby-rails.yml",
+      "sha256": "ea6a59a1ae2335b7f6d96ff1bd78c7bebffa7606805a89454f97770785d26d61"
+    },
+    {
+      "path": "rules/column-encryption-highly-sensitive/go-generic.yml",
+      "sha256": "6aa277c8f62950216541a6fb30bfa80465ef3fe73ad83d8df70afdf8e9b370ad"
+    },
+    {
+      "path": "rules/column-encryption-highly-sensitive/java-generic.yml",
+      "sha256": "20b4421af4b7599e0445408d65368bf893939f478a84bfd065c4e158bca13f03"
+    },
+    {
+      "path": "rules/column-encryption-highly-sensitive/javascript-generic.yml",
+      "sha256": "3533738fa632d879527d6722fd31482a4979455be857597f29ff3a1a84e4b587"
+    },
+    {
+      "path": "rules/column-encryption-highly-sensitive/php-generic.yml",
+      "sha256": "0e3067556ce29f6e297bbe815ec3a7f256323bf512582c1d6ee6cbf061129421"
+    },
+    {
+      "path": "rules/column-encryption-highly-sensitive/python-generic.yml",
+      "sha256": "af3b38a66a925361eb474ea37d5922c884977bf46fdc4425f6c97ec484858e53"
+    },
+    {
+      "path": "rules/column-encryption-highly-sensitive/ruby-rails.yml",
+      "sha256": "a82090c8cee2e0456e62e8b022579688ffc012fd2e0a8bb5b1adc69d9232791c"
+    },
+    {
+      "path": "rules/column-encryption-highly-sensitive/typescript-generic.yml",
+      "sha256": "44f061fee87ca255ae69cc003fe1e276d9746ff5bb8d4193a23e31d259f68c83"
+    },
+    {
+      "path": "rules/dependency-scanning-ci/json-generic.yml",
+      "sha256": "c9d907f01b98d631bef7e8cb2667bea76ffec41607da5a18fac3b8812dcdd59b"
+    },
+    {
+      "path": "rules/dependency-scanning-ci/yaml-generic.yml",
+      "sha256": "e64b70f97ee8404e0080abd4ccaeb1fea93ab21a425ba70b43fc292f286d1298"
+    },
+    {
+      "path": "rules/dependency-scanning-ci/yaml-github_actions.yml",
+      "sha256": "998230561a3045bcd1a5078c6abe629ad0262515d3720975a1013ddb02919711"
+    },
+    {
+      "path": "rules/edge-function-auth/javascript-supabase.yml",
+      "sha256": "0943c84f40c675cf46515cf488911169660c2bd267209720933375caeda8a2e9"
+    },
+    {
+      "path": "rules/edge-function-auth/json-supabase.yml",
+      "sha256": "56723da0c7be2249a79ac05f8ac062a4bdbe0e0d4a7e4748169451c29bcb1901"
+    },
+    {
+      "path": "rules/edge-function-auth/tsx-supabase.yml",
+      "sha256": "57c6483b48f6169e6e5f3a9087b765d70f5a39499a1558321ef2e05146214738"
+    },
+    {
+      "path": "rules/edge-function-auth/typescript-supabase.yml",
+      "sha256": "2baa8e6acb676139ec7f3f4fe6bcfea007e072d672ee72efa84c637624b9a0d8"
+    },
+    {
+      "path": "rules/elevated-routes-check-ownership/javascript-express.yml",
+      "sha256": "5f11675979a35be14e7b8786fd7c7e60a221ada06d9667657e4a62fa6439c551"
+    },
+    {
+      "path": "rules/elevated-routes-check-ownership/javascript-nextjs.yml",
+      "sha256": "bac76eff99547a51f15f22d01ecb3fe450dbfa86074da4dc7ddffe00224f885c"
+    },
+    {
+      "path": "rules/elevated-routes-check-ownership/javascript-supabase.yml",
+      "sha256": "3d19347ed54f87c6a2a470cab30b5b1f94a014ccd51de9d601e070431e9df7cb"
+    },
+    {
+      "path": "rules/elevated-routes-check-ownership/python-generic.yml",
+      "sha256": "c9a31f76b7099bc6be9fffa75d78a9d39aa479ffcf62348925a6f26b7b28cf50"
+    },
+    {
+      "path": "rules/elevated-routes-check-ownership/ruby-rails.yml",
+      "sha256": "c90eb1c52170d76d60a8b5313c989a836720215f507bba34bcf3f93be20ed59b"
+    },
+    {
+      "path": "rules/elevated-routes-check-ownership/tsx-nextjs.yml",
+      "sha256": "e0a6c214164c9e7e71e6f15e8aa57f022b6d732a73141cba1e91f0cbc05509c4"
+    },
+    {
+      "path": "rules/elevated-routes-check-ownership/tsx-supabase.yml",
+      "sha256": "d1c9549f7645fbb1cee9df5f9bd013a7f1b8304a9f3e78b6d1fa5df25de974cc"
+    },
+    {
+      "path": "rules/elevated-routes-check-ownership/typescript-express.yml",
+      "sha256": "296efa5737978edc56a6544d16cce1b50062580d48a3f0c82af9db508d74a4e8"
+    },
+    {
+      "path": "rules/elevated-routes-check-ownership/typescript-nestjs.yml",
+      "sha256": "791f0db5f1263049dded69ea95801dfba7bc68169f905207ca72a9d32164d95f"
+    },
+    {
+      "path": "rules/elevated-routes-check-ownership/typescript-nextjs.yml",
+      "sha256": "2439e4afbedba63f1a46e83ebf94a0d63e1af372269a2a399c1bed1ce692a457"
+    },
+    {
+      "path": "rules/elevated-routes-check-ownership/typescript-supabase.yml",
+      "sha256": "882ed8c14249b7dc5fc5fe34bde97c847047482df5555d986170eec71631a7f3"
+    },
+    {
+      "path": "rules/encryption-key-rotation/go-generic.yml",
+      "sha256": "bf639d6de0d4d72256b1d11b2d4e58a6982c30b5ea08f54afe0127275d95dd46"
+    },
+    {
+      "path": "rules/encryption-key-rotation/java-generic.yml",
+      "sha256": "6b1107e279ec9e55a67ecd75b8b474a33f3ebee63b4deeac01e26518e8b74eea"
+    },
+    {
+      "path": "rules/encryption-key-rotation/javascript-generic.yml",
+      "sha256": "592ad7627574a9baa194770c5956de114e0705a70f9602720b0216547a597bc2"
+    },
+    {
+      "path": "rules/encryption-key-rotation/php-generic.yml",
+      "sha256": "558c5254d37a82d2787aed6b16ee11ab27962d41d8f05afbaa9f49cd5d23c220"
+    },
+    {
+      "path": "rules/encryption-key-rotation/python-generic.yml",
+      "sha256": "e82bacb652432e36a88cdcc87fb1ac10bd13df396d0ea89c223148bba2fbffd1"
+    },
+    {
+      "path": "rules/encryption-key-rotation/ruby-rails.yml",
+      "sha256": "264302a43babb79d55f1844098c183400490fd0f2b4bd70e346fef122e47fd1d"
+    },
+    {
+      "path": "rules/encryption-key-rotation/typescript-generic.yml",
+      "sha256": "35eec39183bc66b08de1aecd34f07e23f60c45c32eab48a78286d3aece312017"
+    },
+    {
+      "path": "rules/error-tracking-no-phi/go-generic.yml",
+      "sha256": "4e2aef886b41b5fcce3f768cd61f631070c892c80575b37924a18cf8ac1af076"
+    },
+    {
+      "path": "rules/error-tracking-no-phi/java-spring.yml",
+      "sha256": "a20267c3a18872b53179bd3bef6967a18ec00d67b791bb64619a08c420ea7138"
+    },
+    {
+      "path": "rules/error-tracking-no-phi/javascript-generic.yml",
+      "sha256": "ff54198e457f846b438e7e91d3307e219e11720c2140e84308264189065d76f6"
+    },
+    {
+      "path": "rules/error-tracking-no-phi/php-generic.yml",
+      "sha256": "64b58779aac07689273c2e42a56acb52543c49f7342e291c2b50745af413beb5"
+    },
+    {
+      "path": "rules/error-tracking-no-phi/python-generic.yml",
+      "sha256": "929efa9db49aeddb71bf1c2bf3a437a03ba9bc2b09248c0d714217287f26d0d9"
+    },
+    {
+      "path": "rules/error-tracking-no-phi/ruby-rails.yml",
+      "sha256": "6c0f4e5077650c66646c6cb5741a9c3c4dee6eb6b9028d02ee4af10748ac7978"
+    },
+    {
+      "path": "rules/error-tracking-no-phi/tsx-generic.yml",
+      "sha256": "15b67504327dfd3e3d5548799d4077b2c7f5a6f693c30e06fe3981ce76914759"
+    },
+    {
+      "path": "rules/error-tracking-no-phi/typescript-generic.yml",
+      "sha256": "a5ec02b29692c3f2d6f195371938e2960e4c91403ab011758b3a14a8135546a5"
+    },
+    {
+      "path": "rules/error-tracking-no-phi/yaml-spring.yml",
+      "sha256": "d8d5ab7d1a1f022aca6eead6dac6322600eb8c0f8a20293bbabe5ebf012b11f8"
+    },
+    {
+      "path": "rules/hsts-enabled/go-generic.yml",
+      "sha256": "72527b5bf647a4f4ed55296688e3e3cf2d0eb2518a922c41843cd59b43d43e03"
+    },
+    {
+      "path": "rules/hsts-enabled/java-spring.yml",
+      "sha256": "00dc852934185c3b231a435f8568b34448e12e3a7422ed14329e1a3f73bab066"
+    },
+    {
+      "path": "rules/hsts-enabled/javascript-generic.yml",
+      "sha256": "643b3a4b69f67ad53036e75541debc71e376df1a9fbec8c1303bb70f3f50553d"
+    },
+    {
+      "path": "rules/hsts-enabled/json-generic.yml",
+      "sha256": "63098d142682c3737b505ff5ac6f71435454c245ae29b88838a0279e3977c82e"
+    },
+    {
+      "path": "rules/hsts-enabled/php-generic.yml",
+      "sha256": "6adbce9db64e7b38ece6cfd2ac800815ac72540774c5e60fb8b6e320cadd1ba3"
+    },
+    {
+      "path": "rules/hsts-enabled/python-generic.yml",
+      "sha256": "b54f88196eb8a4fe4032a2b4dc29bee8b688c1860311895e834e92cf4270df37"
+    },
+    {
+      "path": "rules/hsts-enabled/ruby-rails.yml",
+      "sha256": "c91085c2fd041f938c56d29222149eb39ac2a5979463cb0be71a82294d0691fa"
+    },
+    {
+      "path": "rules/hsts-enabled/tsx-generic.yml",
+      "sha256": "9cd3cb4f947c9b35d665d1b96b2b9474338b9b4df44186981c52e83f69a2a061"
+    },
+    {
+      "path": "rules/hsts-enabled/typescript-generic.yml",
+      "sha256": "ffba5512c0f7d868f46f6d7ad913c924ac265a1278313c1ac5a143abef758d6e"
+    },
+    {
+      "path": "rules/hsts-enabled/yaml-generic.yml",
+      "sha256": "0a2597018047485e16ee8fe416be772b290cb90309283f717a79dcf2036bc726"
+    },
+    {
+      "path": "rules/inbound-webhooks-verified/go-generic.yml",
+      "sha256": "2892ee072666d2d520aa32a9672bed465b73d8b77daf8f7d31257b312e0710fd"
+    },
+    {
+      "path": "rules/inbound-webhooks-verified/go-gin.yml",
+      "sha256": "a26c489cd140661dc8e782fcab4b406d2f255a9ea5e08e3037d4c2daa4e3eb03"
+    },
+    {
+      "path": "rules/inbound-webhooks-verified/java-spring.yml",
+      "sha256": "a4d5ce91e2bdfb683e8565a544e001c9903f8b8e20fe4dce33d3bfac1143d382"
+    },
+    {
+      "path": "rules/inbound-webhooks-verified/javascript-express.yml",
+      "sha256": "f858fb4c61ee93669f899c6b2b523792cc3bb4bb95dbc30f41d29155ea26b2ce"
+    },
+    {
+      "path": "rules/inbound-webhooks-verified/javascript-generic.yml",
+      "sha256": "0c16819692b57916939966cd851e6e8d1f54d37889552abe8d41d1bd0fc17e0c"
+    },
+    {
+      "path": "rules/inbound-webhooks-verified/javascript-nextjs.yml",
+      "sha256": "35d89f9183b262625796cc0d073e21a7c8718870d6190f917cf3259adbb4a9ab"
+    },
+    {
+      "path": "rules/inbound-webhooks-verified/kotlin-spring.yml",
+      "sha256": "4af6b69d57f726c83a31e7f0d11d1888324c93bbd6767e27dc834928c44b9032"
+    },
+    {
+      "path": "rules/inbound-webhooks-verified/php-generic.yml",
+      "sha256": "55c3728fa89fb5a7fd75f3e15b6afd583af1a2ed1e1251a4097884594ae99191"
+    },
+    {
+      "path": "rules/inbound-webhooks-verified/php-laravel.yml",
+      "sha256": "3c71a9c9957eefaf282ed4ddb14ffb36b505b1620a2e8f4bdb9a35f112affb2a"
+    },
+    {
+      "path": "rules/inbound-webhooks-verified/python-django.yml",
+      "sha256": "2bbefe860da46ed65e8d00ad7db9ef9974a3ad0bbc5ded6ed6101e9d4bbb2ec1"
+    },
+    {
+      "path": "rules/inbound-webhooks-verified/python-fastapi.yml",
+      "sha256": "e7f4645bfe55c39b25cbf47d49c1afdfe9e9015839d7988fb835051be00c0570"
+    },
+    {
+      "path": "rules/inbound-webhooks-verified/python-flask.yml",
+      "sha256": "e83b91a5f46eae2c1f5f47d40aa2a046b0c4c6a252b0fc449e8cd4c7da687ac2"
+    },
+    {
+      "path": "rules/inbound-webhooks-verified/python-generic.yml",
+      "sha256": "a4415d64b793ac67eed07f5210f0ff0c2d1ba2530992c3a7750acca1facde66f"
+    },
+    {
+      "path": "rules/inbound-webhooks-verified/ruby-rails.yml",
+      "sha256": "34a160ae612dbcffe8cee0fb90eed3093a5a2081753964c58e2c1fb7a1d89ad3"
+    },
+    {
+      "path": "rules/inbound-webhooks-verified/tsx-generic.yml",
+      "sha256": "090f7068d4304d39d992dae3885c612bc59500f9d92f572651debfba309c7886"
+    },
+    {
+      "path": "rules/inbound-webhooks-verified/tsx-nextjs.yml",
+      "sha256": "d569e7591e81a67eb9cdd1d8bbb3b0eeae577370b310c56256ac4534b8e03df9"
+    },
+    {
+      "path": "rules/inbound-webhooks-verified/typescript-express.yml",
+      "sha256": "31a398f241b10afde03bcf9be2425c3b1a732a4d2a09542e47c3484fa922094a"
+    },
+    {
+      "path": "rules/inbound-webhooks-verified/typescript-generic.yml",
+      "sha256": "2fca53b19009f68bbdae7fbe99628f9cef5291a37b4c32cfe730b04223bb81fc"
+    },
+    {
+      "path": "rules/inbound-webhooks-verified/typescript-nestjs.yml",
+      "sha256": "912a273baff4ebf369daec8c4c7cf0e56c0a5aea755b85c2fda971d69679ac4e"
+    },
+    {
+      "path": "rules/inbound-webhooks-verified/typescript-nextjs.yml",
+      "sha256": "0e2313ad90ed32ec6398d6813edbafcf1f89bea32a4828f231d13cdaf7e785b6"
+    },
+    {
+      "path": "rules/minimal-columns-to-client/javascript-expo.yml",
+      "sha256": "def7d3fba78e00df4c7d24c79212d62b779dcaa7bafaf7bf37cd64ac733c95eb"
+    },
+    {
+      "path": "rules/minimal-columns-to-client/javascript-nextjs.yml",
+      "sha256": "e6478b28b26c5759780e2b836bb7bad6bb716a8070aede69b89e0c1544ab0d77"
+    },
+    {
+      "path": "rules/minimal-columns-to-client/tsx-expo.yml",
+      "sha256": "2ffecc5ab8134fd6480926ebbb705487470ad20f66dd07831a4f9cdcbf4f7e5d"
+    },
+    {
+      "path": "rules/minimal-columns-to-client/tsx-nextjs.yml",
+      "sha256": "38c4d7c59b879482914da33bb0709ea53f7f137ce6be4f095c6c79973c434442"
+    },
+    {
+      "path": "rules/minimal-columns-to-client/typescript-expo.yml",
+      "sha256": "f995e87f94843854e19d87ed9c00f4488529d0c7e93e4aa520f2e16a0f853982"
+    },
+    {
+      "path": "rules/minimal-columns-to-client/typescript-nextjs.yml",
+      "sha256": "de0414165f6acaa4906121f5ce736a382fe354be1a976cb265cc36a84d13db67"
+    },
+    {
+      "path": "rules/mobile-keychain-storage/java-generic.yml",
+      "sha256": "b7dc944469bf927210d2e6d52554841eb9a6b5b54b3f691727203aecfe9bb017"
+    },
+    {
+      "path": "rules/mobile-keychain-storage/javascript-expo.yml",
+      "sha256": "216d16bef45289df42c8e0db64f97194388e002ab3812c7b11a8a30cdf499eca"
+    },
+    {
+      "path": "rules/mobile-keychain-storage/javascript-react_native.yml",
+      "sha256": "7676ae8edfbc9280dddd37282333ae004b6439aadf51ced8ef25f3e76835ae20"
+    },
+    {
+      "path": "rules/mobile-keychain-storage/kotlin-generic.yml",
+      "sha256": "8538a2deaa77404676752450cef376a002382ae49a72e7518009b083bd0be2c5"
+    },
+    {
+      "path": "rules/mobile-keychain-storage/tsx-expo.yml",
+      "sha256": "b97c4ec838d71b5ff7d9760f01aedd29197dc45784cbf8ae78afafa19b88a92b"
+    },
+    {
+      "path": "rules/mobile-keychain-storage/tsx-react_native.yml",
+      "sha256": "1519a0bd1d7dd50e90465b0dafa2a8a371da2d3193f01546273179abd5cb7e0d"
+    },
+    {
+      "path": "rules/mobile-keychain-storage/typescript-expo.yml",
+      "sha256": "e81cce0e3d60b0e3ef1c3b754901df493e80769efdfb97b652a8ff06f6b535e1"
+    },
+    {
+      "path": "rules/mobile-keychain-storage/typescript-react_native.yml",
+      "sha256": "54b729dfcf7551efe582c1eca1a369db1318e192d3ca281f8e401d9b940f450e"
+    },
+    {
+      "path": "rules/mobile-screen-privacy/java-generic.yml",
+      "sha256": "117ff86153b107ac758eb272f106bc75761e873f25fe066286b1f70cf71e8bee"
+    },
+    {
+      "path": "rules/mobile-screen-privacy/javascript-expo.yml",
+      "sha256": "6c2edd2d6923b567ff0cd94c694ff88b37d6c791d185ad12169fd22d5d82a9d9"
+    },
+    {
+      "path": "rules/mobile-screen-privacy/javascript-react_native.yml",
+      "sha256": "0e976768b6369d979c5432224723031217d0cd58344df2d778f1f0efaee8d839"
+    },
+    {
+      "path": "rules/mobile-screen-privacy/json-generic.yml",
+      "sha256": "a0518522e8690a25117c2c7004ea530d378280de59d5d3cb80993e0090c4e0a6"
+    },
+    {
+      "path": "rules/mobile-screen-privacy/kotlin-generic.yml",
+      "sha256": "4fbd37962bc2bf15a207db4bd5958a4db79479f8576cfc5778974784628494f2"
+    },
+    {
+      "path": "rules/mobile-screen-privacy/tsx-expo.yml",
+      "sha256": "8bed69cdb87b73b527febaad27000811c326192a19cfdf89ad6692f18a0793ab"
+    },
+    {
+      "path": "rules/mobile-screen-privacy/tsx-react_native.yml",
+      "sha256": "53027a9a232437ec222922b62720bd8209e324f7bd67deae3635e298aa356503"
+    },
+    {
+      "path": "rules/mobile-screen-privacy/typescript-expo.yml",
+      "sha256": "a34b13aaed633a28102c7de8777970e7be0eeb4913242e0b19058c3d285d5983"
+    },
+    {
+      "path": "rules/mobile-screen-privacy/typescript-react_native.yml",
+      "sha256": "7d87622703b882a80e0cf62dfcbe157995d9451da6730771186aa62b0ef3d1f6"
+    },
+    {
+      "path": "rules/no-phi-in-ai-metadata/javascript-generic.yml",
+      "sha256": "73fa2122cdf064d4e1cc5d22dc4d9d18943e120a17502a310e7a29209e023765"
+    },
+    {
+      "path": "rules/no-phi-in-ai-metadata/python-generic.yml",
+      "sha256": "4e977875a86f59dccac59341959c0a863edb77ac2124ba2c51adc6abbf2e76ab"
+    },
+    {
+      "path": "rules/no-phi-in-ai-metadata/tsx-generic.yml",
+      "sha256": "29b6f474205fe63685e499c35ef0d22b0734b4168f4b143b81082b198fc6dcc5"
+    },
+    {
+      "path": "rules/no-phi-in-ai-metadata/typescript-generic.yml",
+      "sha256": "1b136a47fa267e5acb9921d7fc8f03a06a5f38c51a3b2fc2e2d5c267b6d97088"
+    },
+    {
+      "path": "rules/no-phi-in-app-logs/go-generic.yml",
+      "sha256": "4146028a6e2324ba5e1231ecb0a5c2765dde077bad8fd0dc538da70828ad025e"
+    },
+    {
+      "path": "rules/no-phi-in-app-logs/java-generic.yml",
+      "sha256": "6447dd267301c7ade8c903be52cd90985479472325425707e6e21c61eb5e88d2"
+    },
+    {
+      "path": "rules/no-phi-in-app-logs/javascript-generic.yml",
+      "sha256": "cb1d7e8a6d2de4ff8734755b1bc7583264bab19e8715ca367050416dc0ef6dee"
+    },
+    {
+      "path": "rules/no-phi-in-app-logs/json-generic.yml",
+      "sha256": "ef60caf57e62930fe6a49ff9814b0027aeecc5235fc5c5da73bb93090b1157f7"
+    },
+    {
+      "path": "rules/no-phi-in-app-logs/php-generic.yml",
+      "sha256": "e2ffceaeb2e816fe06e135f8830daffe3b23a588ff4abef2f0b34599254713b8"
+    },
+    {
+      "path": "rules/no-phi-in-app-logs/python-generic.yml",
+      "sha256": "a5f23fb417f3517cef6f253fddcdc137280707917ac2b051c3fac2f990b33257"
+    },
+    {
+      "path": "rules/no-phi-in-app-logs/ruby-generic.yml",
+      "sha256": "10073ad36c8afd78298540bdf2a410148c20f50f67c5954e0b820403f80a9e14"
+    },
+    {
+      "path": "rules/no-phi-in-app-logs/tsx-generic.yml",
+      "sha256": "3c36f40eabd110df06c02fb9b80ca9cd7ccba2bfa412baf5c838e6602b98ecd1"
+    },
+    {
+      "path": "rules/no-phi-in-app-logs/typescript-generic.yml",
+      "sha256": "4a70e446f855be7d8bfa92e24bc12a33a0ddce258099dba09deb707960b31515"
+    },
+    {
+      "path": "rules/no-phi-in-app-logs/yaml-spring.yml",
+      "sha256": "9876953e8b6da109c8a8227d4c3e165732309f460c9952c6ed9d2c73dd98f312"
+    },
+    {
+      "path": "rules/no-trackers-on-signed-in/javascript-generic.yml",
+      "sha256": "bae261039c86b793003558ed9091c3f22eef454134d26c1b466b29ffc2189b61"
+    },
+    {
+      "path": "rules/no-trackers-on-signed-in/tsx-generic.yml",
+      "sha256": "795a3c1f79dab5a226c1ed701271a26ea398038f7536904e30a7d6728a1c4a81"
+    },
+    {
+      "path": "rules/no-trackers-on-signed-in/typescript-generic.yml",
+      "sha256": "2869d48bb8c383afebc7d050790026b44155b65c22df9de416712b47a662bbe3"
+    },
+    {
+      "path": "rules/notification-content-minimal/go-generic.yml",
+      "sha256": "15d719cbdde2812f2900a11a43f026c256ff0fc8863e81b743c5c8302c5dd762"
+    },
+    {
+      "path": "rules/notification-content-minimal/java-generic.yml",
+      "sha256": "2d9e734953723590dbe832e7ff2f403b9cfd7114d41ba241379719407573c0cf"
+    },
+    {
+      "path": "rules/notification-content-minimal/javascript-generic.yml",
+      "sha256": "c8299e5fc171f077589987f13cb018c70665955160dc8cfb28e8964f2b66e1ef"
+    },
+    {
+      "path": "rules/notification-content-minimal/php-generic.yml",
+      "sha256": "1445fcc07c045e71a18e26575944775891ae4fa52381f33c42840bb296803d75"
+    },
+    {
+      "path": "rules/notification-content-minimal/python-generic.yml",
+      "sha256": "59848b96e74e1d91c85397baa97baeac3ca5ecd118c4fa6d64e20a6ec2dbd68d"
+    },
+    {
+      "path": "rules/notification-content-minimal/ruby-rails.yml",
+      "sha256": "30ecb75ba794c721c933d529190f093b7aa47c5f483e7624f1889ab30d9e6a34"
+    },
+    {
+      "path": "rules/notification-content-minimal/tsx-generic.yml",
+      "sha256": "8885c64ee68f06988eba76eb64ad76d38cd7f8deb0fa8994e8631b308697adf7"
+    },
+    {
+      "path": "rules/notification-content-minimal/typescript-generic.yml",
+      "sha256": "ab15d977fcdde4709816b738f042dbbaeb6bd768bfc9433299d6a413be17c10f"
+    },
+    {
+      "path": "rules/oauth-pkce-flow/go-generic.yml",
+      "sha256": "9a43ab08d2d0daa305b5e73e032db8852ff16593f560b7daf483aac0bd0774c4"
+    },
+    {
+      "path": "rules/oauth-pkce-flow/java-spring.yml",
+      "sha256": "1c7711ba226844ecfe7bf45c26a5c1cb0a52c038dc4d9846ce3ae761f2670735"
+    },
+    {
+      "path": "rules/oauth-pkce-flow/javascript-generic.yml",
+      "sha256": "fca8d9c31a752f989cb547f4093a27f35a2f43597ee9b03aaacc99e16c144ff5"
+    },
+    {
+      "path": "rules/oauth-pkce-flow/php-generic.yml",
+      "sha256": "3ec3236cb092a8e42fbd1b84ce992d0368fc68f5ee6e5d998e3f71a951720314"
+    },
+    {
+      "path": "rules/oauth-pkce-flow/python-generic.yml",
+      "sha256": "254d449f4d75d548069def2d67063f32533b921132ca54d69d41a062fc4d1256"
+    },
+    {
+      "path": "rules/oauth-pkce-flow/ruby-rails.yml",
+      "sha256": "91e8a1293a068c95b25e620b72c96e95420ffe4f4cdf59904c1d39c45d0519a2"
+    },
+    {
+      "path": "rules/oauth-pkce-flow/typescript-generic.yml",
+      "sha256": "ae6251088e0b80ee0bb569a2709e0e8a7b2cfafb34ffed56930350cb0f95e9f8"
+    },
+    {
+      "path": "rules/oauth-pkce-flow/typescript-nextjs.yml",
+      "sha256": "1f6217dc7a4c4133f3b9294085d6d5770d209b5f4a4bb5e33ad9a5988f3fba68"
+    },
+    {
+      "path": "rules/oauth-pkce-flow/typescript-supabase.yml",
+      "sha256": "613a804f322394ed7c644ac048327d9d188b66b192d0373c23a157684b5f16a7"
+    },
+    {
+      "path": "rules/password-encoder-slow-hash/go-generic.yml",
+      "sha256": "c6dc15b309669f24a549ebc696701c5c40b42294b30e93496a57471217b8b24c"
+    },
+    {
+      "path": "rules/password-encoder-slow-hash/java-spring.yml",
+      "sha256": "55bcc462fa61d56c3d5aab39ba7265f29a0c06f3fe6ebe370c75994dbc323fc6"
+    },
+    {
+      "path": "rules/password-encoder-slow-hash/javascript-generic.yml",
+      "sha256": "81d0724fa567847efd25a359e75193f9f65b8dc45900ad1bd8beea5bfa76e76c"
+    },
+    {
+      "path": "rules/password-encoder-slow-hash/kotlin-spring.yml",
+      "sha256": "dd46814c0a1acd9e7c3d91b5baf1bbee9bb22668aa2b1ca715c5590209a178a8"
+    },
+    {
+      "path": "rules/password-encoder-slow-hash/php-generic.yml",
+      "sha256": "10bb715ea2ac95c0e697d730644ec7347717fb40880c5270890ec834d975d541"
+    },
+    {
+      "path": "rules/password-encoder-slow-hash/php-laravel.yml",
+      "sha256": "23f12761163baecfac764236878f9acf1e9afe81ae63131df608ebb9be093a2e"
+    },
+    {
+      "path": "rules/password-encoder-slow-hash/python-django.yml",
+      "sha256": "32ebf8a173aa34555ee21880cbe50f3cf0cfcd717fbbf9770ad08739c0b325ce"
+    },
+    {
+      "path": "rules/password-encoder-slow-hash/python-generic.yml",
+      "sha256": "7be4383e1b98c797a8975275c6262822bbcad79a0e87dc3bcbb9cd7a2d939cb4"
+    },
+    {
+      "path": "rules/password-encoder-slow-hash/ruby-rails.yml",
+      "sha256": "e97f6318178063d3a93e501c7a5d720b71bfacacb8625edb189e2ace295d53f0"
+    },
+    {
+      "path": "rules/password-encoder-slow-hash/tsx-generic.yml",
+      "sha256": "c7928b5a703e377907df6621f60598b4c79065002078d111fd203a6bd8c73b61"
+    },
+    {
+      "path": "rules/password-encoder-slow-hash/typescript-generic.yml",
+      "sha256": "b36f7a12839ac76e1ee438ffb1e5815a8cdeca1638f458c90fbe6d5b30eabcdc"
+    },
+    {
+      "path": "rules/password-encoder-slow-hash/yaml-spring.yml",
+      "sha256": "6ab8cc5cc0e4f39fdafe5fa0871798f7969417b3e7787f655f7c06cf373c6a29"
+    },
+    {
+      "path": "rules/pgaudit-no-literals/go-generic.yml",
+      "sha256": "c9ec73cc01e7bfeef16a9cda5d3b5388f16b86a7103742b9291489b049353adb"
+    },
+    {
+      "path": "rules/pgaudit-no-literals/java-generic.yml",
+      "sha256": "269da52bac3c7c2b7278eb14280d715e97c6a3e2bbbeebae5f1eaa09a4838197"
+    },
+    {
+      "path": "rules/pgaudit-no-literals/javascript-generic.yml",
+      "sha256": "85cc8c53b5f96e063c1a870724e33660ec9e90627ec7474b7fe93a0efd39c516"
+    },
+    {
+      "path": "rules/pgaudit-no-literals/kotlin-generic.yml",
+      "sha256": "f678fe877afd13c6481cc07f77582087cb83fb1f044026c1088e7122a399d501"
+    },
+    {
+      "path": "rules/pgaudit-no-literals/php-generic.yml",
+      "sha256": "29101637c05e391d04bbe233acfbb54db043ef77a4b1f553b210a66550951b08"
+    },
+    {
+      "path": "rules/pgaudit-no-literals/python-generic.yml",
+      "sha256": "891cc6ec5f7276904188ee67f93baafa601b75aff4562d0cf913b9ff7ce9baa5"
+    },
+    {
+      "path": "rules/pgaudit-no-literals/ruby-generic.yml",
+      "sha256": "1d95d555c97ba6299c94576dc6a1c8209f7e12d9b2900d5acf839f746ef27a14"
+    },
+    {
+      "path": "rules/pgaudit-no-literals/tsx-generic.yml",
+      "sha256": "9f1365d3ae568ff404f55653b63221566349709d0f58816e14080fcf84abf34e"
+    },
+    {
+      "path": "rules/pgaudit-no-literals/typescript-generic.yml",
+      "sha256": "a7b3b109ff8f854f3791036d2eae0a223a15df92cf31aaca283586df42ae013f"
+    },
+    {
+      "path": "rules/phi-responses-not-cached/go-generic.yml",
+      "sha256": "15303911a798ae48303ef8f53661fb71f193f12f750f54f04729ba4f1e079d94"
+    },
+    {
+      "path": "rules/phi-responses-not-cached/go-gin.yml",
+      "sha256": "b2d131f97234848c9a6b06f521f33e537432b9655026475ea5812dd931e14f2f"
+    },
+    {
+      "path": "rules/phi-responses-not-cached/java-spring.yml",
+      "sha256": "4141974066a394bb42bcef9b41dbc39e449d2af7005451c945a4a5980c99d199"
+    },
+    {
+      "path": "rules/phi-responses-not-cached/javascript-express.yml",
+      "sha256": "12997f18e3a16b114270c37eb465221cf4ce360a2364a8e29cd30753261d2a72"
+    },
+    {
+      "path": "rules/phi-responses-not-cached/javascript-nextjs.yml",
+      "sha256": "30745516846e1fb03eceac6627f48cb7015140def02287eea2243ebdf968e2b9"
+    },
+    {
+      "path": "rules/phi-responses-not-cached/json-generic.yml",
+      "sha256": "64718e20091d2ace12ce1e28f1bb36103fa24ee1423e799472ea8b08bc43026b"
+    },
+    {
+      "path": "rules/phi-responses-not-cached/kotlin-spring.yml",
+      "sha256": "4ffd8a099d003ae3b701e42050a14dad66a45d2938be733d8cee33821167223c"
+    },
+    {
+      "path": "rules/phi-responses-not-cached/php-generic.yml",
+      "sha256": "30c2f3575015524440cb680cd6bf4217233368903d8c2a0a6d1a886b6ee2651b"
+    },
+    {
+      "path": "rules/phi-responses-not-cached/php-laravel.yml",
+      "sha256": "1c91a4549cdd8cf5fb1a9b48d08a93edde6817872246286008c0100437df38b0"
+    },
+    {
+      "path": "rules/phi-responses-not-cached/python-django.yml",
+      "sha256": "41cd42ed3d8708159f1bd8721ad2cecf11e9646c5cb7bc0fce57c7b5f8acdfee"
+    },
+    {
+      "path": "rules/phi-responses-not-cached/python-fastapi.yml",
+      "sha256": "6acaf4eb2417e170fd823144ced9a75297eea256b8a811d1b46b7d1dcfb762a0"
+    },
+    {
+      "path": "rules/phi-responses-not-cached/python-flask.yml",
+      "sha256": "1cd9b14b1b44ded7a046715d79a66526d19d22b0334e446908dd50d0c7370c50"
+    },
+    {
+      "path": "rules/phi-responses-not-cached/ruby-rails.yml",
+      "sha256": "24fef9ee367fc7bb510c6e2edf048f9bb22fd8b03a0a5cdbc6db78694f11f97d"
+    },
+    {
+      "path": "rules/phi-responses-not-cached/tsx-nextjs.yml",
+      "sha256": "4840d16ad84f637e72de059135dcf195c2db0f08b0a8022609a6bf6e2ccf592a"
+    },
+    {
+      "path": "rules/phi-responses-not-cached/typescript-express.yml",
+      "sha256": "0d4feab7d044fc5004b0763ee0be08a6980ab4c59bcb0cb756ef7d353cf74139"
+    },
+    {
+      "path": "rules/phi-responses-not-cached/typescript-nestjs.yml",
+      "sha256": "9f100890deeffe3a358ec59d16f22a66c7e207836e24e967bd10903722c372b8"
+    },
+    {
+      "path": "rules/phi-responses-not-cached/typescript-nextjs.yml",
+      "sha256": "dd2c7b1d372716e72c88ccb77f7d6f2b23fcf9d7f6a40930b90c8464752500ea"
+    },
+    {
+      "path": "rules/purge-deleted-rows/go-generic.yml",
+      "sha256": "1ae246eadb983250b1f8e8be2bc5c6311491fec16c390ee0edff2c6940eec079"
+    },
+    {
+      "path": "rules/purge-deleted-rows/java-spring.yml",
+      "sha256": "aee2604aa119ae35c78fecb9f27278739dea1b708914378b645139eb0d5c1d8f"
+    },
+    {
+      "path": "rules/purge-deleted-rows/javascript-generic.yml",
+      "sha256": "bb088af84e8ab53d224c78cb231dd89376a23de878c77053605c305ae1ddd8c5"
+    },
+    {
+      "path": "rules/purge-deleted-rows/php-laravel.yml",
+      "sha256": "36e088079d88a83bba03fd2c25a84a3ff06f0ebe8043db3d9c7e4bed5fa55f36"
+    },
+    {
+      "path": "rules/purge-deleted-rows/python-generic.yml",
+      "sha256": "3d9ed08891f1c2fadb7baa9221aea699b3309ceff43b53904310bcab1909c647"
+    },
+    {
+      "path": "rules/purge-deleted-rows/ruby-rails.yml",
+      "sha256": "4e022eab29f32332921a019ade50939ba8a6ac0fa73df05dc808f9f950af17ef"
+    },
+    {
+      "path": "rules/purge-deleted-rows/typescript-generic.yml",
+      "sha256": "8d76047f6fac784da8ac415e79ea80437c676169b4626858018c83187fa7b629"
+    },
+    {
+      "path": "rules/rag-retrieval-scoped/go-generic.yml",
+      "sha256": "1b739d6075ab9b60c5ebcf6be56e5f94b3b3156aac6c80b416a315f33e9aa200"
+    },
+    {
+      "path": "rules/rag-retrieval-scoped/java-generic.yml",
+      "sha256": "af87532233faf98dfa93a5765310b61d69eefd0059702b0348af59c6ee857b1c"
+    },
+    {
+      "path": "rules/rag-retrieval-scoped/javascript-generic.yml",
+      "sha256": "94a33c7b360550fe59ce49418e61358fdc645e26545984e564967d1fe98d503e"
+    },
+    {
+      "path": "rules/rag-retrieval-scoped/kotlin-generic.yml",
+      "sha256": "a8db2feaa9aed2f08884935637c0ad6e68c8d4bb0c85576ce16adc7ba0c08ed6"
+    },
+    {
+      "path": "rules/rag-retrieval-scoped/php-generic.yml",
+      "sha256": "c51e54c82b24f21a2fd1b3f41a3716513aea3b4b67ee925ead62e35baa72d8ac"
+    },
+    {
+      "path": "rules/rag-retrieval-scoped/python-generic.yml",
+      "sha256": "88a66d3b4aad5754ff8f93ae8c2b7e59148c27d2486bf5973d65479b9c96dc43"
+    },
+    {
+      "path": "rules/rag-retrieval-scoped/ruby-generic.yml",
+      "sha256": "b8e875c8f1c231c22356431539e72eecdebc7fdaa09114d5b642332a5f3bb52b"
+    },
+    {
+      "path": "rules/rag-retrieval-scoped/tsx-generic.yml",
+      "sha256": "e71018dd125f3ace3a37eb43454231ca56180604c187830262278ddd3d14a819"
+    },
+    {
+      "path": "rules/rag-retrieval-scoped/typescript-generic.yml",
+      "sha256": "70d07536423548fa20ffd7110743c65dd8b7af6686e554d99444ebc80605c992"
+    },
+    {
+      "path": "rules/realtime-channels-authorized/javascript-generic.yml",
+      "sha256": "36410543c1455f0a3f308a858166c7d11a02acc272b8eef1e96210751eb30f89"
+    },
+    {
+      "path": "rules/realtime-channels-authorized/tsx-generic.yml",
+      "sha256": "f7fe0da3b939d9a644db456d92f21944325873c70c5d931bc329a4b1de03cc1d"
+    },
+    {
+      "path": "rules/realtime-channels-authorized/typescript-generic.yml",
+      "sha256": "c41fd1999deb8dbdb8ea6cd7396b67143e1141dc8d8c6ef72cc0d4ffbedce5cc"
+    },
+    {
+      "path": "rules/rls-enabled/java-generic.yml",
+      "sha256": "ef808903c5bd91254f88fa3530483b21089dd2f3a5573c3faf715175014b1de0"
+    },
+    {
+      "path": "rules/rls-enabled/javascript-generic.yml",
+      "sha256": "46586a03fc5b73809da03bf0c93235e0f474355dcfce37a3c2d39c14d078cece"
+    },
+    {
+      "path": "rules/rls-enabled/kotlin-generic.yml",
+      "sha256": "8671a985a15af29fb77e1b863f62ff872d31985d8316999a6b55f883f574ad1a"
+    },
+    {
+      "path": "rules/rls-enabled/php-generic.yml",
+      "sha256": "7d7eb2b504f65dedc500a5fbe9d60ffc5612934466ddedc5af2c4e2ed1c85234"
+    },
+    {
+      "path": "rules/rls-enabled/python-generic.yml",
+      "sha256": "07a982db984bb5ddc72440e62670dca509a830a3c2ae4575d1246b3723e258ce"
+    },
+    {
+      "path": "rules/rls-enabled/ruby-generic.yml",
+      "sha256": "c305008a50741a5ead55bacd4fc722ba92bab9cb7ffd740dbe0f5615e9225bb1"
+    },
+    {
+      "path": "rules/rls-enabled/tsx-generic.yml",
+      "sha256": "b4cf51c6ae7e836f292d1cc187a50df5087a0bb19a67fc380b92904faa57810b"
+    },
+    {
+      "path": "rules/rls-enabled/typescript-generic.yml",
+      "sha256": "19146b823ee9d781e32b2af647c9fb8a002a6cc4ba910802e9519a263f1f5859"
+    },
+    {
+      "path": "rules/secrets-hashed-or-encrypted/javascript-generic.yml",
+      "sha256": "b8bee00323916859f310012ddf29d166548cf38afd969b0640f011de4edfd8bb"
+    },
+    {
+      "path": "rules/secrets-hashed-or-encrypted/php-generic.yml",
+      "sha256": "d0fe073eec24f9001fe5246f8977c176e2a6d5a0ae327f24fea52a78329a466a"
+    },
+    {
+      "path": "rules/secrets-hashed-or-encrypted/python-generic.yml",
+      "sha256": "3e777c849e34a62f5ff0ae67c904913fc1c5dc0d3b291aa635cb201f6635dfd0"
+    },
+    {
+      "path": "rules/secrets-hashed-or-encrypted/tsx-generic.yml",
+      "sha256": "3c8defdcbee97b44e38044094f48e763f72b1357e42976b475414635e24ccc3a"
+    },
+    {
+      "path": "rules/secrets-hashed-or-encrypted/typescript-generic.yml",
+      "sha256": "376d0080d53e0e43a808f04b098d83d23013cb2c0fdf6c445c1c006aa663de8f"
+    },
+    {
+      "path": "rules/security-events-logged/go-generic.yml",
+      "sha256": "0587ac5dce7041a76688401ce451bbba81519153f428ca580bdc793072552de5"
+    },
+    {
+      "path": "rules/security-events-logged/java-generic.yml",
+      "sha256": "82a5d1b13c8941f71533f2a3f0d670223cbae404159eab14dad85dd4d8d168e3"
+    },
+    {
+      "path": "rules/security-events-logged/javascript-generic.yml",
+      "sha256": "d9dce4d0a2e12f50a3a58fac587f21c9252f8c42c6a23d9b669831e69f80c277"
+    },
+    {
+      "path": "rules/security-events-logged/php-generic.yml",
+      "sha256": "461fd63dbfb3feb501348cd648b9aabe64003170e2d242a1bdcd0c224cb8452d"
+    },
+    {
+      "path": "rules/security-events-logged/python-generic.yml",
+      "sha256": "451baf988b12d68ccb3d0109a4db950b1bc80f769f14a54cc94e6be2a2de65bb"
+    },
+    {
+      "path": "rules/security-events-logged/ruby-generic.yml",
+      "sha256": "f5d0a099194e2ab40c5a0ec7c6998d93b99f6692e3dd610c78bac0d3b6fc7666"
+    },
+    {
+      "path": "rules/security-events-logged/tsx-generic.yml",
+      "sha256": "d440518214cb148e3f116b9bd6cc4ae61de6ee46a112f713e1dc2a5a9fc7e322"
+    },
+    {
+      "path": "rules/security-events-logged/typescript-generic.yml",
+      "sha256": "f699274163beb217ec7820b99316c2594e63483e8671f8ca915a59844ea986f2"
+    },
+    {
+      "path": "rules/session-cookie-flags/go-generic.yml",
+      "sha256": "536eb5c230dbe128fc1950bbab516621a0ec452fe883a05aafc5b0da79b0a8da"
+    },
+    {
+      "path": "rules/session-cookie-flags/java-spring.yml",
+      "sha256": "b9de1ed958bae42f97838bc3b6bb62f366dbadbab6f734372a44f26da8f3fd6b"
+    },
+    {
+      "path": "rules/session-cookie-flags/javascript-express.yml",
+      "sha256": "51e67b20551ec31f150f52814952531d475eb3673819100d90aa8eee26618c08"
+    },
+    {
+      "path": "rules/session-cookie-flags/php-generic.yml",
+      "sha256": "bf06f29a61a67b2e20fd6c7a728eabd30d9826ddbb3a4280548301c0c83b3884"
+    },
+    {
+      "path": "rules/session-cookie-flags/php-laravel.yml",
+      "sha256": "17bda63d9d23e0cdf5bbb83fbfd3fa1354669d67b6e8887e4f21e778ef5058ba"
+    },
+    {
+      "path": "rules/session-cookie-flags/python-django.yml",
+      "sha256": "f0e8fd7ac1e460e92334f9df665eb8d1c9730720cd8f16b8679b52d42c15fd0d"
+    },
+    {
+      "path": "rules/session-cookie-flags/python-fastapi.yml",
+      "sha256": "16cc9c3478740ae975a3d9da779bf4c84538f9e577213d3306361e70aee51ed9"
+    },
+    {
+      "path": "rules/session-cookie-flags/python-flask.yml",
+      "sha256": "546dd1987dbba50fc0cdf3ad728f4728816f2c1ffc9a2ad9a21b61ed53c27c42"
+    },
+    {
+      "path": "rules/session-cookie-flags/ruby-rails.yml",
+      "sha256": "c663cf0931e74170b776057fc40e5a2cbc9d6d6cde8306ea4fb75ffdba761421"
+    },
+    {
+      "path": "rules/session-cookie-flags/typescript-express.yml",
+      "sha256": "eac0e351d46d9ebbe478cb187acce4d709e0a64c0f846fab80beb1e203b0df77"
+    },
+    {
+      "path": "rules/session-cookie-flags/typescript-nextjs.yml",
+      "sha256": "ac59c9122f37d19a6efdcb5fd719a351039af074696b232a5c520a2d645cc1d4"
+    },
+    {
+      "path": "rules/session-cookie-flags/typescript-supabase.yml",
+      "sha256": "f0d58de8426631c4bd636c8e29f25d3b5db790f73949b77bafcd356c620fe799"
+    },
+    {
+      "path": "rules/session-cookie-flags/yaml-spring.yml",
+      "sha256": "4cf39b784a2b80a80d734fbca1c3a4aa5b6d39695637d7f41bfad6e65afe5116"
+    },
+    {
+      "path": "rules/session-timeouts/go-generic.yml",
+      "sha256": "6cb24b3a36549a1104839a970a75ad46c3ca3f72be8c58281347d80dbfadd063"
+    },
+    {
+      "path": "rules/session-timeouts/javascript-generic.yml",
+      "sha256": "e127ff1f0a981653f5a1957ace9364922735e8e59c96e3f4cd2d2f3f838f8c1f"
+    },
+    {
+      "path": "rules/session-timeouts/php-laravel.yml",
+      "sha256": "19865fed6fda18ced4358e9b1717311a89df9ce74329098788249c0d795a0f25"
+    },
+    {
+      "path": "rules/session-timeouts/python-generic.yml",
+      "sha256": "71939ce8621cb0c628c0047077b385ff3e158f72aa42d38b9841d8bf9872a32f"
+    },
+    {
+      "path": "rules/session-timeouts/ruby-rails.yml",
+      "sha256": "ad8ef138114b5bc8da547f64c2907fdf1fa844d61f94ce5e49a3bc26103c8107"
+    },
+    {
+      "path": "rules/session-timeouts/typescript-generic.yml",
+      "sha256": "e9feae6e08902cbe6affbb5f094c70ddece7d62baee571ee07ca29b7aa591489"
+    },
+    {
+      "path": "rules/session-timeouts/yaml-spring.yml",
+      "sha256": "af23390d600d7266cfe31694312581aaf75c978cf3d451012a202e3996d1e1f3"
+    },
+    {
+      "path": "rules/staff-mfa-enforced/java-spring.yml",
+      "sha256": "8e605e7317132b21949554e979ddd7672d444d2a71235239174ee8205767caef"
+    },
+    {
+      "path": "rules/staff-mfa-enforced/javascript-generic.yml",
+      "sha256": "21fba75ee946c01922673fea64b0529e84d904958ef68c9a3545bfce23bbb2e1"
+    },
+    {
+      "path": "rules/staff-mfa-enforced/php-generic.yml",
+      "sha256": "6bbed7cf24b93dd6eabc1f4cf7fae1ed7f9da70231a7954e119d389561dd127a"
+    },
+    {
+      "path": "rules/staff-mfa-enforced/php-laravel.yml",
+      "sha256": "73a3cd16245086b4f7ebf0ba8f9c3c21e7d01ada94d96d22a9114031d9e4d76f"
+    },
+    {
+      "path": "rules/staff-mfa-enforced/python-django.yml",
+      "sha256": "3bfae57c8a5a284865e3b17f6c6f98bb15362e975a10827df081ae7f53c5cb6e"
+    },
+    {
+      "path": "rules/staff-mfa-enforced/python-generic.yml",
+      "sha256": "3e15ac5b6b5a5e9aeb755d3e91ba82eaae47422afc1025c717ce24ebd21c36f7"
+    },
+    {
+      "path": "rules/staff-mfa-enforced/ruby-rails.yml",
+      "sha256": "3eb7eef8839ca298fd47e3baa6fb7492794c24e5cee7ad227b21aae0e19cb5af"
+    },
+    {
+      "path": "rules/staff-mfa-enforced/typescript-generic.yml",
+      "sha256": "a667cc6ac100d03c65a6da294cf7e7d7f9b4ba7d4facd733e5fb813987d084fa"
+    },
+    {
+      "path": "rules/staff-mfa-enforced/typescript-supabase.yml",
+      "sha256": "3be83e19ef3230245abcc1ecfd0a3d9863a2149d1d1c52ca1844734d4e5b0c48"
+    },
+    {
+      "path": "rules/upload-validation/go-generic.yml",
+      "sha256": "72ed063613fa31deda130cb94ec4207e96c6041abd43c7922de73a6a5c132860"
+    },
+    {
+      "path": "rules/upload-validation/go-gin.yml",
+      "sha256": "79683c4e17228357a49a9b9393db0141765fa68fca9e37c533899b595bbbcecc"
+    },
+    {
+      "path": "rules/upload-validation/java-spring.yml",
+      "sha256": "30d1a8be1b5fcdc9abe03beb00271eda6d24e21ef1a381845da82d61aa3ff814"
+    },
+    {
+      "path": "rules/upload-validation/javascript-express.yml",
+      "sha256": "a707d1bda044d8e4ad108828ca32528b81979f604cb0226d0649bc832cd370eb"
+    },
+    {
+      "path": "rules/upload-validation/php-generic.yml",
+      "sha256": "3bc152a0778547b4359570773f561294e4ab85db05e075cbf889f02cb3a5f9db"
+    },
+    {
+      "path": "rules/upload-validation/php-laravel.yml",
+      "sha256": "e735765fc3f20869eaefc03bd5dfd87fda7afd3028a943d63d099ed44436b764"
+    },
+    {
+      "path": "rules/upload-validation/python-django.yml",
+      "sha256": "0f392557d8833c754d16704212ecce6ed6b6c453d33852c98a3143f6d2c902f8"
+    },
+    {
+      "path": "rules/upload-validation/python-fastapi.yml",
+      "sha256": "9a11f61255852835a39267906f2f4c2d68a3523dc9dd042b8f97e1e4f95a97fd"
+    },
+    {
+      "path": "rules/upload-validation/python-flask.yml",
+      "sha256": "bb015010da98524e95e573c911abb1a42a10f1468baebc2e7cb0aab85be10d9b"
+    },
+    {
+      "path": "rules/upload-validation/typescript-express.yml",
+      "sha256": "778544a11d91e3a46b8f0dd76dd17e20ef3355748d6d0f3033ed40b5c274e477"
+    },
+    {
+      "path": "rules/upload-validation/typescript-nestjs.yml",
+      "sha256": "811df1f5295632953f7ce228e53a681c8711384ce2d8fac882e9e4d318f29bf5"
+    },
+    {
+      "path": "rules/upload-validation/typescript-nextjs.yml",
+      "sha256": "71045977071c37b31bb62baa4c546aaa886ff032ce65e0945b496d8d0d08affb"
+    },
+    {
+      "path": "rules/vendor-flows-minimized/javascript-generic.yml",
+      "sha256": "b90389625b844852b51e35b078f78ac3276b0c4da27c9a202d5c919be81b1e18"
+    },
+    {
+      "path": "rules/vendor-flows-minimized/python-generic.yml",
+      "sha256": "fbb1deef4263c85b39fdf0abe1cf615de7bd25eb89813f7ce74eb9e1f30aa75b"
+    },
+    {
+      "path": "rules/vendor-flows-minimized/tsx-generic.yml",
+      "sha256": "b13f7939fce3bb7c03a1c925e192bb3c6006c19bc98adc8ad84a12ab62858f56"
+    },
+    {
+      "path": "rules/vendor-flows-minimized/typescript-generic.yml",
+      "sha256": "37cb7a1772aac0d71e4c7ab2bd2d224e9a9dc8de6ba64b6393dd407775a291dd"
+    },
+    {
+      "path": "rules/write-fields-allowlisted/go-generic.yml",
+      "sha256": "8031e701cff6a394fc2ed108f08a48569f864a2497122ae193f59a5288f26a59"
+    },
+    {
+      "path": "rules/write-fields-allowlisted/go-gin.yml",
+      "sha256": "b6f6d47713de45fc696eb6e4c94e3cb4f2eac3e14f7ad2810984f56fc771e298"
+    },
+    {
+      "path": "rules/write-fields-allowlisted/java-spring.yml",
+      "sha256": "b98ec738947593fd7d8c7e5ff58b44ce91dec9d04cf06fbeaf5286dbb121fcde"
+    },
+    {
+      "path": "rules/write-fields-allowlisted/javascript-express.yml",
+      "sha256": "3495eacc229e9dc6c3023321235bd5d24e87224daf738f3e5eaead29fa538bec"
+    },
+    {
+      "path": "rules/write-fields-allowlisted/javascript-nextjs.yml",
+      "sha256": "a9b98c9c611117c839b64864e688af89304710a38a79ea0ef5daef0a9e2e4d5a"
+    },
+    {
+      "path": "rules/write-fields-allowlisted/kotlin-spring.yml",
+      "sha256": "9c00c1a477facfb307014c83fdfa6ff76a10f208e5d6834e6062dab9492ff309"
+    },
+    {
+      "path": "rules/write-fields-allowlisted/php-generic.yml",
+      "sha256": "c6eebf7345ae2c5b038fabbe9bf8a639fa2be3ada498103ba8d9c125feb9621f"
+    },
+    {
+      "path": "rules/write-fields-allowlisted/php-laravel.yml",
+      "sha256": "23d49eee088e9366e9166007a2a6da739181dc4131a7e9a7b62eec3257a039f9"
+    },
+    {
+      "path": "rules/write-fields-allowlisted/python-django.yml",
+      "sha256": "60bcc31d0dad79f20c2173587838ae84eaf1c4087463196545f1b7037c963610"
+    },
+    {
+      "path": "rules/write-fields-allowlisted/python-fastapi.yml",
+      "sha256": "80d2a3c492cde52cdf571b5b3f315af45b1a606100f32fc72ab3c4ecbceac56b"
+    },
+    {
+      "path": "rules/write-fields-allowlisted/python-flask.yml",
+      "sha256": "ee24e03bf14116252454ff419eb3c6ed73a2e172f4946e3546114667e46c9ae0"
+    },
+    {
+      "path": "rules/write-fields-allowlisted/python-generic.yml",
+      "sha256": "c13b91b0deb1d480994567113ad4f034dafd9405c3c361278f981e26500d65b9"
+    },
+    {
+      "path": "rules/write-fields-allowlisted/ruby-rails.yml",
+      "sha256": "cf74c3fc3adb794220f99e0d8c8cefa6d16b050a8b7c25835e9bc634c82b1e03"
+    },
+    {
+      "path": "rules/write-fields-allowlisted/tsx-nextjs.yml",
+      "sha256": "833caf9d3250462d1ace32395b87f055a8ce1ce6fc8a1320f706684d65888c82"
+    },
+    {
+      "path": "rules/write-fields-allowlisted/typescript-express.yml",
+      "sha256": "9d87d5ea2b8af37c7143242708acfdf7a13aa68c69a6ad0e242dd09e857f4fa0"
+    },
+    {
+      "path": "rules/write-fields-allowlisted/typescript-nestjs.yml",
+      "sha256": "02b358b61d0f4ff94e15cc35417026295fb9564864f1f80517b4bf2a5fcae277"
+    },
+    {
+      "path": "rules/write-fields-allowlisted/typescript-nextjs.yml",
+      "sha256": "890aa98d66bb12ca46ac742213ccbf2265f85996615f326390c777554fe2f1f4"
+    },
+    {
+      "path": "value_screen_words.json",
+      "sha256": "dc65fd7de56cc346dcd6058e4e843e62a283af4780d9fdeec31cd81c9326fefc"
+    }
+  ],
+  "contracts": [
+    {
+      "path": "contracts/NOTICE.txt",
+      "sha256": "b0f58eefe3e56b06938421bc780de9c37e483e93e813e1e741d7191a4ef966c9"
+    },
+    {
+      "path": "contracts/ambiguous_names.txt",
+      "sha256": "e059b22dae7ad384139a28ffcde0c49d9aacd8613833e16cb1339f765bea18ba"
+    },
+    {
+      "path": "contracts/fact_document.schema.json",
+      "sha256": "fa3187edb91587afe75363be9f1c30c67dd20e862db23e875bc5e8513868a1a0"
+    },
+    {
+      "path": "contracts/personal_names.txt",
+      "sha256": "3dbf7b878b41a3d3a153c43bd820de8474272503952ca2efd7858bc76ceb3817"
+    },
+    {
+      "path": "contracts/response.schema.json",
+      "sha256": "b377ad67a614a329ca295b1a4a8d28d516896ee6ce33a78eb1968376d7ce6d80"
+    },
+    {
+      "path": "contracts/safe_words.txt",
+      "sha256": "ec03e35caf44f6895282d6f80755195668c766271a2337bd3aff6e89d6d3ba5f"
+    },
+    {
+      "path": "contracts/screen_rules.json",
+      "sha256": "82c84ddc378c1409790d98a271d1b0ae333e1a4ca9da1a17bfd2319771e4c6b6"
+    },
+    {
+      "path": "contracts/state.schema.json",
+      "sha256": "6d6f7e8f03357a431ee0cc5d9dc37df0a5991a0cf6b26eb8e7bf65bb213b998e"
+    }
+  ]
+}

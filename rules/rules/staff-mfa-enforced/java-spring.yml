@@ -1,0 +1,22 @@
+id: staff-mfa-enforced.java-spring.sign-in
+practice_id: staff-mfa-enforced
+language: java
+frameworks:
+- spring
+kind: items
+rule:
+  all:
+  - kind: method_declaration
+  - has:
+      stopBy: end
+      kind: method_invocation
+      regex: (authenticationManager|authManager)\.authenticate\(|passwordEncoder\.matches\(
+control:
+  has:
+    stopBy: end
+    any:
+    - kind: method_invocation
+      regex: (?i)(totp|otp|mfa|twoFactor|authenticator|googleAuth|codeVerifier|webauthn)[0-9A-Za-z_]*\.(verify|isValid|authorize|check|validate)[0-9A-Za-z_]*\(|verify(Totp|Otp|Mfa|Code)[0-9A-Za-z_]*\(|FactorGrantedAuthority|MultiFactor
+    - kind: object_creation_expression
+      regex: (?i)(totp|otp|mfa|twoFactor|authenticator|googleAuth|codeVerifier|webauthn)[0-9A-Za-z_]*\.(verify|isValid|authorize|check|validate)[0-9A-Za-z_]*\(|verify(Totp|Otp|Mfa|Code)[0-9A-Za-z_]*\(|FactorGrantedAuthority|MultiFactor
+min_engine: 0.39.0

@@ -1,0 +1,52 @@
+id: oauth-pkce-flow.typescript-generic.pkce-client
+practice_id: oauth-pkce-flow
+language: typescript
+frameworks:
+- generic
+kind: evidence
+rule:
+  any:
+  - kind: pair
+    regex: ^flowType\s*:\s*['\"]pkce['\"]$
+  - kind: pair
+    regex: ^(code_challenge_method|codeChallengeMethod)\s*:\s*['\"]S256['\"]$
+  - kind: pair
+    regex: ^usePKCE\s*:\s*true$
+  - pattern: createBrowserClient($$$)
+  - pattern: createServerClient($$$)
+  - pattern: $SB.auth.exchangeCodeForSession($$$)
+min_engine: 0.39.0
+---
+id: oauth-pkce-flow.typescript-generic.implicit-flow
+practice_id: oauth-pkce-flow
+language: typescript
+frameworks:
+- generic
+kind: violation
+rule:
+  any:
+  - kind: pair
+    regex: ^flowType\s*:\s*['\"]implicit['\"]$
+  - kind: pair
+    regex: ^['\"]?(response_type|responseType)['\"]?\s*:\s*['\"](token|id_token token|token id_token)['\"]$
+  - kind: pair
+    regex: ^usePKCE\s*:\s*false$
+  - kind: pair
+    regex: ^(code_challenge_method|codeChallengeMethod)\s*:\s*['\"]plain['\"]$
+  - kind: string
+    regex: '[?&]response_type=token\b'
+  - kind: template_string
+    regex: '[?&]response_type=token\b'
+  - all:
+    - kind: call_expression
+      regex: ^createClient\(
+    - not:
+        has:
+          field: arguments
+          kind: arguments
+          regex: flowType\s*:\s*['\"]pkce['\"]
+    - inside:
+        stopBy: end
+        kind: program
+        regex: \.auth\.(signInWithOAuth|signInWithOtp|linkIdentity)\(
+min_engine: 0.39.0

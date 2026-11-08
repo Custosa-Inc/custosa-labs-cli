@@ -1,0 +1,4344 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://custosa.com/schemas/evaluator-response/2",
+  "title": "PHI Schema Check evaluator responses",
+  "description": "Every body the evaluator API returns (evaluator_api.md). Each object is closed. Text fields are the evaluator's own words; nothing from the fact document is echoed except identifiers, paths and locations.",
+  "oneOf": [
+    {
+      "$ref": "#/$defs/evaluate_response"
+    },
+    {
+      "$ref": "#/$defs/advice_response"
+    },
+    {
+      "$ref": "#/$defs/error_response"
+    },
+    {
+      "$ref": "#/$defs/device_start_response"
+    },
+    {
+      "$ref": "#/$defs/device_token_response"
+    },
+    {
+      "$ref": "#/$defs/device_error_response"
+    }
+  ],
+  "$defs": {
+    "result": {
+      "description": "One practice on one object. object_id is the finding id the fix goal takes. grade is the grade of the evidence the state rests on (E5 when there is none). reason is set for unknown, needs_review and error and null otherwise. how: what to do or how to check, in our words. settled_by is assistant when the assistant's answer settled the line (B28-core): its verdict at E4 on any severity, or a verified location it was asked for at E3; person when the person's option, as relayed, settled it at E4 (with decider_ref, an opaque role or local reference the client chose, never a name, where the rules saw nothing: reason rules_saw_nothing); labelled by assurance either way; Custosa's own grade rules hold for unlabelled lines only. assistant is the assistant's verdict and its reason, graded E4, on any line it answered, so the person sees it under an item that stays open.",
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "object_id",
+        "practice_id",
+        "title",
+        "severity",
+        "area",
+        "state",
+        "grade",
+        "reason",
+        "objects",
+        "evidence",
+        "how"
+      ],
+      "properties": {
+        "object_id": {
+          "$ref": "https://custosa.com/schemas/fact-document/2#/$defs/object_id"
+        },
+        "practice_id": {
+          "$ref": "https://custosa.com/schemas/fact-document/2#/$defs/practice_id"
+        },
+        "title": {
+          "type": "string",
+          "maxLength": 200
+        },
+        "severity": {
+          "type": "string",
+          "enum": [
+            "critical",
+            "high",
+            "medium",
+            "low"
+          ]
+        },
+        "area": {
+          "$ref": "https://custosa.com/schemas/fact-document/2#/$defs/identifier"
+        },
+        "state": {
+          "type": "string",
+          "enum": [
+            "pass",
+            "fail",
+            "not_applicable",
+            "needs_review",
+            "unknown",
+            "error"
+          ]
+        },
+        "grade": {
+          "type": "string",
+          "enum": [
+            "E1",
+            "E2",
+            "E3",
+            "E4",
+            "E5"
+          ]
+        },
+        "reason": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "enum": [
+            "collector_failed",
+            "collector_not_run",
+            "collection_truncated",
+            "not_analyzed",
+            "no_rule_for_stack",
+            "needs_dataflow",
+            "grade_too_low",
+            "assistant_answer_needed",
+            "person_must_decide",
+            "preflight_failed",
+            "evaluator_error",
+            "no_objects_observed",
+            "unclassified_table_exposed",
+            "entrypoints_not_observed",
+            "table_not_resolved",
+            "parse_failed",
+            "catalog_not_deployed",
+            "exposure_suspected",
+            "assistant_located",
+            "code_not_verified",
+            "answer_contradicted",
+            "location_not_confirmed",
+            "assistant_contested",
+            "definer_function_unjudged",
+            "helper_not_reached_from_handlers",
+            "elevated_client_imported",
+            "rules_saw_nothing",
+            null
+          ]
+        },
+        "objects": {
+          "type": "array",
+          "maxItems": 100,
+          "items": {
+            "anyOf": [
+              {
+                "$ref": "https://custosa.com/schemas/fact-document/2#/$defs/identifier"
+              },
+              {
+                "$ref": "https://custosa.com/schemas/fact-document/2#/$defs/path"
+              }
+            ]
+          }
+        },
+        "evidence": {
+          "type": "array",
+          "maxItems": 50,
+          "items": {
+            "$ref": "#/$defs/evidence"
+          }
+        },
+        "how": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "maxLength": 2000
+        },
+        "settled_by": {
+          "type": "string",
+          "enum": [
+            "assistant",
+            "person"
+          ]
+        },
+        "decider_ref": {
+          "description": "Contract 2.5: an opaque reference to who decided, chosen by the client: a role or local reference, never a name or email. On a line a person's option settled where Custosa's rules saw nothing (reason rules_saw_nothing). Custosa can't check it: it is the accountability, not a proof.",
+          "type": "string",
+          "pattern": "^[A-Za-z0-9._-]{1,64}$"
+        },
+        "assistant": {
+          "description": "The assistant's verdict on this line's practice, graded E4. reason is Custosa's words for the reason_code it sent (enums.REASON_WORDS), or for a remembered verdict that it is remembered; never the assistant's own text: shown, never observed. It settles the line only where Custosa's facts don't contradict it, labelled assistant_decided, and never counts in the verified percent.",
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "state",
+            "reason",
+            "grade"
+          ],
+          "properties": {
+            "state": {
+              "type": "string",
+              "enum": [
+                "pass",
+                "fail",
+                "not_applicable"
+              ]
+            },
+            "reason": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 300
+            },
+            "grade": {
+              "type": "string",
+              "enum": [
+                "E4"
+              ]
+            }
+          }
+        },
+        "assurance": {
+          "description": "Who stands behind the result (B28-core): absent means custosa, Custosa's own reading. assistant_decided: the assistant's verdict at E4; assistant_decided_located: a location it named, confirmed by the inspector, at E3; person_decided (person_decided_committed for one replayed from the project's record): the person's option, as relayed by the assistant, at E4; open: an answer or decision moved the result and it stays open. Only custosa counts in the verified percent.",
+          "type": "string",
+          "enum": [
+            "custosa",
+            "assistant_decided",
+            "assistant_decided_located",
+            "person_decided",
+            "person_decided_committed",
+            "open"
+          ]
+        },
+        "committed": {
+          "description": "Contract 2.3 (T23 B50): what each committed entry on this object came to, sorted by kind (decision, suppression, grant), then by key: at most one decision, one suppression and three grants. Present only when an entry matched the result (any outcome but seal_mismatch, no_match and other_account). It never changes state, reason or grade until B28; an accepted fail stays a fail.",
+          "type": "array",
+          "maxItems": 5,
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "kind",
+              "outcome"
+            ],
+            "properties": {
+              "kind": {
+                "type": "string",
+                "enum": [
+                  "decision",
+                  "suppression",
+                  "grant"
+                ]
+              },
+              "outcome": {
+                "type": "string",
+                "enum": [
+                  "not_committable_content",
+                  "no_content_key",
+                  "not_applied_on_fix",
+                  "superseded",
+                  "custosa_fail",
+                  "evidence_hold",
+                  "facts_changed",
+                  "recorded",
+                  "contradicted",
+                  "option_not_offered",
+                  "applied",
+                  "left_open",
+                  "expired",
+                  "recheck_needed",
+                  "not_a_fail",
+                  "not_covering",
+                  "accepted"
+                ]
+              },
+              "option": {
+                "type": "string",
+                "pattern": "^[a-z][a-z0-9_]{0,63}$"
+              },
+              "reason": {
+                "type": "string",
+                "enum": [
+                  "false_positive",
+                  "accepted_risk",
+                  "compensating_control"
+                ]
+              },
+              "expires_on": {
+                "anyOf": [
+                  {
+                    "type": "string",
+                    "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}$"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              },
+              "max_age_on": {
+                "type": "string",
+                "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}$"
+              },
+              "grantee": {
+                "type": "string",
+                "enum": [
+                  "PUBLIC",
+                  "anon",
+                  "authenticated"
+                ]
+              }
+            }
+          }
+        },
+        "observed_problem": {
+          "description": "Custosa observed a problem here (a role or command it saw): an evidence hold that only a fail or leaving it open settles. Present only when true.",
+          "type": "boolean",
+          "const": true
+        },
+        "decision": {
+          "description": "The structured decision this run offers the person on an open line (B28-core, design v3 section 2.1.4): the question, why it is asked, what Custosa read, and the options with the state each settles as (null leaves the item open). An option sent back as decisions {object_id, option} settles the line only when this run offers it.",
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "object_id",
+            "question",
+            "why_asked",
+            "scope",
+            "evidence",
+            "options"
+          ],
+          "properties": {
+            "object_id": {
+              "$ref": "https://custosa.com/schemas/fact-document/2#/$defs/object_id"
+            },
+            "question": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 600
+            },
+            "why_asked": {
+              "type": "string",
+              "enum": [
+                "custosa_found_failure",
+                "custosa_holds_evidence",
+                "needs_outside_knowledge",
+                "assistant_could_not_decide"
+              ]
+            },
+            "scope": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 600
+            },
+            "evidence": {
+              "type": "array",
+              "maxItems": 5,
+              "items": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": [
+                  "source",
+                  "says"
+                ],
+                "properties": {
+                  "source": {
+                    "type": "string",
+                    "enum": [
+                      "rule",
+                      "catalog",
+                      "platform",
+                      "secret",
+                      "answer",
+                      "collector"
+                    ]
+                  },
+                  "says": {
+                    "anyOf": [
+                      {
+                        "$ref": "https://custosa.com/schemas/fact-document/2#/$defs/rule_id"
+                      },
+                      {
+                        "$ref": "https://custosa.com/schemas/fact-document/2#/$defs/identifier"
+                      }
+                    ]
+                  },
+                  "at": {
+                    "$ref": "https://custosa.com/schemas/fact-document/2#/$defs/location"
+                  }
+                }
+              }
+            },
+            "options": {
+              "type": "array",
+              "minItems": 2,
+              "maxItems": 4,
+              "items": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": [
+                  "id",
+                  "label",
+                  "settles_as",
+                  "readiness"
+                ],
+                "properties": {
+                  "id": {
+                    "type": "string",
+                    "pattern": "^[a-z][a-z0-9_]{0,63}$"
+                  },
+                  "label": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 200
+                  },
+                  "settles_as": {
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "enum": [
+                      "pass",
+                      "fail",
+                      "not_applicable",
+                      null
+                    ]
+                  },
+                  "readiness": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 300
+                  }
+                }
+              }
+            },
+            "saw": {
+              "description": "Contract 2.5 (docs/empty-match-settle.md v2): on a line whose rules saw nothing of the object, counts only, because it rides on every such line. matched: nothing (the rules ran and matched no item or violation of the object, or a scanner found nothing) or not_run (they never ran here); stack_count: the practice's rule stacks whose language this run read (a stack's rule file is practice.stack); files_covered: the files the inspector analysed (null when unknown). What Custosa read and what to look for are in the practice's guidance on the same page (saw, look_for). A pass or not_applicable here settles only as a person's option sent with decider_ref.",
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "matched",
+                "stack_count",
+                "files_covered"
+              ],
+              "properties": {
+                "matched": {
+                  "type": "string",
+                  "enum": [
+                    "nothing",
+                    "not_run"
+                  ]
+                },
+                "stack_count": {
+                  "type": "integer",
+                  "minimum": 0
+                },
+                "files_covered": {
+                  "type": [
+                    "integer",
+                    "null"
+                  ],
+                  "minimum": 0
+                }
+              }
+            }
+          }
+        }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "state": {
+                "enum": [
+                  "pass",
+                  "fail",
+                  "not_applicable"
+                ]
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "reason": {
+                "type": "null"
+              }
+            }
+          },
+          "else": {
+            "properties": {
+              "reason": {
+                "type": "string",
+                "enum": [
+                  "collector_failed",
+                  "collector_not_run",
+                  "collection_truncated",
+                  "not_analyzed",
+                  "no_rule_for_stack",
+                  "needs_dataflow",
+                  "grade_too_low",
+                  "assistant_answer_needed",
+                  "person_must_decide",
+                  "preflight_failed",
+                  "evaluator_error",
+                  "no_objects_observed",
+                  "unclassified_table_exposed",
+                  "entrypoints_not_observed",
+                  "table_not_resolved",
+                  "parse_failed",
+                  "catalog_not_deployed",
+                  "exposure_suspected",
+                  "assistant_located",
+                  "code_not_verified",
+                  "answer_contradicted",
+                  "location_not_confirmed",
+                  "assistant_contested",
+                  "definer_function_unjudged",
+                  "helper_not_reached_from_handlers",
+                  "elevated_client_imported",
+                  "rules_saw_nothing"
+                ]
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "state": {
+                "enum": [
+                  "pass",
+                  "not_applicable"
+                ]
+              }
+            },
+            "not": {
+              "required": [
+                "settled_by"
+              ]
+            }
+          },
+          "then": {
+            "properties": {
+              "grade": {
+                "enum": [
+                  "E1",
+                  "E2",
+                  "E3"
+                ]
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "state": {
+                "enum": [
+                  "pass",
+                  "not_applicable"
+                ]
+              },
+              "severity": {
+                "enum": [
+                  "critical",
+                  "high"
+                ]
+              }
+            },
+            "not": {
+              "anyOf": [
+                {
+                  "required": [
+                    "settled_by"
+                  ]
+                },
+                {
+                  "required": [
+                    "assurance"
+                  ]
+                }
+              ]
+            }
+          },
+          "then": {
+            "properties": {
+              "grade": {
+                "enum": [
+                  "E1",
+                  "E2"
+                ]
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "required": [
+              "settled_by"
+            ]
+          },
+          "then": {
+            "properties": {
+              "state": {
+                "enum": [
+                  "pass",
+                  "fail",
+                  "not_applicable"
+                ]
+              },
+              "grade": {
+                "enum": [
+                  "E3",
+                  "E4"
+                ]
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "required": [
+              "settled_by"
+            ],
+            "properties": {
+              "settled_by": {
+                "const": "assistant"
+              },
+              "grade": {
+                "enum": [
+                  "E4"
+                ]
+              }
+            }
+          },
+          "then": {
+            "required": [
+              "assistant"
+            ]
+          }
+        },
+        {
+          "if": {
+            "required": [
+              "settled_by"
+            ],
+            "properties": {
+              "settled_by": {
+                "const": "person"
+              }
+            }
+          },
+          "then": {
+            "required": [
+              "assurance"
+            ],
+            "properties": {
+              "grade": {
+                "enum": [
+                  "E4"
+                ]
+              },
+              "assurance": {
+                "enum": [
+                  "person_decided",
+                  "person_decided_committed"
+                ]
+              }
+            }
+          }
+        }
+      ]
+    },
+    "evidence": {
+      "description": "What a result rests on: a rule id (rule, secret), a query id (catalog), a setting name (platform), a question id (answer) or a collector (collector), with the location where there is one.",
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "source",
+        "id",
+        "location"
+      ],
+      "properties": {
+        "source": {
+          "type": "string",
+          "enum": [
+            "rule",
+            "catalog",
+            "platform",
+            "secret",
+            "answer",
+            "collector"
+          ]
+        },
+        "id": {
+          "anyOf": [
+            {
+              "$ref": "https://custosa.com/schemas/fact-document/2#/$defs/rule_id"
+            },
+            {
+              "$ref": "https://custosa.com/schemas/fact-document/2#/$defs/identifier"
+            }
+          ]
+        },
+        "location": {
+          "anyOf": [
+            {
+              "$ref": "https://custosa.com/schemas/fact-document/2#/$defs/location"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        }
+      }
+    },
+    "question": {
+      "description": "A judgement the rules can't make. Answered in the next call's answers field with this question_id and object_id. practice_id: the practice that asks it, the key of its guidance in the page's guidance map (B52). expects: the construct kind a location answer must point at for E3 (null when no location is asked). why, look_for and settles (optional, T18): the reason the item is open, where to look and what each allowed answer does, from the practice's own text.",
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "question_id",
+        "object_id",
+        "practice_id",
+        "ask",
+        "answers",
+        "expects"
+      ],
+      "properties": {
+        "question_id": {
+          "type": "string",
+          "enum": [
+            "purpose",
+            "staff_access",
+            "location",
+            "person_confirmation"
+          ]
+        },
+        "object_id": {
+          "$ref": "https://custosa.com/schemas/fact-document/2#/$defs/object_id"
+        },
+        "ask": {
+          "type": "string",
+          "maxLength": 3000
+        },
+        "answers": {
+          "type": "array",
+          "maxItems": 10,
+          "items": {
+            "type": "string",
+            "enum": [
+              "admin_app",
+              "confirmed",
+              "declined",
+              "direct_database",
+              "here",
+              "lookup",
+              "no_staff_access",
+              "not_confirmed",
+              "not_found",
+              "not_present",
+              "not_sure",
+              "organization",
+              "phi",
+              "reporting",
+              "secret",
+              "support_tool",
+              "technical",
+              "workforce"
+            ]
+          }
+        },
+        "expects": {
+          "anyOf": [
+            {
+              "type": [
+                "string",
+                "null"
+              ],
+              "enum": [
+                "function",
+                "class",
+                "method",
+                "call",
+                "route_handler",
+                "decorator",
+                "middleware",
+                "migration",
+                "sql_statement",
+                "config_key",
+                "other",
+                null
+              ]
+            },
+            {
+              "type": "array",
+              "minItems": 1,
+              "maxItems": 11,
+              "uniqueItems": true,
+              "items": {
+                "type": "string",
+                "enum": [
+                  "function",
+                  "class",
+                  "method",
+                  "call",
+                  "route_handler",
+                  "decorator",
+                  "middleware",
+                  "migration",
+                  "sql_statement",
+                  "config_key",
+                  "other"
+                ]
+              }
+            }
+          ]
+        },
+        "why": {
+          "description": "The reason code the item is open on (result.reason).",
+          "type": "string",
+          "enum": [
+            "collector_failed",
+            "collector_not_run",
+            "collection_truncated",
+            "not_analyzed",
+            "no_rule_for_stack",
+            "needs_dataflow",
+            "grade_too_low",
+            "assistant_answer_needed",
+            "person_must_decide",
+            "preflight_failed",
+            "evaluator_error",
+            "no_objects_observed",
+            "unclassified_table_exposed",
+            "entrypoints_not_observed",
+            "table_not_resolved",
+            "parse_failed",
+            "catalog_not_deployed",
+            "exposure_suspected",
+            "assistant_located",
+            "code_not_verified",
+            "answer_contradicted",
+            "location_not_confirmed",
+            "assistant_contested",
+            "definer_function_unjudged",
+            "helper_not_reached_from_handlers",
+            "elevated_client_imported",
+            "rules_saw_nothing"
+          ]
+        },
+        "look_for": {
+          "description": "Where to look: the files, constructs or settings that settle it.",
+          "type": "string",
+          "maxLength": 1000
+        },
+        "settles": {
+          "description": "What each allowed answer does to the result, one line per answer.",
+          "type": "array",
+          "maxItems": 10,
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "answer",
+              "effect"
+            ],
+            "properties": {
+              "answer": {
+                "type": "string",
+                "enum": [
+                  "admin_app",
+                  "confirmed",
+                  "declined",
+                  "direct_database",
+                  "here",
+                  "lookup",
+                  "no_staff_access",
+                  "not_confirmed",
+                  "not_found",
+                  "not_present",
+                  "not_sure",
+                  "organization",
+                  "phi",
+                  "reporting",
+                  "secret",
+                  "support_tool",
+                  "technical",
+                  "workforce"
+                ]
+              },
+              "effect": {
+                "type": "string",
+                "maxLength": 300
+              }
+            }
+          }
+        },
+        "practice_id": {
+          "$ref": "https://custosa.com/schemas/fact-document/2#/$defs/practice_id"
+        }
+      }
+    },
+    "brief": {
+      "description": "T18: one question for every listed object of one practice, asked once. Each object is answered as its own question in the next call's answers field, with this question_id and the object's object_id; intake, grading and E3 checks are those of a question. An object in a brief is not repeated in questions, and still counts as open until it is answered.",
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "practice_id",
+        "question_id",
+        "ask",
+        "answers",
+        "expects",
+        "object_ids"
+      ],
+      "properties": {
+        "practice_id": {
+          "$ref": "https://custosa.com/schemas/fact-document/2#/$defs/practice_id"
+        },
+        "question_id": {
+          "type": "string",
+          "enum": [
+            "purpose",
+            "staff_access",
+            "location",
+            "person_confirmation"
+          ]
+        },
+        "ask": {
+          "type": "string",
+          "maxLength": 3000
+        },
+        "answers": {
+          "type": "array",
+          "maxItems": 10,
+          "items": {
+            "type": "string",
+            "enum": [
+              "admin_app",
+              "confirmed",
+              "declined",
+              "direct_database",
+              "here",
+              "lookup",
+              "no_staff_access",
+              "not_confirmed",
+              "not_found",
+              "not_present",
+              "not_sure",
+              "organization",
+              "phi",
+              "reporting",
+              "secret",
+              "support_tool",
+              "technical",
+              "workforce"
+            ]
+          }
+        },
+        "expects": {
+          "anyOf": [
+            {
+              "type": [
+                "string",
+                "null"
+              ],
+              "enum": [
+                "function",
+                "class",
+                "method",
+                "call",
+                "route_handler",
+                "decorator",
+                "middleware",
+                "migration",
+                "sql_statement",
+                "config_key",
+                "other",
+                null
+              ]
+            },
+            {
+              "type": "array",
+              "minItems": 1,
+              "maxItems": 11,
+              "uniqueItems": true,
+              "items": {
+                "type": "string",
+                "enum": [
+                  "function",
+                  "class",
+                  "method",
+                  "call",
+                  "route_handler",
+                  "decorator",
+                  "middleware",
+                  "migration",
+                  "sql_statement",
+                  "config_key",
+                  "other"
+                ]
+              }
+            }
+          ]
+        },
+        "object_ids": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 1000,
+          "uniqueItems": true,
+          "items": {
+            "$ref": "https://custosa.com/schemas/fact-document/2#/$defs/object_id"
+          }
+        },
+        "why": {
+          "description": "The reason code the item is open on (result.reason).",
+          "type": "string",
+          "enum": [
+            "collector_failed",
+            "collector_not_run",
+            "collection_truncated",
+            "not_analyzed",
+            "no_rule_for_stack",
+            "needs_dataflow",
+            "grade_too_low",
+            "assistant_answer_needed",
+            "person_must_decide",
+            "preflight_failed",
+            "evaluator_error",
+            "no_objects_observed",
+            "unclassified_table_exposed",
+            "entrypoints_not_observed",
+            "table_not_resolved",
+            "parse_failed",
+            "catalog_not_deployed",
+            "exposure_suspected",
+            "assistant_located",
+            "code_not_verified",
+            "answer_contradicted",
+            "location_not_confirmed",
+            "assistant_contested",
+            "definer_function_unjudged",
+            "helper_not_reached_from_handlers",
+            "elevated_client_imported",
+            "rules_saw_nothing"
+          ]
+        },
+        "look_for": {
+          "description": "Where to look: the files, constructs or settings that settle it.",
+          "type": "string",
+          "maxLength": 1000
+        },
+        "settles": {
+          "description": "What each allowed answer does to the result, one line per answer.",
+          "type": "array",
+          "maxItems": 10,
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "answer",
+              "effect"
+            ],
+            "properties": {
+              "answer": {
+                "type": "string",
+                "enum": [
+                  "admin_app",
+                  "confirmed",
+                  "declined",
+                  "direct_database",
+                  "here",
+                  "lookup",
+                  "no_staff_access",
+                  "not_confirmed",
+                  "not_found",
+                  "not_present",
+                  "not_sure",
+                  "organization",
+                  "phi",
+                  "reporting",
+                  "secret",
+                  "support_tool",
+                  "technical",
+                  "workforce"
+                ]
+              },
+              "effect": {
+                "type": "string",
+                "maxLength": 300
+              }
+            }
+          }
+        }
+      }
+    },
+    "fix": {
+      "description": "A fix for one finding, in our words and code: steps to follow, the migration SQL where there is one, the files it touches, how to undo it and how the next check confirms it.",
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "object_id",
+        "practice_id",
+        "title",
+        "kind",
+        "steps",
+        "sql",
+        "files",
+        "rollback",
+        "verify"
+      ],
+      "properties": {
+        "object_id": {
+          "$ref": "https://custosa.com/schemas/fact-document/2#/$defs/object_id"
+        },
+        "practice_id": {
+          "$ref": "https://custosa.com/schemas/fact-document/2#/$defs/practice_id"
+        },
+        "title": {
+          "type": "string",
+          "maxLength": 200
+        },
+        "kind": {
+          "type": "string",
+          "enum": [
+            "migration",
+            "code",
+            "platform_setting",
+            "manual"
+          ]
+        },
+        "steps": {
+          "type": "array",
+          "maxItems": 30,
+          "items": {
+            "type": "string",
+            "maxLength": 2000
+          }
+        },
+        "sql": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "maxLength": 100000
+        },
+        "files": {
+          "type": "array",
+          "maxItems": 100,
+          "items": {
+            "$ref": "https://custosa.com/schemas/fact-document/2#/$defs/path"
+          }
+        },
+        "rollback": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "maxLength": 100000
+        },
+        "verify": {
+          "type": "string",
+          "maxLength": 2000
+        }
+      }
+    },
+    "readiness": {
+      "description": "ready only with at least one settled pass (any assurance), nothing blocking (no fail, unknown or error result, and no needs_review result on a critical or high practice, B9), no open evidence hold, definer hold, person-only result or run problem at any severity, and no unresolved assistant concern (OQ1, B28). percent is verified by Custosa; score counts what the assistant or a person settled too and always travels with score_label; breakdown says who decided. A person's decision recorded without an option is shown, never counted. Production readiness (ready with environment production) needs environment value production from source setup; from source answer the state is not_ready in production. needs_review results on medium and low practices that are not holds don't block ready: with the rest of the open items they are the end-of-run list the person confirms, grouped by cause.",
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "state",
+        "headline",
+        "percent",
+        "counts",
+        "by_severity",
+        "by_area",
+        "ruleset_id",
+        "registry_id",
+        "checked_at",
+        "environment",
+        "score",
+        "score_label",
+        "breakdown",
+        "blockers"
+      ],
+      "properties": {
+        "state": {
+          "type": "string",
+          "enum": [
+            "ready",
+            "not_ready"
+          ]
+        },
+        "verified_state": {
+          "type": "string",
+          "enum": [
+            "ready",
+            "not_ready"
+          ],
+          "description": "T27 C69: state on Custosa's word alone, which the public badge and page show: ready only when state is ready, at least one pass is Custosa's own, and no result rests on the assistant's or a person's word (a settled pass or not_applicable counts as blocking). Inside the session state stands."
+        },
+        "headline": {
+          "type": "string",
+          "maxLength": 500
+        },
+        "percent": {
+          "type": [
+            "integer",
+            "null"
+          ],
+          "minimum": 0,
+          "maximum": 100,
+          "description": "percent_verified: Custosa's own passes over every result but Custosa's not_applicable, plus open confirmed concerns in the denominator; half up, never 100 while one isn't a Custosa pass, null when nothing applies."
+        },
+        "counts": {
+          "description": "Results by shown state; a pass or not_applicable the assistant or a person settled is counted in assistant_decided or person_decided (B28), never in pass or not_applicable. A labelled fail stays in fail.",
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "pass",
+            "fail",
+            "not_applicable",
+            "needs_review",
+            "unknown",
+            "error",
+            "assistant_decided",
+            "person_decided"
+          ],
+          "properties": {
+            "pass": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 1000000
+            },
+            "fail": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 1000000
+            },
+            "not_applicable": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 1000000
+            },
+            "needs_review": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 1000000
+            },
+            "unknown": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 1000000
+            },
+            "error": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 1000000
+            },
+            "assistant_decided": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 1000000
+            },
+            "person_decided": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 1000000
+            }
+          }
+        },
+        "by_severity": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "critical",
+            "high",
+            "medium",
+            "low"
+          ],
+          "properties": {
+            "critical": {
+              "description": "critical results by state, and concern_open: the assistant's open confirmed concerns at critical (B51). concern_open counts concerns, the other keys results: never sum them.",
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "pass",
+                "fail",
+                "not_applicable",
+                "needs_review",
+                "unknown",
+                "error",
+                "assistant_decided",
+                "person_decided",
+                "concern_open"
+              ],
+              "properties": {
+                "pass": {
+                  "type": "integer",
+                  "minimum": 0,
+                  "maximum": 1000000
+                },
+                "fail": {
+                  "type": "integer",
+                  "minimum": 0,
+                  "maximum": 1000000
+                },
+                "not_applicable": {
+                  "type": "integer",
+                  "minimum": 0,
+                  "maximum": 1000000
+                },
+                "needs_review": {
+                  "type": "integer",
+                  "minimum": 0,
+                  "maximum": 1000000
+                },
+                "unknown": {
+                  "type": "integer",
+                  "minimum": 0,
+                  "maximum": 1000000
+                },
+                "error": {
+                  "type": "integer",
+                  "minimum": 0,
+                  "maximum": 1000000
+                },
+                "assistant_decided": {
+                  "type": "integer",
+                  "minimum": 0,
+                  "maximum": 1000000
+                },
+                "person_decided": {
+                  "type": "integer",
+                  "minimum": 0,
+                  "maximum": 1000000
+                },
+                "concern_open": {
+                  "type": "integer",
+                  "minimum": 0,
+                  "maximum": 1000000
+                }
+              }
+            },
+            "high": {
+              "description": "high results by state, and concern_open: the assistant's open confirmed concerns at high (B51). concern_open counts concerns, the other keys results: never sum them.",
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "pass",
+                "fail",
+                "not_applicable",
+                "needs_review",
+                "unknown",
+                "error",
+                "assistant_decided",
+                "person_decided",
+                "concern_open"
+              ],
+              "properties": {
+                "pass": {
+                  "type": "integer",
+                  "minimum": 0,
+                  "maximum": 1000000
+                },
+                "fail": {
+                  "type": "integer",
+                  "minimum": 0,
+                  "maximum": 1000000
+                },
+                "not_applicable": {
+                  "type": "integer",
+                  "minimum": 0,
+                  "maximum": 1000000
+                },
+                "needs_review": {
+                  "type": "integer",
+                  "minimum": 0,
+                  "maximum": 1000000
+                },
+                "unknown": {
+                  "type": "integer",
+                  "minimum": 0,
+                  "maximum": 1000000
+                },
+                "error": {
+                  "type": "integer",
+                  "minimum": 0,
+                  "maximum": 1000000
+                },
+                "assistant_decided": {
+                  "type": "integer",
+                  "minimum": 0,
+                  "maximum": 1000000
+                },
+                "person_decided": {
+                  "type": "integer",
+                  "minimum": 0,
+                  "maximum": 1000000
+                },
+                "concern_open": {
+                  "type": "integer",
+                  "minimum": 0,
+                  "maximum": 1000000
+                }
+              }
+            },
+            "medium": {
+              "description": "medium results by state, and concern_open: the assistant's open confirmed concerns at medium (B51). concern_open counts concerns, the other keys results: never sum them.",
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "pass",
+                "fail",
+                "not_applicable",
+                "needs_review",
+                "unknown",
+                "error",
+                "assistant_decided",
+                "person_decided",
+                "concern_open"
+              ],
+              "properties": {
+                "pass": {
+                  "type": "integer",
+                  "minimum": 0,
+                  "maximum": 1000000
+                },
+                "fail": {
+                  "type": "integer",
+                  "minimum": 0,
+                  "maximum": 1000000
+                },
+                "not_applicable": {
+                  "type": "integer",
+                  "minimum": 0,
+                  "maximum": 1000000
+                },
+                "needs_review": {
+                  "type": "integer",
+                  "minimum": 0,
+                  "maximum": 1000000
+                },
+                "unknown": {
+                  "type": "integer",
+                  "minimum": 0,
+                  "maximum": 1000000
+                },
+                "error": {
+                  "type": "integer",
+                  "minimum": 0,
+                  "maximum": 1000000
+                },
+                "assistant_decided": {
+                  "type": "integer",
+                  "minimum": 0,
+                  "maximum": 1000000
+                },
+                "person_decided": {
+                  "type": "integer",
+                  "minimum": 0,
+                  "maximum": 1000000
+                },
+                "concern_open": {
+                  "type": "integer",
+                  "minimum": 0,
+                  "maximum": 1000000
+                }
+              }
+            },
+            "low": {
+              "description": "low results by state, and concern_open: the assistant's open confirmed concerns at low (B51). concern_open counts concerns, the other keys results: never sum them.",
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "pass",
+                "fail",
+                "not_applicable",
+                "needs_review",
+                "unknown",
+                "error",
+                "assistant_decided",
+                "person_decided",
+                "concern_open"
+              ],
+              "properties": {
+                "pass": {
+                  "type": "integer",
+                  "minimum": 0,
+                  "maximum": 1000000
+                },
+                "fail": {
+                  "type": "integer",
+                  "minimum": 0,
+                  "maximum": 1000000
+                },
+                "not_applicable": {
+                  "type": "integer",
+                  "minimum": 0,
+                  "maximum": 1000000
+                },
+                "needs_review": {
+                  "type": "integer",
+                  "minimum": 0,
+                  "maximum": 1000000
+                },
+                "unknown": {
+                  "type": "integer",
+                  "minimum": 0,
+                  "maximum": 1000000
+                },
+                "error": {
+                  "type": "integer",
+                  "minimum": 0,
+                  "maximum": 1000000
+                },
+                "assistant_decided": {
+                  "type": "integer",
+                  "minimum": 0,
+                  "maximum": 1000000
+                },
+                "person_decided": {
+                  "type": "integer",
+                  "minimum": 0,
+                  "maximum": 1000000
+                },
+                "concern_open": {
+                  "type": "integer",
+                  "minimum": 0,
+                  "maximum": 1000000
+                }
+              }
+            }
+          }
+        },
+        "by_area": {
+          "type": "array",
+          "maxItems": 100,
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "area",
+              "pass",
+              "verified_pass",
+              "settled_pass",
+              "applicable",
+              "score_applicable"
+            ],
+            "properties": {
+              "area": {
+                "$ref": "https://custosa.com/schemas/fact-document/2#/$defs/identifier"
+              },
+              "pass": {
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 1000000,
+                "description": "Deprecated (one release): the same as verified_pass."
+              },
+              "applicable": {
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 1000000,
+                "description": "Every result but Custosa's not_applicable: verified_pass's denominator."
+              },
+              "verified_pass": {
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 1000000,
+                "description": "Custosa's own passes in the area."
+              },
+              "settled_pass": {
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 1000000,
+                "description": "Passes of any assurance in the area (Custosa, the assistant or a person)."
+              },
+              "score_applicable": {
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 1000000,
+                "description": "Every result but any not_applicable: settled_pass's denominator."
+              }
+            }
+          }
+        },
+        "ruleset_id": {
+          "type": "string",
+          "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}\\.[0-9a-f]{8}$"
+        },
+        "registry_id": {
+          "type": "string",
+          "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}\\.[0-9a-f]{8}$"
+        },
+        "checked_at": {
+          "type": "string",
+          "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}$"
+        },
+        "environment": {
+          "$ref": "https://custosa.com/schemas/fact-document/2#/$defs/environment"
+        },
+        "score": {
+          "description": "The settled score: passes of any assurance over every result but any not_applicable, plus open confirmed concerns in the denominator (a fixed concern is neutral, a dismissed or unconfirmed one out). Never shown without score_label.",
+          "type": [
+            "integer",
+            "null"
+          ],
+          "minimum": 0,
+          "maximum": 100
+        },
+        "score_label": {
+          "description": "\"N% settled, M% verified by Custosa\", or why there is no score.",
+          "type": "string",
+          "maxLength": 100
+        },
+        "blockers": {
+          "description": "What keeps the state not_ready, by severity, each result counted in one kind at most (B28-core second review), the same counts the headline names: hold is a result whose F4 class is hold (app.core.assurance.f4_class: observed_problem or definer_hold set, an evidence-hold reason such as collection_truncated, answer_contradicted, code_not_verified, location_not_confirmed, table_not_resolved, definer_function_unjudged, exposure_suspected, helper_not_reached_from_handlers or unclassified_table_exposed, or a reason in no class); person_only is a result whose F4 class is person_only for assistant_contested; a result person_only for rules_saw_nothing alone (an answer's pass or not_applicable refused where the rules saw nothing) counts by its state, as below (B9). Every other result counts by its state at the readiness level: fail; needs_review on critical and high practices only (B9); unknown; error. A run problem (evaluator_error, preflight_failed) counts as error or unknown by its state. Unresolved assistant concerns and production named by the assistant also keep it not_ready and are not counted here.",
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "fail",
+            "needs_review",
+            "hold",
+            "person_only",
+            "unknown",
+            "error"
+          ],
+          "properties": {
+            "fail": {
+              "$ref": "#/$defs/severity_counts"
+            },
+            "needs_review": {
+              "$ref": "#/$defs/severity_counts"
+            },
+            "hold": {
+              "$ref": "#/$defs/severity_counts"
+            },
+            "person_only": {
+              "$ref": "#/$defs/severity_counts"
+            },
+            "unknown": {
+              "$ref": "#/$defs/severity_counts"
+            },
+            "error": {
+              "$ref": "#/$defs/severity_counts"
+            }
+          }
+        },
+        "breakdown": {
+          "description": "Who stands behind the settled results (design v3 section 2.1.5 part 2), always next to the state.",
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "verified_by_custosa",
+            "assistant_decided",
+            "person_decided",
+            "concerns",
+            "rests_on_assistant",
+            "rests_on_assistant_any",
+            "percent_verified"
+          ],
+          "properties": {
+            "verified_by_custosa": {
+              "description": "Settled pass and not_applicable results Custosa observed.",
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "total",
+                "by_severity"
+              ],
+              "properties": {
+                "total": {
+                  "type": "integer",
+                  "minimum": 0,
+                  "maximum": 1000000
+                },
+                "by_severity": {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "required": [
+                    "critical",
+                    "high",
+                    "medium",
+                    "low"
+                  ],
+                  "properties": {
+                    "critical": {
+                      "type": "integer",
+                      "minimum": 0,
+                      "maximum": 1000000
+                    },
+                    "high": {
+                      "type": "integer",
+                      "minimum": 0,
+                      "maximum": 1000000
+                    },
+                    "medium": {
+                      "type": "integer",
+                      "minimum": 0,
+                      "maximum": 1000000
+                    },
+                    "low": {
+                      "type": "integer",
+                      "minimum": 0,
+                      "maximum": 1000000
+                    }
+                  }
+                }
+              }
+            },
+            "assistant_decided": {
+              "description": "Settled pass and not_applicable results the assistant decided; located: those on a confirmed location.",
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "total",
+                "by_severity",
+                "located"
+              ],
+              "properties": {
+                "total": {
+                  "type": "integer",
+                  "minimum": 0,
+                  "maximum": 1000000
+                },
+                "by_severity": {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "required": [
+                    "critical",
+                    "high",
+                    "medium",
+                    "low"
+                  ],
+                  "properties": {
+                    "critical": {
+                      "type": "integer",
+                      "minimum": 0,
+                      "maximum": 1000000
+                    },
+                    "high": {
+                      "type": "integer",
+                      "minimum": 0,
+                      "maximum": 1000000
+                    },
+                    "medium": {
+                      "type": "integer",
+                      "minimum": 0,
+                      "maximum": 1000000
+                    },
+                    "low": {
+                      "type": "integer",
+                      "minimum": 0,
+                      "maximum": 1000000
+                    }
+                  }
+                },
+                "located": {
+                  "type": "integer",
+                  "minimum": 0,
+                  "maximum": 1000000
+                }
+              }
+            },
+            "person_decided": {
+              "description": "Settled pass and not_applicable results a person decided, as relayed; committed: from the committed state file.",
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "total",
+                "by_severity",
+                "committed"
+              ],
+              "properties": {
+                "total": {
+                  "type": "integer",
+                  "minimum": 0,
+                  "maximum": 1000000
+                },
+                "by_severity": {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "required": [
+                    "critical",
+                    "high",
+                    "medium",
+                    "low"
+                  ],
+                  "properties": {
+                    "critical": {
+                      "type": "integer",
+                      "minimum": 0,
+                      "maximum": 1000000
+                    },
+                    "high": {
+                      "type": "integer",
+                      "minimum": 0,
+                      "maximum": 1000000
+                    },
+                    "medium": {
+                      "type": "integer",
+                      "minimum": 0,
+                      "maximum": 1000000
+                    },
+                    "low": {
+                      "type": "integer",
+                      "minimum": 0,
+                      "maximum": 1000000
+                    }
+                  }
+                },
+                "committed": {
+                  "type": "integer",
+                  "minimum": 0,
+                  "maximum": 1000000
+                }
+              }
+            },
+            "concerns": {
+              "description": "The assistant's concerns by where they stand.",
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "raised",
+                "unconfirmed",
+                "confirmed_open",
+                "confirmed_fixed",
+                "dismissed"
+              ],
+              "properties": {
+                "raised": {
+                  "type": "integer",
+                  "minimum": 0,
+                  "maximum": 1000000
+                },
+                "unconfirmed": {
+                  "type": "integer",
+                  "minimum": 0,
+                  "maximum": 1000000
+                },
+                "confirmed_open": {
+                  "type": "integer",
+                  "minimum": 0,
+                  "maximum": 1000000
+                },
+                "confirmed_fixed": {
+                  "type": "integer",
+                  "minimum": 0,
+                  "maximum": 1000000
+                },
+                "dismissed": {
+                  "type": "integer",
+                  "minimum": 0,
+                  "maximum": 1000000
+                },
+                "closed_by_assistant": {
+                  "description": "Fixed or dismissed concerns resting on the assistant's word alone (review N6): counted in rests_on_assistant at critical and high, and in rests_on_assistant_any.",
+                  "type": "integer",
+                  "minimum": 0,
+                  "maximum": 1000000
+                }
+              }
+            },
+            "rests_on_assistant": {
+              "description": "True when a critical or high pass or not_applicable was decided by the assistant or a person, or a critical or high concern was fixed or dismissed by the assistant.",
+              "type": "boolean"
+            },
+            "rests_on_assistant_any": {
+              "description": "True when any pass or not_applicable was decided by the assistant or a person, or the assistant marked a concern fixed or dismissed it.",
+              "type": "boolean"
+            },
+            "percent_verified": {
+              "description": "The same as percent.",
+              "type": [
+                "integer",
+                "null"
+              ],
+              "minimum": 0,
+              "maximum": 100
+            }
+          }
+        }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "environment": {
+                "properties": {
+                  "value": {
+                    "const": "production"
+                  },
+                  "source": {
+                    "const": "answer"
+                  }
+                }
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "state": {
+                "const": "not_ready"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "state": {
+                "const": "ready"
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "counts": {
+                "properties": {
+                  "fail": {
+                    "const": 0
+                  },
+                  "unknown": {
+                    "const": 0
+                  },
+                  "error": {
+                    "const": 0
+                  },
+                  "pass": {
+                    "minimum": 1
+                  }
+                }
+              },
+              "by_severity": {
+                "properties": {
+                  "critical": {
+                    "properties": {
+                      "needs_review": {
+                        "const": 0
+                      }
+                    }
+                  },
+                  "high": {
+                    "properties": {
+                      "needs_review": {
+                        "const": 0
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      ]
+    },
+    "collection_summary": {
+      "description": "What the evaluation stood on, from the fact document after fact building: every collector and query, with a missing one shown as failed, and the status of supabase.edge_functions as read (worst of with the files collector).",
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "collectors",
+        "queries",
+        "edge_functions",
+        "files_analyzed",
+        "files_not_analyzed"
+      ],
+      "properties": {
+        "collectors": {
+          "type": "array",
+          "maxItems": 6,
+          "items": {
+            "$ref": "https://custosa.com/schemas/fact-document/2#/$defs/collection_entry"
+          },
+          "minItems": 6,
+          "allOf": [
+            {
+              "contains": {
+                "required": [
+                  "collector"
+                ],
+                "properties": {
+                  "collector": {
+                    "const": "files"
+                  }
+                }
+              },
+              "minContains": 1,
+              "maxContains": 1
+            },
+            {
+              "contains": {
+                "required": [
+                  "collector"
+                ],
+                "properties": {
+                  "collector": {
+                    "const": "git"
+                  }
+                }
+              },
+              "minContains": 1,
+              "maxContains": 1
+            },
+            {
+              "contains": {
+                "required": [
+                  "collector"
+                ],
+                "properties": {
+                  "collector": {
+                    "const": "rules"
+                  }
+                }
+              },
+              "minContains": 1,
+              "maxContains": 1
+            },
+            {
+              "contains": {
+                "required": [
+                  "collector"
+                ],
+                "properties": {
+                  "collector": {
+                    "const": "catalog"
+                  }
+                }
+              },
+              "minContains": 1,
+              "maxContains": 1
+            },
+            {
+              "contains": {
+                "required": [
+                  "collector"
+                ],
+                "properties": {
+                  "collector": {
+                    "const": "platform"
+                  }
+                }
+              },
+              "minContains": 1,
+              "maxContains": 1
+            },
+            {
+              "contains": {
+                "required": [
+                  "collector"
+                ],
+                "properties": {
+                  "collector": {
+                    "const": "secrets"
+                  }
+                }
+              },
+              "minContains": 1,
+              "maxContains": 1
+            }
+          ]
+        },
+        "queries": {
+          "type": "array",
+          "maxItems": 20,
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "query_id",
+              "status",
+              "reason"
+            ],
+            "properties": {
+              "query_id": {
+                "type": "string",
+                "enum": [
+                  "rls_status",
+                  "rls_policies",
+                  "table_grants",
+                  "table_columns",
+                  "views",
+                  "definer_functions",
+                  "exposed_schemas",
+                  "roles",
+                  "storage_buckets",
+                  "transport",
+                  "logging",
+                  "audit",
+                  "self_hosted",
+                  "advisor",
+                  "default_acl",
+                  "schema_privileges",
+                  "triggers",
+                  "constraints",
+                  "realtime_publication",
+                  "connected_roles"
+                ]
+              },
+              "status": {
+                "$ref": "https://custosa.com/schemas/fact-document/2#/$defs/collection_status"
+              },
+              "reason": {
+                "anyOf": [
+                  {
+                    "$ref": "https://custosa.com/schemas/fact-document/2#/$defs/collection_reason"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              }
+            }
+          },
+          "minItems": 20,
+          "allOf": [
+            {
+              "contains": {
+                "required": [
+                  "query_id"
+                ],
+                "properties": {
+                  "query_id": {
+                    "const": "rls_status"
+                  }
+                }
+              },
+              "minContains": 1,
+              "maxContains": 1
+            },
+            {
+              "contains": {
+                "required": [
+                  "query_id"
+                ],
+                "properties": {
+                  "query_id": {
+                    "const": "rls_policies"
+                  }
+                }
+              },
+              "minContains": 1,
+              "maxContains": 1
+            },
+            {
+              "contains": {
+                "required": [
+                  "query_id"
+                ],
+                "properties": {
+                  "query_id": {
+                    "const": "table_grants"
+                  }
+                }
+              },
+              "minContains": 1,
+              "maxContains": 1
+            },
+            {
+              "contains": {
+                "required": [
+                  "query_id"
+                ],
+                "properties": {
+                  "query_id": {
+                    "const": "table_columns"
+                  }
+                }
+              },
+              "minContains": 1,
+              "maxContains": 1
+            },
+            {
+              "contains": {
+                "required": [
+                  "query_id"
+                ],
+                "properties": {
+                  "query_id": {
+                    "const": "views"
+                  }
+                }
+              },
+              "minContains": 1,
+              "maxContains": 1
+            },
+            {
+              "contains": {
+                "required": [
+                  "query_id"
+                ],
+                "properties": {
+                  "query_id": {
+                    "const": "definer_functions"
+                  }
+                }
+              },
+              "minContains": 1,
+              "maxContains": 1
+            },
+            {
+              "contains": {
+                "required": [
+                  "query_id"
+                ],
+                "properties": {
+                  "query_id": {
+                    "const": "exposed_schemas"
+                  }
+                }
+              },
+              "minContains": 1,
+              "maxContains": 1
+            },
+            {
+              "contains": {
+                "required": [
+                  "query_id"
+                ],
+                "properties": {
+                  "query_id": {
+                    "const": "roles"
+                  }
+                }
+              },
+              "minContains": 1,
+              "maxContains": 1
+            },
+            {
+              "contains": {
+                "required": [
+                  "query_id"
+                ],
+                "properties": {
+                  "query_id": {
+                    "const": "storage_buckets"
+                  }
+                }
+              },
+              "minContains": 1,
+              "maxContains": 1
+            },
+            {
+              "contains": {
+                "required": [
+                  "query_id"
+                ],
+                "properties": {
+                  "query_id": {
+                    "const": "transport"
+                  }
+                }
+              },
+              "minContains": 1,
+              "maxContains": 1
+            },
+            {
+              "contains": {
+                "required": [
+                  "query_id"
+                ],
+                "properties": {
+                  "query_id": {
+                    "const": "logging"
+                  }
+                }
+              },
+              "minContains": 1,
+              "maxContains": 1
+            },
+            {
+              "contains": {
+                "required": [
+                  "query_id"
+                ],
+                "properties": {
+                  "query_id": {
+                    "const": "audit"
+                  }
+                }
+              },
+              "minContains": 1,
+              "maxContains": 1
+            },
+            {
+              "contains": {
+                "required": [
+                  "query_id"
+                ],
+                "properties": {
+                  "query_id": {
+                    "const": "self_hosted"
+                  }
+                }
+              },
+              "minContains": 1,
+              "maxContains": 1
+            },
+            {
+              "contains": {
+                "required": [
+                  "query_id"
+                ],
+                "properties": {
+                  "query_id": {
+                    "const": "advisor"
+                  }
+                }
+              },
+              "minContains": 1,
+              "maxContains": 1
+            },
+            {
+              "contains": {
+                "required": [
+                  "query_id"
+                ],
+                "properties": {
+                  "query_id": {
+                    "const": "default_acl"
+                  }
+                }
+              },
+              "minContains": 1,
+              "maxContains": 1
+            },
+            {
+              "contains": {
+                "required": [
+                  "query_id"
+                ],
+                "properties": {
+                  "query_id": {
+                    "const": "schema_privileges"
+                  }
+                }
+              },
+              "minContains": 1,
+              "maxContains": 1
+            },
+            {
+              "contains": {
+                "required": [
+                  "query_id"
+                ],
+                "properties": {
+                  "query_id": {
+                    "const": "triggers"
+                  }
+                }
+              },
+              "minContains": 1,
+              "maxContains": 1
+            },
+            {
+              "contains": {
+                "required": [
+                  "query_id"
+                ],
+                "properties": {
+                  "query_id": {
+                    "const": "constraints"
+                  }
+                }
+              },
+              "minContains": 1,
+              "maxContains": 1
+            },
+            {
+              "contains": {
+                "required": [
+                  "query_id"
+                ],
+                "properties": {
+                  "query_id": {
+                    "const": "realtime_publication"
+                  }
+                }
+              },
+              "minContains": 1,
+              "maxContains": 1
+            },
+            {
+              "contains": {
+                "required": [
+                  "query_id"
+                ],
+                "properties": {
+                  "query_id": {
+                    "const": "connected_roles"
+                  }
+                }
+              },
+              "minContains": 1,
+              "maxContains": 1
+            }
+          ]
+        },
+        "edge_functions": {
+          "description": "supabase.edge_functions' status and reason after fact building (evaluator_api.md section 1.7): the worse of its own and the files collector's, and not_run (no config.toml) only after a complete walk.",
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "status",
+            "reason"
+          ],
+          "properties": {
+            "status": {
+              "$ref": "https://custosa.com/schemas/fact-document/2#/$defs/collection_status"
+            },
+            "reason": {
+              "anyOf": [
+                {
+                  "$ref": "https://custosa.com/schemas/fact-document/2#/$defs/collection_reason"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            }
+          }
+        },
+        "files_analyzed": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 10000000
+        },
+        "files_not_analyzed": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 10000000
+        }
+      }
+    },
+    "page": {
+      "description": "Present when the response is paged: fetch page n with {goal, session, page: n}; nothing is evaluated or charged for it.",
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "n",
+        "of",
+        "next",
+        "later_pages_hold"
+      ],
+      "properties": {
+        "n": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 1000
+        },
+        "of": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 1000
+        },
+        "next": {
+          "type": [
+            "integer",
+            "null"
+          ],
+          "minimum": 2,
+          "maximum": 1000
+        },
+        "later_pages_hold": {
+          "type": "array",
+          "maxItems": 7,
+          "items": {
+            "type": "string",
+            "enum": [
+              "findings",
+              "questions",
+              "briefs",
+              "fixes",
+              "concerns",
+              "report",
+              "state"
+            ]
+          }
+        }
+      }
+    },
+    "report": {
+      "description": "On the ending response (status done): what the person reads. trust_note says the evaluator never saw the code and that the grade beside each result says how it was known. hashed_names_note is the one line explaining hashed names (u_ and 16 hex), present whenever any result names one, null otherwise. needs_review is the one end-of-run list for the person: one line per underlying item (an object, or a project line per reason for results naming no object) with what to look at. The report is paged like the rest: each page holding part of it carries every fixed line and that page's share of by_state, needs_review and decisions; together the pages hold each list whole, and page.later_pages_hold names report while it continues.",
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "headline",
+        "by_state",
+        "decisions",
+        "not_analyzed",
+        "trust_note",
+        "cost_units",
+        "hashed_names_note",
+        "dependency_folders_note",
+        "needs_review",
+        "concerns"
+      ],
+      "properties": {
+        "headline": {
+          "type": "string",
+          "maxLength": 500
+        },
+        "by_state": {
+          "description": "The object ids of every result, by state, sorted: each page holding part of the report carries its share, and together the pages hold every result once. A pass or not_applicable the assistant or the person settled is listed under assistant_decided or person_decided instead, as readiness counts it.",
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "pass",
+            "fail",
+            "not_applicable",
+            "needs_review",
+            "unknown",
+            "error",
+            "assistant_decided",
+            "person_decided"
+          ],
+          "properties": {
+            "pass": {
+              "type": "array",
+              "maxItems": 20000,
+              "items": {
+                "$ref": "https://custosa.com/schemas/fact-document/2#/$defs/object_id"
+              }
+            },
+            "fail": {
+              "type": "array",
+              "maxItems": 20000,
+              "items": {
+                "$ref": "https://custosa.com/schemas/fact-document/2#/$defs/object_id"
+              }
+            },
+            "not_applicable": {
+              "type": "array",
+              "maxItems": 20000,
+              "items": {
+                "$ref": "https://custosa.com/schemas/fact-document/2#/$defs/object_id"
+              }
+            },
+            "needs_review": {
+              "type": "array",
+              "maxItems": 20000,
+              "items": {
+                "$ref": "https://custosa.com/schemas/fact-document/2#/$defs/object_id"
+              }
+            },
+            "unknown": {
+              "type": "array",
+              "maxItems": 20000,
+              "items": {
+                "$ref": "https://custosa.com/schemas/fact-document/2#/$defs/object_id"
+              }
+            },
+            "error": {
+              "type": "array",
+              "maxItems": 20000,
+              "items": {
+                "$ref": "https://custosa.com/schemas/fact-document/2#/$defs/object_id"
+              }
+            },
+            "assistant_decided": {
+              "type": "array",
+              "maxItems": 20000,
+              "items": {
+                "$ref": "https://custosa.com/schemas/fact-document/2#/$defs/object_id"
+              }
+            },
+            "person_decided": {
+              "type": "array",
+              "maxItems": 20000,
+              "items": {
+                "$ref": "https://custosa.com/schemas/fact-document/2#/$defs/object_id"
+              }
+            }
+          }
+        },
+        "decisions": {
+          "type": "array",
+          "maxItems": 1000,
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "object_id",
+              "source"
+            ],
+            "properties": {
+              "object_id": {
+                "$ref": "https://custosa.com/schemas/fact-document/2#/$defs/object_id"
+              },
+              "source": {
+                "type": "string",
+                "enum": [
+                  "person_confirmation",
+                  "decisions"
+                ]
+              },
+              "decision": {
+                "type": "string",
+                "enum": [
+                  "confirmed",
+                  "not_confirmed",
+                  "declined",
+                  "accepted",
+                  "not_applicable"
+                ]
+              },
+              "option": {
+                "type": "string",
+                "pattern": "^[a-z][a-z0-9_]{0,63}$"
+              },
+              "decided_by": {
+                "type": "string",
+                "enum": [
+                  "person"
+                ]
+              },
+              "relayed_by": {
+                "type": "string",
+                "enum": [
+                  "assistant"
+                ]
+              },
+              "client": {
+                "type": "string",
+                "pattern": "^[A-Za-z0-9][A-Za-z0-9 ._()/@+-]{0,63}$"
+              },
+              "decider_ref": {
+                "description": "Contract 2.5: an opaque reference to who decided, chosen by the client: a role or local reference, never a name or email. On a line a person's option settled where Custosa's rules saw nothing (reason rules_saw_nothing). Custosa can't check it: it is the accountability, not a proof.",
+                "type": "string",
+                "pattern": "^[A-Za-z0-9._-]{1,64}$"
+              },
+              "outcome": {
+                "type": "string",
+                "enum": [
+                  "accepted",
+                  "held",
+                  "refused",
+                  "recorded"
+                ]
+              }
+            },
+            "allOf": [
+              {
+                "if": {
+                  "properties": {
+                    "source": {
+                      "const": "person_confirmation"
+                    }
+                  }
+                },
+                "then": {
+                  "properties": {
+                    "decision": {
+                      "enum": [
+                        "confirmed",
+                        "not_confirmed",
+                        "declined"
+                      ]
+                    }
+                  }
+                },
+                "else": {
+                  "properties": {
+                    "decision": {
+                      "enum": [
+                        "accepted",
+                        "declined",
+                        "not_applicable"
+                      ]
+                    }
+                  }
+                }
+              },
+              {
+                "anyOf": [
+                  {
+                    "required": [
+                      "decision"
+                    ]
+                  },
+                  {
+                    "required": [
+                      "option"
+                    ]
+                  }
+                ]
+              },
+              {
+                "if": {
+                  "required": [
+                    "option"
+                  ]
+                },
+                "then": {
+                  "required": [
+                    "decided_by",
+                    "relayed_by",
+                    "outcome"
+                  ],
+                  "properties": {
+                    "source": {
+                      "const": "decisions"
+                    }
+                  }
+                }
+              }
+            ]
+          },
+          "description": "Every decision on record for this session, recorded and shown, never a pass. source person_confirmation: a person_confirmation answer the assistant relayed (confirmed, not_confirmed, declined); source decisions: an entry of the evaluate body's decisions block, accepted only with decided_by person (accepted, declined, not_applicable). An entry with an option (B28-core) is the person's option on a line's decision, as relayed by the assistant: outcome accepted when it settled the line (person_decided), refused when the line didn't offer it this run, recorded otherwise."
+        },
+        "not_analyzed": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 10000000
+        },
+        "trust_note": {
+          "type": "string",
+          "maxLength": 1000
+        },
+        "cost_units": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 100000000
+        },
+        "hashed_names_note": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "enum": [
+            "Names shown as u_ and 16 hex characters couldn't be sent as written, so the inspector hashed them on your machine; only your machine can map them back.",
+            null
+          ]
+        },
+        "dependency_folders_note": {
+          "description": "The one line saying exempt dependency and build-output folders were listed but not read, present whenever the fact document listed one, null otherwise.",
+          "type": [
+            "string",
+            "null"
+          ],
+          "enum": [
+            "Dependency and build-output folders (such as node_modules, or an ignored dist) were listed but not read; results speak for the app's own code only.",
+            null
+          ]
+        },
+        "needs_review": {
+          "description": "The end-of-run list, grouped by cause (B9): one line per cause an item is open for, so the person makes one decision per cause, not one per object. Every needs_review result is on the line of its reason; every open result whose database catalog wasn't read (no database connected, or an engine the inspector can't read such as SQLite or MySQL) is on one line of its own, reason collector_not_run, whatever its state. A line names the objects its results rest on (each once per cause), every practice, the object ids of those results, the cause's reason and what to look at. A cause too long for one line continues on the next line, and a result whose objects don't fit one line is named on each line they continue on. A person's answer is recorded as a decision, never a pass.",
+          "type": "array",
+          "maxItems": 20000,
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "objects",
+              "practices",
+              "object_ids",
+              "reasons",
+              "look"
+            ],
+            "properties": {
+              "objects": {
+                "type": "array",
+                "maxItems": 100,
+                "items": {
+                  "anyOf": [
+                    {
+                      "$ref": "https://custosa.com/schemas/fact-document/2#/$defs/identifier"
+                    },
+                    {
+                      "$ref": "https://custosa.com/schemas/fact-document/2#/$defs/path"
+                    }
+                  ]
+                }
+              },
+              "practices": {
+                "type": "array",
+                "minItems": 1,
+                "maxItems": 200,
+                "items": {
+                  "$ref": "https://custosa.com/schemas/fact-document/2#/$defs/practice_id"
+                }
+              },
+              "object_ids": {
+                "type": "array",
+                "minItems": 1,
+                "maxItems": 20000,
+                "items": {
+                  "$ref": "https://custosa.com/schemas/fact-document/2#/$defs/object_id"
+                }
+              },
+              "reasons": {
+                "type": "array",
+                "minItems": 1,
+                "maxItems": 20,
+                "items": {
+                  "type": "string",
+                  "enum": [
+                    "collector_failed",
+                    "collector_not_run",
+                    "collection_truncated",
+                    "not_analyzed",
+                    "no_rule_for_stack",
+                    "needs_dataflow",
+                    "grade_too_low",
+                    "assistant_answer_needed",
+                    "person_must_decide",
+                    "preflight_failed",
+                    "evaluator_error",
+                    "no_objects_observed",
+                    "unclassified_table_exposed",
+                    "entrypoints_not_observed",
+                    "table_not_resolved",
+                    "parse_failed",
+                    "catalog_not_deployed",
+                    "exposure_suspected",
+                    "assistant_located",
+                    "code_not_verified",
+                    "answer_contradicted",
+                    "location_not_confirmed",
+                    "assistant_contested",
+                    "definer_function_unjudged",
+                    "helper_not_reached_from_handlers",
+                    "elevated_client_imported",
+                    "rules_saw_nothing"
+                  ]
+                }
+              },
+              "look": {
+                "description": "What to look at for this item, in our words.",
+                "type": "string",
+                "maxLength": 1000
+              }
+            }
+          }
+        },
+        "state": {
+          "description": "Contract 2.3 (T23 B50): the committed block, as replayed. Present when the body carried committed. sent, by_outcome and to_commit_total are on every page holding part of the report; unmatched (by index into the sent list, never the entry), to_commit and not_committed are paged, ahead of the report's other lists. to_commit is empty until B28 brings a person's options.",
+          "$ref": "#/$defs/committed_state"
+        },
+        "concerns": {
+          "description": "B51: every assistant concern's id by where it stands, in the order raised. Paged like by_state: each page holding part of the report carries its share.",
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "unconfirmed",
+            "confirmed_open",
+            "confirmed_fixed",
+            "dismissed"
+          ],
+          "properties": {
+            "unconfirmed": {
+              "type": "array",
+              "maxItems": 1000,
+              "items": {
+                "type": "string",
+                "pattern": "^cn_[0-9a-f]{16}$"
+              }
+            },
+            "confirmed_open": {
+              "type": "array",
+              "maxItems": 1000,
+              "items": {
+                "type": "string",
+                "pattern": "^cn_[0-9a-f]{16}$"
+              }
+            },
+            "confirmed_fixed": {
+              "type": "array",
+              "maxItems": 1000,
+              "items": {
+                "type": "string",
+                "pattern": "^cn_[0-9a-f]{16}$"
+              }
+            },
+            "dismissed": {
+              "type": "array",
+              "maxItems": 1000,
+              "items": {
+                "type": "string",
+                "pattern": "^cn_[0-9a-f]{16}$"
+              }
+            }
+          }
+        }
+      }
+    },
+    "committed_state": {
+      "description": "Contract 2.3 (T23 B50): the committed block's replay, closed. Shown as report.state on the ending response and as the top-level state on every response.",
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "state_version",
+        "sent",
+        "by_outcome",
+        "unmatched",
+        "to_commit",
+        "to_commit_total",
+        "not_committed"
+      ],
+      "properties": {
+        "state_version": {
+          "const": 1
+        },
+        "sent": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "decisions",
+            "suppressions",
+            "grants"
+          ],
+          "properties": {
+            "decisions": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "suppressions": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "grants": {
+              "type": "integer",
+              "minimum": 0
+            }
+          }
+        },
+        "by_outcome": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "other_account": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "seal_mismatch": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "no_match": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "not_committable_content": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "no_content_key": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "not_applied_on_fix": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "superseded": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "custosa_fail": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "evidence_hold": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "facts_changed": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "recorded": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "contradicted": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "option_not_offered": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "applied": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "left_open": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "expired": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "recheck_needed": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "not_a_fail": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "not_covering": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "accepted": {
+              "type": "integer",
+              "minimum": 0
+            }
+          }
+        },
+        "unmatched": {
+          "type": "array",
+          "maxItems": 2500,
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "kind",
+              "index",
+              "outcome"
+            ],
+            "properties": {
+              "kind": {
+                "type": "string",
+                "enum": [
+                  "decision",
+                  "suppression",
+                  "grant"
+                ]
+              },
+              "index": {
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 999
+              },
+              "outcome": {
+                "type": "string",
+                "enum": [
+                  "seal_mismatch",
+                  "no_match"
+                ]
+              }
+            }
+          }
+        },
+        "to_commit": {
+          "description": "Entries the CLI writes to the state file (contract 2.3 §5.2): only for this body's person choices the core accepted whose token still equals the one the person was asked on. Empty until B28 brings options.",
+          "type": "array",
+          "maxItems": 1000,
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "kind",
+              "expires_on",
+              "practice_id",
+              "reasons",
+              "f4_class",
+              "why_asked",
+              "account_tag",
+              "made_on",
+              "fact_token",
+              "seal",
+              "ruleset_id",
+              "registry_id"
+            ],
+            "properties": {
+              "kind": {
+                "type": "string",
+                "enum": [
+                  "decision",
+                  "suppression",
+                  "grant"
+                ]
+              },
+              "object_id": {
+                "$ref": "https://custosa.com/schemas/fact-document/2#/$defs/object_id"
+              },
+              "table": {
+                "$ref": "https://custosa.com/schemas/fact-document/2#/$defs/qualified_name"
+              },
+              "grantee": {
+                "type": "string",
+                "enum": [
+                  "PUBLIC",
+                  "anon",
+                  "authenticated"
+                ]
+              },
+              "option": {
+                "type": "string",
+                "pattern": "^[a-z][a-z0-9_]{0,63}$"
+              },
+              "reason": {
+                "type": "string",
+                "enum": [
+                  "false_positive",
+                  "accepted_risk",
+                  "compensating_control"
+                ]
+              },
+              "expires_on": {
+                "anyOf": [
+                  {
+                    "type": "string",
+                    "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}$"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              },
+              "max_age_on": {
+                "anyOf": [
+                  {
+                    "type": "string",
+                    "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}$"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              },
+              "privileges": {
+                "anyOf": [
+                  {
+                    "type": "null"
+                  },
+                  {
+                    "type": "array",
+                    "maxItems": 8,
+                    "uniqueItems": true,
+                    "items": {
+                      "type": "string",
+                      "enum": [
+                        "delete",
+                        "insert",
+                        "maintain",
+                        "references",
+                        "select",
+                        "trigger",
+                        "truncate",
+                        "update"
+                      ]
+                    }
+                  }
+                ]
+              },
+              "practice_id": {
+                "type": "string",
+                "pattern": "^[a-z0-9][a-z0-9-]{0,63}$"
+              },
+              "reasons": {
+                "type": "array",
+                "maxItems": 8,
+                "uniqueItems": true,
+                "items": {
+                  "type": "string",
+                  "pattern": "^[a-z][a-z0-9_]{0,63}$"
+                }
+              },
+              "f4_class": {
+                "type": "string",
+                "pattern": "^[a-z][a-z0-9_]{0,63}$"
+              },
+              "why_asked": {
+                "type": "string",
+                "enum": [
+                  "custosa_found_failure",
+                  "custosa_holds_evidence",
+                  "needs_outside_knowledge",
+                  "assistant_could_not_decide"
+                ]
+              },
+              "account_tag": {
+                "type": "string",
+                "pattern": "^[0-9a-f]{16}$"
+              },
+              "made_on": {
+                "type": "string",
+                "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}$"
+              },
+              "fact_token": {
+                "type": "string",
+                "pattern": "^[0-9a-f]{32}$"
+              },
+              "seal": {
+                "type": "string",
+                "pattern": "^[0-9a-f]{32}$"
+              },
+              "ruleset_id": {
+                "type": "string",
+                "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}\\.[0-9a-f]{8}$"
+              },
+              "registry_id": {
+                "type": "string",
+                "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}\\.[0-9a-f]{8}$"
+              }
+            }
+          }
+        },
+        "to_commit_total": {
+          "description": "Every to_commit entry of this response, over all its pages: page 1 carries it, so the CLI can say when entries sit on pages the assistant hasn't fetched.",
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 2500
+        },
+        "not_committed": {
+          "type": "array",
+          "maxItems": 1000,
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "index",
+              "reason"
+            ],
+            "properties": {
+              "index": {
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 999
+              },
+              "reason": {
+                "type": "string",
+                "enum": [
+                  "facts_changed_since_asked",
+                  "answer_graded",
+                  "not_committable_content",
+                  "no_content_key",
+                  "subject_not_committable",
+                  "left_open",
+                  "refused"
+                ]
+              }
+            }
+          }
+        }
+      }
+    },
+    "evaluate_response": {
+      "description": "200 from POST /v1/evaluate for an evaluation goal (check, fix, verify) (fact_document sent) or a fetch (page or resend). findings in state fail first, then the rest, each by practice_id then object_id; the same digest, ruleset_id and arguments give byte-identical findings. Pages carry fixes, then the findings in state fail, then concerns, then questions, then the other findings, then the report. A fetch returns the stored sections of the last response with is_fetch_only true and charged_units 0.",
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "goal",
+        "status",
+        "session",
+        "ruleset_id",
+        "registry_id",
+        "headline",
+        "is_fetch_only",
+        "charged_units",
+        "next_step",
+        "notice",
+        "correlation_id"
+      ],
+      "properties": {
+        "goal": {
+          "type": "string",
+          "enum": [
+            "check",
+            "fix",
+            "verify",
+            "plan",
+            "pattern",
+            "explain"
+          ]
+        },
+        "status": {
+          "type": "string",
+          "enum": [
+            "in_progress",
+            "done"
+          ]
+        },
+        "session": {
+          "type": "string",
+          "pattern": "^ps_[A-Za-z0-9_-]{22}$"
+        },
+        "ruleset_id": {
+          "type": "string",
+          "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}\\.[0-9a-f]{8}$"
+        },
+        "registry_id": {
+          "type": "string",
+          "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}\\.[0-9a-f]{8}$"
+        },
+        "digest": {
+          "$ref": "https://custosa.com/schemas/fact-document/2#/$defs/hash"
+        },
+        "evaluator_version": {
+          "description": "RC2: the evaluator build that answered (Cloud Run's revision, else the image's build label). Set on every page of an evaluation response, never on an advice response.",
+          "type": "string",
+          "pattern": "^[A-Za-z0-9._-]{1,64}$"
+        },
+        "inspector_version": {
+          "description": "RC2: the fact document's inspector_version, echoed (the same pattern).",
+          "type": "string",
+          "maxLength": 48,
+          "pattern": "^[0-9]{1,4}\\.[0-9]{1,4}\\.[0-9]{1,4}(?:-[0-9A-Za-z.]{1,32})?$"
+        },
+        "headline": {
+          "type": "string",
+          "maxLength": 500
+        },
+        "readiness": {
+          "$ref": "#/$defs/readiness"
+        },
+        "collection": {
+          "$ref": "#/$defs/collection_summary"
+        },
+        "state": {
+          "description": "Contract 2.3 (T23 B50, P1 C75 ruling 1): the committed state on every response, from page 1, while questions are still open too. Present when the body carried committed. Page 1 always carries it, and so does every later page holding a share of its lists. On the ending response it mirrors report.state page by page; before that, its lists are paged right after the fixes and the findings in state fail (never pushing a fail off page 1), ahead of concerns, questions and the other findings.",
+          "$ref": "#/$defs/committed_state"
+        },
+        "findings": {
+          "type": "array",
+          "maxItems": 20000,
+          "items": {
+            "$ref": "#/$defs/result"
+          }
+        },
+        "questions": {
+          "type": "array",
+          "maxItems": 1000,
+          "items": {
+            "$ref": "#/$defs/question"
+          }
+        },
+        "briefs": {
+          "type": "array",
+          "maxItems": 1000,
+          "items": {
+            "$ref": "#/$defs/brief"
+          }
+        },
+        "fixes": {
+          "type": "array",
+          "maxItems": 1000,
+          "items": {
+            "$ref": "#/$defs/fix"
+          }
+        },
+        "report": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/report"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "page": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/page"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "learning": {
+          "type": "string",
+          "enum": [
+            "on",
+            "off"
+          ],
+          "description": "Whether this account's learning is on now (its setting, its kind and its company; T27-P1-C121). Send a verdict's or concern's note only after an answer said on; while off, or when an answer doesn't say, a verdict goes without its note and a concern with note_kept_local. A fetch repeats the value its evaluation gave."
+        },
+        "is_fetch_only": {
+          "type": "boolean"
+        },
+        "charged_units": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 100000000
+        },
+        "next_step": {
+          "type": "string",
+          "maxLength": 4000
+        },
+        "report_url": {
+          "type": "string",
+          "maxLength": 300,
+          "pattern": "^https://",
+          "description": "T27 D10 (T27-P1-C84 item 2): on page 1 of a done check only, the account page where this run's result is listed, so the assistant can say where the score is on the website."
+        },
+        "notice": {
+          "type": "string",
+          "maxLength": 2000
+        },
+        "correlation_id": {
+          "type": "string",
+          "pattern": "^[A-Za-z0-9_-]{8,64}$"
+        },
+        "contract_version": {
+          "description": "The request and response contract the evaluator speaks (contract 2.2, T23 B49; 2.4 since B51); absent from an older evaluator.",
+          "type": "string",
+          "pattern": "^[0-9]{1,3}\\.[0-9]{1,3}$"
+        },
+        "guidance": {
+          "description": "B52 (T23-P1-C104, C109): one entry per practice with guidance and an open findings line or a question on this page, sorted by practice_id; a question's practice_id names its entry. Left out when none has. A practice whose lines fall on a later page has its entry on that page.",
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 200,
+          "items": {
+            "$ref": "#/$defs/guidance"
+          }
+        },
+        "concerns": {
+          "description": "B51 (contract 2.4, review N1): the assistant's concerns for this project, a paged section after the findings in state fail and before questions (absent from a page that holds none): every concern, those raised this call first, then those decided this call, then the unresolved, then the closed, newest first in each; page.later_pages_hold names concerns while they continue. report.concerns indexes every id by status and readiness.breakdown.concerns counts them.",
+          "type": "array",
+          "maxItems": 1000,
+          "items": {
+            "$ref": "#/$defs/concern"
+          }
+        },
+        "concern_options": {
+          "$ref": "#/$defs/concern_options"
+        },
+        "concern_outcomes": {
+          "description": "B51: page 1 only, absent when this call sent no concern_decisions: each decision's outcome, in the order sent.",
+          "type": "array",
+          "maxItems": 100,
+          "items": {
+            "$ref": "#/$defs/concern_outcome"
+          }
+        },
+        "not_used": {
+          "description": "T27 S3-1: page 1 only, absent when every answer this call sent was for a question this session issued. Each answer that was not, in the order sent, at most 20: it was not applied to any result, not charged and not part of the digest, and the rest of the call was answered as if it had not been sent. reason not_issued: no question of this session asked that object_id and question_id. reason location_too_wide (owner D8): its location, or one of its at spans, covers 30 lines or more; only that answer is set aside, and it never counts as a pass.",
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 20,
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "object_id",
+              "question_id",
+              "reason"
+            ],
+            "properties": {
+              "object_id": {
+                "$ref": "https://custosa.com/schemas/fact-document/2#/$defs/object_id"
+              },
+              "question_id": {
+                "type": "string",
+                "enum": [
+                  "purpose",
+                  "staff_access",
+                  "location",
+                  "person_confirmation"
+                ]
+              },
+              "reason": {
+                "type": "string",
+                "enum": [
+                  "not_issued",
+                  "location_too_wide"
+                ]
+              }
+            }
+          }
+        },
+        "concerns_saved": {
+          "description": "B51: present, false, on page 1 only when this call's concern changes were not all kept: the write failed (send the call's concerns and concern_decisions again) or some decisions were refused because another call changed those concerns meanwhile (concern_outcomes reason changed_meanwhile: read them as listed, then decide again). Absent when they were kept.",
+          "const": false
+        }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "is_fetch_only": {
+                "const": true
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "charged_units": {
+                "const": 0
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "required": [
+              "goal",
+              "status",
+              "is_fetch_only"
+            ],
+            "properties": {
+              "goal": {
+                "enum": [
+                  "check",
+                  "verify"
+                ]
+              },
+              "status": {
+                "const": "done"
+              },
+              "is_fetch_only": {
+                "const": false
+              }
+            }
+          },
+          "then": {
+            "required": [
+              "collection",
+              "readiness"
+            ]
+          }
+        }
+      ]
+    },
+    "advice_response": {
+      "description": "200 from POST /v1/evaluate for an advice goal (plan, pattern, explain; no facts read), or a fetch of one. content is the advice as JSON text of one object: plan {summary, entities, split, access_model, audit_and_retention, keep_out_of_logs_and_ai, migration, practices, doubts?, doubt_categories?}; pattern {pattern} or {pattern: null, need, stack, note, practices}; explain {practice} with the practice's user-facing fields only (id, area, title, property, applies_to, severity, severity_rationale, severity_raise?, mechanisms, guidance, limits?, sources, review_by); or {error, ...} naming what the evaluator knows instead. A content too large for one page is paged: each page's content is one JSON object, and the pages merge key by key in order (lists append, objects merge, text joins). Page 1, whole, stays within 21,000 characters and each later page within 30,000.",
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "goal",
+        "status",
+        "session",
+        "content",
+        "page",
+        "is_fetch_only",
+        "charged_units",
+        "next_step",
+        "notice",
+        "correlation_id"
+      ],
+      "properties": {
+        "goal": {
+          "type": "string",
+          "enum": [
+            "plan",
+            "pattern",
+            "explain"
+          ]
+        },
+        "status": {
+          "const": "done"
+        },
+        "session": {
+          "type": "string",
+          "pattern": "^ps_[A-Za-z0-9_-]{22}$"
+        },
+        "content": {
+          "type": "string",
+          "minLength": 2,
+          "maxLength": 30000
+        },
+        "page": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/page"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "is_fetch_only": {
+          "type": "boolean"
+        },
+        "charged_units": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 100000000
+        },
+        "next_step": {
+          "type": "string",
+          "maxLength": 4000
+        },
+        "notice": {
+          "type": "string",
+          "maxLength": 2000
+        },
+        "correlation_id": {
+          "type": "string",
+          "pattern": "^[A-Za-z0-9_-]{8,64}$"
+        },
+        "contract_version": {
+          "description": "The request and response contract the evaluator speaks (contract 2.2, T23 B49; 2.4 since B51); absent from an older evaluator.",
+          "type": "string",
+          "pattern": "^[0-9]{1,3}\\.[0-9]{1,3}$"
+        }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "is_fetch_only": {
+                "const": true
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "charged_units": {
+                "const": 0
+              }
+            }
+          }
+        }
+      ]
+    },
+    "error_response": {
+      "description": "Any refusal or failure. Never charged. at: the JSON pointer of the first refused field of the fact document (keys and indexes only, never a value;  for the whole body). current_ruleset_id: with update_inspector. balance, currency, top_up_url: with insufficient_balance. retry_after_seconds: with rate_limited, balance_reserved and unavailable.",
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "error",
+        "next_step",
+        "correlation_id"
+      ],
+      "properties": {
+        "error": {
+          "type": "string",
+          "enum": [
+            "invalid_fact_document",
+            "too_large",
+            "update_inspector",
+            "sign_in_required",
+            "token_expired",
+            "account_required",
+            "insufficient_balance",
+            "balance_reserved",
+            "rate_limited",
+            "page_missing",
+            "session_unknown",
+            "unavailable",
+            "internal_error"
+          ]
+        },
+        "next_step": {
+          "type": "string",
+          "maxLength": 4000
+        },
+        "correlation_id": {
+          "type": "string",
+          "pattern": "^[A-Za-z0-9_-]{8,64}$"
+        },
+        "notice": {
+          "type": "string",
+          "maxLength": 2000
+        },
+        "at": {
+          "type": "string",
+          "maxLength": 512,
+          "pattern": "^(/[A-Za-z0-9_]{1,64})*$"
+        },
+        "current_ruleset_id": {
+          "type": "string",
+          "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}\\.[0-9a-f]{8}$"
+        },
+        "balance": {
+          "type": "string",
+          "pattern": "^-?[0-9]{1,9}\\.[0-9]{2}$"
+        },
+        "currency": {
+          "type": "string",
+          "pattern": "^[A-Z]{3}$"
+        },
+        "top_up_url": {
+          "type": "string",
+          "maxLength": 512
+        },
+        "retry_after_seconds": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 3600
+        },
+        "contract_version": {
+          "description": "The request and response contract the evaluator speaks (contract 2.2, T23 B49; 2.4 since B51); absent from an older evaluator.",
+          "type": "string",
+          "pattern": "^[0-9]{1,3}\\.[0-9]{1,3}$"
+        }
+      },
+      "allOf": [
+        {
+          "if": {
+            "required": [
+              "at"
+            ]
+          },
+          "then": {
+            "properties": {
+              "error": {
+                "enum": [
+                  "invalid_fact_document"
+                ]
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "error": {
+                "enum": [
+                  "invalid_fact_document"
+                ]
+              }
+            }
+          },
+          "then": {
+            "required": [
+              "at"
+            ]
+          }
+        },
+        {
+          "if": {
+            "required": [
+              "current_ruleset_id"
+            ]
+          },
+          "then": {
+            "properties": {
+              "error": {
+                "enum": [
+                  "update_inspector"
+                ]
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "error": {
+                "enum": [
+                  "update_inspector"
+                ]
+              }
+            }
+          },
+          "then": {
+            "required": [
+              "current_ruleset_id"
+            ]
+          }
+        },
+        {
+          "if": {
+            "required": [
+              "balance"
+            ]
+          },
+          "then": {
+            "properties": {
+              "error": {
+                "enum": [
+                  "insufficient_balance"
+                ]
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "error": {
+                "enum": [
+                  "insufficient_balance"
+                ]
+              }
+            }
+          },
+          "then": {
+            "required": [
+              "balance"
+            ]
+          }
+        },
+        {
+          "if": {
+            "required": [
+              "currency"
+            ]
+          },
+          "then": {
+            "properties": {
+              "error": {
+                "enum": [
+                  "insufficient_balance"
+                ]
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "error": {
+                "enum": [
+                  "insufficient_balance"
+                ]
+              }
+            }
+          },
+          "then": {
+            "required": [
+              "currency"
+            ]
+          }
+        },
+        {
+          "if": {
+            "required": [
+              "top_up_url"
+            ]
+          },
+          "then": {
+            "properties": {
+              "error": {
+                "enum": [
+                  "insufficient_balance"
+                ]
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "error": {
+                "enum": [
+                  "insufficient_balance"
+                ]
+              }
+            }
+          },
+          "then": {
+            "required": [
+              "top_up_url"
+            ]
+          }
+        },
+        {
+          "if": {
+            "required": [
+              "retry_after_seconds"
+            ]
+          },
+          "then": {
+            "properties": {
+              "error": {
+                "enum": [
+                  "rate_limited",
+                  "balance_reserved",
+                  "unavailable"
+                ]
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "error": {
+                "enum": [
+                  "rate_limited",
+                  "balance_reserved",
+                  "unavailable"
+                ]
+              }
+            }
+          },
+          "then": {
+            "required": [
+              "retry_after_seconds"
+            ]
+          }
+        }
+      ]
+    },
+    "device_start_response": {
+      "description": "200 from POST /v1/device/start (RFC 8628 section 3.2 field names).",
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "device_code",
+        "user_code",
+        "verification_uri",
+        "verification_uri_complete",
+        "expires_in",
+        "interval"
+      ],
+      "properties": {
+        "device_code": {
+          "type": "string",
+          "pattern": "^[A-Za-z0-9_-]{16,128}$"
+        },
+        "user_code": {
+          "type": "string",
+          "pattern": "^[A-Z0-9]{4}-?[A-Z0-9]{4}$"
+        },
+        "verification_uri": {
+          "type": "string",
+          "maxLength": 512
+        },
+        "verification_uri_complete": {
+          "type": "string",
+          "maxLength": 1024
+        },
+        "expires_in": {
+          "type": "integer",
+          "minimum": 60,
+          "maximum": 1800
+        },
+        "interval": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 60
+        }
+      }
+    },
+    "device_token_response": {
+      "description": "200 from POST /v1/device/poll once the person has approved.",
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "access_token",
+        "token_type"
+      ],
+      "properties": {
+        "access_token": {
+          "type": "string",
+          "pattern": "^[A-Za-z0-9._~+/=-]{16,4096}$"
+        },
+        "token_type": {
+          "const": "Bearer"
+        }
+      }
+    },
+    "device_error_response": {
+      "description": "400 from POST /v1/device/poll while not approved (RFC 8628 section 3.5). interval: with slow_down.",
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "error"
+      ],
+      "properties": {
+        "error": {
+          "type": "string",
+          "enum": [
+            "authorization_pending",
+            "slow_down",
+            "expired_token",
+            "access_denied",
+            "invalid_device_code"
+          ]
+        },
+        "interval": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 60
+        }
+      }
+    },
+    "severity_counts": {
+      "description": "A count for each severity.",
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "critical",
+        "high",
+        "medium",
+        "low"
+      ],
+      "properties": {
+        "critical": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 1000000
+        },
+        "high": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 1000000
+        },
+        "medium": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 1000000
+        },
+        "low": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 1000000
+        }
+      }
+    },
+    "guidance": {
+      "description": "B52 (design v3 2.1.1): one practice's guidance (practice_id) for the assistant, explanation only. It never changes a state, grade, reason or option. why: why the practice matters; look_for: places and forms to look at, as {stack, items} for any and each stack this run saw (every stack when the files weren't read in full); examples: one safe and one unsafe shape; saw: what Custosa saw on this run, worded as scope, never as absence; answer_with: the codes the practice accepts.",
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "practice_id",
+        "why",
+        "look_for",
+        "examples",
+        "saw",
+        "answer_with"
+      ],
+      "properties": {
+        "practice_id": {
+          "$ref": "https://custosa.com/schemas/fact-document/2#/$defs/practice_id"
+        },
+        "why": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 1000
+        },
+        "look_for": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 20,
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "stack",
+              "items"
+            ],
+            "properties": {
+              "stack": {
+                "type": "string",
+                "pattern": "^[a-z][a-z0-9_]{0,39}$"
+              },
+              "items": {
+                "type": "array",
+                "minItems": 1,
+                "maxItems": 12,
+                "items": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 300
+                }
+              }
+            }
+          }
+        },
+        "examples": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "safe",
+            "unsafe"
+          ],
+          "properties": {
+            "safe": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 400
+            },
+            "unsafe": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 400
+            }
+          }
+        },
+        "saw": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 30,
+          "items": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 500
+          }
+        },
+        "answer_with": {
+          "type": "array",
+          "maxItems": 20,
+          "uniqueItems": true,
+          "items": {
+            "type": "string",
+            "pattern": "^[a-z][a-z0-9_]{0,63}$"
+          }
+        }
+      }
+    },
+    "concern": {
+      "description": "B51 (contract 2.4): one assistant concern, by its server id. Its closed metadata (category, area and file_kind absent only on a stored entry this core can't read, listed unconfirmed at critical with no options), where it stands (status, and in next.awaiting the step it waits on: confirm, dismiss_reason, severity or fix; null once closed), its label in the person's words and the ids of the options for its next step, whose labels are in the page's concern_options. A concern's text is never sent back (review N8): the assistant keeps its own copy. A fix is the assistant's or a person's word, never verified by Custosa.",
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "concern_id",
+        "proposed_severity",
+        "severity",
+        "status",
+        "label",
+        "raised_now",
+        "next"
+      ],
+      "properties": {
+        "concern_id": {
+          "type": "string",
+          "pattern": "^cn_[0-9a-f]{16}$"
+        },
+        "category": {
+          "type": "string",
+          "enum": [
+            "access",
+            "exposure",
+            "storage",
+            "logging",
+            "ai",
+            "integration",
+            "mobile",
+            "other"
+          ]
+        },
+        "area": {
+          "type": "string",
+          "enum": [
+            "access",
+            "encryption",
+            "logging",
+            "secrets",
+            "auth",
+            "ai",
+            "storage",
+            "client",
+            "config",
+            "data-lifecycle",
+            "integrity",
+            "vendors"
+          ]
+        },
+        "file_kind": {
+          "type": "string",
+          "enum": [
+            "route_handler",
+            "rules_file",
+            "migration",
+            "sql",
+            "config",
+            "client_component",
+            "server_module",
+            "mobile_native",
+            "infrastructure",
+            "test",
+            "other"
+          ]
+        },
+        "practice_id": {
+          "type": "string",
+          "pattern": "^[a-z0-9][a-z0-9-]{0,63}$"
+        },
+        "proposed_severity": {
+          "type": "string",
+          "enum": [
+            "critical",
+            "high",
+            "medium",
+            "low"
+          ]
+        },
+        "severity": {
+          "type": "string",
+          "enum": [
+            "critical",
+            "high",
+            "medium",
+            "low"
+          ]
+        },
+        "status": {
+          "type": "string",
+          "enum": [
+            "unconfirmed",
+            "confirmed_open",
+            "confirmed_fixed",
+            "dismissed"
+          ]
+        },
+        "label": {
+          "type": "string",
+          "maxLength": 200
+        },
+        "raised_now": {
+          "type": "boolean"
+        },
+        "next": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "awaiting",
+            "options"
+          ],
+          "properties": {
+            "awaiting": {
+              "type": [
+                "string",
+                "null"
+              ],
+              "enum": [
+                "confirm",
+                "dismiss_reason",
+                "severity",
+                "fix",
+                null
+              ]
+            },
+            "options": {
+              "type": "array",
+              "maxItems": 11,
+              "items": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": [
+                  "id"
+                ],
+                "properties": {
+                  "id": {
+                    "type": "string",
+                    "enum": [
+                      "real_problem",
+                      "not_a_problem",
+                      "not_sure",
+                      "keep",
+                      "higher",
+                      "lower",
+                      "false_alarm",
+                      "already_handled",
+                      "out_of_scope",
+                      "accepted_risk",
+                      "fixed"
+                    ]
+                  },
+                  "by": {
+                    "description": "Present on an option only a person may choose here: send it with decided_by person only after the person chose it.",
+                    "const": "person"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "outcome": {
+          "description": "This call's decisions on this concern: refused when any of them was refused (not an option for its decider where the concern stood, or the concern changed meanwhile; the concern unchanged by it), else accepted. Each decision's own outcome and reason are in page 1's concern_outcomes.",
+          "type": "string",
+          "enum": [
+            "accepted",
+            "refused"
+          ]
+        }
+      }
+    },
+    "concern_options": {
+      "description": "B51 (review N2): the labels, in the person's words, of every option id the concerns on this page offer; present on every page with concern options, absent elsewhere (a page listing only closed or unreadable concerns offers none).",
+      "type": "object",
+      "additionalProperties": false,
+      "minProperties": 1,
+      "properties": {
+        "real_problem": {
+          "type": "string",
+          "maxLength": 100
+        },
+        "not_a_problem": {
+          "type": "string",
+          "maxLength": 100
+        },
+        "not_sure": {
+          "type": "string",
+          "maxLength": 100
+        },
+        "keep": {
+          "type": "string",
+          "maxLength": 100
+        },
+        "higher": {
+          "type": "string",
+          "maxLength": 100
+        },
+        "lower": {
+          "type": "string",
+          "maxLength": 100
+        },
+        "false_alarm": {
+          "type": "string",
+          "maxLength": 100
+        },
+        "already_handled": {
+          "type": "string",
+          "maxLength": 100
+        },
+        "out_of_scope": {
+          "type": "string",
+          "maxLength": 100
+        },
+        "accepted_risk": {
+          "type": "string",
+          "maxLength": 100
+        },
+        "fixed": {
+          "type": "string",
+          "maxLength": 100
+        }
+      }
+    },
+    "concern_outcome": {
+      "description": "B51: what became of one concern decision this call sent, in the order sent. accepted: applied (or not_sure, which moves nothing). already_applied: the last call that changed the concern applied this same decision by the same decider (a retry): nothing changes. refused, the concern unchanged by it, with its reason: not_an_option (not an option for its decider where the concern stood), unknown_concern (an id outside the project's ledger: never raised, expired or pruned) or changed_meanwhile (another call changed the concern after this one read it: read it as listed and send the decision again).",
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "concern_id",
+        "option",
+        "decided_by",
+        "outcome"
+      ],
+      "properties": {
+        "concern_id": {
+          "type": "string",
+          "pattern": "^cn_[0-9a-f]{16}$"
+        },
+        "option": {
+          "type": "string",
+          "enum": [
+            "real_problem",
+            "not_a_problem",
+            "not_sure",
+            "keep",
+            "higher",
+            "lower",
+            "false_alarm",
+            "already_handled",
+            "out_of_scope",
+            "accepted_risk",
+            "fixed"
+          ]
+        },
+        "decided_by": {
+          "type": "string",
+          "enum": [
+            "assistant",
+            "person"
+          ]
+        },
+        "outcome": {
+          "type": "string",
+          "enum": [
+            "accepted",
+            "already_applied",
+            "refused"
+          ]
+        },
+        "reason": {
+          "type": "string",
+          "enum": [
+            "not_an_option",
+            "unknown_concern",
+            "changed_meanwhile"
+          ]
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,71 @@
+# inbound-webhooks-verified (T23 B32, design v3 2.2.2). Written by scripts/gen_webhook_rules.py: edit that script,
+# never this file. The rule id's last part is the form (items-sdk, items-hmac, violation, webhook-route,
+# replay-dedupe), which the practice function reads, since a match carries only one has_control. replay-dedupe matches
+# the items-sdk handler itself, so the function joins the two on path and line.
+
+# serverless-entry: a serverless entry point (an exported Lambda handler, Firebase https.onRequest, a Workers fetch;
+# in Go, lambda.Start). No item rule reads it. Evidence: needs_review no_rule_for_stack naming it, and no pass while
+# it is seen.
+id: inbound-webhooks-verified.python-generic.serverless-entry
+practice_id: inbound-webhooks-verified
+language: python
+frameworks:
+- generic
+kind: evidence
+rule:
+  any:
+  - kind: function_definition
+    all:
+    - has:
+        field: name
+        kind: identifier
+        regex: ^(lambda_handler|handler)$
+    - has:
+        field: parameters
+        kind: parameters
+        regex: ^\(\s*_?event\b[^,]*,\s*_?context\b[^,]*\)$
+  - kind: function_definition
+    inside:
+      kind: decorated_definition
+      has:
+        kind: decorator
+        regex: ^@((https_fn\.)?on_request|functions_framework\.http)\b
+min_engine: 0.39.0
+---
+# server-unread: a server no inventory stem reads (B32p 9.4 fix 1): createServer not given the file's express() app,
+# Koa, Hapi, Hono, Elysia, Bun.serve, Deno.serve or Fastify; in Python a request-handler class, aiohttp or Starlette.
+# Evidence: no pass while it is seen; never an object of its own.
+id: inbound-webhooks-verified.python-generic.server-unread
+practice_id: inbound-webhooks-verified
+language: python
+frameworks:
+- generic
+kind: evidence
+rule:
+  any:
+  - kind: class_definition
+    has:
+      field: superclasses
+      kind: argument_list
+      regex: RequestHandler\b
+  - kind: call
+    has:
+      field: function
+      any:
+      - kind: attribute
+        regex: ^(aiohttp\.)?web\.(Application|RouteTableDef)$
+      - kind: identifier
+        regex: ^Starlette$
+  - kind: call
+    all:
+    - has:
+        field: function
+        kind: identifier
+        regex: ^(Route|Mount|WebSocketRoute|Host)$
+    - inside:
+        kind: module
+        stopBy: end
+        has:
+          kind: import_from_statement
+          regex: ^from\s+starlette\.routing\s+import\b
+min_engine: 0.39.0

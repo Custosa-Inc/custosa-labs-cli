@@ -1,0 +1,1 @@
+{"entitlement":"allowed","config":{"dbAllowedCidrs":["203.0.113.0/24"],"dbAllowedCidrsV6":["2001:db8::/32"]},"old_config":{"dbAllowedCidrs":["0.0.0.0/0"],"dbAllowedCidrsV6":["::/0"]},"status":"applied","updated_at":"2026-10-01T00:00:00Z","applied_at":"2026-10-01T00:01:00Z"}

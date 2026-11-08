@@ -1,0 +1,34 @@
+# Candidates for one scoped data-access layer (read only where row-level security is off on a patient table): a
+# Laravel global scope (addGlobalScope, or a class implementing Scope) whose where names a tenant, owner or user
+# column. A candidate never passes the practice (needs_review); with none, RLS off fails. OpenEMR's ACL checks are
+# role checks, not a row scope, and are not candidates.
+id: rls-enabled.php-generic.scoped-layer
+practice_id: rls-enabled
+language: php
+frameworks:
+- generic
+kind: evidence
+rule:
+  any:
+  - kind: scoped_call_expression
+    regex: '^static::addGlobalScope\('
+    has:
+      stopBy: end
+      kind: member_call_expression
+      regex: '->where\(\s*[''\"][^''\"]*(?i:tenant|owner|user_?id|account_?id|org_?id|clinic_?id|practice_?id)'
+  - kind: member_call_expression
+    regex: '->addGlobalScope\('
+    has:
+      stopBy: end
+      kind: member_call_expression
+      regex: '->where\(\s*[''\"][^''\"]*(?i:tenant|owner|user_?id|account_?id|org_?id|clinic_?id|practice_?id)'
+  - kind: class_declaration
+    all:
+    - has:
+        kind: class_interface_clause
+        regex: '\bScope\b'
+    - has:
+        stopBy: end
+        kind: member_call_expression
+        regex: '->where\(\s*[''\"][^''\"]*(?i:tenant|owner|user_?id|account_?id|org_?id|clinic_?id|practice_?id)'
+min_engine: 0.39.0

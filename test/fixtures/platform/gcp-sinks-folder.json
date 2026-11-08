@@ -1,0 +1,15 @@
+{
+ "sinks": [
+  {
+   "name": "siem-errors",
+   "destination": "pubsub.googleapis.com/projects/security-project/topics/siem",
+   "filter": "severity>=ERROR",
+   "includeChildren": true
+  },
+  {
+   "name": "folder-only",
+   "destination": "storage.googleapis.com/folder-own-logs",
+   "includeChildren": false
+  }
+ ]
+}

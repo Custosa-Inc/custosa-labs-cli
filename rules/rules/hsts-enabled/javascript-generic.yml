@@ -1,0 +1,1971 @@
+# hsts-enabled (T23 B56b). Written by scripts/gen_hsts_rules.py: edit that script,
+# never this file. The practice function reads the pieces by name: header-<form> and redirect-<form> (NAMING.md).
+
+# header-helmet: app.use(helmet.strictTransportSecurity({ maxAge }), helmet.hsts({ maxAge }) or helmet({
+# strictTransportSecurity: { maxAge } })) with maxAge a year or more, at top level, on the file's one const app =
+# express(), with only app.set, app.enable, app.disable, security and bound pass-through app.use calls between.
+# Evidence: the header piece.
+id: hsts-enabled.javascript-generic.header-helmet
+practice_id: hsts-enabled
+language: javascript
+frameworks:
+- generic
+kind: evidence
+rule:
+  kind: call_expression
+  pattern: app.use($M)
+  all:
+  - has:
+      field: arguments
+      has:
+        any:
+        - kind: call_expression
+          regex: ^(helmet\.(strictTransportSecurity|hsts)\(\s*\{[^();`]*\bmaxAge\s*:\s*(3153[6-9]\d{3}|315[4-9]\d{4}|31[6-9]\d{5}|3[2-9]\d{6}|[4-9]\d{7}|[1-9]\d{8,})\b[^();`]*\}\s*\)|helmet\(\s*\{[^();`]*\bstrictTransportSecurity\s*:\s*\{[^();`{}]*\bmaxAge\s*:\s*(3153[6-9]\d{3}|315[4-9]\d{4}|31[6-9]\d{5}|3[2-9]\d{6}|[4-9]\d{7}|[1-9]\d{8,})\b[^();`{}]*\}[^();`]*\}\s*\))$
+        - kind: arrow_function
+          regex: ^(helmet\.(strictTransportSecurity|hsts)\(\s*\{[^();`]*\bmaxAge\s*:\s*(3153[6-9]\d{3}|315[4-9]\d{4}|31[6-9]\d{5}|3[2-9]\d{6}|[4-9]\d{7}|[1-9]\d{8,})\b[^();`]*\}\s*\)|helmet\(\s*\{[^();`]*\bstrictTransportSecurity\s*:\s*\{[^();`{}]*\bmaxAge\s*:\s*(3153[6-9]\d{3}|315[4-9]\d{4}|31[6-9]\d{5}|3[2-9]\d{6}|[4-9]\d{7}|[1-9]\d{8,})\b[^();`{}]*\}[^();`]*\}\s*\))$
+        - kind: function_expression
+          regex: ^(helmet\.(strictTransportSecurity|hsts)\(\s*\{[^();`]*\bmaxAge\s*:\s*(3153[6-9]\d{3}|315[4-9]\d{4}|31[6-9]\d{5}|3[2-9]\d{6}|[4-9]\d{7}|[1-9]\d{8,})\b[^();`]*\}\s*\)|helmet\(\s*\{[^();`]*\bstrictTransportSecurity\s*:\s*\{[^();`{}]*\bmaxAge\s*:\s*(3153[6-9]\d{3}|315[4-9]\d{4}|31[6-9]\d{5}|3[2-9]\d{6}|[4-9]\d{7}|[1-9]\d{8,})\b[^();`{}]*\}[^();`]*\}\s*\))$
+  - inside:
+      kind: expression_statement
+      inside:
+        kind: program
+  - inside:
+      stopBy: end
+      kind: program
+      regex: (?s)(^|\n)const\s+app\s*=\s*(express|require\(\s*['\"]express['\"]\s*\))\s*\(\s*\)\s*;?(\s*(//[^\n]*|(app\.(set|enable|disable)\(\s*('[^'\n]*'|\"[^\"\n]*\")\s*(,\s*[\w.'\"-]+\s*)?\)|app\.use\(\s*(express\.(json|urlencoded)|cors|compression|morgan|cookieParser)\(\s*[^();`]*\)\s*\)|app\.use\(\s*(helmet\.(strictTransportSecurity|hsts)\(\s*\{[^();`]*\bmaxAge\s*:\s*(3153[6-9]\d{3}|315[4-9]\d{4}|31[6-9]\d{5}|3[2-9]\d{6}|[4-9]\d{7}|[1-9]\d{8,})\b[^();`]*\}\s*\)|helmet\(\s*\{[^();`]*\bstrictTransportSecurity\s*:\s*\{[^();`{}]*\bmaxAge\s*:\s*(3153[6-9]\d{3}|315[4-9]\d{4}|31[6-9]\d{5}|3[2-9]\d{6}|[4-9]\d{7}|[1-9]\d{8,})\b[^();`{}]*\}[^();`]*\}\s*\)|helmet(\.\w+)?\(\s*[^();`]*\)|enforce\.HTTPS\(\s*[^();`]*\)|(function\s*)?\(\s*req\s*,\s*res\s*,\s*next\s*\)\s*(=>\s*)?\{\s*if\s*\(\s*(req\.headers\[\s*['\"]x-forwarded-proto['\"]\s*\]\s*!==?\s*['\"]https['\"]|!\s*req\.secure)\s*\)\s*(\{\s*return\s+res\.redirect\(\s*(30[1278]\s*,\s*)?('https://[^'\n]*'|\"https://[^\"\n]*\"|`https://([^`$\n]|\$\{\s*[\w.]+(\[\s*['\"][\w-]+['\"]\s*\])?\s*\})*`)(\s*\+\s*[\w.]+(\[\s*['\"][\w-]+['\"]\s*\])?)*\s*\)\s*;?\s*\}|return\s+res\.redirect\(\s*(30[1278]\s*,\s*)?('https://[^'\n]*'|\"https://[^\"\n]*\"|`https://([^`$\n]|\$\{\s*[\w.]+(\[\s*['\"][\w-]+['\"]\s*\])?\s*\})*`)(\s*\+\s*[\w.]+(\[\s*['\"][\w-]+['\"]\s*\])?)*\s*\)\s*;?)\s*(return\s+)?next\(\s*\)\s*;?\s*\})\s*\))\s*;?))*\s*app\.use\(\s*(helmet\.(strictTransportSecurity|hsts)\(\s*\{[^();`]*\bmaxAge\s*:\s*(3153[6-9]\d{3}|315[4-9]\d{4}|31[6-9]\d{5}|3[2-9]\d{6}|[4-9]\d{7}|[1-9]\d{8,})\b[^();`]*\}\s*\)|helmet\(\s*\{[^();`]*\bstrictTransportSecurity\s*:\s*\{[^();`{}]*\bmaxAge\s*:\s*(3153[6-9]\d{3}|315[4-9]\d{4}|31[6-9]\d{5}|3[2-9]\d{6}|[4-9]\d{7}|[1-9]\d{8,})\b[^();`{}]*\}[^();`]*\}\s*\))\s*\)
+  - not:
+      inside:
+        stopBy: end
+        kind: program
+        regex: (?s)\b(express|require\(\s*['\"]express['\"]\s*\))\s*\(\s*\).*\b(express|require\(\s*['\"]express['\"]\s*\))\s*\(\s*\)
+  - any:
+    - inside:
+        stopBy: end
+        kind: program
+        regex: (^|\n)(const|let|var)\s+express\s*=\s*require\(\s*['\"]express['\"]\s*\)|(^|\n)import\s+express(\s*,\s*\{[^}]*\})?\s+from\s+['\"]express['\"]
+    - inside:
+        stopBy: end
+        kind: program
+        regex: (^|\n)const\s+app\s*=\s*require\(
+  - inside:
+      stopBy: end
+      kind: program
+      regex: (^|\n)(const|let|var)\s+helmet\s*=\s*require\(\s*['\"]helmet['\"]\s*\)|(^|\n)import\s+helmet(\s*,\s*\{[^}]*\})?\s+from\s+['\"]helmet['\"]
+  - inside:
+      stopBy: end
+      kind: program
+      any:
+      - not:
+          kind: program
+          regex: app\.use\(\s*express\b
+      - kind: program
+        regex: (^|\n)(const|let|var)\s+express\s*=\s*require\(\s*['\"]express['\"]\s*\)|(^|\n)import\s+express(\s*,\s*\{[^}]*\})?\s+from\s+['\"]express['\"]
+        not:
+          has:
+            stopBy: end
+            any:
+            - kind: identifier
+              regex: ^express$
+              not:
+                any:
+                - inside:
+                    kind: variable_declarator
+                    field: name
+                    has:
+                      field: value
+                      kind: call_expression
+                      regex: ^require\(\s*['\"]express['\"]\s*\)$
+                - inside:
+                    kind: import_clause
+                    inside:
+                      kind: import_statement
+                      has:
+                        field: source
+                        kind: string
+                        regex: ^['\"]express['\"]$
+                - inside:
+                    field: function
+                    kind: call_expression
+                    inside:
+                      kind: arguments
+                      inside:
+                        kind: call_expression
+                        has:
+                          field: function
+                          kind: member_expression
+                          regex: ^app\.use$
+                - inside:
+                    field: object
+                    kind: member_expression
+                    inside:
+                      field: function
+                      kind: call_expression
+                      inside:
+                        kind: arguments
+                        inside:
+                          kind: call_expression
+                          has:
+                            field: function
+                            kind: member_expression
+                            regex: ^app\.use$
+                - inside:
+                    field: function
+                    kind: call_expression
+                    pattern: express()
+                    inside:
+                      kind: variable_declarator
+                      regex: ^app\s*=
+            - kind: shorthand_property_identifier
+              regex: ^express$
+            - kind: shorthand_property_identifier_pattern
+              regex: ^express$
+  - inside:
+      stopBy: end
+      kind: program
+      any:
+      - not:
+          kind: program
+          regex: app\.use\(\s*cors\b
+      - kind: program
+        regex: (^|\n)(const|let|var)\s+cors\s*=\s*require\(\s*['\"]cors['\"]\s*\)|(^|\n)import\s+cors(\s*,\s*\{[^}]*\})?\s+from\s+['\"]cors['\"]
+        not:
+          has:
+            stopBy: end
+            any:
+            - kind: identifier
+              regex: ^cors$
+              not:
+                any:
+                - inside:
+                    kind: variable_declarator
+                    field: name
+                    has:
+                      field: value
+                      kind: call_expression
+                      regex: ^require\(\s*['\"]cors['\"]\s*\)$
+                - inside:
+                    kind: import_clause
+                    inside:
+                      kind: import_statement
+                      has:
+                        field: source
+                        kind: string
+                        regex: ^['\"]cors['\"]$
+                - inside:
+                    field: function
+                    kind: call_expression
+                    inside:
+                      kind: arguments
+                      inside:
+                        kind: call_expression
+                        has:
+                          field: function
+                          kind: member_expression
+                          regex: ^app\.use$
+                - inside:
+                    field: object
+                    kind: member_expression
+                    inside:
+                      field: function
+                      kind: call_expression
+                      inside:
+                        kind: arguments
+                        inside:
+                          kind: call_expression
+                          has:
+                            field: function
+                            kind: member_expression
+                            regex: ^app\.use$
+                - inside:
+                    field: function
+                    kind: call_expression
+                    pattern: express()
+                    inside:
+                      kind: variable_declarator
+                      regex: ^app\s*=
+            - kind: shorthand_property_identifier
+              regex: ^cors$
+            - kind: shorthand_property_identifier_pattern
+              regex: ^cors$
+  - inside:
+      stopBy: end
+      kind: program
+      any:
+      - not:
+          kind: program
+          regex: app\.use\(\s*compression\b
+      - kind: program
+        regex: (^|\n)(const|let|var)\s+compression\s*=\s*require\(\s*['\"]compression['\"]\s*\)|(^|\n)import\s+compression(\s*,\s*\{[^}]*\})?\s+from\s+['\"]compression['\"]
+        not:
+          has:
+            stopBy: end
+            any:
+            - kind: identifier
+              regex: ^compression$
+              not:
+                any:
+                - inside:
+                    kind: variable_declarator
+                    field: name
+                    has:
+                      field: value
+                      kind: call_expression
+                      regex: ^require\(\s*['\"]compression['\"]\s*\)$
+                - inside:
+                    kind: import_clause
+                    inside:
+                      kind: import_statement
+                      has:
+                        field: source
+                        kind: string
+                        regex: ^['\"]compression['\"]$
+                - inside:
+                    field: function
+                    kind: call_expression
+                    inside:
+                      kind: arguments
+                      inside:
+                        kind: call_expression
+                        has:
+                          field: function
+                          kind: member_expression
+                          regex: ^app\.use$
+                - inside:
+                    field: object
+                    kind: member_expression
+                    inside:
+                      field: function
+                      kind: call_expression
+                      inside:
+                        kind: arguments
+                        inside:
+                          kind: call_expression
+                          has:
+                            field: function
+                            kind: member_expression
+                            regex: ^app\.use$
+                - inside:
+                    field: function
+                    kind: call_expression
+                    pattern: express()
+                    inside:
+                      kind: variable_declarator
+                      regex: ^app\s*=
+            - kind: shorthand_property_identifier
+              regex: ^compression$
+            - kind: shorthand_property_identifier_pattern
+              regex: ^compression$
+  - inside:
+      stopBy: end
+      kind: program
+      any:
+      - not:
+          kind: program
+          regex: app\.use\(\s*morgan\b
+      - kind: program
+        regex: (^|\n)(const|let|var)\s+morgan\s*=\s*require\(\s*['\"]morgan['\"]\s*\)|(^|\n)import\s+morgan(\s*,\s*\{[^}]*\})?\s+from\s+['\"]morgan['\"]
+        not:
+          has:
+            stopBy: end
+            any:
+            - kind: identifier
+              regex: ^morgan$
+              not:
+                any:
+                - inside:
+                    kind: variable_declarator
+                    field: name
+                    has:
+                      field: value
+                      kind: call_expression
+                      regex: ^require\(\s*['\"]morgan['\"]\s*\)$
+                - inside:
+                    kind: import_clause
+                    inside:
+                      kind: import_statement
+                      has:
+                        field: source
+                        kind: string
+                        regex: ^['\"]morgan['\"]$
+                - inside:
+                    field: function
+                    kind: call_expression
+                    inside:
+                      kind: arguments
+                      inside:
+                        kind: call_expression
+                        has:
+                          field: function
+                          kind: member_expression
+                          regex: ^app\.use$
+                - inside:
+                    field: object
+                    kind: member_expression
+                    inside:
+                      field: function
+                      kind: call_expression
+                      inside:
+                        kind: arguments
+                        inside:
+                          kind: call_expression
+                          has:
+                            field: function
+                            kind: member_expression
+                            regex: ^app\.use$
+                - inside:
+                    field: function
+                    kind: call_expression
+                    pattern: express()
+                    inside:
+                      kind: variable_declarator
+                      regex: ^app\s*=
+            - kind: shorthand_property_identifier
+              regex: ^morgan$
+            - kind: shorthand_property_identifier_pattern
+              regex: ^morgan$
+  - inside:
+      stopBy: end
+      kind: program
+      any:
+      - not:
+          kind: program
+          regex: app\.use\(\s*cookieParser\b
+      - kind: program
+        regex: (^|\n)(const|let|var)\s+cookieParser\s*=\s*require\(\s*['\"]cookie-parser['\"]\s*\)|(^|\n)import\s+cookieParser(\s*,\s*\{[^}]*\})?\s+from\s+['\"]cookie-parser['\"]
+        not:
+          has:
+            stopBy: end
+            any:
+            - kind: identifier
+              regex: ^cookieParser$
+              not:
+                any:
+                - inside:
+                    kind: variable_declarator
+                    field: name
+                    has:
+                      field: value
+                      kind: call_expression
+                      regex: ^require\(\s*['\"]cookie-parser['\"]\s*\)$
+                - inside:
+                    kind: import_clause
+                    inside:
+                      kind: import_statement
+                      has:
+                        field: source
+                        kind: string
+                        regex: ^['\"]cookie-parser['\"]$
+                - inside:
+                    field: function
+                    kind: call_expression
+                    inside:
+                      kind: arguments
+                      inside:
+                        kind: call_expression
+                        has:
+                          field: function
+                          kind: member_expression
+                          regex: ^app\.use$
+                - inside:
+                    field: object
+                    kind: member_expression
+                    inside:
+                      field: function
+                      kind: call_expression
+                      inside:
+                        kind: arguments
+                        inside:
+                          kind: call_expression
+                          has:
+                            field: function
+                            kind: member_expression
+                            regex: ^app\.use$
+                - inside:
+                    field: function
+                    kind: call_expression
+                    pattern: express()
+                    inside:
+                      kind: variable_declarator
+                      regex: ^app\s*=
+            - kind: shorthand_property_identifier
+              regex: ^cookieParser$
+            - kind: shorthand_property_identifier_pattern
+              regex: ^cookieParser$
+min_engine: 0.45.3
+---
+# redirect-sslify: app.use(enforce.HTTPS(...)) from express-sslify, under the same Express scope rules. Evidence: the
+# redirect piece.
+id: hsts-enabled.javascript-generic.redirect-sslify
+practice_id: hsts-enabled
+language: javascript
+frameworks:
+- generic
+kind: evidence
+rule:
+  kind: call_expression
+  pattern: app.use($M)
+  all:
+  - has:
+      field: arguments
+      has:
+        any:
+        - kind: call_expression
+          regex: ^(enforce\.HTTPS\(\s*[^();`]*\))$
+        - kind: arrow_function
+          regex: ^(enforce\.HTTPS\(\s*[^();`]*\))$
+        - kind: function_expression
+          regex: ^(enforce\.HTTPS\(\s*[^();`]*\))$
+  - inside:
+      kind: expression_statement
+      inside:
+        kind: program
+  - inside:
+      stopBy: end
+      kind: program
+      regex: (?s)(^|\n)const\s+app\s*=\s*(express|require\(\s*['\"]express['\"]\s*\))\s*\(\s*\)\s*;?(\s*(//[^\n]*|(app\.(set|enable|disable)\(\s*('[^'\n]*'|\"[^\"\n]*\")\s*(,\s*[\w.'\"-]+\s*)?\)|app\.use\(\s*(express\.(json|urlencoded)|cors|compression|morgan|cookieParser)\(\s*[^();`]*\)\s*\)|app\.use\(\s*(helmet\.(strictTransportSecurity|hsts)\(\s*\{[^();`]*\bmaxAge\s*:\s*(3153[6-9]\d{3}|315[4-9]\d{4}|31[6-9]\d{5}|3[2-9]\d{6}|[4-9]\d{7}|[1-9]\d{8,})\b[^();`]*\}\s*\)|helmet\(\s*\{[^();`]*\bstrictTransportSecurity\s*:\s*\{[^();`{}]*\bmaxAge\s*:\s*(3153[6-9]\d{3}|315[4-9]\d{4}|31[6-9]\d{5}|3[2-9]\d{6}|[4-9]\d{7}|[1-9]\d{8,})\b[^();`{}]*\}[^();`]*\}\s*\)|helmet(\.\w+)?\(\s*[^();`]*\)|enforce\.HTTPS\(\s*[^();`]*\)|(function\s*)?\(\s*req\s*,\s*res\s*,\s*next\s*\)\s*(=>\s*)?\{\s*if\s*\(\s*(req\.headers\[\s*['\"]x-forwarded-proto['\"]\s*\]\s*!==?\s*['\"]https['\"]|!\s*req\.secure)\s*\)\s*(\{\s*return\s+res\.redirect\(\s*(30[1278]\s*,\s*)?('https://[^'\n]*'|\"https://[^\"\n]*\"|`https://([^`$\n]|\$\{\s*[\w.]+(\[\s*['\"][\w-]+['\"]\s*\])?\s*\})*`)(\s*\+\s*[\w.]+(\[\s*['\"][\w-]+['\"]\s*\])?)*\s*\)\s*;?\s*\}|return\s+res\.redirect\(\s*(30[1278]\s*,\s*)?('https://[^'\n]*'|\"https://[^\"\n]*\"|`https://([^`$\n]|\$\{\s*[\w.]+(\[\s*['\"][\w-]+['\"]\s*\])?\s*\})*`)(\s*\+\s*[\w.]+(\[\s*['\"][\w-]+['\"]\s*\])?)*\s*\)\s*;?)\s*(return\s+)?next\(\s*\)\s*;?\s*\})\s*\))\s*;?))*\s*app\.use\(\s*(enforce\.HTTPS\(\s*[^();`]*\))\s*\)
+  - not:
+      inside:
+        stopBy: end
+        kind: program
+        regex: (?s)\b(express|require\(\s*['\"]express['\"]\s*\))\s*\(\s*\).*\b(express|require\(\s*['\"]express['\"]\s*\))\s*\(\s*\)
+  - any:
+    - inside:
+        stopBy: end
+        kind: program
+        regex: (^|\n)(const|let|var)\s+express\s*=\s*require\(\s*['\"]express['\"]\s*\)|(^|\n)import\s+express(\s*,\s*\{[^}]*\})?\s+from\s+['\"]express['\"]
+    - inside:
+        stopBy: end
+        kind: program
+        regex: (^|\n)const\s+app\s*=\s*require\(
+  - inside:
+      stopBy: end
+      kind: program
+      regex: (^|\n)(const|let|var)\s+enforce\s*=\s*require\(\s*['\"]express-sslify['\"]\s*\)|(^|\n)import\s+enforce(\s*,\s*\{[^}]*\})?\s+from\s+['\"]express-sslify['\"]
+  - inside:
+      stopBy: end
+      kind: program
+      any:
+      - not:
+          kind: program
+          regex: app\.use\(\s*express\b
+      - kind: program
+        regex: (^|\n)(const|let|var)\s+express\s*=\s*require\(\s*['\"]express['\"]\s*\)|(^|\n)import\s+express(\s*,\s*\{[^}]*\})?\s+from\s+['\"]express['\"]
+        not:
+          has:
+            stopBy: end
+            any:
+            - kind: identifier
+              regex: ^express$
+              not:
+                any:
+                - inside:
+                    kind: variable_declarator
+                    field: name
+                    has:
+                      field: value
+                      kind: call_expression
+                      regex: ^require\(\s*['\"]express['\"]\s*\)$
+                - inside:
+                    kind: import_clause
+                    inside:
+                      kind: import_statement
+                      has:
+                        field: source
+                        kind: string
+                        regex: ^['\"]express['\"]$
+                - inside:
+                    field: function
+                    kind: call_expression
+                    inside:
+                      kind: arguments
+                      inside:
+                        kind: call_expression
+                        has:
+                          field: function
+                          kind: member_expression
+                          regex: ^app\.use$
+                - inside:
+                    field: object
+                    kind: member_expression
+                    inside:
+                      field: function
+                      kind: call_expression
+                      inside:
+                        kind: arguments
+                        inside:
+                          kind: call_expression
+                          has:
+                            field: function
+                            kind: member_expression
+                            regex: ^app\.use$
+                - inside:
+                    field: function
+                    kind: call_expression
+                    pattern: express()
+                    inside:
+                      kind: variable_declarator
+                      regex: ^app\s*=
+            - kind: shorthand_property_identifier
+              regex: ^express$
+            - kind: shorthand_property_identifier_pattern
+              regex: ^express$
+  - inside:
+      stopBy: end
+      kind: program
+      any:
+      - not:
+          kind: program
+          regex: app\.use\(\s*cors\b
+      - kind: program
+        regex: (^|\n)(const|let|var)\s+cors\s*=\s*require\(\s*['\"]cors['\"]\s*\)|(^|\n)import\s+cors(\s*,\s*\{[^}]*\})?\s+from\s+['\"]cors['\"]
+        not:
+          has:
+            stopBy: end
+            any:
+            - kind: identifier
+              regex: ^cors$
+              not:
+                any:
+                - inside:
+                    kind: variable_declarator
+                    field: name
+                    has:
+                      field: value
+                      kind: call_expression
+                      regex: ^require\(\s*['\"]cors['\"]\s*\)$
+                - inside:
+                    kind: import_clause
+                    inside:
+                      kind: import_statement
+                      has:
+                        field: source
+                        kind: string
+                        regex: ^['\"]cors['\"]$
+                - inside:
+                    field: function
+                    kind: call_expression
+                    inside:
+                      kind: arguments
+                      inside:
+                        kind: call_expression
+                        has:
+                          field: function
+                          kind: member_expression
+                          regex: ^app\.use$
+                - inside:
+                    field: object
+                    kind: member_expression
+                    inside:
+                      field: function
+                      kind: call_expression
+                      inside:
+                        kind: arguments
+                        inside:
+                          kind: call_expression
+                          has:
+                            field: function
+                            kind: member_expression
+                            regex: ^app\.use$
+                - inside:
+                    field: function
+                    kind: call_expression
+                    pattern: express()
+                    inside:
+                      kind: variable_declarator
+                      regex: ^app\s*=
+            - kind: shorthand_property_identifier
+              regex: ^cors$
+            - kind: shorthand_property_identifier_pattern
+              regex: ^cors$
+  - inside:
+      stopBy: end
+      kind: program
+      any:
+      - not:
+          kind: program
+          regex: app\.use\(\s*compression\b
+      - kind: program
+        regex: (^|\n)(const|let|var)\s+compression\s*=\s*require\(\s*['\"]compression['\"]\s*\)|(^|\n)import\s+compression(\s*,\s*\{[^}]*\})?\s+from\s+['\"]compression['\"]
+        not:
+          has:
+            stopBy: end
+            any:
+            - kind: identifier
+              regex: ^compression$
+              not:
+                any:
+                - inside:
+                    kind: variable_declarator
+                    field: name
+                    has:
+                      field: value
+                      kind: call_expression
+                      regex: ^require\(\s*['\"]compression['\"]\s*\)$
+                - inside:
+                    kind: import_clause
+                    inside:
+                      kind: import_statement
+                      has:
+                        field: source
+                        kind: string
+                        regex: ^['\"]compression['\"]$
+                - inside:
+                    field: function
+                    kind: call_expression
+                    inside:
+                      kind: arguments
+                      inside:
+                        kind: call_expression
+                        has:
+                          field: function
+                          kind: member_expression
+                          regex: ^app\.use$
+                - inside:
+                    field: object
+                    kind: member_expression
+                    inside:
+                      field: function
+                      kind: call_expression
+                      inside:
+                        kind: arguments
+                        inside:
+                          kind: call_expression
+                          has:
+                            field: function
+                            kind: member_expression
+                            regex: ^app\.use$
+                - inside:
+                    field: function
+                    kind: call_expression
+                    pattern: express()
+                    inside:
+                      kind: variable_declarator
+                      regex: ^app\s*=
+            - kind: shorthand_property_identifier
+              regex: ^compression$
+            - kind: shorthand_property_identifier_pattern
+              regex: ^compression$
+  - inside:
+      stopBy: end
+      kind: program
+      any:
+      - not:
+          kind: program
+          regex: app\.use\(\s*morgan\b
+      - kind: program
+        regex: (^|\n)(const|let|var)\s+morgan\s*=\s*require\(\s*['\"]morgan['\"]\s*\)|(^|\n)import\s+morgan(\s*,\s*\{[^}]*\})?\s+from\s+['\"]morgan['\"]
+        not:
+          has:
+            stopBy: end
+            any:
+            - kind: identifier
+              regex: ^morgan$
+              not:
+                any:
+                - inside:
+                    kind: variable_declarator
+                    field: name
+                    has:
+                      field: value
+                      kind: call_expression
+                      regex: ^require\(\s*['\"]morgan['\"]\s*\)$
+                - inside:
+                    kind: import_clause
+                    inside:
+                      kind: import_statement
+                      has:
+                        field: source
+                        kind: string
+                        regex: ^['\"]morgan['\"]$
+                - inside:
+                    field: function
+                    kind: call_expression
+                    inside:
+                      kind: arguments
+                      inside:
+                        kind: call_expression
+                        has:
+                          field: function
+                          kind: member_expression
+                          regex: ^app\.use$
+                - inside:
+                    field: object
+                    kind: member_expression
+                    inside:
+                      field: function
+                      kind: call_expression
+                      inside:
+                        kind: arguments
+                        inside:
+                          kind: call_expression
+                          has:
+                            field: function
+                            kind: member_expression
+                            regex: ^app\.use$
+                - inside:
+                    field: function
+                    kind: call_expression
+                    pattern: express()
+                    inside:
+                      kind: variable_declarator
+                      regex: ^app\s*=
+            - kind: shorthand_property_identifier
+              regex: ^morgan$
+            - kind: shorthand_property_identifier_pattern
+              regex: ^morgan$
+  - inside:
+      stopBy: end
+      kind: program
+      any:
+      - not:
+          kind: program
+          regex: app\.use\(\s*cookieParser\b
+      - kind: program
+        regex: (^|\n)(const|let|var)\s+cookieParser\s*=\s*require\(\s*['\"]cookie-parser['\"]\s*\)|(^|\n)import\s+cookieParser(\s*,\s*\{[^}]*\})?\s+from\s+['\"]cookie-parser['\"]
+        not:
+          has:
+            stopBy: end
+            any:
+            - kind: identifier
+              regex: ^cookieParser$
+              not:
+                any:
+                - inside:
+                    kind: variable_declarator
+                    field: name
+                    has:
+                      field: value
+                      kind: call_expression
+                      regex: ^require\(\s*['\"]cookie-parser['\"]\s*\)$
+                - inside:
+                    kind: import_clause
+                    inside:
+                      kind: import_statement
+                      has:
+                        field: source
+                        kind: string
+                        regex: ^['\"]cookie-parser['\"]$
+                - inside:
+                    field: function
+                    kind: call_expression
+                    inside:
+                      kind: arguments
+                      inside:
+                        kind: call_expression
+                        has:
+                          field: function
+                          kind: member_expression
+                          regex: ^app\.use$
+                - inside:
+                    field: object
+                    kind: member_expression
+                    inside:
+                      field: function
+                      kind: call_expression
+                      inside:
+                        kind: arguments
+                        inside:
+                          kind: call_expression
+                          has:
+                            field: function
+                            kind: member_expression
+                            regex: ^app\.use$
+                - inside:
+                    field: function
+                    kind: call_expression
+                    pattern: express()
+                    inside:
+                      kind: variable_declarator
+                      regex: ^app\s*=
+            - kind: shorthand_property_identifier
+              regex: ^cookieParser$
+            - kind: shorthand_property_identifier_pattern
+              regex: ^cookieParser$
+min_engine: 0.45.3
+---
+# redirect-forwarded-proto: app.use((req, res, next) => ...) whose body is exactly an if on the protocol alone
+# (x-forwarded-proto !== 'https' or !req.secure) returning res.redirect to https://, then next(), under the same
+# Express scope rules. Evidence: the redirect piece.
+id: hsts-enabled.javascript-generic.redirect-forwarded-proto
+practice_id: hsts-enabled
+language: javascript
+frameworks:
+- generic
+kind: evidence
+rule:
+  kind: call_expression
+  pattern: app.use($M)
+  all:
+  - has:
+      field: arguments
+      has:
+        any:
+        - kind: call_expression
+          regex: ^((function\s*)?\(\s*req\s*,\s*res\s*,\s*next\s*\)\s*(=>\s*)?\{\s*if\s*\(\s*(req\.headers\[\s*['\"]x-forwarded-proto['\"]\s*\]\s*!==?\s*['\"]https['\"]|!\s*req\.secure)\s*\)\s*(\{\s*return\s+res\.redirect\(\s*(30[1278]\s*,\s*)?('https://[^'\n]*'|\"https://[^\"\n]*\"|`https://([^`$\n]|\$\{\s*[\w.]+(\[\s*['\"][\w-]+['\"]\s*\])?\s*\})*`)(\s*\+\s*[\w.]+(\[\s*['\"][\w-]+['\"]\s*\])?)*\s*\)\s*;?\s*\}|return\s+res\.redirect\(\s*(30[1278]\s*,\s*)?('https://[^'\n]*'|\"https://[^\"\n]*\"|`https://([^`$\n]|\$\{\s*[\w.]+(\[\s*['\"][\w-]+['\"]\s*\])?\s*\})*`)(\s*\+\s*[\w.]+(\[\s*['\"][\w-]+['\"]\s*\])?)*\s*\)\s*;?)\s*(return\s+)?next\(\s*\)\s*;?\s*\})$
+        - kind: arrow_function
+          regex: ^((function\s*)?\(\s*req\s*,\s*res\s*,\s*next\s*\)\s*(=>\s*)?\{\s*if\s*\(\s*(req\.headers\[\s*['\"]x-forwarded-proto['\"]\s*\]\s*!==?\s*['\"]https['\"]|!\s*req\.secure)\s*\)\s*(\{\s*return\s+res\.redirect\(\s*(30[1278]\s*,\s*)?('https://[^'\n]*'|\"https://[^\"\n]*\"|`https://([^`$\n]|\$\{\s*[\w.]+(\[\s*['\"][\w-]+['\"]\s*\])?\s*\})*`)(\s*\+\s*[\w.]+(\[\s*['\"][\w-]+['\"]\s*\])?)*\s*\)\s*;?\s*\}|return\s+res\.redirect\(\s*(30[1278]\s*,\s*)?('https://[^'\n]*'|\"https://[^\"\n]*\"|`https://([^`$\n]|\$\{\s*[\w.]+(\[\s*['\"][\w-]+['\"]\s*\])?\s*\})*`)(\s*\+\s*[\w.]+(\[\s*['\"][\w-]+['\"]\s*\])?)*\s*\)\s*;?)\s*(return\s+)?next\(\s*\)\s*;?\s*\})$
+        - kind: function_expression
+          regex: ^((function\s*)?\(\s*req\s*,\s*res\s*,\s*next\s*\)\s*(=>\s*)?\{\s*if\s*\(\s*(req\.headers\[\s*['\"]x-forwarded-proto['\"]\s*\]\s*!==?\s*['\"]https['\"]|!\s*req\.secure)\s*\)\s*(\{\s*return\s+res\.redirect\(\s*(30[1278]\s*,\s*)?('https://[^'\n]*'|\"https://[^\"\n]*\"|`https://([^`$\n]|\$\{\s*[\w.]+(\[\s*['\"][\w-]+['\"]\s*\])?\s*\})*`)(\s*\+\s*[\w.]+(\[\s*['\"][\w-]+['\"]\s*\])?)*\s*\)\s*;?\s*\}|return\s+res\.redirect\(\s*(30[1278]\s*,\s*)?('https://[^'\n]*'|\"https://[^\"\n]*\"|`https://([^`$\n]|\$\{\s*[\w.]+(\[\s*['\"][\w-]+['\"]\s*\])?\s*\})*`)(\s*\+\s*[\w.]+(\[\s*['\"][\w-]+['\"]\s*\])?)*\s*\)\s*;?)\s*(return\s+)?next\(\s*\)\s*;?\s*\})$
+  - inside:
+      kind: expression_statement
+      inside:
+        kind: program
+  - inside:
+      stopBy: end
+      kind: program
+      regex: (?s)(^|\n)const\s+app\s*=\s*(express|require\(\s*['\"]express['\"]\s*\))\s*\(\s*\)\s*;?(\s*(//[^\n]*|(app\.(set|enable|disable)\(\s*('[^'\n]*'|\"[^\"\n]*\")\s*(,\s*[\w.'\"-]+\s*)?\)|app\.use\(\s*(express\.(json|urlencoded)|cors|compression|morgan|cookieParser)\(\s*[^();`]*\)\s*\)|app\.use\(\s*(helmet\.(strictTransportSecurity|hsts)\(\s*\{[^();`]*\bmaxAge\s*:\s*(3153[6-9]\d{3}|315[4-9]\d{4}|31[6-9]\d{5}|3[2-9]\d{6}|[4-9]\d{7}|[1-9]\d{8,})\b[^();`]*\}\s*\)|helmet\(\s*\{[^();`]*\bstrictTransportSecurity\s*:\s*\{[^();`{}]*\bmaxAge\s*:\s*(3153[6-9]\d{3}|315[4-9]\d{4}|31[6-9]\d{5}|3[2-9]\d{6}|[4-9]\d{7}|[1-9]\d{8,})\b[^();`{}]*\}[^();`]*\}\s*\)|helmet(\.\w+)?\(\s*[^();`]*\)|enforce\.HTTPS\(\s*[^();`]*\)|(function\s*)?\(\s*req\s*,\s*res\s*,\s*next\s*\)\s*(=>\s*)?\{\s*if\s*\(\s*(req\.headers\[\s*['\"]x-forwarded-proto['\"]\s*\]\s*!==?\s*['\"]https['\"]|!\s*req\.secure)\s*\)\s*(\{\s*return\s+res\.redirect\(\s*(30[1278]\s*,\s*)?('https://[^'\n]*'|\"https://[^\"\n]*\"|`https://([^`$\n]|\$\{\s*[\w.]+(\[\s*['\"][\w-]+['\"]\s*\])?\s*\})*`)(\s*\+\s*[\w.]+(\[\s*['\"][\w-]+['\"]\s*\])?)*\s*\)\s*;?\s*\}|return\s+res\.redirect\(\s*(30[1278]\s*,\s*)?('https://[^'\n]*'|\"https://[^\"\n]*\"|`https://([^`$\n]|\$\{\s*[\w.]+(\[\s*['\"][\w-]+['\"]\s*\])?\s*\})*`)(\s*\+\s*[\w.]+(\[\s*['\"][\w-]+['\"]\s*\])?)*\s*\)\s*;?)\s*(return\s+)?next\(\s*\)\s*;?\s*\})\s*\))\s*;?))*\s*app\.use\(\s*((function\s*)?\(\s*req\s*,\s*res\s*,\s*next\s*\)\s*(=>\s*)?\{\s*if\s*\(\s*(req\.headers\[\s*['\"]x-forwarded-proto['\"]\s*\]\s*!==?\s*['\"]https['\"]|!\s*req\.secure)\s*\)\s*(\{\s*return\s+res\.redirect\(\s*(30[1278]\s*,\s*)?('https://[^'\n]*'|\"https://[^\"\n]*\"|`https://([^`$\n]|\$\{\s*[\w.]+(\[\s*['\"][\w-]+['\"]\s*\])?\s*\})*`)(\s*\+\s*[\w.]+(\[\s*['\"][\w-]+['\"]\s*\])?)*\s*\)\s*;?\s*\}|return\s+res\.redirect\(\s*(30[1278]\s*,\s*)?('https://[^'\n]*'|\"https://[^\"\n]*\"|`https://([^`$\n]|\$\{\s*[\w.]+(\[\s*['\"][\w-]+['\"]\s*\])?\s*\})*`)(\s*\+\s*[\w.]+(\[\s*['\"][\w-]+['\"]\s*\])?)*\s*\)\s*;?)\s*(return\s+)?next\(\s*\)\s*;?\s*\})\s*\)
+  - not:
+      inside:
+        stopBy: end
+        kind: program
+        regex: (?s)\b(express|require\(\s*['\"]express['\"]\s*\))\s*\(\s*\).*\b(express|require\(\s*['\"]express['\"]\s*\))\s*\(\s*\)
+  - any:
+    - inside:
+        stopBy: end
+        kind: program
+        regex: (^|\n)(const|let|var)\s+express\s*=\s*require\(\s*['\"]express['\"]\s*\)|(^|\n)import\s+express(\s*,\s*\{[^}]*\})?\s+from\s+['\"]express['\"]
+    - inside:
+        stopBy: end
+        kind: program
+        regex: (^|\n)const\s+app\s*=\s*require\(
+  - inside:
+      stopBy: end
+      kind: program
+      any:
+      - not:
+          kind: program
+          regex: app\.use\(\s*express\b
+      - kind: program
+        regex: (^|\n)(const|let|var)\s+express\s*=\s*require\(\s*['\"]express['\"]\s*\)|(^|\n)import\s+express(\s*,\s*\{[^}]*\})?\s+from\s+['\"]express['\"]
+        not:
+          has:
+            stopBy: end
+            any:
+            - kind: identifier
+              regex: ^express$
+              not:
+                any:
+                - inside:
+                    kind: variable_declarator
+                    field: name
+                    has:
+                      field: value
+                      kind: call_expression
+                      regex: ^require\(\s*['\"]express['\"]\s*\)$
+                - inside:
+                    kind: import_clause
+                    inside:
+                      kind: import_statement
+                      has:
+                        field: source
+                        kind: string
+                        regex: ^['\"]express['\"]$
+                - inside:
+                    field: function
+                    kind: call_expression
+                    inside:
+                      kind: arguments
+                      inside:
+                        kind: call_expression
+                        has:
+                          field: function
+                          kind: member_expression
+                          regex: ^app\.use$
+                - inside:
+                    field: object
+                    kind: member_expression
+                    inside:
+                      field: function
+                      kind: call_expression
+                      inside:
+                        kind: arguments
+                        inside:
+                          kind: call_expression
+                          has:
+                            field: function
+                            kind: member_expression
+                            regex: ^app\.use$
+                - inside:
+                    field: function
+                    kind: call_expression
+                    pattern: express()
+                    inside:
+                      kind: variable_declarator
+                      regex: ^app\s*=
+            - kind: shorthand_property_identifier
+              regex: ^express$
+            - kind: shorthand_property_identifier_pattern
+              regex: ^express$
+  - inside:
+      stopBy: end
+      kind: program
+      any:
+      - not:
+          kind: program
+          regex: app\.use\(\s*cors\b
+      - kind: program
+        regex: (^|\n)(const|let|var)\s+cors\s*=\s*require\(\s*['\"]cors['\"]\s*\)|(^|\n)import\s+cors(\s*,\s*\{[^}]*\})?\s+from\s+['\"]cors['\"]
+        not:
+          has:
+            stopBy: end
+            any:
+            - kind: identifier
+              regex: ^cors$
+              not:
+                any:
+                - inside:
+                    kind: variable_declarator
+                    field: name
+                    has:
+                      field: value
+                      kind: call_expression
+                      regex: ^require\(\s*['\"]cors['\"]\s*\)$
+                - inside:
+                    kind: import_clause
+                    inside:
+                      kind: import_statement
+                      has:
+                        field: source
+                        kind: string
+                        regex: ^['\"]cors['\"]$
+                - inside:
+                    field: function
+                    kind: call_expression
+                    inside:
+                      kind: arguments
+                      inside:
+                        kind: call_expression
+                        has:
+                          field: function
+                          kind: member_expression
+                          regex: ^app\.use$
+                - inside:
+                    field: object
+                    kind: member_expression
+                    inside:
+                      field: function
+                      kind: call_expression
+                      inside:
+                        kind: arguments
+                        inside:
+                          kind: call_expression
+                          has:
+                            field: function
+                            kind: member_expression
+                            regex: ^app\.use$
+                - inside:
+                    field: function
+                    kind: call_expression
+                    pattern: express()
+                    inside:
+                      kind: variable_declarator
+                      regex: ^app\s*=
+            - kind: shorthand_property_identifier
+              regex: ^cors$
+            - kind: shorthand_property_identifier_pattern
+              regex: ^cors$
+  - inside:
+      stopBy: end
+      kind: program
+      any:
+      - not:
+          kind: program
+          regex: app\.use\(\s*compression\b
+      - kind: program
+        regex: (^|\n)(const|let|var)\s+compression\s*=\s*require\(\s*['\"]compression['\"]\s*\)|(^|\n)import\s+compression(\s*,\s*\{[^}]*\})?\s+from\s+['\"]compression['\"]
+        not:
+          has:
+            stopBy: end
+            any:
+            - kind: identifier
+              regex: ^compression$
+              not:
+                any:
+                - inside:
+                    kind: variable_declarator
+                    field: name
+                    has:
+                      field: value
+                      kind: call_expression
+                      regex: ^require\(\s*['\"]compression['\"]\s*\)$
+                - inside:
+                    kind: import_clause
+                    inside:
+                      kind: import_statement
+                      has:
+                        field: source
+                        kind: string
+                        regex: ^['\"]compression['\"]$
+                - inside:
+                    field: function
+                    kind: call_expression
+                    inside:
+                      kind: arguments
+                      inside:
+                        kind: call_expression
+                        has:
+                          field: function
+                          kind: member_expression
+                          regex: ^app\.use$
+                - inside:
+                    field: object
+                    kind: member_expression
+                    inside:
+                      field: function
+                      kind: call_expression
+                      inside:
+                        kind: arguments
+                        inside:
+                          kind: call_expression
+                          has:
+                            field: function
+                            kind: member_expression
+                            regex: ^app\.use$
+                - inside:
+                    field: function
+                    kind: call_expression
+                    pattern: express()
+                    inside:
+                      kind: variable_declarator
+                      regex: ^app\s*=
+            - kind: shorthand_property_identifier
+              regex: ^compression$
+            - kind: shorthand_property_identifier_pattern
+              regex: ^compression$
+  - inside:
+      stopBy: end
+      kind: program
+      any:
+      - not:
+          kind: program
+          regex: app\.use\(\s*morgan\b
+      - kind: program
+        regex: (^|\n)(const|let|var)\s+morgan\s*=\s*require\(\s*['\"]morgan['\"]\s*\)|(^|\n)import\s+morgan(\s*,\s*\{[^}]*\})?\s+from\s+['\"]morgan['\"]
+        not:
+          has:
+            stopBy: end
+            any:
+            - kind: identifier
+              regex: ^morgan$
+              not:
+                any:
+                - inside:
+                    kind: variable_declarator
+                    field: name
+                    has:
+                      field: value
+                      kind: call_expression
+                      regex: ^require\(\s*['\"]morgan['\"]\s*\)$
+                - inside:
+                    kind: import_clause
+                    inside:
+                      kind: import_statement
+                      has:
+                        field: source
+                        kind: string
+                        regex: ^['\"]morgan['\"]$
+                - inside:
+                    field: function
+                    kind: call_expression
+                    inside:
+                      kind: arguments
+                      inside:
+                        kind: call_expression
+                        has:
+                          field: function
+                          kind: member_expression
+                          regex: ^app\.use$
+                - inside:
+                    field: object
+                    kind: member_expression
+                    inside:
+                      field: function
+                      kind: call_expression
+                      inside:
+                        kind: arguments
+                        inside:
+                          kind: call_expression
+                          has:
+                            field: function
+                            kind: member_expression
+                            regex: ^app\.use$
+                - inside:
+                    field: function
+                    kind: call_expression
+                    pattern: express()
+                    inside:
+                      kind: variable_declarator
+                      regex: ^app\s*=
+            - kind: shorthand_property_identifier
+              regex: ^morgan$
+            - kind: shorthand_property_identifier_pattern
+              regex: ^morgan$
+  - inside:
+      stopBy: end
+      kind: program
+      any:
+      - not:
+          kind: program
+          regex: app\.use\(\s*cookieParser\b
+      - kind: program
+        regex: (^|\n)(const|let|var)\s+cookieParser\s*=\s*require\(\s*['\"]cookie-parser['\"]\s*\)|(^|\n)import\s+cookieParser(\s*,\s*\{[^}]*\})?\s+from\s+['\"]cookie-parser['\"]
+        not:
+          has:
+            stopBy: end
+            any:
+            - kind: identifier
+              regex: ^cookieParser$
+              not:
+                any:
+                - inside:
+                    kind: variable_declarator
+                    field: name
+                    has:
+                      field: value
+                      kind: call_expression
+                      regex: ^require\(\s*['\"]cookie-parser['\"]\s*\)$
+                - inside:
+                    kind: import_clause
+                    inside:
+                      kind: import_statement
+                      has:
+                        field: source
+                        kind: string
+                        regex: ^['\"]cookie-parser['\"]$
+                - inside:
+                    field: function
+                    kind: call_expression
+                    inside:
+                      kind: arguments
+                      inside:
+                        kind: call_expression
+                        has:
+                          field: function
+                          kind: member_expression
+                          regex: ^app\.use$
+                - inside:
+                    field: object
+                    kind: member_expression
+                    inside:
+                      field: function
+                      kind: call_expression
+                      inside:
+                        kind: arguments
+                        inside:
+                          kind: call_expression
+                          has:
+                            field: function
+                            kind: member_expression
+                            regex: ^app\.use$
+                - inside:
+                    field: function
+                    kind: call_expression
+                    pattern: express()
+                    inside:
+                      kind: variable_declarator
+                      regex: ^app\s*=
+            - kind: shorthand_property_identifier
+              regex: ^cookieParser$
+            - kind: shorthand_property_identifier_pattern
+              regex: ^cookieParser$
+min_engine: 0.45.3
+---
+# app-construction: a call that makes an app: in JS and TS express(), require('express')(), new Koa(), new Hono(), new
+# Elysia(), fastify(), NestFactory.create, polka(), feathers(), createApp() from h3, connect() from connect; in Go
+# gin.Default(), gin.New(), echo.New(), fiber.New(), chi.NewRouter(), mux.NewRouter(), http.NewServeMux(); in Java
+# SpringApplication.run(...); in PHP Application::configure, new Illuminate\Foundation\Application,
+# AppFactory::create() and each class extending a Kernel. Evidence the function counts.
+id: hsts-enabled.javascript-generic.app-construction
+practice_id: hsts-enabled
+language: javascript
+frameworks:
+- generic
+kind: evidence
+rule:
+  any:
+  - kind: call_expression
+    regex: ^(express|polka|feathers|[Ff]astify)\s*\(
+    has:
+      field: function
+      kind: identifier
+  - kind: call_expression
+    regex: ^require\(\s*['\"]express['\"]\s*\)\s*\(
+    has:
+      field: function
+      kind: call_expression
+  - kind: new_expression
+    has:
+      field: constructor
+      kind: identifier
+      regex: ^(Koa|Hono|Elysia)$
+  - kind: call_expression
+    has:
+      field: function
+      kind: member_expression
+      regex: ^NestFactory\.create$
+  - kind: call_expression
+    has:
+      field: function
+      kind: identifier
+      regex: ^createApp$
+    inside:
+      stopBy: end
+      kind: program
+      regex: from\s+['\"]h3['\"]|require\(\s*['\"]h3['\"]\s*\)
+  - kind: call_expression
+    has:
+      field: function
+      kind: identifier
+      regex: ^connect$
+    inside:
+      stopBy: end
+      kind: program
+      regex: (^|\n)(const|let|var)\s+connect\s*=\s*require\(\s*['\"]connect['\"]\s*\)|(^|\n)import\s+connect(\s*,\s*\{[^}]*\})?\s+from\s+['\"]connect['\"]
+min_engine: 0.45.3
+---
+# app-server: a call that serves: in JS and TS createServer or createSecureServer (bare or a member), Bun.serve,
+# Deno.serve, serve() from @hono/node-server; in Go, on any receiver: ListenAndServe, ListenAndServeTLS, Serve or
+# ServeTLS (http., fasthttp., or a server value). Evidence the function counts, 0 for a redirect-only one.
+id: hsts-enabled.javascript-generic.app-server
+practice_id: hsts-enabled
+language: javascript
+frameworks:
+- generic
+kind: evidence
+rule:
+  any:
+  - kind: call_expression
+    has:
+      field: function
+      any:
+      - kind: identifier
+        regex: ^(createServer|createSecureServer)$
+      - kind: member_expression
+        regex: \.(createServer|createSecureServer)$
+      - kind: member_expression
+        regex: ^(Bun|Deno)\.serve$
+  - kind: call_expression
+    has:
+      field: function
+      kind: identifier
+      regex: ^serve$
+    inside:
+      stopBy: end
+      kind: program
+      regex: from\s+['\"]@hono/node-server['\"]|require\(\s*['\"]@hono/node-server['\"]\s*\)
+min_engine: 0.45.3
+---
+# hsts-off: HSTS turned off: helmet({ hsts: false }) or helmet({ strictTransportSecurity: false }); Rails ssl_options
+# hsts: false in production.rb or application.rb; Django SECURE_HSTS_SECONDS = 0 in an allowlisted settings file; a
+# Traefik headers middleware's stsSeconds: 0; hsts: "false" in an ingress ConfigMap's data. Fail.
+id: hsts-enabled.javascript-generic.hsts-off
+practice_id: hsts-enabled
+language: javascript
+frameworks:
+- generic
+kind: violation
+rule:
+  kind: call_expression
+  has:
+    field: function
+    any:
+    - kind: identifier
+      regex: ^helmet$
+    - kind: member_expression
+      regex: ^helmet$
+  all:
+  - has:
+      field: arguments
+      has:
+        kind: object
+        has:
+          kind: pair
+          all:
+          - has:
+              field: key
+              any:
+              - kind: property_identifier
+                regex: ^['"]?(hsts|strictTransportSecurity)['"]?$
+              - kind: string
+                regex: ^['"]?(hsts|strictTransportSecurity)['"]?$
+          - has:
+              field: value
+              kind: 'false'
+min_engine: 0.45.3
+---
+# short-max-age: an HSTS age below a year, as a literal: helmet's maxAge, a Strict-Transport-Security value in a
+# next.config entry, a header call or vercel.json; Rails ssl_options hsts: { expires: } in production.rb or
+# application.rb; Django SECURE_HSTS_SECONDS in an allowlisted settings file; a Traefik headers middleware's
+# stsSeconds; an ingress ConfigMap's hsts-max-age. Fail.
+id: hsts-enabled.javascript-generic.short-max-age
+practice_id: hsts-enabled
+language: javascript
+frameworks:
+- generic
+kind: violation
+rule:
+  any:
+  - kind: call_expression
+    has:
+      field: function
+      any:
+      - kind: identifier
+        regex: ^helmet\.(strictTransportSecurity|hsts)$
+      - kind: member_expression
+        regex: ^helmet\.(strictTransportSecurity|hsts)$
+    all:
+    - has:
+        field: arguments
+        has:
+          kind: object
+          has:
+            kind: pair
+            all:
+            - has:
+                field: key
+                any:
+                - kind: property_identifier
+                  regex: ^['"]?(maxAge)['"]?$
+                - kind: string
+                  regex: ^['"]?(maxAge)['"]?$
+            - has:
+                field: value
+                kind: number
+                regex: ^\d+$
+                not:
+                  kind: number
+                  regex: ^(3153[6-9]\d{3}|315[4-9]\d{4}|31[6-9]\d{5}|3[2-9]\d{6}|[4-9]\d{7}|[1-9]\d{8,})$
+  - kind: call_expression
+    has:
+      field: function
+      any:
+      - kind: identifier
+        regex: ^helmet$
+      - kind: member_expression
+        regex: ^helmet$
+    all:
+    - has:
+        field: arguments
+        has:
+          kind: object
+          has:
+            kind: pair
+            all:
+            - has:
+                field: key
+                any:
+                - kind: property_identifier
+                  regex: ^['"]?(hsts|strictTransportSecurity)['"]?$
+                - kind: string
+                  regex: ^['"]?(hsts|strictTransportSecurity)['"]?$
+            - has:
+                field: value
+                kind: object
+                has:
+                  kind: pair
+                  all:
+                  - has:
+                      field: key
+                      any:
+                      - kind: property_identifier
+                        regex: ^['"]?(maxAge)['"]?$
+                      - kind: string
+                        regex: ^['"]?(maxAge)['"]?$
+                  - has:
+                      field: value
+                      kind: number
+                      regex: ^\d+$
+                      not:
+                        kind: number
+                        regex: ^(3153[6-9]\d{3}|315[4-9]\d{4}|31[6-9]\d{5}|3[2-9]\d{6}|[4-9]\d{7}|[1-9]\d{8,})$
+  - kind: object
+    all:
+    - has:
+        kind: pair
+        all:
+        - has:
+            field: key
+            any:
+            - kind: property_identifier
+              regex: ^['"]?(key)['"]?$
+            - kind: string
+              regex: ^['"]?(key)['"]?$
+        - has:
+            field: value
+            any:
+            - kind: string
+              regex: (?i)^['\"`]strict-transport-security['\"`]$
+            - kind: template_string
+              not:
+                has:
+                  kind: template_substitution
+              regex: (?i)^['\"`]strict-transport-security['\"`]$
+    - has:
+        kind: pair
+        all:
+        - has:
+            field: key
+            any:
+            - kind: property_identifier
+              regex: ^['"]?(value)['"]?$
+            - kind: string
+              regex: ^['"]?(value)['"]?$
+        - has:
+            field: value
+            any:
+            - kind: string
+              regex: ^['\"`]([^'\"`;]*;\s*)*max-age=\d+\s*(;[^'\"`]*)?['\"`]$
+            - kind: template_string
+              not:
+                has:
+                  kind: template_substitution
+              regex: ^['\"`]([^'\"`;]*;\s*)*max-age=\d+\s*(;[^'\"`]*)?['\"`]$
+    not:
+      kind: object
+      all:
+      - has:
+          kind: pair
+          all:
+          - has:
+              field: key
+              any:
+              - kind: property_identifier
+                regex: ^['"]?(key)['"]?$
+              - kind: string
+                regex: ^['"]?(key)['"]?$
+          - has:
+              field: value
+              any:
+              - kind: string
+                regex: (?i)^['\"`]strict-transport-security['\"`]$
+              - kind: template_string
+                not:
+                  has:
+                    kind: template_substitution
+                regex: (?i)^['\"`]strict-transport-security['\"`]$
+      - has:
+          kind: pair
+          all:
+          - has:
+              field: key
+              any:
+              - kind: property_identifier
+                regex: ^['"]?(value)['"]?$
+              - kind: string
+                regex: ^['"]?(value)['"]?$
+          - has:
+              field: value
+              any:
+              - kind: string
+                regex: ^['\"`]([^'\"`;]*;\s*)*max-age=(3153[6-9]\d{3}|315[4-9]\d{4}|31[6-9]\d{5}|3[2-9]\d{6}|[4-9]\d{7}|[1-9]\d{8,})\s*(;[^'\"`]*)?['\"`]$
+              - kind: template_string
+                not:
+                  has:
+                    kind: template_substitution
+                regex: ^['\"`]([^'\"`;]*;\s*)*max-age=(3153[6-9]\d{3}|315[4-9]\d{4}|31[6-9]\d{5}|3[2-9]\d{6}|[4-9]\d{7}|[1-9]\d{8,})\s*(;[^'\"`]*)?['\"`]$
+  - kind: call_expression
+    has:
+      field: arguments
+      kind: arguments
+      regex: ^\(\s*['\"`](?i:strict-transport-security)['\"`]\s*,
+    all:
+    - has:
+        field: arguments
+        kind: arguments
+        regex: ^\(\s*['\"`](?i:strict-transport-security)['\"`]\s*,\s*['\"`]([^'\"`;]*;\s*)*max-age=\d+\s*(;[^'\"`]*)?['\"`]\s*\)$
+    - not:
+        has:
+          field: arguments
+          kind: arguments
+          regex: ^\(\s*['\"`](?i:strict-transport-security)['\"`]\s*,\s*['\"`]([^'\"`;]*;\s*)*max-age=(3153[6-9]\d{3}|315[4-9]\d{4}|31[6-9]\d{5}|3[2-9]\d{6}|[4-9]\d{7}|[1-9]\d{8,})\s*(;[^'\"`]*)?['\"`]\s*\)$
+min_engine: 0.45.3
+---
+# header-next-config: a next.config headers() entry with source /(.*) or /:path* and no has, missing or locale key,
+# setting Strict-Transport-Security with max-age a year or more. Evidence: the header piece (voided by next-output).
+id: hsts-enabled.javascript-generic.header-next-config
+practice_id: hsts-enabled
+language: javascript
+frameworks:
+- generic
+kind: evidence
+path_regex: (^|/)next\.config\.[cm]?[jt]s$
+rule:
+  kind: object
+  all:
+  - has:
+      kind: pair
+      all:
+      - has:
+          field: key
+          any:
+          - kind: property_identifier
+            regex: ^['"]?(source)['"]?$
+          - kind: string
+            regex: ^['"]?(source)['"]?$
+      - has:
+          field: value
+          any:
+          - kind: string
+          - kind: template_string
+            not:
+              has:
+                kind: template_substitution
+  - has:
+      kind: pair
+      all:
+      - has:
+          field: key
+          any:
+          - kind: property_identifier
+            regex: ^['"]?(headers)['"]?$
+          - kind: string
+            regex: ^['"]?(headers)['"]?$
+      - has:
+          field: value
+          kind: array
+          has:
+            kind: object
+            all:
+            - has:
+                kind: pair
+                all:
+                - has:
+                    field: key
+                    any:
+                    - kind: property_identifier
+                      regex: ^['"]?(key)['"]?$
+                    - kind: string
+                      regex: ^['"]?(key)['"]?$
+                - has:
+                    field: value
+                    any:
+                    - kind: string
+                      regex: (?i)^['\"`]strict-transport-security['\"`]$
+                    - kind: template_string
+                      not:
+                        has:
+                          kind: template_substitution
+                      regex: (?i)^['\"`]strict-transport-security['\"`]$
+            - has:
+                kind: pair
+                all:
+                - has:
+                    field: key
+                    any:
+                    - kind: property_identifier
+                      regex: ^['"]?(value)['"]?$
+                    - kind: string
+                      regex: ^['"]?(value)['"]?$
+                - has:
+                    field: value
+                    any:
+                    - kind: string
+                      regex: ^['\"`]([^'\"`;]*;\s*)*max-age=(3153[6-9]\d{3}|315[4-9]\d{4}|31[6-9]\d{5}|3[2-9]\d{6}|[4-9]\d{7}|[1-9]\d{8,})\s*(;[^'\"`]*)?['\"`]$
+                    - kind: template_string
+                      not:
+                        has:
+                          kind: template_substitution
+                      regex: ^['\"`]([^'\"`;]*;\s*)*max-age=(3153[6-9]\d{3}|315[4-9]\d{4}|31[6-9]\d{5}|3[2-9]\d{6}|[4-9]\d{7}|[1-9]\d{8,})\s*(;[^'\"`]*)?['\"`]$
+  - inside:
+      stopBy: end
+      any:
+      - kind: method_definition
+        has:
+          field: name
+          kind: property_identifier
+          regex: ^headers$
+      - kind: pair
+        all:
+        - has:
+            field: key
+            kind: property_identifier
+            regex: ^headers$
+        - has:
+            field: value
+            any:
+            - kind: arrow_function
+            - kind: function_expression
+  - has:
+      kind: pair
+      all:
+      - has:
+          field: key
+          any:
+          - kind: property_identifier
+            regex: ^['"]?(source)['"]?$
+          - kind: string
+            regex: ^['"]?(source)['"]?$
+      - has:
+          field: value
+          any:
+          - kind: string
+            regex: ^['\"`]/(\(\.\*\)|:path\*)['\"`]$
+          - kind: template_string
+            not:
+              has:
+                kind: template_substitution
+            regex: ^['\"`]/(\(\.\*\)|:path\*)['\"`]$
+  - not:
+      has:
+        kind: pair
+        has:
+          field: key
+          kind: property_identifier
+          regex: ^(has|missing|locale)$
+min_engine: 0.45.3
+---
+# header-next-middleware: middleware.(ts|js) exporting a straight-line middleware function (no if, switch or
+# conditional, one return) that sets Strict-Transport-Security of a year or more on the response it returns, in a file
+# with no config.matcher. Evidence: the header piece, placed by the function.
+id: hsts-enabled.javascript-generic.header-next-middleware
+practice_id: hsts-enabled
+language: javascript
+frameworks:
+- generic
+kind: evidence
+path_regex: (^|/)middleware\.[jt]s$
+rule:
+  kind: function_declaration
+  inside:
+    kind: export_statement
+  any:
+  - has:
+      field: name
+      kind: identifier
+      regex: ^middleware$
+  - inside:
+      kind: export_statement
+      regex: ^export\s+default\b
+  all:
+  - has:
+      field: body
+      kind: statement_block
+      not:
+        kind: statement_block
+        regex: (?s)\breturn\b.*\breturn\b
+  - not:
+      has:
+        stopBy: end
+        any:
+        - kind: if_statement
+        - kind: switch_statement
+        - kind: ternary_expression
+  - has:
+      stopBy: end
+      kind: call_expression
+      pattern: $R.headers.set($K, $V)
+      has:
+        field: arguments
+        kind: arguments
+        regex: ^\(\s*['\"`](?i:strict-transport-security)['\"`]\s*,\s*['\"`]([^'\"`;]*;\s*)*max-age=(3153[6-9]\d{3}|315[4-9]\d{4}|31[6-9]\d{5}|3[2-9]\d{6}|[4-9]\d{7}|[1-9]\d{8,})\s*(;[^'\"`]*)?['\"`]\s*\)$
+  - has:
+      field: body
+      has:
+        kind: return_statement
+        pattern: return $R
+  - not:
+      inside:
+        stopBy: end
+        kind: program
+        has:
+          kind: export_statement
+          regex: (?s)\bconfig\b.*\bmatcher\b
+min_engine: 0.45.3
+---
+# redirect-next-middleware: middleware.(ts|js) exporting a middleware function whose whole body is the protocol if
+# returning NextResponse.redirect to https://, then return NextResponse.next(), in a file with no config.matcher.
+# Evidence: the redirect piece, placed by the function.
+id: hsts-enabled.javascript-generic.redirect-next-middleware
+practice_id: hsts-enabled
+language: javascript
+frameworks:
+- generic
+kind: evidence
+path_regex: (^|/)middleware\.[jt]s$
+rule:
+  kind: function_declaration
+  inside:
+    kind: export_statement
+  any:
+  - has:
+      field: name
+      kind: identifier
+      regex: ^middleware$
+  - inside:
+      kind: export_statement
+      regex: ^export\s+default\b
+  all:
+  - has:
+      field: body
+      kind: statement_block
+      regex: ^\{\s*if\s*\(\s*(\w+\.headers\.get\(\s*['\"]x-forwarded-proto['\"]\s*\)\s*!==?\s*['\"]https['\"]|\w+\.nextUrl\.protocol\s*!==?\s*['\"]https:['\"])\s*\)\s*(\{\s*return\s+NextResponse\.redirect\(\s*('https://[^'\n]*'|\"https://[^\"\n]*\"|`https://([^`$\n]|\$\{\s*([\w.]+|\w+\.headers\.get\(\s*['\"]host['\"]\s*\))\s*\})*`)(\s*\+\s*([\w.]+|\w+\.headers\.get\(\s*['\"]host['\"]\s*\)))*\s*(,\s*30[1278]\s*)?\)\s*;?\s*\}|return\s+NextResponse\.redirect\(\s*('https://[^'\n]*'|\"https://[^\"\n]*\"|`https://([^`$\n]|\$\{\s*([\w.]+|\w+\.headers\.get\(\s*['\"]host['\"]\s*\))\s*\})*`)(\s*\+\s*([\w.]+|\w+\.headers\.get\(\s*['\"]host['\"]\s*\)))*\s*(,\s*30[1278]\s*)?\)\s*;?)\s*return\s+NextResponse\.next\(\s*\)\s*;?\s*\}$
+  - not:
+      inside:
+        stopBy: end
+        kind: program
+        has:
+          kind: export_statement
+          regex: (?s)\bconfig\b.*\bmatcher\b
+min_engine: 0.45.3
+---
+# local-hsts: Strict-Transport-Security set by a call outside a qualifying middleware (one handler, or under a
+# matcher), or a next.config headers() entry whose source is narrowed. Guarded evidence.
+id: hsts-enabled.javascript-generic.local-hsts
+practice_id: hsts-enabled
+language: javascript
+frameworks:
+- generic
+kind: evidence
+rule:
+  any:
+  - kind: call_expression
+    has:
+      field: arguments
+      kind: arguments
+      regex: ^\(\s*['\"`](?i:strict-transport-security)['\"`]\s*,
+    not:
+      inside:
+        stopBy: end
+        kind: function_declaration
+        inside:
+          kind: export_statement
+        any:
+        - has:
+            field: name
+            kind: identifier
+            regex: ^middleware$
+        - inside:
+            kind: export_statement
+            regex: ^export\s+default\b
+        all:
+        - has:
+            field: body
+            kind: statement_block
+            not:
+              kind: statement_block
+              regex: (?s)\breturn\b.*\breturn\b
+        - not:
+            has:
+              stopBy: end
+              any:
+              - kind: if_statement
+              - kind: switch_statement
+              - kind: ternary_expression
+        - has:
+            stopBy: end
+            kind: call_expression
+            pattern: $R.headers.set($K, $V)
+            has:
+              field: arguments
+              kind: arguments
+              regex: ^\(\s*['\"`](?i:strict-transport-security)['\"`]\s*,\s*['\"`]([^'\"`;]*;\s*)*max-age=(3153[6-9]\d{3}|315[4-9]\d{4}|31[6-9]\d{5}|3[2-9]\d{6}|[4-9]\d{7}|[1-9]\d{8,})\s*(;[^'\"`]*)?['\"`]\s*\)$
+        - has:
+            field: body
+            has:
+              kind: return_statement
+              pattern: return $R
+        - not:
+            inside:
+              stopBy: end
+              kind: program
+              has:
+                kind: export_statement
+                regex: (?s)\bconfig\b.*\bmatcher\b
+  - kind: object
+    all:
+    - has:
+        kind: pair
+        all:
+        - has:
+            field: key
+            any:
+            - kind: property_identifier
+              regex: ^['"]?(source)['"]?$
+            - kind: string
+              regex: ^['"]?(source)['"]?$
+        - has:
+            field: value
+            any:
+            - kind: string
+            - kind: template_string
+              not:
+                has:
+                  kind: template_substitution
+    - has:
+        kind: pair
+        all:
+        - has:
+            field: key
+            any:
+            - kind: property_identifier
+              regex: ^['"]?(headers)['"]?$
+            - kind: string
+              regex: ^['"]?(headers)['"]?$
+        - has:
+            field: value
+            kind: array
+            has:
+              kind: object
+              all:
+              - has:
+                  kind: pair
+                  all:
+                  - has:
+                      field: key
+                      any:
+                      - kind: property_identifier
+                        regex: ^['"]?(key)['"]?$
+                      - kind: string
+                        regex: ^['"]?(key)['"]?$
+                  - has:
+                      field: value
+                      any:
+                      - kind: string
+                        regex: (?i)^['\"`]strict-transport-security['\"`]$
+                      - kind: template_string
+                        not:
+                          has:
+                            kind: template_substitution
+                        regex: (?i)^['\"`]strict-transport-security['\"`]$
+              - has:
+                  kind: pair
+                  all:
+                  - has:
+                      field: key
+                      any:
+                      - kind: property_identifier
+                        regex: ^['"]?(value)['"]?$
+                      - kind: string
+                        regex: ^['"]?(value)['"]?$
+                  - has:
+                      field: value
+                      any:
+                      - kind: string
+                        regex: ^['\"`]([^'\"`;]*;\s*)*max-age=(3153[6-9]\d{3}|315[4-9]\d{4}|31[6-9]\d{5}|3[2-9]\d{6}|[4-9]\d{7}|[1-9]\d{8,})\s*(;[^'\"`]*)?['\"`]$
+                      - kind: template_string
+                        not:
+                          has:
+                            kind: template_substitution
+                        regex: ^['\"`]([^'\"`;]*;\s*)*max-age=(3153[6-9]\d{3}|315[4-9]\d{4}|31[6-9]\d{5}|3[2-9]\d{6}|[4-9]\d{7}|[1-9]\d{8,})\s*(;[^'\"`]*)?['\"`]$
+    - inside:
+        stopBy: end
+        any:
+        - kind: method_definition
+          has:
+            field: name
+            kind: property_identifier
+            regex: ^headers$
+        - kind: pair
+          all:
+          - has:
+              field: key
+              kind: property_identifier
+              regex: ^headers$
+          - has:
+              field: value
+              any:
+              - kind: arrow_function
+              - kind: function_expression
+    - any:
+      - not:
+          has:
+            kind: pair
+            all:
+            - has:
+                field: key
+                any:
+                - kind: property_identifier
+                  regex: ^['"]?(source)['"]?$
+                - kind: string
+                  regex: ^['"]?(source)['"]?$
+            - has:
+                field: value
+                any:
+                - kind: string
+                  regex: ^['\"`]/(\(\.\*\)|:path\*)['\"`]$
+                - kind: template_string
+                  not:
+                    has:
+                      kind: template_substitution
+                  regex: ^['\"`]/(\(\.\*\)|:path\*)['\"`]$
+      - has:
+          kind: pair
+          has:
+            field: key
+            kind: property_identifier
+            regex: ^(has|missing|locale)$
+min_engine: 0.45.3
+---
+# next-output: output: 'export' in next.config: headers() and middleware don't run in a static export. Evidence the
+# function reads to void the Next.js pieces.
+id: hsts-enabled.javascript-generic.next-output
+practice_id: hsts-enabled
+language: javascript
+frameworks:
+- generic
+kind: evidence
+path_regex: (^|/)next\.config\.[cm]?[jt]s$
+rule:
+  kind: pair
+  has:
+    field: key
+    kind: property_identifier
+    regex: ^output$
+  all:
+  - has:
+      field: value
+      any:
+      - kind: string
+        regex: ^['\"`]export['\"`]$
+      - kind: template_string
+        not:
+          has:
+            kind: template_substitution
+        regex: ^['\"`]export['\"`]$
+min_engine: 0.45.3
+---
+# next-output-unread: output in next.config set to a value that isn't a literal. Evidence the function reads to void
+# the Next.js pieces and hold.
+id: hsts-enabled.javascript-generic.next-output-unread
+practice_id: hsts-enabled
+language: javascript
+frameworks:
+- generic
+kind: evidence
+path_regex: (^|/)next\.config\.[cm]?[jt]s$
+rule:
+  kind: pair
+  has:
+    field: key
+    kind: property_identifier
+    regex: ^output$
+  all:
+  - not:
+      has:
+        field: value
+        any:
+        - kind: string
+        - kind: template_string
+          not:
+            has:
+              kind: template_substitution
+min_engine: 0.45.3
+---
+# app-construction-config: the default export of a next, remix, react-router, svelte, nuxt or app config file.
+# Evidence the function counts with app-construction (one per config file).
+id: hsts-enabled.javascript-generic.app-construction-config
+practice_id: hsts-enabled
+language: javascript
+frameworks:
+- generic
+kind: evidence
+path_regex: (^|/)(next|remix|react-router|svelte|nuxt|app)\.config\.[cm]?[jt]s$
+rule:
+  inside:
+    kind: program
+  any:
+  - kind: export_statement
+    regex: ^export\s+default\b
+  - kind: expression_statement
+    regex: ^module\.exports\s*=
+min_engine: 0.45.3

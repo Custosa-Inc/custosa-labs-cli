@@ -1,0 +1,134 @@
+# App-wide screen capture blocking and the app-switcher overlay (T23 B56e). Written by
+# scripts/gen_mobile_rules.py: don't edit. Only the root component's capture and overlay are pieces (P1 ruling 3).
+id: mobile-screen-privacy.javascript-expo.capture-root
+practice_id: mobile-screen-privacy
+language: javascript
+frameworks:
+- expo
+kind: evidence
+rule:
+  kind: call_expression
+  all:
+  - has:
+      field: function
+      any:
+      - kind: identifier
+        regex: ^(usePreventScreenCapture|preventScreenCaptureAsync)$
+      - kind: member_expression
+        regex: ^[A-Za-z_$][\w$]*\s*\.\s*(usePreventScreenCapture|preventScreenCaptureAsync)$
+  - has:
+      field: arguments
+      kind: arguments
+      regex: ^\(\s*["'`][^\"'`$]+["'`]\s*\)$
+  - not:
+      has:
+        field: arguments
+        kind: arguments
+        regex: ^\(\s*["'`]default["'`]
+  - inside:
+      stopBy: end
+      any:
+      - kind: function_declaration
+        has:
+          field: name
+          kind: identifier
+          regex: ^(App|RootLayout|RootLayoutNav)$
+      - kind: variable_declarator
+        has:
+          field: name
+          kind: identifier
+          regex: ^(App|RootLayout|RootLayoutNav)$
+min_engine: 0.39.0
+---
+id: mobile-screen-privacy.javascript-expo.screen-capture-local
+practice_id: mobile-screen-privacy
+language: javascript
+frameworks:
+- expo
+kind: evidence
+rule:
+  any:
+  - kind: call_expression
+    all:
+    - has:
+        field: function
+        any:
+        - kind: identifier
+          regex: ^(usePreventScreenCapture|preventScreenCaptureAsync)$
+        - kind: member_expression
+          regex: ^[A-Za-z_$][\w$]*\s*\.\s*(usePreventScreenCapture|preventScreenCaptureAsync)$
+    - any:
+      - not:
+          has:
+            field: arguments
+            kind: arguments
+            regex: ^\(\s*["'`][^\"'`$]+["'`]\s*\)$
+      - has:
+          field: arguments
+          kind: arguments
+          regex: ^\(\s*["'`]default["'`]
+      - not:
+          inside:
+            stopBy: end
+            any:
+            - kind: function_declaration
+              has:
+                field: name
+                kind: identifier
+                regex: ^(App|RootLayout|RootLayoutNav)$
+            - kind: variable_declarator
+              has:
+                field: name
+                kind: identifier
+                regex: ^(App|RootLayout|RootLayoutNav)$
+  - kind: import_specifier
+    all:
+    - has:
+        field: name
+        kind: identifier
+        regex: ^(usePreventScreenCapture|preventScreenCaptureAsync)$
+    - has:
+        field: alias
+        kind: identifier
+min_engine: 0.39.0
+---
+id: mobile-screen-privacy.javascript-expo.capture-released
+practice_id: mobile-screen-privacy
+language: javascript
+frameworks:
+- expo
+kind: violation
+rule:
+  any:
+  - kind: call_expression
+    has:
+      field: function
+      any:
+      - kind: identifier
+        regex: ^allowScreenCaptureAsync$
+      - kind: member_expression
+        regex: ^[A-Za-z_$][\w$]*\s*\.\s*allowScreenCaptureAsync$
+  - kind: shorthand_property_identifier_pattern
+    regex: ^allowScreenCaptureAsync$
+    inside:
+      kind: object_pattern
+  - kind: pair_pattern
+    has:
+      field: key
+      kind: property_identifier
+      regex: ^allowScreenCaptureAsync$
+  - kind: import_specifier
+    all:
+    - has:
+        field: name
+        kind: identifier
+        regex: ^allowScreenCaptureAsync$
+    - has:
+        field: alias
+        kind: identifier
+  - kind: subscript_expression
+    has:
+      field: index
+      kind: string
+      regex: ^["'`]allowScreenCaptureAsync["'`]$
+min_engine: 0.39.0

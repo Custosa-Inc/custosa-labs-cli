@@ -1,0 +1,1401 @@
+# Upload handlers: a method or function, or a closure outside any function (a route table entry such as
+# "POST /api/patient/:pid/document" => function (...) {...}, or $app->post('/x', function (...) {...})), that reads
+# an upload.
+id: upload-validation.php-generic.handler
+practice_id: upload-validation
+language: php
+frameworks:
+- generic
+kind: items
+rule:
+  all:
+  - any:
+    - kind: method_declaration
+    - kind: function_definition
+    - kind: anonymous_function
+      not:
+        inside:
+          stopBy: end
+          any:
+          - kind: method_declaration
+          - kind: function_definition
+          - kind: anonymous_function
+          - kind: arrow_function
+    - kind: arrow_function
+      not:
+        inside:
+          stopBy: end
+          any:
+          - kind: method_declaration
+          - kind: function_definition
+          - kind: anonymous_function
+          - kind: arrow_function
+  - has:
+      stopBy: end
+      any:
+      - kind: variable_name
+        regex: ^\$_FILES$
+      - kind: member_call_expression
+        regex: ->(file|getUploadedFiles)\(
+      - kind: function_call_expression
+        regex: ^move_uploaded_file\(
+control:
+  any:
+  - has:
+      stopBy:
+        any:
+        - kind: method_declaration
+        - kind: function_definition
+        - kind: anonymous_function
+        - kind: arrow_function
+      kind: if_statement
+      all:
+      - has:
+          field: condition
+          any:
+          - &id004
+            all:
+            - kind: member_call_expression
+            - has:
+                field: name
+                kind: name
+                regex: ^(isInfected|hasVirus|isMalicious)$
+            - has:
+                field: object
+                any:
+                - all: &id001
+                  - kind: function_call_expression
+                    regex: ^([A-Za-z0-9_$.>:-]*[0-9_$.>:-])?(?i:(clam|clamav|clamd|clamscan|virus|viruses|virustotal|antivirus|malware|antimalware|quahog|cloudmersive|scanii|metadefender|opswat))(\(|[A-Z0-9_$.>:-][A-Za-z0-9_$.>:-]*\()|^[A-Za-z0-9_$.>:-]*(Clam|ClamAV|Clamav|Clamd|Clamscan|CLAMAV|CLAMD|Virus|Viruses|VirusTotal|Antivirus|AntiVirus|Malware|AntiMalware|Quahog|Cloudmersive|Scanii|MetaDefender|Opswat|OPSWAT)(\(|[A-Z0-9_$.>:-][A-Za-z0-9_$.>:-]*\()|^([A-Za-z0-9_$.>:-]*[.>:])?(is_?[iI]nfected|instream|scan_stream)\(
+                  - not:
+                      kind: function_call_expression
+                      regex: (?i)(queue|job|task|enqueue|delay|apply_async|publish|dispatch|schedule|enabled|configured|available|definition|signature|update|fresh|version|health|ping)
+                - has:
+                    stopBy: end
+                    all: *id001
+            - not:
+                inside:
+                  kind: unary_op_expression
+          - &id005
+            all:
+            - kind: member_call_expression
+            - has:
+                field: name
+                kind: name
+                regex: ^(isInfected|hasVirus|isMalicious)$
+            - has:
+                field: object
+                any:
+                - all: &id002
+                  - kind: member_call_expression
+                    regex: ^([A-Za-z0-9_$.>:-]*[0-9_$.>:-])?(?i:(clam|clamav|clamd|clamscan|virus|viruses|virustotal|antivirus|malware|antimalware|quahog|cloudmersive|scanii|metadefender|opswat))(\(|[A-Z0-9_$.>:-][A-Za-z0-9_$.>:-]*\()|^[A-Za-z0-9_$.>:-]*(Clam|ClamAV|Clamav|Clamd|Clamscan|CLAMAV|CLAMD|Virus|Viruses|VirusTotal|Antivirus|AntiVirus|Malware|AntiMalware|Quahog|Cloudmersive|Scanii|MetaDefender|Opswat|OPSWAT)(\(|[A-Z0-9_$.>:-][A-Za-z0-9_$.>:-]*\()|^([A-Za-z0-9_$.>:-]*[.>:])?(is_?[iI]nfected|instream|scan_stream)\(
+                  - not:
+                      kind: member_call_expression
+                      regex: (?i)(queue|job|task|enqueue|delay|apply_async|publish|dispatch|schedule|enabled|configured|available|definition|signature|update|fresh|version|health|ping)
+                - has:
+                    stopBy: end
+                    all: *id002
+            - not:
+                inside:
+                  kind: unary_op_expression
+          - &id006
+            all:
+            - kind: member_call_expression
+            - has:
+                field: name
+                kind: name
+                regex: ^(isInfected|hasVirus|isMalicious)$
+            - has:
+                field: object
+                any:
+                - all: &id003
+                  - kind: scoped_call_expression
+                    regex: ^([A-Za-z0-9_$.>:-]*[0-9_$.>:-])?(?i:(clam|clamav|clamd|clamscan|virus|viruses|virustotal|antivirus|malware|antimalware|quahog|cloudmersive|scanii|metadefender|opswat))(\(|[A-Z0-9_$.>:-][A-Za-z0-9_$.>:-]*\()|^[A-Za-z0-9_$.>:-]*(Clam|ClamAV|Clamav|Clamd|Clamscan|CLAMAV|CLAMD|Virus|Viruses|VirusTotal|Antivirus|AntiVirus|Malware|AntiMalware|Quahog|Cloudmersive|Scanii|MetaDefender|Opswat|OPSWAT)(\(|[A-Z0-9_$.>:-][A-Za-z0-9_$.>:-]*\()|^([A-Za-z0-9_$.>:-]*[.>:])?(is_?[iI]nfected|instream|scan_stream)\(
+                  - not:
+                      kind: scoped_call_expression
+                      regex: (?i)(queue|job|task|enqueue|delay|apply_async|publish|dispatch|schedule|enabled|configured|available|definition|signature|update|fresh|version|health|ping)
+                - has:
+                    stopBy: end
+                    all: *id003
+            - not:
+                inside:
+                  kind: unary_op_expression
+          - has:
+              stopBy: end
+              any:
+              - *id004
+              - *id005
+              - *id006
+      - has:
+          field: body
+          any:
+          - &id007
+            kind: return_statement
+          - &id008
+            kind: throw_expression
+          - &id009
+            kind: exit_statement
+          - &id010
+            kind: function_call_expression
+            regex: ^abort\(\s*4
+          - has:
+              stopBy: end
+              any:
+              - *id007
+              - *id008
+              - *id009
+              - *id010
+  - all:
+    - has:
+        stopBy:
+          any:
+          - kind: method_declaration
+          - kind: function_definition
+          - kind: anonymous_function
+          - kind: arrow_function
+        all:
+        - kind: assignment_expression
+          pattern:
+            context: <?php $V = $E;
+            selector: assignment_expression
+        - has:
+            stopBy: end
+            any:
+            - kind: function_call_expression
+              regex: ^([A-Za-z0-9_$.>:-]*[0-9_$.>:-])?(?i:(clam|clamav|clamd|clamscan|virus|viruses|virustotal|antivirus|malware|antimalware|quahog|cloudmersive|scanii|metadefender|opswat))(\(|[A-Z0-9_$.>:-][A-Za-z0-9_$.>:-]*\()|^[A-Za-z0-9_$.>:-]*(Clam|ClamAV|Clamav|Clamd|Clamscan|CLAMAV|CLAMD|Virus|Viruses|VirusTotal|Antivirus|AntiVirus|Malware|AntiMalware|Quahog|Cloudmersive|Scanii|MetaDefender|Opswat|OPSWAT)(\(|[A-Z0-9_$.>:-][A-Za-z0-9_$.>:-]*\()|^([A-Za-z0-9_$.>:-]*[.>:])?(is_?[iI]nfected|instream|scan_stream)\(
+            - kind: member_call_expression
+              regex: ^([A-Za-z0-9_$.>:-]*[0-9_$.>:-])?(?i:(clam|clamav|clamd|clamscan|virus|viruses|virustotal|antivirus|malware|antimalware|quahog|cloudmersive|scanii|metadefender|opswat))(\(|[A-Z0-9_$.>:-][A-Za-z0-9_$.>:-]*\()|^[A-Za-z0-9_$.>:-]*(Clam|ClamAV|Clamav|Clamd|Clamscan|CLAMAV|CLAMD|Virus|Viruses|VirusTotal|Antivirus|AntiVirus|Malware|AntiMalware|Quahog|Cloudmersive|Scanii|MetaDefender|Opswat|OPSWAT)(\(|[A-Z0-9_$.>:-][A-Za-z0-9_$.>:-]*\()|^([A-Za-z0-9_$.>:-]*[.>:])?(is_?[iI]nfected|instream|scan_stream)\(
+            - kind: scoped_call_expression
+              regex: ^([A-Za-z0-9_$.>:-]*[0-9_$.>:-])?(?i:(clam|clamav|clamd|clamscan|virus|viruses|virustotal|antivirus|malware|antimalware|quahog|cloudmersive|scanii|metadefender|opswat))(\(|[A-Z0-9_$.>:-][A-Za-z0-9_$.>:-]*\()|^[A-Za-z0-9_$.>:-]*(Clam|ClamAV|Clamav|Clamd|Clamscan|CLAMAV|CLAMD|Virus|Viruses|VirusTotal|Antivirus|AntiVirus|Malware|AntiMalware|Quahog|Cloudmersive|Scanii|MetaDefender|Opswat|OPSWAT)(\(|[A-Z0-9_$.>:-][A-Za-z0-9_$.>:-]*\()|^([A-Za-z0-9_$.>:-]*[.>:])?(is_?[iI]nfected|instream|scan_stream)\(
+        - not:
+            has:
+              stopBy: end
+              any:
+              - kind: function_call_expression
+                regex: (?i)(queue|job|task|enqueue|delay|apply_async|publish|dispatch|schedule|enabled|configured|available|definition|signature|update|fresh|version|health|ping)
+              - kind: member_call_expression
+                regex: (?i)(queue|job|task|enqueue|delay|apply_async|publish|dispatch|schedule|enabled|configured|available|definition|signature|update|fresh|version|health|ping)
+              - kind: scoped_call_expression
+                regex: (?i)(queue|job|task|enqueue|delay|apply_async|publish|dispatch|schedule|enabled|configured|available|definition|signature|update|fresh|version|health|ping)
+    - has:
+        stopBy:
+          any:
+          - kind: method_declaration
+          - kind: function_definition
+          - kind: anonymous_function
+          - kind: arrow_function
+        kind: if_statement
+        all:
+        - has:
+            field: condition
+            any:
+            - &id011
+              all:
+              - kind: binary_expression
+              - regex: (?i)^\$[A-Za-z0-9_]+(\[['"](status|verdict|result)['"]\]|->(status|verdict|result))\s*(!==?\s*['"](clean|ok|passed)['"]|===?\s*['"](infected|found|malicious|virus)['"])$
+              - has:
+                  field: left
+                  has:
+                    stopBy: end
+                    kind: variable_name
+                    pattern:
+                      context: <?php $V;
+                      selector: variable_name
+            - &id012
+              all:
+              - pattern:
+                  context: <?php if ($V->$M()) {}
+                  selector: member_call_expression
+              - regex: ^\$[A-Za-z0-9_]+->(isInfected|hasVirus|isMalicious)\(\)$
+              - not:
+                  inside:
+                    kind: unary_op_expression
+            - has:
+                stopBy: end
+                any:
+                - *id011
+                - *id012
+        - has:
+            field: body
+            any:
+            - *id007
+            - *id008
+            - *id009
+            - *id010
+            - has:
+                stopBy: end
+                any:
+                - *id007
+                - *id008
+                - *id009
+                - *id010
+min_engine: 0.39.0
+---
+id: upload-validation.php-generic.scan-candidate
+practice_id: upload-validation
+language: php
+frameworks:
+- generic
+kind: evidence
+rule:
+  any:
+  - all:
+    - any:
+      - kind: function_call_expression
+        regex: (?i)^[A-Za-z0-9_$.>:-]*(scan|clamav|clamd|clamscan|virus|malware)[A-Za-z0-9_$.>:-]*\(
+      - kind: function_call_expression
+        regex: ^([A-Za-z0-9_$.>:-]*[0-9_$.>:-])?(?i:(clam|clamav|clamd|clamscan|virus|viruses|virustotal|antivirus|malware|antimalware|quahog|cloudmersive|scanii|metadefender|opswat))(\(|[A-Z0-9_$.>:-][A-Za-z0-9_$.>:-]*\()|^[A-Za-z0-9_$.>:-]*(Clam|ClamAV|Clamav|Clamd|Clamscan|CLAMAV|CLAMD|Virus|Viruses|VirusTotal|Antivirus|AntiVirus|Malware|AntiMalware|Quahog|Cloudmersive|Scanii|MetaDefender|Opswat|OPSWAT)(\(|[A-Z0-9_$.>:-][A-Za-z0-9_$.>:-]*\()|^([A-Za-z0-9_$.>:-]*[.>:])?(is_?[iI]nfected|instream|scan_stream)\(
+    - not:
+        kind: function_call_expression
+        regex: (?i)^[A-Za-z0-9_$.>:-]*(queue|enabled|configured|available)[A-Za-z0-9_$.>:-]*\(
+  - all:
+    - any:
+      - kind: member_call_expression
+        regex: (?i)^[A-Za-z0-9_$.>:-]*(scan|clamav|clamd|clamscan|virus|malware)[A-Za-z0-9_$.>:-]*\(
+      - kind: member_call_expression
+        regex: ^([A-Za-z0-9_$.>:-]*[0-9_$.>:-])?(?i:(clam|clamav|clamd|clamscan|virus|viruses|virustotal|antivirus|malware|antimalware|quahog|cloudmersive|scanii|metadefender|opswat))(\(|[A-Z0-9_$.>:-][A-Za-z0-9_$.>:-]*\()|^[A-Za-z0-9_$.>:-]*(Clam|ClamAV|Clamav|Clamd|Clamscan|CLAMAV|CLAMD|Virus|Viruses|VirusTotal|Antivirus|AntiVirus|Malware|AntiMalware|Quahog|Cloudmersive|Scanii|MetaDefender|Opswat|OPSWAT)(\(|[A-Z0-9_$.>:-][A-Za-z0-9_$.>:-]*\()|^([A-Za-z0-9_$.>:-]*[.>:])?(is_?[iI]nfected|instream|scan_stream)\(
+    - not:
+        kind: member_call_expression
+        regex: (?i)^[A-Za-z0-9_$.>:-]*(queue|enabled|configured|available)[A-Za-z0-9_$.>:-]*\(
+  - all:
+    - any:
+      - kind: scoped_call_expression
+        regex: (?i)^[A-Za-z0-9_$.>:-]*(scan|clamav|clamd|clamscan|virus|malware)[A-Za-z0-9_$.>:-]*\(
+      - kind: scoped_call_expression
+        regex: ^([A-Za-z0-9_$.>:-]*[0-9_$.>:-])?(?i:(clam|clamav|clamd|clamscan|virus|viruses|virustotal|antivirus|malware|antimalware|quahog|cloudmersive|scanii|metadefender|opswat))(\(|[A-Z0-9_$.>:-][A-Za-z0-9_$.>:-]*\()|^[A-Za-z0-9_$.>:-]*(Clam|ClamAV|Clamav|Clamd|Clamscan|CLAMAV|CLAMD|Virus|Viruses|VirusTotal|Antivirus|AntiVirus|Malware|AntiMalware|Quahog|Cloudmersive|Scanii|MetaDefender|Opswat|OPSWAT)(\(|[A-Z0-9_$.>:-][A-Za-z0-9_$.>:-]*\()|^([A-Za-z0-9_$.>:-]*[.>:])?(is_?[iI]nfected|instream|scan_stream)\(
+    - not:
+        kind: scoped_call_expression
+        regex: (?i)^[A-Za-z0-9_$.>:-]*(queue|enabled|configured|available)[A-Za-z0-9_$.>:-]*\(
+min_engine: 0.39.0
+---
+id: upload-validation.php-generic.scan-unchecked
+practice_id: upload-validation
+language: php
+frameworks:
+- generic
+kind: evidence
+rule:
+  all:
+  - all:
+    - any:
+      - kind: method_declaration
+      - kind: function_definition
+      - kind: anonymous_function
+        not:
+          inside:
+            stopBy: end
+            any:
+            - kind: method_declaration
+            - kind: function_definition
+            - kind: anonymous_function
+            - kind: arrow_function
+      - kind: arrow_function
+        not:
+          inside:
+            stopBy: end
+            any:
+            - kind: method_declaration
+            - kind: function_definition
+            - kind: anonymous_function
+            - kind: arrow_function
+    - has:
+        stopBy: end
+        any:
+        - kind: variable_name
+          regex: ^\$_FILES$
+        - kind: member_call_expression
+          regex: ->(file|getUploadedFiles)\(
+        - kind: function_call_expression
+          regex: ^move_uploaded_file\(
+  - not:
+      any:
+      - has:
+          stopBy:
+            any:
+            - kind: method_declaration
+            - kind: function_definition
+            - kind: anonymous_function
+            - kind: arrow_function
+          kind: if_statement
+          all:
+          - has:
+              field: condition
+              any:
+              - &id004
+                all:
+                - kind: member_call_expression
+                - has:
+                    field: name
+                    kind: name
+                    regex: ^(isInfected|hasVirus|isMalicious)$
+                - has:
+                    field: object
+                    any:
+                    - all: &id001
+                      - kind: function_call_expression
+                        regex: ^([A-Za-z0-9_$.>:-]*[0-9_$.>:-])?(?i:(clam|clamav|clamd|clamscan|virus|viruses|virustotal|antivirus|malware|antimalware|quahog|cloudmersive|scanii|metadefender|opswat))(\(|[A-Z0-9_$.>:-][A-Za-z0-9_$.>:-]*\()|^[A-Za-z0-9_$.>:-]*(Clam|ClamAV|Clamav|Clamd|Clamscan|CLAMAV|CLAMD|Virus|Viruses|VirusTotal|Antivirus|AntiVirus|Malware|AntiMalware|Quahog|Cloudmersive|Scanii|MetaDefender|Opswat|OPSWAT)(\(|[A-Z0-9_$.>:-][A-Za-z0-9_$.>:-]*\()|^([A-Za-z0-9_$.>:-]*[.>:])?(is_?[iI]nfected|instream|scan_stream)\(
+                      - not:
+                          kind: function_call_expression
+                          regex: (?i)(queue|job|task|enqueue|delay|apply_async|publish|dispatch|schedule|enabled|configured|available|definition|signature|update|fresh|version|health|ping)
+                    - has:
+                        stopBy: end
+                        all: *id001
+                - not:
+                    inside:
+                      kind: unary_op_expression
+              - &id005
+                all:
+                - kind: member_call_expression
+                - has:
+                    field: name
+                    kind: name
+                    regex: ^(isInfected|hasVirus|isMalicious)$
+                - has:
+                    field: object
+                    any:
+                    - all: &id002
+                      - kind: member_call_expression
+                        regex: ^([A-Za-z0-9_$.>:-]*[0-9_$.>:-])?(?i:(clam|clamav|clamd|clamscan|virus|viruses|virustotal|antivirus|malware|antimalware|quahog|cloudmersive|scanii|metadefender|opswat))(\(|[A-Z0-9_$.>:-][A-Za-z0-9_$.>:-]*\()|^[A-Za-z0-9_$.>:-]*(Clam|ClamAV|Clamav|Clamd|Clamscan|CLAMAV|CLAMD|Virus|Viruses|VirusTotal|Antivirus|AntiVirus|Malware|AntiMalware|Quahog|Cloudmersive|Scanii|MetaDefender|Opswat|OPSWAT)(\(|[A-Z0-9_$.>:-][A-Za-z0-9_$.>:-]*\()|^([A-Za-z0-9_$.>:-]*[.>:])?(is_?[iI]nfected|instream|scan_stream)\(
+                      - not:
+                          kind: member_call_expression
+                          regex: (?i)(queue|job|task|enqueue|delay|apply_async|publish|dispatch|schedule|enabled|configured|available|definition|signature|update|fresh|version|health|ping)
+                    - has:
+                        stopBy: end
+                        all: *id002
+                - not:
+                    inside:
+                      kind: unary_op_expression
+              - &id006
+                all:
+                - kind: member_call_expression
+                - has:
+                    field: name
+                    kind: name
+                    regex: ^(isInfected|hasVirus|isMalicious)$
+                - has:
+                    field: object
+                    any:
+                    - all: &id003
+                      - kind: scoped_call_expression
+                        regex: ^([A-Za-z0-9_$.>:-]*[0-9_$.>:-])?(?i:(clam|clamav|clamd|clamscan|virus|viruses|virustotal|antivirus|malware|antimalware|quahog|cloudmersive|scanii|metadefender|opswat))(\(|[A-Z0-9_$.>:-][A-Za-z0-9_$.>:-]*\()|^[A-Za-z0-9_$.>:-]*(Clam|ClamAV|Clamav|Clamd|Clamscan|CLAMAV|CLAMD|Virus|Viruses|VirusTotal|Antivirus|AntiVirus|Malware|AntiMalware|Quahog|Cloudmersive|Scanii|MetaDefender|Opswat|OPSWAT)(\(|[A-Z0-9_$.>:-][A-Za-z0-9_$.>:-]*\()|^([A-Za-z0-9_$.>:-]*[.>:])?(is_?[iI]nfected|instream|scan_stream)\(
+                      - not:
+                          kind: scoped_call_expression
+                          regex: (?i)(queue|job|task|enqueue|delay|apply_async|publish|dispatch|schedule|enabled|configured|available|definition|signature|update|fresh|version|health|ping)
+                    - has:
+                        stopBy: end
+                        all: *id003
+                - not:
+                    inside:
+                      kind: unary_op_expression
+              - has:
+                  stopBy: end
+                  any:
+                  - *id004
+                  - *id005
+                  - *id006
+          - has:
+              field: body
+              any:
+              - &id007
+                kind: return_statement
+              - &id008
+                kind: throw_expression
+              - &id009
+                kind: exit_statement
+              - &id010
+                kind: function_call_expression
+                regex: ^abort\(\s*4
+              - has:
+                  stopBy: end
+                  any:
+                  - *id007
+                  - *id008
+                  - *id009
+                  - *id010
+      - all:
+        - has:
+            stopBy:
+              any:
+              - kind: method_declaration
+              - kind: function_definition
+              - kind: anonymous_function
+              - kind: arrow_function
+            all:
+            - kind: assignment_expression
+              pattern:
+                context: <?php $V = $E;
+                selector: assignment_expression
+            - has:
+                stopBy: end
+                any:
+                - kind: function_call_expression
+                  regex: ^([A-Za-z0-9_$.>:-]*[0-9_$.>:-])?(?i:(clam|clamav|clamd|clamscan|virus|viruses|virustotal|antivirus|malware|antimalware|quahog|cloudmersive|scanii|metadefender|opswat))(\(|[A-Z0-9_$.>:-][A-Za-z0-9_$.>:-]*\()|^[A-Za-z0-9_$.>:-]*(Clam|ClamAV|Clamav|Clamd|Clamscan|CLAMAV|CLAMD|Virus|Viruses|VirusTotal|Antivirus|AntiVirus|Malware|AntiMalware|Quahog|Cloudmersive|Scanii|MetaDefender|Opswat|OPSWAT)(\(|[A-Z0-9_$.>:-][A-Za-z0-9_$.>:-]*\()|^([A-Za-z0-9_$.>:-]*[.>:])?(is_?[iI]nfected|instream|scan_stream)\(
+                - kind: member_call_expression
+                  regex: ^([A-Za-z0-9_$.>:-]*[0-9_$.>:-])?(?i:(clam|clamav|clamd|clamscan|virus|viruses|virustotal|antivirus|malware|antimalware|quahog|cloudmersive|scanii|metadefender|opswat))(\(|[A-Z0-9_$.>:-][A-Za-z0-9_$.>:-]*\()|^[A-Za-z0-9_$.>:-]*(Clam|ClamAV|Clamav|Clamd|Clamscan|CLAMAV|CLAMD|Virus|Viruses|VirusTotal|Antivirus|AntiVirus|Malware|AntiMalware|Quahog|Cloudmersive|Scanii|MetaDefender|Opswat|OPSWAT)(\(|[A-Z0-9_$.>:-][A-Za-z0-9_$.>:-]*\()|^([A-Za-z0-9_$.>:-]*[.>:])?(is_?[iI]nfected|instream|scan_stream)\(
+                - kind: scoped_call_expression
+                  regex: ^([A-Za-z0-9_$.>:-]*[0-9_$.>:-])?(?i:(clam|clamav|clamd|clamscan|virus|viruses|virustotal|antivirus|malware|antimalware|quahog|cloudmersive|scanii|metadefender|opswat))(\(|[A-Z0-9_$.>:-][A-Za-z0-9_$.>:-]*\()|^[A-Za-z0-9_$.>:-]*(Clam|ClamAV|Clamav|Clamd|Clamscan|CLAMAV|CLAMD|Virus|Viruses|VirusTotal|Antivirus|AntiVirus|Malware|AntiMalware|Quahog|Cloudmersive|Scanii|MetaDefender|Opswat|OPSWAT)(\(|[A-Z0-9_$.>:-][A-Za-z0-9_$.>:-]*\()|^([A-Za-z0-9_$.>:-]*[.>:])?(is_?[iI]nfected|instream|scan_stream)\(
+            - not:
+                has:
+                  stopBy: end
+                  any:
+                  - kind: function_call_expression
+                    regex: (?i)(queue|job|task|enqueue|delay|apply_async|publish|dispatch|schedule|enabled|configured|available|definition|signature|update|fresh|version|health|ping)
+                  - kind: member_call_expression
+                    regex: (?i)(queue|job|task|enqueue|delay|apply_async|publish|dispatch|schedule|enabled|configured|available|definition|signature|update|fresh|version|health|ping)
+                  - kind: scoped_call_expression
+                    regex: (?i)(queue|job|task|enqueue|delay|apply_async|publish|dispatch|schedule|enabled|configured|available|definition|signature|update|fresh|version|health|ping)
+        - has:
+            stopBy:
+              any:
+              - kind: method_declaration
+              - kind: function_definition
+              - kind: anonymous_function
+              - kind: arrow_function
+            kind: if_statement
+            all:
+            - has:
+                field: condition
+                any:
+                - &id011
+                  all:
+                  - kind: binary_expression
+                  - regex: (?i)^\$[A-Za-z0-9_]+(\[['"](status|verdict|result)['"]\]|->(status|verdict|result))\s*(!==?\s*['"](clean|ok|passed)['"]|===?\s*['"](infected|found|malicious|virus)['"])$
+                  - has:
+                      field: left
+                      has:
+                        stopBy: end
+                        kind: variable_name
+                        pattern:
+                          context: <?php $V;
+                          selector: variable_name
+                - &id012
+                  all:
+                  - pattern:
+                      context: <?php if ($V->$M()) {}
+                      selector: member_call_expression
+                  - regex: ^\$[A-Za-z0-9_]+->(isInfected|hasVirus|isMalicious)\(\)$
+                  - not:
+                      inside:
+                        kind: unary_op_expression
+                - has:
+                    stopBy: end
+                    any:
+                    - *id011
+                    - *id012
+            - has:
+                field: body
+                any:
+                - *id007
+                - *id008
+                - *id009
+                - *id010
+                - has:
+                    stopBy: end
+                    any:
+                    - *id007
+                    - *id008
+                    - *id009
+                    - *id010
+  - has:
+      stopBy:
+        any:
+        - kind: method_declaration
+        - kind: function_definition
+        - kind: anonymous_function
+        - kind: arrow_function
+      any:
+      - all:
+        - any:
+          - kind: function_call_expression
+            regex: (?i)^[A-Za-z0-9_$.>:-]*(scan|clamav|clamd|clamscan|virus|malware)[A-Za-z0-9_$.>:-]*\(
+          - kind: function_call_expression
+            regex: ^([A-Za-z0-9_$.>:-]*[0-9_$.>:-])?(?i:(clam|clamav|clamd|clamscan|virus|viruses|virustotal|antivirus|malware|antimalware|quahog|cloudmersive|scanii|metadefender|opswat))(\(|[A-Z0-9_$.>:-][A-Za-z0-9_$.>:-]*\()|^[A-Za-z0-9_$.>:-]*(Clam|ClamAV|Clamav|Clamd|Clamscan|CLAMAV|CLAMD|Virus|Viruses|VirusTotal|Antivirus|AntiVirus|Malware|AntiMalware|Quahog|Cloudmersive|Scanii|MetaDefender|Opswat|OPSWAT)(\(|[A-Z0-9_$.>:-][A-Za-z0-9_$.>:-]*\()|^([A-Za-z0-9_$.>:-]*[.>:])?(is_?[iI]nfected|instream|scan_stream)\(
+        - not:
+            kind: function_call_expression
+            regex: (?i)^[A-Za-z0-9_$.>:-]*(queue|enabled|configured|available)[A-Za-z0-9_$.>:-]*\(
+      - all:
+        - any:
+          - kind: member_call_expression
+            regex: (?i)^[A-Za-z0-9_$.>:-]*(scan|clamav|clamd|clamscan|virus|malware)[A-Za-z0-9_$.>:-]*\(
+          - kind: member_call_expression
+            regex: ^([A-Za-z0-9_$.>:-]*[0-9_$.>:-])?(?i:(clam|clamav|clamd|clamscan|virus|viruses|virustotal|antivirus|malware|antimalware|quahog|cloudmersive|scanii|metadefender|opswat))(\(|[A-Z0-9_$.>:-][A-Za-z0-9_$.>:-]*\()|^[A-Za-z0-9_$.>:-]*(Clam|ClamAV|Clamav|Clamd|Clamscan|CLAMAV|CLAMD|Virus|Viruses|VirusTotal|Antivirus|AntiVirus|Malware|AntiMalware|Quahog|Cloudmersive|Scanii|MetaDefender|Opswat|OPSWAT)(\(|[A-Z0-9_$.>:-][A-Za-z0-9_$.>:-]*\()|^([A-Za-z0-9_$.>:-]*[.>:])?(is_?[iI]nfected|instream|scan_stream)\(
+        - not:
+            kind: member_call_expression
+            regex: (?i)^[A-Za-z0-9_$.>:-]*(queue|enabled|configured|available)[A-Za-z0-9_$.>:-]*\(
+      - all:
+        - any:
+          - kind: scoped_call_expression
+            regex: (?i)^[A-Za-z0-9_$.>:-]*(scan|clamav|clamd|clamscan|virus|malware)[A-Za-z0-9_$.>:-]*\(
+          - kind: scoped_call_expression
+            regex: ^([A-Za-z0-9_$.>:-]*[0-9_$.>:-])?(?i:(clam|clamav|clamd|clamscan|virus|viruses|virustotal|antivirus|malware|antimalware|quahog|cloudmersive|scanii|metadefender|opswat))(\(|[A-Z0-9_$.>:-][A-Za-z0-9_$.>:-]*\()|^[A-Za-z0-9_$.>:-]*(Clam|ClamAV|Clamav|Clamd|Clamscan|CLAMAV|CLAMD|Virus|Viruses|VirusTotal|Antivirus|AntiVirus|Malware|AntiMalware|Quahog|Cloudmersive|Scanii|MetaDefender|Opswat|OPSWAT)(\(|[A-Z0-9_$.>:-][A-Za-z0-9_$.>:-]*\()|^([A-Za-z0-9_$.>:-]*[.>:])?(is_?[iI]nfected|instream|scan_stream)\(
+        - not:
+            kind: scoped_call_expression
+            regex: (?i)^[A-Za-z0-9_$.>:-]*(queue|enabled|configured|available)[A-Za-z0-9_$.>:-]*\(
+min_engine: 0.39.0
+---
+id: upload-validation.php-generic.no-content-type-check
+practice_id: upload-validation
+language: php
+frameworks:
+- generic
+kind: violation
+rule:
+  all:
+  - all:
+    - any:
+      - kind: method_declaration
+      - kind: function_definition
+      - kind: anonymous_function
+        not:
+          inside:
+            stopBy: end
+            any:
+            - kind: method_declaration
+            - kind: function_definition
+            - kind: anonymous_function
+            - kind: arrow_function
+      - kind: arrow_function
+        not:
+          inside:
+            stopBy: end
+            any:
+            - kind: method_declaration
+            - kind: function_definition
+            - kind: anonymous_function
+            - kind: arrow_function
+    - has:
+        stopBy: end
+        any:
+        - kind: variable_name
+          regex: ^\$_FILES$
+        - kind: member_call_expression
+          regex: ->(file|getUploadedFiles)\(
+        - kind: function_call_expression
+          regex: ^move_uploaded_file\(
+  - not:
+      any:
+      - all:
+        - has:
+            stopBy:
+              any:
+              - kind: method_declaration
+              - kind: function_definition
+              - kind: anonymous_function
+              - kind: arrow_function
+            all:
+            - kind: assignment_expression
+              pattern:
+                context: <?php $V = $E;
+                selector: assignment_expression
+            - has:
+                stopBy: end
+                any:
+                - kind: function_call_expression
+                  regex: (finfo_file|finfo_buffer|mime_content_type|getimagesize|->getMimeType)\(
+                - kind: member_call_expression
+                  regex: (finfo_file|finfo_buffer|mime_content_type|getimagesize|->getMimeType)\(
+                - kind: scoped_call_expression
+                  regex: (finfo_file|finfo_buffer|mime_content_type|getimagesize|->getMimeType)\(
+        - has:
+            stopBy:
+              any:
+              - kind: method_declaration
+              - kind: function_definition
+              - kind: anonymous_function
+              - kind: arrow_function
+            kind: if_statement
+            all:
+            - has:
+                field: condition
+                any:
+                - &id001
+                  pattern:
+                    context: <?php if ($V !== $X) {}
+                    selector: binary_expression
+                - &id002
+                  pattern:
+                    context: <?php if ($V != $X) {}
+                    selector: binary_expression
+                - has:
+                    stopBy: end
+                    any:
+                    - *id001
+                    - *id002
+            - has:
+                field: body
+                any:
+                - &id003
+                  kind: return_statement
+                - &id004
+                  kind: throw_expression
+                - &id005
+                  kind: exit_statement
+                - &id006
+                  kind: function_call_expression
+                  regex: ^abort\(\s*4
+                - has:
+                    stopBy: end
+                    any:
+                    - *id003
+                    - *id004
+                    - *id005
+                    - *id006
+      - has:
+          stopBy:
+            any:
+            - kind: method_declaration
+            - kind: function_definition
+            - kind: anonymous_function
+            - kind: arrow_function
+          kind: if_statement
+          all:
+          - has:
+              field: condition
+              any:
+              - &id007
+                kind: unary_op_expression
+                regex: ^!\s*in_array\(\s*\$[A-Za-z0-9_]+->getMimeType\(\)\s*,
+              - has:
+                  stopBy: end
+                  any:
+                  - *id007
+          - has:
+              field: body
+              any:
+              - *id003
+              - *id004
+              - *id005
+              - *id006
+              - has:
+                  stopBy: end
+                  any:
+                  - *id003
+                  - *id004
+                  - *id005
+                  - *id006
+      - has:
+          stopBy:
+            any:
+            - kind: method_declaration
+            - kind: function_definition
+            - kind: anonymous_function
+            - kind: arrow_function
+          kind: member_call_expression
+          regex: ->validate\(
+          has:
+            stopBy: end
+            any:
+            - all:
+              - kind: string
+                regex: ^['"]([^'"]*\|)?(mimes|mimetypes):[^'"|]+
+            - all:
+              - kind: encapsed_string
+                regex: ^['"]([^'"]*\|)?(mimes|mimetypes):[^'"|]+
+  - not:
+      any:
+      - all:
+        - has:
+            stopBy: end
+            any:
+            - kind: function_call_expression
+              regex: (finfo_file|finfo_buffer|mime_content_type|getimagesize|->getMimeType)\(
+            - kind: member_call_expression
+              regex: (finfo_file|finfo_buffer|mime_content_type|getimagesize|->getMimeType)\(
+            - kind: scoped_call_expression
+              regex: (finfo_file|finfo_buffer|mime_content_type|getimagesize|->getMimeType)\(
+        - not:
+            all:
+            - has:
+                stopBy: end
+                all:
+                - kind: assignment_expression
+                  pattern:
+                    context: <?php $V = $E;
+                    selector: assignment_expression
+                - has:
+                    stopBy: end
+                    any:
+                    - kind: function_call_expression
+                      regex: (finfo_file|finfo_buffer|mime_content_type|getimagesize|->getMimeType)\(
+                    - kind: member_call_expression
+                      regex: (finfo_file|finfo_buffer|mime_content_type|getimagesize|->getMimeType)\(
+                    - kind: scoped_call_expression
+                      regex: (finfo_file|finfo_buffer|mime_content_type|getimagesize|->getMimeType)\(
+            - not:
+                has:
+                  stopBy: end
+                  all:
+                  - kind: variable_name
+                    pattern:
+                      context: <?php $V;
+                      selector: variable_name
+                  - not:
+                      inside:
+                        kind: assignment_expression
+                        field: left
+      - has:
+          stopBy: end
+          any:
+          - kind: function_call_expression
+            regex: (?i)^[A-Za-z0-9_$.>:-]*(check|assert|validate|ensure|verify|is|allowed|sniff)[A-Za-z0-9_]*(type|mime|magic|filetype|allowed|content)[A-Za-z0-9_]*\(
+          - kind: member_call_expression
+            regex: (?i)^[A-Za-z0-9_$.>:-]*(check|assert|validate|ensure|verify|is|allowed|sniff)[A-Za-z0-9_]*(type|mime|magic|filetype|allowed|content)[A-Za-z0-9_]*\(
+          - kind: scoped_call_expression
+            regex: (?i)^[A-Za-z0-9_$.>:-]*(check|assert|validate|ensure|verify|is|allowed|sniff)[A-Za-z0-9_]*(type|mime|magic|filetype|allowed|content)[A-Za-z0-9_]*\(
+      - has:
+          stopBy: end
+          any:
+          - kind: string
+            regex: '^[''"]([^''"]*\|)?(mimes|mimetypes):'
+          - kind: encapsed_string
+            regex: '^[''"]([^''"]*\|)?(mimes|mimetypes):'
+min_engine: 0.39.0
+---
+id: upload-validation.php-generic.type-candidate
+practice_id: upload-validation
+language: php
+frameworks:
+- generic
+kind: evidence
+rule:
+  all:
+  - all:
+    - any:
+      - kind: method_declaration
+      - kind: function_definition
+      - kind: anonymous_function
+        not:
+          inside:
+            stopBy: end
+            any:
+            - kind: method_declaration
+            - kind: function_definition
+            - kind: anonymous_function
+            - kind: arrow_function
+      - kind: arrow_function
+        not:
+          inside:
+            stopBy: end
+            any:
+            - kind: method_declaration
+            - kind: function_definition
+            - kind: anonymous_function
+            - kind: arrow_function
+    - has:
+        stopBy: end
+        any:
+        - kind: variable_name
+          regex: ^\$_FILES$
+        - kind: member_call_expression
+          regex: ->(file|getUploadedFiles)\(
+        - kind: function_call_expression
+          regex: ^move_uploaded_file\(
+  - not:
+      any:
+      - all:
+        - has:
+            stopBy:
+              any:
+              - kind: method_declaration
+              - kind: function_definition
+              - kind: anonymous_function
+              - kind: arrow_function
+            all:
+            - kind: assignment_expression
+              pattern:
+                context: <?php $V = $E;
+                selector: assignment_expression
+            - has:
+                stopBy: end
+                any:
+                - kind: function_call_expression
+                  regex: (finfo_file|finfo_buffer|mime_content_type|getimagesize|->getMimeType)\(
+                - kind: member_call_expression
+                  regex: (finfo_file|finfo_buffer|mime_content_type|getimagesize|->getMimeType)\(
+                - kind: scoped_call_expression
+                  regex: (finfo_file|finfo_buffer|mime_content_type|getimagesize|->getMimeType)\(
+        - has:
+            stopBy:
+              any:
+              - kind: method_declaration
+              - kind: function_definition
+              - kind: anonymous_function
+              - kind: arrow_function
+            kind: if_statement
+            all:
+            - has:
+                field: condition
+                any:
+                - &id001
+                  pattern:
+                    context: <?php if ($V !== $X) {}
+                    selector: binary_expression
+                - &id002
+                  pattern:
+                    context: <?php if ($V != $X) {}
+                    selector: binary_expression
+                - has:
+                    stopBy: end
+                    any:
+                    - *id001
+                    - *id002
+            - has:
+                field: body
+                any:
+                - &id003
+                  kind: return_statement
+                - &id004
+                  kind: throw_expression
+                - &id005
+                  kind: exit_statement
+                - &id006
+                  kind: function_call_expression
+                  regex: ^abort\(\s*4
+                - has:
+                    stopBy: end
+                    any:
+                    - *id003
+                    - *id004
+                    - *id005
+                    - *id006
+      - has:
+          stopBy:
+            any:
+            - kind: method_declaration
+            - kind: function_definition
+            - kind: anonymous_function
+            - kind: arrow_function
+          kind: if_statement
+          all:
+          - has:
+              field: condition
+              any:
+              - &id007
+                kind: unary_op_expression
+                regex: ^!\s*in_array\(\s*\$[A-Za-z0-9_]+->getMimeType\(\)\s*,
+              - has:
+                  stopBy: end
+                  any:
+                  - *id007
+          - has:
+              field: body
+              any:
+              - *id003
+              - *id004
+              - *id005
+              - *id006
+              - has:
+                  stopBy: end
+                  any:
+                  - *id003
+                  - *id004
+                  - *id005
+                  - *id006
+      - has:
+          stopBy:
+            any:
+            - kind: method_declaration
+            - kind: function_definition
+            - kind: anonymous_function
+            - kind: arrow_function
+          kind: member_call_expression
+          regex: ->validate\(
+          has:
+            stopBy: end
+            any:
+            - all:
+              - kind: string
+                regex: ^['"]([^'"]*\|)?(mimes|mimetypes):[^'"|]+
+            - all:
+              - kind: encapsed_string
+                regex: ^['"]([^'"]*\|)?(mimes|mimetypes):[^'"|]+
+  - any:
+    - all:
+      - has:
+          stopBy: end
+          any:
+          - kind: function_call_expression
+            regex: (finfo_file|finfo_buffer|mime_content_type|getimagesize|->getMimeType)\(
+          - kind: member_call_expression
+            regex: (finfo_file|finfo_buffer|mime_content_type|getimagesize|->getMimeType)\(
+          - kind: scoped_call_expression
+            regex: (finfo_file|finfo_buffer|mime_content_type|getimagesize|->getMimeType)\(
+      - not:
+          all:
+          - has:
+              stopBy: end
+              all:
+              - kind: assignment_expression
+                pattern:
+                  context: <?php $V = $E;
+                  selector: assignment_expression
+              - has:
+                  stopBy: end
+                  any:
+                  - kind: function_call_expression
+                    regex: (finfo_file|finfo_buffer|mime_content_type|getimagesize|->getMimeType)\(
+                  - kind: member_call_expression
+                    regex: (finfo_file|finfo_buffer|mime_content_type|getimagesize|->getMimeType)\(
+                  - kind: scoped_call_expression
+                    regex: (finfo_file|finfo_buffer|mime_content_type|getimagesize|->getMimeType)\(
+          - not:
+              has:
+                stopBy: end
+                all:
+                - kind: variable_name
+                  pattern:
+                    context: <?php $V;
+                    selector: variable_name
+                - not:
+                    inside:
+                      kind: assignment_expression
+                      field: left
+    - has:
+        stopBy: end
+        any:
+        - kind: function_call_expression
+          regex: (?i)^[A-Za-z0-9_$.>:-]*(check|assert|validate|ensure|verify|is|allowed|sniff)[A-Za-z0-9_]*(type|mime|magic|filetype|allowed|content)[A-Za-z0-9_]*\(
+        - kind: member_call_expression
+          regex: (?i)^[A-Za-z0-9_$.>:-]*(check|assert|validate|ensure|verify|is|allowed|sniff)[A-Za-z0-9_]*(type|mime|magic|filetype|allowed|content)[A-Za-z0-9_]*\(
+        - kind: scoped_call_expression
+          regex: (?i)^[A-Za-z0-9_$.>:-]*(check|assert|validate|ensure|verify|is|allowed|sniff)[A-Za-z0-9_]*(type|mime|magic|filetype|allowed|content)[A-Za-z0-9_]*\(
+    - has:
+        stopBy: end
+        any:
+        - kind: string
+          regex: '^[''"]([^''"]*\|)?(mimes|mimetypes):'
+        - kind: encapsed_string
+          regex: '^[''"]([^''"]*\|)?(mimes|mimetypes):'
+min_engine: 0.39.0
+---
+id: upload-validation.php-generic.no-size-limit
+practice_id: upload-validation
+language: php
+frameworks:
+- generic
+kind: violation
+rule:
+  all:
+  - all:
+    - any:
+      - kind: method_declaration
+      - kind: function_definition
+      - kind: anonymous_function
+        not:
+          inside:
+            stopBy: end
+            any:
+            - kind: method_declaration
+            - kind: function_definition
+            - kind: anonymous_function
+            - kind: arrow_function
+      - kind: arrow_function
+        not:
+          inside:
+            stopBy: end
+            any:
+            - kind: method_declaration
+            - kind: function_definition
+            - kind: anonymous_function
+            - kind: arrow_function
+    - has:
+        stopBy: end
+        any:
+        - kind: variable_name
+          regex: ^\$_FILES$
+        - kind: member_call_expression
+          regex: ->(file|getUploadedFiles)\(
+        - kind: function_call_expression
+          regex: ^move_uploaded_file\(
+  - not:
+      any:
+      - has:
+          stopBy:
+            any:
+            - kind: method_declaration
+            - kind: function_definition
+            - kind: anonymous_function
+            - kind: arrow_function
+          kind: if_statement
+          all:
+          - has:
+              field: condition
+              any:
+              - &id001
+                kind: binary_expression
+                regex: ^(\$[A-Za-z0-9_]+->getSize\(\)|\$_FILES\[[^\]]+\]\[['"]size['"]\])\s*>=?\s*(self::|static::|this\.|\$this->|self\.|cls\.)?([A-Z][A-Z0-9_]*(MAX|LIMIT)[A-Z0-9_]*|(MAX|LIMIT)[A-Z0-9_]*|[a-z][A-Za-z0-9]*(Max|Limit)[A-Za-z0-9]*|(Max|Limit)[A-Za-z0-9]*|max[A-Z][A-Za-z0-9]*|limit[A-Z][A-Za-z0-9]*|[1-9][0-9_]{3,}|[0-9]+\s*\*\s*1024(\s*\*\s*1024)?)$
+              - has:
+                  stopBy: end
+                  any:
+                  - *id001
+          - has:
+              field: body
+              any:
+              - &id002
+                kind: return_statement
+              - &id003
+                kind: throw_expression
+              - &id004
+                kind: exit_statement
+              - &id005
+                kind: function_call_expression
+                regex: ^abort\(\s*4
+              - has:
+                  stopBy: end
+                  any:
+                  - *id002
+                  - *id003
+                  - *id004
+                  - *id005
+      - has:
+          stopBy:
+            any:
+            - kind: method_declaration
+            - kind: function_definition
+            - kind: anonymous_function
+            - kind: arrow_function
+          kind: member_call_expression
+          regex: ->validate\(
+          has:
+            stopBy: end
+            any:
+            - all:
+              - kind: string
+                regex: ^['"]([^'"]*\|)?(file|image|mimes:[^'"|]*|mimetypes:[^'"|]*)(\|[^'"]*)?['"]$
+              - regex: ^['"]([^'"]*\|)?max:[0-9]+(\|[^'"]*)?['"]$
+            - all:
+              - kind: encapsed_string
+                regex: ^['"]([^'"]*\|)?(file|image|mimes:[^'"|]*|mimetypes:[^'"|]*)(\|[^'"]*)?['"]$
+              - regex: ^['"]([^'"]*\|)?max:[0-9]+(\|[^'"]*)?['"]$
+  - not:
+      any:
+      - has:
+          stopBy: end
+          kind: if_statement
+          all:
+          - has:
+              field: condition
+              any:
+              - &id006
+                kind: binary_expression
+                regex: (?i)(^([^<>]|->)*(size|length|bytes|len\()([^<>]|->)*\s>=?\s|\s<=?\s([^<>]|->)*(size|length|bytes|len\()([^<>]|->)*$)
+              - has:
+                  stopBy: end
+                  any:
+                  - *id006
+          - has:
+              field: body
+              any:
+              - *id002
+              - *id003
+              - *id004
+              - *id005
+              - &id007
+                kind: function_call_expression
+                regex: ^http_response_code\(\s*4
+              - has:
+                  stopBy: end
+                  any:
+                  - *id002
+                  - *id003
+                  - *id004
+                  - *id005
+                  - *id007
+      - has:
+          stopBy: end
+          any:
+          - kind: function_call_expression
+            regex: (?i)^[A-Za-z0-9_$.>:-]*(check|assert|validate|ensure|enforce|limit|verify)[A-Za-z0-9_]*(size|bytes|length)[A-Za-z0-9_]*\(
+          - kind: member_call_expression
+            regex: (?i)^[A-Za-z0-9_$.>:-]*(check|assert|validate|ensure|enforce|limit|verify)[A-Za-z0-9_]*(size|bytes|length)[A-Za-z0-9_]*\(
+          - kind: scoped_call_expression
+            regex: (?i)^[A-Za-z0-9_$.>:-]*(check|assert|validate|ensure|enforce|limit|verify)[A-Za-z0-9_]*(size|bytes|length)[A-Za-z0-9_]*\(
+      - has:
+          stopBy: end
+          any:
+          - kind: string
+            regex: '^[''"]([^''"]*\|)?max:'
+          - kind: encapsed_string
+            regex: '^[''"]([^''"]*\|)?max:'
+min_engine: 0.39.0
+---
+id: upload-validation.php-generic.size-candidate
+practice_id: upload-validation
+language: php
+frameworks:
+- generic
+kind: evidence
+rule:
+  all:
+  - all:
+    - any:
+      - kind: method_declaration
+      - kind: function_definition
+      - kind: anonymous_function
+        not:
+          inside:
+            stopBy: end
+            any:
+            - kind: method_declaration
+            - kind: function_definition
+            - kind: anonymous_function
+            - kind: arrow_function
+      - kind: arrow_function
+        not:
+          inside:
+            stopBy: end
+            any:
+            - kind: method_declaration
+            - kind: function_definition
+            - kind: anonymous_function
+            - kind: arrow_function
+    - has:
+        stopBy: end
+        any:
+        - kind: variable_name
+          regex: ^\$_FILES$
+        - kind: member_call_expression
+          regex: ->(file|getUploadedFiles)\(
+        - kind: function_call_expression
+          regex: ^move_uploaded_file\(
+  - not:
+      any:
+      - has:
+          stopBy:
+            any:
+            - kind: method_declaration
+            - kind: function_definition
+            - kind: anonymous_function
+            - kind: arrow_function
+          kind: if_statement
+          all:
+          - has:
+              field: condition
+              any:
+              - &id001
+                kind: binary_expression
+                regex: ^(\$[A-Za-z0-9_]+->getSize\(\)|\$_FILES\[[^\]]+\]\[['"]size['"]\])\s*>=?\s*(self::|static::|this\.|\$this->|self\.|cls\.)?([A-Z][A-Z0-9_]*(MAX|LIMIT)[A-Z0-9_]*|(MAX|LIMIT)[A-Z0-9_]*|[a-z][A-Za-z0-9]*(Max|Limit)[A-Za-z0-9]*|(Max|Limit)[A-Za-z0-9]*|max[A-Z][A-Za-z0-9]*|limit[A-Z][A-Za-z0-9]*|[1-9][0-9_]{3,}|[0-9]+\s*\*\s*1024(\s*\*\s*1024)?)$
+              - has:
+                  stopBy: end
+                  any:
+                  - *id001
+          - has:
+              field: body
+              any:
+              - &id002
+                kind: return_statement
+              - &id003
+                kind: throw_expression
+              - &id004
+                kind: exit_statement
+              - &id005
+                kind: function_call_expression
+                regex: ^abort\(\s*4
+              - has:
+                  stopBy: end
+                  any:
+                  - *id002
+                  - *id003
+                  - *id004
+                  - *id005
+      - has:
+          stopBy:
+            any:
+            - kind: method_declaration
+            - kind: function_definition
+            - kind: anonymous_function
+            - kind: arrow_function
+          kind: member_call_expression
+          regex: ->validate\(
+          has:
+            stopBy: end
+            any:
+            - all:
+              - kind: string
+                regex: ^['"]([^'"]*\|)?(file|image|mimes:[^'"|]*|mimetypes:[^'"|]*)(\|[^'"]*)?['"]$
+              - regex: ^['"]([^'"]*\|)?max:[0-9]+(\|[^'"]*)?['"]$
+            - all:
+              - kind: encapsed_string
+                regex: ^['"]([^'"]*\|)?(file|image|mimes:[^'"|]*|mimetypes:[^'"|]*)(\|[^'"]*)?['"]$
+              - regex: ^['"]([^'"]*\|)?max:[0-9]+(\|[^'"]*)?['"]$
+  - any:
+    - has:
+        stopBy: end
+        kind: if_statement
+        all:
+        - has:
+            field: condition
+            any:
+            - &id006
+              kind: binary_expression
+              regex: (?i)(^([^<>]|->)*(size|length|bytes|len\()([^<>]|->)*\s>=?\s|\s<=?\s([^<>]|->)*(size|length|bytes|len\()([^<>]|->)*$)
+            - has:
+                stopBy: end
+                any:
+                - *id006
+        - has:
+            field: body
+            any:
+            - *id002
+            - *id003
+            - *id004
+            - *id005
+            - &id007
+              kind: function_call_expression
+              regex: ^http_response_code\(\s*4
+            - has:
+                stopBy: end
+                any:
+                - *id002
+                - *id003
+                - *id004
+                - *id005
+                - *id007
+    - has:
+        stopBy: end
+        any:
+        - kind: function_call_expression
+          regex: (?i)^[A-Za-z0-9_$.>:-]*(check|assert|validate|ensure|enforce|limit|verify)[A-Za-z0-9_]*(size|bytes|length)[A-Za-z0-9_]*\(
+        - kind: member_call_expression
+          regex: (?i)^[A-Za-z0-9_$.>:-]*(check|assert|validate|ensure|enforce|limit|verify)[A-Za-z0-9_]*(size|bytes|length)[A-Za-z0-9_]*\(
+        - kind: scoped_call_expression
+          regex: (?i)^[A-Za-z0-9_$.>:-]*(check|assert|validate|ensure|enforce|limit|verify)[A-Za-z0-9_]*(size|bytes|length)[A-Za-z0-9_]*\(
+    - has:
+        stopBy: end
+        any:
+        - kind: string
+          regex: '^[''"]([^''"]*\|)?max:'
+        - kind: encapsed_string
+          regex: '^[''"]([^''"]*\|)?max:'
+min_engine: 0.39.0
+---
+id: upload-validation.php-generic.auth-unobserved
+practice_id: upload-validation
+language: php
+frameworks:
+- generic
+kind: evidence
+rule:
+  all:
+  - all:
+    - any:
+      - kind: method_declaration
+      - kind: function_definition
+      - kind: anonymous_function
+        not:
+          inside:
+            stopBy: end
+            any:
+            - kind: method_declaration
+            - kind: function_definition
+            - kind: anonymous_function
+            - kind: arrow_function
+      - kind: arrow_function
+        not:
+          inside:
+            stopBy: end
+            any:
+            - kind: method_declaration
+            - kind: function_definition
+            - kind: anonymous_function
+            - kind: arrow_function
+    - has:
+        stopBy: end
+        any:
+        - kind: variable_name
+          regex: ^\$_FILES$
+        - kind: member_call_expression
+          regex: ->(file|getUploadedFiles)\(
+        - kind: function_call_expression
+          regex: ^move_uploaded_file\(
+  - not:
+      any:
+      - has:
+          stopBy:
+            any:
+            - kind: method_declaration
+            - kind: function_definition
+            - kind: anonymous_function
+            - kind: arrow_function
+          kind: if_statement
+          all:
+          - has:
+              field: condition
+              any:
+              - &id001
+                kind: unary_op_expression
+                regex: ^!\s*(Auth::check\(\)|auth\(\)->check\(\)|\$request->user\(\)|AclMain::aclCheck[A-Za-z]*\([\s\S]*\)|aclCheckCore\([\s\S]*\)|acl_check\([\s\S]*\))$
+              - &id002
+                kind: scoped_call_expression
+                regex: ^Auth::guest\(\)$
+              - &id003
+                kind: member_call_expression
+                regex: ^auth\(\)->guest\(\)$
+              - has:
+                  stopBy: end
+                  any:
+                  - *id001
+                  - *id002
+                  - *id003
+          - has:
+              field: body
+              any:
+              - &id004
+                kind: return_statement
+              - &id005
+                kind: throw_expression
+              - &id006
+                kind: exit_statement
+              - &id007
+                kind: function_call_expression
+                regex: ^abort\(\s*4
+              - has:
+                  stopBy: end
+                  any:
+                  - *id004
+                  - *id005
+                  - *id006
+                  - *id007
+      - has:
+          stopBy:
+            any:
+            - kind: method_declaration
+            - kind: function_definition
+            - kind: anonymous_function
+            - kind: arrow_function
+          any:
+          - kind: member_call_expression
+            regex: ^\$this->(authorize|authenticate)\(
+          - kind: scoped_call_expression
+            regex: ^Gate::authorize\(
+      - inside:
+          stopBy: end
+          kind: class_declaration
+          has:
+            stopBy: end
+            kind: member_call_expression
+            regex: ^\$this->middleware\(\s*[\['"]+auth
+min_engine: 0.39.0
+---
+id: upload-validation.php-generic.original-name-key
+practice_id: upload-validation
+language: php
+frameworks:
+- generic
+kind: violation
+rule:
+  any:
+  - kind: member_call_expression
+    regex: (getClientOriginalName\(\)|\['name'\])$
+    any: &id001
+    - inside:
+        stopBy: end
+        kind: function_call_expression
+        regex: ^(move_uploaded_file|file_put_contents)\(
+    - inside:
+        stopBy: end
+        kind: member_call_expression
+        regex: ->(storeAs|move|putFileAs)\(
+  - kind: subscript_expression
+    regex: (getClientOriginalName\(\)|\['name'\])$
+    any: *id001
+min_engine: 0.39.0

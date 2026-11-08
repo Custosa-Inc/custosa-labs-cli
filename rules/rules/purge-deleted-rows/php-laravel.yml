@@ -1,0 +1,48 @@
+id: purge-deleted-rows.php-laravel.soft-delete-model
+practice_id: purge-deleted-rows
+language: php
+frameworks:
+- laravel
+kind: items
+rule:
+  kind: use_declaration
+  regex: \bSoftDeletes\b
+control:
+  inside:
+    stopBy: end
+    kind: class_declaration
+    regex: (?s)\buse\s+[^;]*\b(MassPrunable|Prunable)\b.*function\s+prunable\s*\(.*(onlyTrashed|deleted_at)
+min_engine: 0.39.0
+---
+id: purge-deleted-rows.php-laravel.purge-soft-deleted
+practice_id: purge-deleted-rows
+language: php
+frameworks:
+- laravel
+kind: evidence
+rule:
+  all:
+  - kind: member_call_expression
+    regex: onlyTrashed\(\)[\s\S]*->where\(\s*['\"]deleted_at['\"]\s*,\s*['\"]<=?['\"]\s*,\s*(now\(\)|Carbon::now\(\)|\$)[\s\S]*->forceDelete\(\)$
+  - not:
+      kind: member_call_expression
+      regex: (?i)audit
+min_engine: 0.39.0
+---
+id: purge-deleted-rows.php-laravel.purge-history
+practice_id: purge-deleted-rows
+language: php
+frameworks:
+- laravel
+kind: evidence
+rule:
+  all:
+  - kind: member_call_expression
+    regex: ^DB::table\(\s*['\"]\w*(_history|_versions?)['\"]\s*\)[\s\S]*->where\([\s\S]*->delete\(\)$
+  - not:
+      kind: member_call_expression
+      regex: (?i)audit
+  - not:
+      kind: member_call_expression
+      regex: ->where\(\s*[\'\"]id[\'\"]\s*,
+min_engine: 0.39.0

@@ -1,0 +1,2017 @@
+id: audit-actor-recorded.typescript-generic.request-context
+practice_id: audit-actor-recorded
+language: typescript
+frameworks:
+- generic
+kind: evidence
+rule:
+  all:
+  - has:
+      field: function
+      any:
+      - kind: member_expression
+        regex: '(?:^|\.)(?:query|execute|exec|none|one|any|many|oneOrNone|manyOrNone|raw|\$executeRaw|\$executeRawUnsafe|\$queryRaw|\$queryRawUnsafe|unsafe)$|^sql$'
+  - has:
+      field: function
+      kind: member_expression
+      has:
+        field: object
+        kind: identifier
+        pattern:
+          context: '$TX.x'
+          selector: identifier
+  - kind: call_expression
+  - any:
+    - has:
+        field: arguments
+        kind: arguments
+        all:
+        - has:
+            kind: string
+            regex: '(?i)(?:set_config\s*\(\s*''(?:app\.(?:user_id|current_user_id|current_user|user|actor|actor_id|uid|userid|account_id|current_account_id)|request\.jwt\.claims|request\.jwt\.claim\.sub|jwt\.claims)''\s*,\s*(?:\$\d+|\?|\$\{)[\s\S]*,\s*true\s*\)|\bset\s+local\s+(?:app\.(?:user_id|current_user_id|current_user|user|actor|actor_id|uid|userid|account_id|current_account_id)|request\.jwt\.claims|request\.jwt\.claim\.sub|jwt\.claims)\s*(?:=|to)\s*''?(?:\$\{|[\x22`]?$))'
+            not:
+              kind: string
+              regex: '(?i)(/\*[^*]*(set_config|set\s+local)|--[^\n]*(set_config|set\s+local))'
+        - has:
+            kind: array
+            has: &id001
+              kind: member_expression
+              regex: '^(?:(?:req|request)\.(?:user|auth)\??\.(?:id|userId|user_id|sub|uid)|ctx\.state\.user\??\.(?:id|userId|sub)|\(await\s+(?:getServerSession|auth)\([^)]*\)\)\??\.user\??\.id|\(await\s+supabase\.auth\.getUser\(\)\)\??\.data\??\.user\??\.id|\(?await\s+getUser\(\)\)?\??\.id)(?:!|\s+as\s+\w+)?$'
+    - has:
+        field: arguments
+        kind: template_string
+        regex: '(?i)(?:set_config\s*\(\s*''(?:app\.(?:user_id|current_user_id|current_user|user|actor|actor_id|uid|userid|account_id|current_account_id)|request\.jwt\.claims|request\.jwt\.claim\.sub|jwt\.claims)''\s*,\s*(?:\$\d+|\?|\$\{)[\s\S]*,\s*true\s*\)|\bset\s+local\s+(?:app\.(?:user_id|current_user_id|current_user|user|actor|actor_id|uid|userid|account_id|current_account_id)|request\.jwt\.claims|request\.jwt\.claim\.sub|jwt\.claims)\s*(?:=|to)\s*''?(?:\$\{|[\x22`]?$))'
+        not:
+          kind: template_string
+          regex: '(?i)(/\*[^*]*(set_config|set\s+local)|--[^\n]*(set_config|set\s+local))'
+        has:
+          kind: template_substitution
+          has: *id001
+    - has:
+        field: arguments
+        kind: arguments
+        has:
+          kind: template_string
+          regex: '(?i)(?:set_config\s*\(\s*''(?:app\.(?:user_id|current_user_id|current_user|user|actor|actor_id|uid|userid|account_id|current_account_id)|request\.jwt\.claims|request\.jwt\.claim\.sub|jwt\.claims)''\s*,\s*(?:\$\d+|\?|\$\{)[\s\S]*,\s*true\s*\)|\bset\s+local\s+(?:app\.(?:user_id|current_user_id|current_user|user|actor|actor_id|uid|userid|account_id|current_account_id)|request\.jwt\.claims|request\.jwt\.claim\.sub|jwt\.claims)\s*(?:=|to)\s*''?(?:\$\{|[\x22`]?$))'
+          not:
+            kind: template_string
+            regex: '(?i)(/\*[^*]*(set_config|set\s+local)|--[^\n]*(set_config|set\s+local))'
+          has:
+            kind: template_substitution
+            has: *id001
+    - has:
+        field: arguments
+        kind: arguments
+        has:
+          kind: binary_expression
+          not:
+            kind: binary_expression
+            regex: '\|\||\?\?|&&|\?\s|(?:^|[\s(,:!?|&{\[])(?:req|request|ctx\.request|ctx|event|c\.req)\??\.(?:body|query|headers|params|cookies)\b|(?:^|[\s(,:!?|&{\[])patient\w*\??[.\[]|(?:req|request)\??\.session\??\.(?:id|sid)\b|\bsessionId\b|\bsid\b'
+          all:
+          - has:
+              stopBy: end
+              kind: string
+              regex: '(?-u)(?i)(?:set_config\s*\(\s*''(?:app\.(?:user_id|current_user_id|current_user|user|actor|actor_id|uid|userid|account_id|current_account_id)|request\.jwt\.claims|request\.jwt\.claim\.sub|jwt\.claims)''\s*,\s*''?[\x22''`]$|\bset\s+local\s+(?:app\.(?:user_id|current_user_id|current_user|user|actor|actor_id|uid|userid|account_id|current_account_id)|request\.jwt\.claims|request\.jwt\.claim\.sub|jwt\.claims)\s*(?:=|to)\s*''?[\x22''`]$)'
+          - has:
+              stopBy: end
+              kind: member_expression
+              regex: '^(?:(?:req|request)\.(?:user|auth)\??\.(?:id|userId|user_id|sub|uid)|ctx\.state\.user\??\.(?:id|userId|sub)|\(await\s+(?:getServerSession|auth)\([^)]*\)\)\??\.user\??\.id|\(await\s+supabase\.auth\.getUser\(\)\)\??\.data\??\.user\??\.id|\(?await\s+getUser\(\)\)?\??\.id)(?:!|\s+as\s+\w+)?$'
+  - not:
+      inside:
+        stopBy: end
+        kind: if_statement
+  - not:
+      inside:
+        stopBy: end
+        any:
+        - all:
+          - kind: pair
+          - has:
+              field: key
+              kind: property_identifier
+              regex: '^(afterCreate|afterConnect|onConnect|connectionInitSql|initSql|options)$'
+        - all:
+          - kind: call_expression
+          - has:
+              field: function
+              kind: member_expression
+              regex: '\.on$'
+          - has:
+              field: arguments
+              kind: arguments
+              has:
+                kind: string
+                regex: '^[''"](connect|acquire)[''"]$'
+  - not:
+      inside:
+        stopBy: end
+        any:
+        - kind: expression_statement
+        - kind: if_statement
+        - kind: lexical_declaration
+        - kind: variable_declaration
+        - kind: try_statement
+        all:
+        - any:
+          - follows: &id002
+              any:
+              - kind: expression_statement
+                regex: '(?:^|[\s;{(])(?:req|request|ctx\.state)(?:\??\.user(?:\.\w+)?|\[\s*[''\x22`]user[''\x22`]\s*\])\s*(?:=|\?\?=|\|\|=)(?:[^=]|$)|Object\.(?:assign|defineProperty)\(\s*(?:req|request|ctx\.state)\b|\b(?:const|let|var)\s+(?:req|request)\s*=|(?:^|[\s;{(])(?:req|request)\s*=(?:[^=>]|$)'
+              - kind: if_statement
+                regex: '(?:^|[\s;{(])(?:req|request|ctx\.state)(?:\??\.user(?:\.\w+)?|\[\s*[''\x22`]user[''\x22`]\s*\])\s*(?:=|\?\?=|\|\|=)(?:[^=]|$)|Object\.(?:assign|defineProperty)\(\s*(?:req|request|ctx\.state)\b|\b(?:const|let|var)\s+(?:req|request)\s*=|(?:^|[\s;{(])(?:req|request)\s*=(?:[^=>]|$)'
+              - kind: lexical_declaration
+                regex: '(?:^|[\s;{(])(?:req|request|ctx\.state)(?:\??\.user(?:\.\w+)?|\[\s*[''\x22`]user[''\x22`]\s*\])\s*(?:=|\?\?=|\|\|=)(?:[^=]|$)|Object\.(?:assign|defineProperty)\(\s*(?:req|request|ctx\.state)\b|\b(?:const|let|var)\s+(?:req|request)\s*=|(?:^|[\s;{(])(?:req|request)\s*=(?:[^=>]|$)'
+              - kind: variable_declaration
+                regex: '(?:^|[\s;{(])(?:req|request|ctx\.state)(?:\??\.user(?:\.\w+)?|\[\s*[''\x22`]user[''\x22`]\s*\])\s*(?:=|\?\?=|\|\|=)(?:[^=]|$)|Object\.(?:assign|defineProperty)\(\s*(?:req|request|ctx\.state)\b|\b(?:const|let|var)\s+(?:req|request)\s*=|(?:^|[\s;{(])(?:req|request)\s*=(?:[^=>]|$)'
+              - kind: try_statement
+                regex: '(?:^|[\s;{(])(?:req|request|ctx\.state)(?:\??\.user(?:\.\w+)?|\[\s*[''\x22`]user[''\x22`]\s*\])\s*(?:=|\?\?=|\|\|=)(?:[^=]|$)|Object\.(?:assign|defineProperty)\(\s*(?:req|request|ctx\.state)\b|\b(?:const|let|var)\s+(?:req|request)\s*=|(?:^|[\s;{(])(?:req|request)\s*=(?:[^=>]|$)'
+          - follows: &id010
+              any:
+              - &id003
+                kind: expression_statement
+              - &id004
+                kind: if_statement
+              - &id005
+                kind: lexical_declaration
+              - &id006
+                kind: variable_declaration
+              - &id007
+                kind: try_statement
+              - &id008
+                kind: comment
+              - &id009
+                kind: return_statement
+              follows: *id002
+          - follows: &id011
+              any:
+              - *id003
+              - *id004
+              - *id005
+              - *id006
+              - *id007
+              - *id008
+              - *id009
+              follows: *id010
+          - follows: &id012
+              any:
+              - *id003
+              - *id004
+              - *id005
+              - *id006
+              - *id007
+              - *id008
+              - *id009
+              follows: *id011
+          - follows: &id013
+              any:
+              - *id003
+              - *id004
+              - *id005
+              - *id006
+              - *id007
+              - *id008
+              - *id009
+              follows: *id012
+          - follows: &id014
+              any:
+              - *id003
+              - *id004
+              - *id005
+              - *id006
+              - *id007
+              - *id008
+              - *id009
+              follows: *id013
+          - follows:
+              any:
+              - *id003
+              - *id004
+              - *id005
+              - *id006
+              - *id007
+              - *id008
+              - *id009
+              follows: *id014
+  - inside:
+      kind: await_expression
+      inside:
+        kind: expression_statement
+        all:
+        - any:
+          - precedes: &id015
+              kind: expression_statement
+              has:
+                stopBy: end
+                kind: call_expression
+                all:
+                - regex: '(?-u)(?i)\.(create|createMany|update|updateMany|upsert|delete|deleteMany|insert)\s*\(|(?:query|execute|unsafe|\$executeRaw\w*)\s*\(?\s*[`''\x22]\s*(?:insert|update|delete)\b'
+                  kind: call_expression
+                - any:
+                  - pattern: '$TX.$WOP1($$$WA1)'
+                  - pattern: '$TX.$WM2.$WOP2($$$WA2)'
+                  - pattern: '$TX($$$WK3).$WOP3($$$WA3)'
+          - precedes:
+              any:
+              - &id016
+                kind: expression_statement
+                not:
+                  kind: expression_statement
+                  regex: '(?-u)(?i)\.(create|createMany|update|updateMany|upsert|delete|deleteMany|insert)\s*\(|(?:query|execute|unsafe|\$executeRaw\w*)\s*\(?\s*[`''\x22]\s*(?:insert|update|delete)\b'
+              - &id017
+                kind: lexical_declaration
+              - &id018
+                kind: comment
+              precedes: *id015
+          - precedes:
+              any:
+              - *id016
+              - *id017
+              - *id018
+              precedes:
+                any:
+                - *id016
+                - *id017
+                - *id018
+                precedes: *id015
+          - precedes:
+              any:
+              - *id016
+              - *id017
+              - *id018
+              precedes:
+                any:
+                - *id016
+                - *id017
+                - *id018
+                precedes:
+                  any:
+                  - *id016
+                  - *id017
+                  - *id018
+                  precedes: *id015
+          - precedes:
+              any:
+              - *id016
+              - *id017
+              - *id018
+              precedes:
+                any:
+                - *id016
+                - *id017
+                - *id018
+                precedes:
+                  any:
+                  - *id016
+                  - *id017
+                  - *id018
+                  precedes:
+                    any:
+                    - *id016
+                    - *id017
+                    - *id018
+                    precedes: *id015
+        - not:
+            any:
+            - follows: &id019
+                kind: expression_statement
+                regex: '(?-u)(?i)\.(create|createMany|update|updateMany|upsert|delete|deleteMany|insert)\s*\(|(?:query|execute|unsafe|\$executeRaw\w*)\s*\(?\s*[`''\x22]\s*(?:insert|update|delete)\b'
+            - follows:
+                any:
+                - &id020
+                  kind: expression_statement
+                - &id021
+                  kind: lexical_declaration
+                - &id022
+                  kind: comment
+                - &id023
+                  kind: if_statement
+                follows: *id019
+            - follows:
+                any:
+                - *id020
+                - *id021
+                - *id022
+                - *id023
+                follows:
+                  any:
+                  - *id020
+                  - *id021
+                  - *id022
+                  - *id023
+                  follows: *id019
+            - follows:
+                any:
+                - *id020
+                - *id021
+                - *id022
+                - *id023
+                follows:
+                  any:
+                  - *id020
+                  - *id021
+                  - *id022
+                  - *id023
+                  follows:
+                    any:
+                    - *id020
+                    - *id021
+                    - *id022
+                    - *id023
+                    follows: *id019
+            - follows:
+                any:
+                - *id020
+                - *id021
+                - *id022
+                - *id023
+                follows:
+                  any:
+                  - *id020
+                  - *id021
+                  - *id022
+                  - *id023
+                  follows:
+                    any:
+                    - *id020
+                    - *id021
+                    - *id022
+                    - *id023
+                    follows:
+                      any:
+                      - *id020
+                      - *id021
+                      - *id022
+                      - *id023
+                      follows: *id019
+            - follows:
+                any:
+                - *id020
+                - *id021
+                - *id022
+                - *id023
+                follows:
+                  any:
+                  - *id020
+                  - *id021
+                  - *id022
+                  - *id023
+                  follows:
+                    any:
+                    - *id020
+                    - *id021
+                    - *id022
+                    - *id023
+                    follows:
+                      any:
+                      - *id020
+                      - *id021
+                      - *id022
+                      - *id023
+                      follows:
+                        any:
+                        - *id020
+                        - *id021
+                        - *id022
+                        - *id023
+                        follows: *id019
+        - inside:
+            kind: statement_block
+            all:
+            - all:
+              - not:
+                  has:
+                    kind: expression_statement
+                    not:
+                      kind: expression_statement
+                      has:
+                        kind: await_expression
+                        has:
+                          any:
+                          - pattern: '$TX.$CO1($$$CA1)'
+                          - pattern: '$TX.$CM2.$CO2($$$CA2)'
+                          - pattern: '$TX($$$CK3).$CO3($$$CA3)'
+                          - kind: call_expression
+                            has:
+                              field: function
+                              kind: member_expression
+                              pattern:
+                                context: 'a = $TX.$CT4'
+                                selector: member_expression
+              - not:
+                  has:
+                    any:
+                    - kind: lexical_declaration
+                    - kind: variable_declaration
+                    has:
+                      kind: variable_declarator
+                      has:
+                        field: value
+                        any:
+                        - &id025
+                          kind: call_expression
+                          not: &id024
+                            any:
+                            - pattern: '$TX.$CO1($$$CA1)'
+                            - pattern: '$TX.$CM2.$CO2($$$CA2)'
+                            - pattern: '$TX($$$CK3).$CO3($$$CA3)'
+                            - kind: call_expression
+                              has:
+                                field: function
+                                kind: member_expression
+                                pattern:
+                                  context: 'a = $TX.$CT4'
+                                  selector: member_expression
+                        - &id026
+                          kind: await_expression
+                          has:
+                            kind: call_expression
+                            not: *id024
+              - not:
+                  has:
+                    kind: return_statement
+                    has:
+                      any:
+                      - *id025
+                      - *id026
+            - inside:
+                any:
+                - pattern:
+                    context: 'x = async ($TX) => { $$$BODY }'
+                    selector: arrow_function
+                - pattern:
+                    context: 'x = async function ($TX) { $$$BODY }'
+                    selector: function_expression
+                inside:
+                  kind: arguments
+                  inside:
+                    kind: call_expression
+                    all:
+                    - has:
+                        field: function
+                        any:
+                        - kind: member_expression
+                          regex: '\.(\$transaction|transaction|begin|withTransaction)$|^sql\.begin$'
+                    - not:
+                        inside:
+                          stopBy: end
+                          kind: function_declaration
+                          inside:
+                            kind: statement_block
+                    - not:
+                        any:
+                        - inside:
+                            kind: await_expression
+                            inside:
+                              any:
+                              - kind: expression_statement
+                              - kind: return_statement
+                              inside:
+                                kind: statement_block
+                                has: &id027
+                                  any:
+                                  - kind: expression_statement
+                                  - kind: lexical_declaration
+                                  - kind: variable_declaration
+                                  - kind: return_statement
+                                  all:
+                                  - any:
+                                    - has:
+                                        stopBy: end
+                                        kind: call_expression
+                                        regex: '(?-u)(?i)\.(create|createMany|update|updateMany|upsert|delete|deleteMany|insert)\s*\(|(?:query|execute|unsafe|\$executeRaw\w*)\s*\(?\s*[`''\x22]\s*(?:insert|update|delete)\b'
+                                    - has:
+                                        stopBy: end
+                                        kind: call_expression
+                                        has:
+                                          field: function
+                                          kind: identifier
+                                          not:
+                                            kind: identifier
+                                            regex: '^(Number|String|Boolean|parseInt|parseFloat|BigInt|Date|Array|Object|Math|encodeURIComponent|decodeURIComponent)$'
+                                    - has:
+                                        stopBy: end
+                                        kind: call_expression
+                                        has:
+                                          field: function
+                                          kind: member_expression
+                                          regex: '^this\.'
+                                  - not:
+                                      has:
+                                        stopBy: end
+                                        kind: call_expression
+                                        has:
+                                          field: function
+                                          kind: member_expression
+                                          regex: '\.(\$transaction|transaction|begin|withTransaction)$|^sql\.begin$'
+                        - inside:
+                            kind: return_statement
+                            inside:
+                              kind: statement_block
+                              has: *id027
+min_engine: 0.45.3
+---
+id: audit-actor-recorded.typescript-generic.request-context-client
+practice_id: audit-actor-recorded
+language: typescript
+frameworks:
+- generic
+kind: evidence
+rule:
+  all:
+  - pattern: '$CLIENT.query($$$QARGS)'
+  - kind: call_expression
+  - any:
+    - has:
+        field: arguments
+        kind: arguments
+        all:
+        - has:
+            kind: string
+            regex: '(?i)(?:set_config\s*\(\s*''(?:app\.(?:user_id|current_user_id|current_user|user|actor|actor_id|uid|userid|account_id|current_account_id)|request\.jwt\.claims|request\.jwt\.claim\.sub|jwt\.claims)''\s*,\s*(?:\$\d+|\?|\$\{)[\s\S]*,\s*true\s*\)|\bset\s+local\s+(?:app\.(?:user_id|current_user_id|current_user|user|actor|actor_id|uid|userid|account_id|current_account_id)|request\.jwt\.claims|request\.jwt\.claim\.sub|jwt\.claims)\s*(?:=|to)\s*''?(?:\$\{|[\x22`]?$))'
+            not:
+              kind: string
+              regex: '(?i)(/\*[^*]*(set_config|set\s+local)|--[^\n]*(set_config|set\s+local))'
+        - has:
+            kind: array
+            has: &id001
+              kind: member_expression
+              regex: '^(?:(?:req|request)\.(?:user|auth)\??\.(?:id|userId|user_id|sub|uid)|ctx\.state\.user\??\.(?:id|userId|sub)|\(await\s+(?:getServerSession|auth)\([^)]*\)\)\??\.user\??\.id|\(await\s+supabase\.auth\.getUser\(\)\)\??\.data\??\.user\??\.id|\(?await\s+getUser\(\)\)?\??\.id)(?:!|\s+as\s+\w+)?$'
+    - has:
+        field: arguments
+        kind: template_string
+        regex: '(?i)(?:set_config\s*\(\s*''(?:app\.(?:user_id|current_user_id|current_user|user|actor|actor_id|uid|userid|account_id|current_account_id)|request\.jwt\.claims|request\.jwt\.claim\.sub|jwt\.claims)''\s*,\s*(?:\$\d+|\?|\$\{)[\s\S]*,\s*true\s*\)|\bset\s+local\s+(?:app\.(?:user_id|current_user_id|current_user|user|actor|actor_id|uid|userid|account_id|current_account_id)|request\.jwt\.claims|request\.jwt\.claim\.sub|jwt\.claims)\s*(?:=|to)\s*''?(?:\$\{|[\x22`]?$))'
+        not:
+          kind: template_string
+          regex: '(?i)(/\*[^*]*(set_config|set\s+local)|--[^\n]*(set_config|set\s+local))'
+        has:
+          kind: template_substitution
+          has: *id001
+    - has:
+        field: arguments
+        kind: arguments
+        has:
+          kind: template_string
+          regex: '(?i)(?:set_config\s*\(\s*''(?:app\.(?:user_id|current_user_id|current_user|user|actor|actor_id|uid|userid|account_id|current_account_id)|request\.jwt\.claims|request\.jwt\.claim\.sub|jwt\.claims)''\s*,\s*(?:\$\d+|\?|\$\{)[\s\S]*,\s*true\s*\)|\bset\s+local\s+(?:app\.(?:user_id|current_user_id|current_user|user|actor|actor_id|uid|userid|account_id|current_account_id)|request\.jwt\.claims|request\.jwt\.claim\.sub|jwt\.claims)\s*(?:=|to)\s*''?(?:\$\{|[\x22`]?$))'
+          not:
+            kind: template_string
+            regex: '(?i)(/\*[^*]*(set_config|set\s+local)|--[^\n]*(set_config|set\s+local))'
+          has:
+            kind: template_substitution
+            has: *id001
+    - has:
+        field: arguments
+        kind: arguments
+        has:
+          kind: binary_expression
+          not:
+            kind: binary_expression
+            regex: '\|\||\?\?|&&|\?\s|(?:^|[\s(,:!?|&{\[])(?:req|request|ctx\.request|ctx|event|c\.req)\??\.(?:body|query|headers|params|cookies)\b|(?:^|[\s(,:!?|&{\[])patient\w*\??[.\[]|(?:req|request)\??\.session\??\.(?:id|sid)\b|\bsessionId\b|\bsid\b'
+          all:
+          - has:
+              stopBy: end
+              kind: string
+              regex: '(?-u)(?i)(?:set_config\s*\(\s*''(?:app\.(?:user_id|current_user_id|current_user|user|actor|actor_id|uid|userid|account_id|current_account_id)|request\.jwt\.claims|request\.jwt\.claim\.sub|jwt\.claims)''\s*,\s*''?[\x22''`]$|\bset\s+local\s+(?:app\.(?:user_id|current_user_id|current_user|user|actor|actor_id|uid|userid|account_id|current_account_id)|request\.jwt\.claims|request\.jwt\.claim\.sub|jwt\.claims)\s*(?:=|to)\s*''?[\x22''`]$)'
+          - has:
+              stopBy: end
+              kind: member_expression
+              regex: '^(?:(?:req|request)\.(?:user|auth)\??\.(?:id|userId|user_id|sub|uid)|ctx\.state\.user\??\.(?:id|userId|sub)|\(await\s+(?:getServerSession|auth)\([^)]*\)\)\??\.user\??\.id|\(await\s+supabase\.auth\.getUser\(\)\)\??\.data\??\.user\??\.id|\(?await\s+getUser\(\)\)?\??\.id)(?:!|\s+as\s+\w+)?$'
+  - not:
+      inside:
+        stopBy: end
+        kind: if_statement
+  - not:
+      inside:
+        stopBy: end
+        any:
+        - all:
+          - kind: pair
+          - has:
+              field: key
+              kind: property_identifier
+              regex: '^(afterCreate|afterConnect|onConnect|connectionInitSql|initSql|options)$'
+        - all:
+          - kind: call_expression
+          - has:
+              field: function
+              kind: member_expression
+              regex: '\.on$'
+          - has:
+              field: arguments
+              kind: arguments
+              has:
+                kind: string
+                regex: '^[''"](connect|acquire)[''"]$'
+  - not:
+      inside:
+        stopBy: end
+        any:
+        - kind: expression_statement
+        - kind: if_statement
+        - kind: lexical_declaration
+        - kind: variable_declaration
+        - kind: try_statement
+        all:
+        - any:
+          - follows: &id002
+              any:
+              - kind: expression_statement
+                regex: '(?:^|[\s;{(])(?:req|request|ctx\.state)(?:\??\.user(?:\.\w+)?|\[\s*[''\x22`]user[''\x22`]\s*\])\s*(?:=|\?\?=|\|\|=)(?:[^=]|$)|Object\.(?:assign|defineProperty)\(\s*(?:req|request|ctx\.state)\b|\b(?:const|let|var)\s+(?:req|request)\s*=|(?:^|[\s;{(])(?:req|request)\s*=(?:[^=>]|$)'
+              - kind: if_statement
+                regex: '(?:^|[\s;{(])(?:req|request|ctx\.state)(?:\??\.user(?:\.\w+)?|\[\s*[''\x22`]user[''\x22`]\s*\])\s*(?:=|\?\?=|\|\|=)(?:[^=]|$)|Object\.(?:assign|defineProperty)\(\s*(?:req|request|ctx\.state)\b|\b(?:const|let|var)\s+(?:req|request)\s*=|(?:^|[\s;{(])(?:req|request)\s*=(?:[^=>]|$)'
+              - kind: lexical_declaration
+                regex: '(?:^|[\s;{(])(?:req|request|ctx\.state)(?:\??\.user(?:\.\w+)?|\[\s*[''\x22`]user[''\x22`]\s*\])\s*(?:=|\?\?=|\|\|=)(?:[^=]|$)|Object\.(?:assign|defineProperty)\(\s*(?:req|request|ctx\.state)\b|\b(?:const|let|var)\s+(?:req|request)\s*=|(?:^|[\s;{(])(?:req|request)\s*=(?:[^=>]|$)'
+              - kind: variable_declaration
+                regex: '(?:^|[\s;{(])(?:req|request|ctx\.state)(?:\??\.user(?:\.\w+)?|\[\s*[''\x22`]user[''\x22`]\s*\])\s*(?:=|\?\?=|\|\|=)(?:[^=]|$)|Object\.(?:assign|defineProperty)\(\s*(?:req|request|ctx\.state)\b|\b(?:const|let|var)\s+(?:req|request)\s*=|(?:^|[\s;{(])(?:req|request)\s*=(?:[^=>]|$)'
+              - kind: try_statement
+                regex: '(?:^|[\s;{(])(?:req|request|ctx\.state)(?:\??\.user(?:\.\w+)?|\[\s*[''\x22`]user[''\x22`]\s*\])\s*(?:=|\?\?=|\|\|=)(?:[^=]|$)|Object\.(?:assign|defineProperty)\(\s*(?:req|request|ctx\.state)\b|\b(?:const|let|var)\s+(?:req|request)\s*=|(?:^|[\s;{(])(?:req|request)\s*=(?:[^=>]|$)'
+          - follows: &id010
+              any:
+              - &id003
+                kind: expression_statement
+              - &id004
+                kind: if_statement
+              - &id005
+                kind: lexical_declaration
+              - &id006
+                kind: variable_declaration
+              - &id007
+                kind: try_statement
+              - &id008
+                kind: comment
+              - &id009
+                kind: return_statement
+              follows: *id002
+          - follows: &id011
+              any:
+              - *id003
+              - *id004
+              - *id005
+              - *id006
+              - *id007
+              - *id008
+              - *id009
+              follows: *id010
+          - follows: &id012
+              any:
+              - *id003
+              - *id004
+              - *id005
+              - *id006
+              - *id007
+              - *id008
+              - *id009
+              follows: *id011
+          - follows: &id013
+              any:
+              - *id003
+              - *id004
+              - *id005
+              - *id006
+              - *id007
+              - *id008
+              - *id009
+              follows: *id012
+          - follows: &id014
+              any:
+              - *id003
+              - *id004
+              - *id005
+              - *id006
+              - *id007
+              - *id008
+              - *id009
+              follows: *id013
+          - follows:
+              any:
+              - *id003
+              - *id004
+              - *id005
+              - *id006
+              - *id007
+              - *id008
+              - *id009
+              follows: *id014
+  - inside:
+      kind: await_expression
+      inside:
+        kind: expression_statement
+        all:
+        - any:
+          - follows: &id015
+              kind: expression_statement
+              has:
+                kind: await_expression
+                any:
+                - pattern: 'await $CLIENT.query(''BEGIN'')'
+                - pattern: 'await $CLIENT.query("BEGIN")'
+          - follows:
+              any:
+              - &id016
+                kind: expression_statement
+                not:
+                  any:
+                  - kind: expression_statement
+                    regex: '(?-u)(?i)[''\x22`]\s*(commit|rollback|end)(\s+(transaction|work))?\s*;?\s*[''\x22`]'
+                  - kind: expression_statement
+                    regex: '(?-u)(?i)\.(create|createMany|update|updateMany|upsert|delete|deleteMany|insert)\s*\(|(?:query|execute|unsafe|\$executeRaw\w*)\s*\(?\s*[`''\x22]\s*(?:insert|update|delete)\b'
+              - &id017
+                kind: lexical_declaration
+              - &id018
+                kind: comment
+              follows: *id015
+          - follows:
+              any:
+              - *id016
+              - *id017
+              - *id018
+              follows:
+                any:
+                - *id016
+                - *id017
+                - *id018
+                follows: *id015
+          - follows:
+              any:
+              - *id016
+              - *id017
+              - *id018
+              follows:
+                any:
+                - *id016
+                - *id017
+                - *id018
+                follows:
+                  any:
+                  - *id016
+                  - *id017
+                  - *id018
+                  follows: *id015
+          - follows:
+              any:
+              - *id016
+              - *id017
+              - *id018
+              follows:
+                any:
+                - *id016
+                - *id017
+                - *id018
+                follows:
+                  any:
+                  - *id016
+                  - *id017
+                  - *id018
+                  follows:
+                    any:
+                    - *id016
+                    - *id017
+                    - *id018
+                    follows: *id015
+          - follows:
+              any:
+              - *id016
+              - *id017
+              - *id018
+              follows:
+                any:
+                - *id016
+                - *id017
+                - *id018
+                follows:
+                  any:
+                  - *id016
+                  - *id017
+                  - *id018
+                  follows:
+                    any:
+                    - *id016
+                    - *id017
+                    - *id018
+                    follows:
+                      any:
+                      - *id016
+                      - *id017
+                      - *id018
+                      follows: *id015
+        - any:
+          - precedes: &id019
+              kind: expression_statement
+              has:
+                kind: await_expression
+                has:
+                  kind: call_expression
+                  regex: '(?-u)(?i)\.(create|createMany|update|updateMany|upsert|delete|deleteMany|insert)\s*\(|(?:query|execute|unsafe|\$executeRaw\w*)\s*\(?\s*[`''\x22]\s*(?:insert|update|delete)\b'
+                  pattern: '$CLIENT.query($$$WARGS)'
+          - precedes:
+              any:
+              - &id020
+                kind: expression_statement
+                not:
+                  kind: expression_statement
+                  regex: '(?-u)(?i)[''\x22`]\s*(commit|rollback|end)(\s+(transaction|work))?\s*;?\s*[''\x22`]'
+              - &id021
+                kind: lexical_declaration
+              - &id022
+                kind: comment
+              precedes: *id019
+          - precedes:
+              any:
+              - *id020
+              - *id021
+              - *id022
+              precedes:
+                any:
+                - *id020
+                - *id021
+                - *id022
+                precedes: *id019
+          - precedes:
+              any:
+              - *id020
+              - *id021
+              - *id022
+              precedes:
+                any:
+                - *id020
+                - *id021
+                - *id022
+                precedes:
+                  any:
+                  - *id020
+                  - *id021
+                  - *id022
+                  precedes: *id019
+        - inside:
+            kind: statement_block
+            all:
+            - has:
+                any:
+                - kind: lexical_declaration
+                - kind: variable_declaration
+                has:
+                  kind: variable_declarator
+                  pattern:
+                    context: 'const $CLIENT = await $POOL.connect()'
+                    selector: variable_declarator
+            - not:
+                has:
+                  kind: expression_statement
+                  regex: '(?-u)(?i)\.(create|createMany|update|updateMany|upsert|delete|deleteMany|insert)\s*\(|(?:query|execute|unsafe|\$executeRaw\w*)\s*\(?\s*[`''\x22]\s*(?:insert|update|delete)\b'
+                  not:
+                    kind: expression_statement
+                    has:
+                      kind: await_expression
+                      pattern: 'await $CLIENT.query($$$OWARGS)'
+min_engine: 0.45.3
+---
+id: audit-actor-recorded.typescript-generic.pool-context
+practice_id: audit-actor-recorded
+language: typescript
+frameworks:
+- generic
+kind: violation
+rule:
+  all:
+  - any:
+    - kind: string
+      regex: '(?i)(?:set_config\s*\(\s*''(?:app\.(?:user_id|current_user_id|current_user|user|actor|actor_id|uid|userid|account_id|current_account_id)|request\.jwt\.claims|request\.jwt\.claim\.sub|jwt\.claims)''|\bset\s+(?:local\s+|session\s+)?(?:app\.(?:user_id|current_user_id|current_user|user|actor|actor_id|uid|userid|account_id|current_account_id)|request\.jwt\.claims|request\.jwt\.claim\.sub|jwt\.claims)\s*(?:=|to)|-c\s*(?:app\.(?:user_id|current_user_id|current_user|user|actor|actor_id|uid|userid|account_id|current_account_id)|request\.jwt\.claims|request\.jwt\.claim\.sub|jwt\.claims)\s*=)'
+    - kind: template_string
+      regex: '(?i)(?:set_config\s*\(\s*''(?:app\.(?:user_id|current_user_id|current_user|user|actor|actor_id|uid|userid|account_id|current_account_id)|request\.jwt\.claims|request\.jwt\.claim\.sub|jwt\.claims)''|\bset\s+(?:local\s+|session\s+)?(?:app\.(?:user_id|current_user_id|current_user|user|actor|actor_id|uid|userid|account_id|current_account_id)|request\.jwt\.claims|request\.jwt\.claim\.sub|jwt\.claims)\s*(?:=|to)|-c\s*(?:app\.(?:user_id|current_user_id|current_user|user|actor|actor_id|uid|userid|account_id|current_account_id)|request\.jwt\.claims|request\.jwt\.claim\.sub|jwt\.claims)\s*=)'
+  - inside:
+      stopBy: end
+      any:
+      - all:
+        - kind: pair
+        - has:
+            field: key
+            kind: property_identifier
+            regex: '^(afterCreate|afterConnect|onConnect|connectionInitSql|initSql|options)$'
+      - all:
+        - kind: call_expression
+        - has:
+            field: function
+            kind: member_expression
+            regex: '\.on$'
+        - has:
+            field: arguments
+            kind: arguments
+            has:
+              kind: string
+              regex: '^[''"](connect|acquire)[''"]$'
+min_engine: 0.45.3
+---
+id: audit-actor-recorded.typescript-generic.session-level-context
+practice_id: audit-actor-recorded
+language: typescript
+frameworks:
+- generic
+kind: violation
+rule:
+  all:
+  - any:
+    - kind: string
+      regex: '(?i)(?:set_config\s*\(\s*''(?:app\.(?:user_id|current_user_id|current_user|user|actor|actor_id|uid|userid|account_id|current_account_id)|request\.jwt\.claims|request\.jwt\.claim\.sub|jwt\.claims)''\s*,[\s\S]*,\s*false\s*\)|\bset\s+(?:session\s+)?(?:app\.(?:user_id|current_user_id|current_user|user|actor|actor_id|uid|userid|account_id|current_account_id)|request\.jwt\.claims|request\.jwt\.claim\.sub|jwt\.claims)\s*(?:=|to))'
+    - kind: template_string
+      regex: '(?i)(?:set_config\s*\(\s*''(?:app\.(?:user_id|current_user_id|current_user|user|actor|actor_id|uid|userid|account_id|current_account_id)|request\.jwt\.claims|request\.jwt\.claim\.sub|jwt\.claims)''\s*,[\s\S]*,\s*false\s*\)|\bset\s+(?:session\s+)?(?:app\.(?:user_id|current_user_id|current_user|user|actor|actor_id|uid|userid|account_id|current_account_id)|request\.jwt\.claims|request\.jwt\.claim\.sub|jwt\.claims)\s*(?:=|to))'
+  - any:
+    - inside:
+        kind: arguments
+        inside: &id001
+          kind: call_expression
+          has:
+            field: function
+            any:
+            - kind: member_expression
+              regex: '(?:^|\.)(?:query|execute|exec|none|one|any|many|oneOrNone|manyOrNone|raw|\$executeRaw|\$executeRawUnsafe|\$queryRaw|\$queryRawUnsafe|unsafe)$|^sql$'
+            - kind: identifier
+              regex: '(?:^|\.)(?:query|execute|exec|none|one|any|many|oneOrNone|manyOrNone|raw|\$executeRaw|\$executeRawUnsafe|\$queryRaw|\$queryRawUnsafe|unsafe)$|^sql$'
+    - inside: *id001
+  - not:
+      inside:
+        stopBy: end
+        any:
+        - all:
+          - kind: pair
+          - has:
+              field: key
+              kind: property_identifier
+              regex: '^(afterCreate|afterConnect|onConnect|connectionInitSql|initSql|options)$'
+        - all:
+          - kind: call_expression
+          - has:
+              field: function
+              kind: member_expression
+              regex: '\.on$'
+          - has:
+              field: arguments
+              kind: arguments
+              has:
+                kind: string
+                regex: '^[''"](connect|acquire)[''"]$'
+min_engine: 0.45.3
+---
+id: audit-actor-recorded.typescript-generic.audit-write-actor
+practice_id: audit-actor-recorded
+language: typescript
+frameworks:
+- generic
+kind: items
+rule:
+  all:
+  - pattern: '$DB.$TABLE.create($ARG)'
+  - has:
+      field: function
+      kind: member_expression
+      regex: '\.([^.\s(]*[aA]udit[^.\s(]*|accessLogs?|activityLogs?|securityEvents?)\.(create|createMany)$'
+  - has:
+      field: arguments
+      kind: arguments
+      has:
+        kind: object
+        any:
+        - has:
+            kind: shorthand_property_identifier
+            regex: '^data$'
+        - has:
+            kind: pair
+            has:
+              field: key
+              kind: property_identifier
+              regex: '^data$'
+  - has:
+      field: arguments
+      kind: arguments
+      has:
+        kind: object
+        has:
+          kind: pair
+          all:
+          - has:
+              field: key
+              kind: property_identifier
+              regex: '^data$'
+          - has:
+              field: value
+              kind: object
+              all:
+              - not:
+                  has:
+                    kind: spread_element
+              - any:
+                - has:
+                    kind: pair
+                    all:
+                    - &id001
+                      has:
+                        field: key
+                        kind: property_identifier
+                        regex: '(?-u)^(?i:actor|actor_?id|actor_?user_?id|actor_?staff_?id|performed_?by|changed_?by|who)$'
+                    - has:
+                        field: value
+                        any:
+                        - &id008
+                          kind: string
+                        - &id009
+                          kind: number
+                        - &id010
+                          kind: 'true'
+                        - &id011
+                          kind: 'false'
+                        - &id012
+                          kind: template_string
+                          not:
+                            has:
+                              kind: template_substitution
+                        - &id013
+                          kind: as_expression
+                          has:
+                            any:
+                            - kind: string
+                            - kind: number
+                        - &id014
+                          kind: non_null_expression
+                          has:
+                            any:
+                            - kind: string
+                            - kind: number
+                        - &id015
+                          kind: member_expression
+                          regex: '(?:^|[\s(,:!?|&{\[])(?:req|request|ctx\.request|ctx|event|c\.req)\??\.(?:body|query|headers|params|cookies)\b|(?:^|[\s(,:!?|&{\[])patient\w*\??[.\[]|(?:req|request)\??\.session\??\.(?:id|sid)\b|\bsessionId\b|\bsid\b'
+                        - &id016
+                          kind: call_expression
+                          regex: '(?:^|[\s(,:!?|&{\[])(?:req|request|ctx\.request|ctx|event|c\.req)\??\.(?:body|query|headers|params|cookies)\b|(?:^|[\s(,:!?|&{\[])patient\w*\??[.\[]|(?:req|request)\??\.session\??\.(?:id|sid)\b|\bsessionId\b|\bsid\b'
+                        - &id017
+                          kind: binary_expression
+                          regex: '(?:^|[\s(,:!?|&{\[])(?:req|request|ctx\.request|ctx|event|c\.req)\??\.(?:body|query|headers|params|cookies)\b|(?:^|[\s(,:!?|&{\[])patient\w*\??[.\[]|(?:req|request)\??\.session\??\.(?:id|sid)\b|\bsessionId\b|\bsid\b'
+                        - &id018
+                          kind: ternary_expression
+                          regex: '(?:^|[\s(,:!?|&{\[])(?:req|request|ctx\.request|ctx|event|c\.req)\??\.(?:body|query|headers|params|cookies)\b|(?:^|[\s(,:!?|&{\[])patient\w*\??[.\[]|(?:req|request)\??\.session\??\.(?:id|sid)\b|\bsessionId\b|\bsid\b'
+                        - &id019
+                          kind: parenthesized_expression
+                          regex: '(?:^|[\s(,:!?|&{\[])(?:req|request|ctx\.request|ctx|event|c\.req)\??\.(?:body|query|headers|params|cookies)\b|(?:^|[\s(,:!?|&{\[])patient\w*\??[.\[]|(?:req|request)\??\.session\??\.(?:id|sid)\b|\bsessionId\b|\bsid\b'
+                        - &id020
+                          kind: await_expression
+                          regex: '(?:^|[\s(,:!?|&{\[])(?:req|request|ctx\.request|ctx|event|c\.req)\??\.(?:body|query|headers|params|cookies)\b|(?:^|[\s(,:!?|&{\[])patient\w*\??[.\[]|(?:req|request)\??\.session\??\.(?:id|sid)\b|\bsessionId\b|\bsid\b'
+                        - &id021
+                          kind: subscript_expression
+                          regex: '(?:^|[\s(,:!?|&{\[])(?:req|request|ctx\.request|ctx|event|c\.req)\??\.(?:body|query|headers|params|cookies)\b|(?:^|[\s(,:!?|&{\[])patient\w*\??[.\[]|(?:req|request)\??\.session\??\.(?:id|sid)\b|\bsessionId\b|\bsid\b'
+                        - &id022
+                          kind: as_expression
+                          regex: '(?:^|[\s(,:!?|&{\[])(?:req|request|ctx\.request|ctx|event|c\.req)\??\.(?:body|query|headers|params|cookies)\b|(?:^|[\s(,:!?|&{\[])patient\w*\??[.\[]|(?:req|request)\??\.session\??\.(?:id|sid)\b|\bsessionId\b|\bsid\b'
+                        - &id023
+                          kind: non_null_expression
+                          regex: '(?:^|[\s(,:!?|&{\[])(?:req|request|ctx\.request|ctx|event|c\.req)\??\.(?:body|query|headers|params|cookies)\b|(?:^|[\s(,:!?|&{\[])patient\w*\??[.\[]|(?:req|request)\??\.session\??\.(?:id|sid)\b|\bsessionId\b|\bsid\b'
+                        - &id024
+                          kind: binary_expression
+                          regex: '(?-u)(?:\|\||\?\?|\?|:)\s*(?:[''\x22`]|\d)|^\s*\(?\s*(?:[''\x22`]|\d)'
+                        - &id025
+                          kind: ternary_expression
+                          regex: '(?-u)(?:\|\||\?\?|\?|:)\s*(?:[''\x22`]|\d)|^\s*\(?\s*(?:[''\x22`]|\d)'
+                - all:
+                  - has: &id039
+                      kind: pair
+                      all:
+                      - *id001
+                      - has:
+                          field: value
+                          any:
+                          - &id002
+                            kind: member_expression
+                            regex: '(?-u)^(?:String\()?\(?(?:(?:req|request)(?:\.session)?\??\.(?:user|auth)!?(?:\s+as\s+\w+\))?|ctx\.state\.user!?|\(await\s+(?:getServerSession|auth)\([\w\s,\.]*\)\)\??\.user!?|\(await\s+supabase\.auth\.getUser\(\)\)\??\.data\??\.user!?|\(?await\s+getUser\(\)\)?)\??\.(?:id|userId|user_id|sub|uid)!?\)?(?:\s*(?:\?\?|\|\|)\s*(?:null|undefined))?(?:!|\s+as\s+\w+)?$'
+                          - &id003
+                            kind: call_expression
+                            regex: '(?-u)^(?:String\()?\(?(?:(?:req|request)(?:\.session)?\??\.(?:user|auth)!?(?:\s+as\s+\w+\))?|ctx\.state\.user!?|\(await\s+(?:getServerSession|auth)\([\w\s,\.]*\)\)\??\.user!?|\(await\s+supabase\.auth\.getUser\(\)\)\??\.data\??\.user!?|\(?await\s+getUser\(\)\)?)\??\.(?:id|userId|user_id|sub|uid)!?\)?(?:\s*(?:\?\?|\|\|)\s*(?:null|undefined))?(?:!|\s+as\s+\w+)?$'
+                          - &id004
+                            kind: binary_expression
+                            regex: '(?-u)^(?:String\()?\(?(?:(?:req|request)(?:\.session)?\??\.(?:user|auth)!?(?:\s+as\s+\w+\))?|ctx\.state\.user!?|\(await\s+(?:getServerSession|auth)\([\w\s,\.]*\)\)\??\.user!?|\(await\s+supabase\.auth\.getUser\(\)\)\??\.data\??\.user!?|\(?await\s+getUser\(\)\)?)\??\.(?:id|userId|user_id|sub|uid)!?\)?(?:\s*(?:\?\?|\|\|)\s*(?:null|undefined))?(?:!|\s+as\s+\w+)?$'
+                          - &id005
+                            kind: non_null_expression
+                            regex: '(?-u)^(?:String\()?\(?(?:(?:req|request)(?:\.session)?\??\.(?:user|auth)!?(?:\s+as\s+\w+\))?|ctx\.state\.user!?|\(await\s+(?:getServerSession|auth)\([\w\s,\.]*\)\)\??\.user!?|\(await\s+supabase\.auth\.getUser\(\)\)\??\.data\??\.user!?|\(?await\s+getUser\(\)\)?)\??\.(?:id|userId|user_id|sub|uid)!?\)?(?:\s*(?:\?\?|\|\|)\s*(?:null|undefined))?(?:!|\s+as\s+\w+)?$'
+                          - &id006
+                            kind: object
+                            has:
+                              kind: pair
+                              all:
+                              - has:
+                                  field: key
+                                  kind: property_identifier
+                                  regex: '^connect$'
+                              - has:
+                                  field: value
+                                  kind: object
+                                  has:
+                                    kind: pair
+                                    all:
+                                    - has:
+                                        field: key
+                                        kind: property_identifier
+                                        regex: '^id$'
+                                    - has:
+                                        field: value
+                                        any:
+                                        - kind: member_expression
+                                          regex: '(?-u)^(?:String\()?\(?(?:(?:req|request)(?:\.session)?\??\.(?:user|auth)!?(?:\s+as\s+\w+\))?|ctx\.state\.user!?|\(await\s+(?:getServerSession|auth)\([\w\s,\.]*\)\)\??\.user!?|\(await\s+supabase\.auth\.getUser\(\)\)\??\.data\??\.user!?|\(?await\s+getUser\(\)\)?)\??\.(?:id|userId|user_id|sub|uid)!?\)?(?:\s*(?:\?\?|\|\|)\s*(?:null|undefined))?(?:!|\s+as\s+\w+)?$'
+                                        - kind: call_expression
+                                          regex: '(?-u)^(?:String\()?\(?(?:(?:req|request)(?:\.session)?\??\.(?:user|auth)!?(?:\s+as\s+\w+\))?|ctx\.state\.user!?|\(await\s+(?:getServerSession|auth)\([\w\s,\.]*\)\)\??\.user!?|\(await\s+supabase\.auth\.getUser\(\)\)\??\.data\??\.user!?|\(?await\s+getUser\(\)\)?)\??\.(?:id|userId|user_id|sub|uid)!?\)?(?:\s*(?:\?\?|\|\|)\s*(?:null|undefined))?(?:!|\s+as\s+\w+)?$'
+                                        - kind: binary_expression
+                                          regex: '(?-u)^(?:String\()?\(?(?:(?:req|request)(?:\.session)?\??\.(?:user|auth)!?(?:\s+as\s+\w+\))?|ctx\.state\.user!?|\(await\s+(?:getServerSession|auth)\([\w\s,\.]*\)\)\??\.user!?|\(await\s+supabase\.auth\.getUser\(\)\)\??\.data\??\.user!?|\(?await\s+getUser\(\)\)?)\??\.(?:id|userId|user_id|sub|uid)!?\)?(?:\s*(?:\?\?|\|\|)\s*(?:null|undefined))?(?:!|\s+as\s+\w+)?$'
+                                        - kind: non_null_expression
+                                          regex: '(?-u)^(?:String\()?\(?(?:(?:req|request)(?:\.session)?\??\.(?:user|auth)!?(?:\s+as\s+\w+\))?|ctx\.state\.user!?|\(await\s+(?:getServerSession|auth)\([\w\s,\.]*\)\)\??\.user!?|\(await\s+supabase\.auth\.getUser\(\)\)\??\.data\??\.user!?|\(?await\s+getUser\(\)\)?)\??\.(?:id|userId|user_id|sub|uid)!?\)?(?:\s*(?:\?\?|\|\|)\s*(?:null|undefined))?(?:!|\s+as\s+\w+)?$'
+                  - not:
+                      has: &id040
+                        kind: pair
+                        all:
+                        - *id001
+                        - not:
+                            has:
+                              field: value
+                              any:
+                              - *id002
+                              - *id003
+                              - *id004
+                              - *id005
+                              - *id006
+                - all:
+                  - &id041
+                    not:
+                      has:
+                        kind: pair
+                        all:
+                        - *id001
+                  - any:
+                    - has: &id042
+                        kind: pair
+                        all:
+                        - &id007
+                          has:
+                            field: key
+                            kind: property_identifier
+                            regex: '(?-u)^(?i:actor|actor_?id|actor_?user_?id|actor_?staff_?id|user|user_?id|performed_?by|changed_?by|doctor_?id|admin_?id|staff_?id|who)$'
+                        - has:
+                            field: value
+                            any:
+                            - *id002
+                            - *id003
+                            - *id004
+                            - *id005
+                            - *id006
+                    - has:
+                        kind: pair
+                        all:
+                        - *id007
+                        - has:
+                            field: value
+                            any:
+                            - *id008
+                            - *id009
+                            - *id010
+                            - *id011
+                            - *id012
+                            - *id013
+                            - *id014
+                            - *id015
+                            - *id016
+                            - *id017
+                            - *id018
+                            - *id019
+                            - *id020
+                            - *id021
+                            - *id022
+                            - *id023
+                            - *id024
+                            - *id025
+  - not:
+      inside:
+        stopBy: end
+        any:
+        - kind: expression_statement
+        - kind: if_statement
+        - kind: lexical_declaration
+        - kind: variable_declaration
+        - kind: try_statement
+        all:
+        - any:
+          - follows: &id026
+              any:
+              - kind: expression_statement
+                regex: '(?:^|[\s;{(])(?:req|request|ctx\.state)(?:\??\.user(?:\.\w+)?|\[\s*[''\x22`]user[''\x22`]\s*\])\s*(?:=|\?\?=|\|\|=)(?:[^=]|$)|Object\.(?:assign|defineProperty)\(\s*(?:req|request|ctx\.state)\b|\b(?:const|let|var)\s+(?:req|request)\s*=|(?:^|[\s;{(])(?:req|request)\s*=(?:[^=>]|$)'
+              - kind: if_statement
+                regex: '(?:^|[\s;{(])(?:req|request|ctx\.state)(?:\??\.user(?:\.\w+)?|\[\s*[''\x22`]user[''\x22`]\s*\])\s*(?:=|\?\?=|\|\|=)(?:[^=]|$)|Object\.(?:assign|defineProperty)\(\s*(?:req|request|ctx\.state)\b|\b(?:const|let|var)\s+(?:req|request)\s*=|(?:^|[\s;{(])(?:req|request)\s*=(?:[^=>]|$)'
+              - kind: lexical_declaration
+                regex: '(?:^|[\s;{(])(?:req|request|ctx\.state)(?:\??\.user(?:\.\w+)?|\[\s*[''\x22`]user[''\x22`]\s*\])\s*(?:=|\?\?=|\|\|=)(?:[^=]|$)|Object\.(?:assign|defineProperty)\(\s*(?:req|request|ctx\.state)\b|\b(?:const|let|var)\s+(?:req|request)\s*=|(?:^|[\s;{(])(?:req|request)\s*=(?:[^=>]|$)'
+              - kind: variable_declaration
+                regex: '(?:^|[\s;{(])(?:req|request|ctx\.state)(?:\??\.user(?:\.\w+)?|\[\s*[''\x22`]user[''\x22`]\s*\])\s*(?:=|\?\?=|\|\|=)(?:[^=]|$)|Object\.(?:assign|defineProperty)\(\s*(?:req|request|ctx\.state)\b|\b(?:const|let|var)\s+(?:req|request)\s*=|(?:^|[\s;{(])(?:req|request)\s*=(?:[^=>]|$)'
+              - kind: try_statement
+                regex: '(?:^|[\s;{(])(?:req|request|ctx\.state)(?:\??\.user(?:\.\w+)?|\[\s*[''\x22`]user[''\x22`]\s*\])\s*(?:=|\?\?=|\|\|=)(?:[^=]|$)|Object\.(?:assign|defineProperty)\(\s*(?:req|request|ctx\.state)\b|\b(?:const|let|var)\s+(?:req|request)\s*=|(?:^|[\s;{(])(?:req|request)\s*=(?:[^=>]|$)'
+          - follows: &id034
+              any:
+              - &id027
+                kind: expression_statement
+              - &id028
+                kind: if_statement
+              - &id029
+                kind: lexical_declaration
+              - &id030
+                kind: variable_declaration
+              - &id031
+                kind: try_statement
+              - &id032
+                kind: comment
+              - &id033
+                kind: return_statement
+              follows: *id026
+          - follows: &id035
+              any:
+              - *id027
+              - *id028
+              - *id029
+              - *id030
+              - *id031
+              - *id032
+              - *id033
+              follows: *id034
+          - follows: &id036
+              any:
+              - *id027
+              - *id028
+              - *id029
+              - *id030
+              - *id031
+              - *id032
+              - *id033
+              follows: *id035
+          - follows: &id037
+              any:
+              - *id027
+              - *id028
+              - *id029
+              - *id030
+              - *id031
+              - *id032
+              - *id033
+              follows: *id036
+          - follows: &id038
+              any:
+              - *id027
+              - *id028
+              - *id029
+              - *id030
+              - *id031
+              - *id032
+              - *id033
+              follows: *id037
+          - follows:
+              any:
+              - *id027
+              - *id028
+              - *id029
+              - *id030
+              - *id031
+              - *id032
+              - *id033
+              follows: *id038
+control:
+  has:
+    field: arguments
+    kind: arguments
+    has:
+      kind: object
+      has:
+        kind: pair
+        all:
+        - has:
+            field: key
+            kind: property_identifier
+            regex: '^data$'
+        - has:
+            field: value
+            kind: object
+            all:
+            - not:
+                has:
+                  kind: spread_element
+            - any:
+              - all:
+                - has: *id039
+                - not:
+                    has: *id040
+              - all:
+                - *id041
+                - has: *id042
+min_engine: 0.45.3
+table:
+  metavariable: '$TABLE'
+  access: write
+---
+id: audit-actor-recorded.typescript-generic.audit-write-actor-many
+practice_id: audit-actor-recorded
+language: typescript
+frameworks:
+- generic
+kind: items
+rule:
+  all:
+  - pattern: '$DB.$TABLE.createMany($ARG)'
+  - has:
+      field: function
+      kind: member_expression
+      regex: '\.([^.\s(]*[aA]udit[^.\s(]*|accessLogs?|activityLogs?|securityEvents?)\.(create|createMany)$'
+  - has:
+      field: arguments
+      kind: arguments
+      has:
+        kind: object
+        has:
+          kind: pair
+          all:
+          - has:
+              field: key
+              kind: property_identifier
+              regex: '^data$'
+          - has:
+              field: value
+              kind: array
+              any:
+              - has:
+                  kind: object
+                  all:
+                  - not:
+                      has:
+                        kind: spread_element
+                  - any:
+                    - has:
+                        kind: pair
+                        all:
+                        - &id001
+                          has:
+                            field: key
+                            kind: property_identifier
+                            regex: '(?-u)^(?i:actor|actor_?id|actor_?user_?id|actor_?staff_?id|performed_?by|changed_?by|who)$'
+                        - has:
+                            field: value
+                            any:
+                            - &id008
+                              kind: string
+                            - &id009
+                              kind: number
+                            - &id010
+                              kind: 'true'
+                            - &id011
+                              kind: 'false'
+                            - &id012
+                              kind: template_string
+                              not:
+                                has:
+                                  kind: template_substitution
+                            - &id013
+                              kind: as_expression
+                              has:
+                                any:
+                                - kind: string
+                                - kind: number
+                            - &id014
+                              kind: non_null_expression
+                              has:
+                                any:
+                                - kind: string
+                                - kind: number
+                            - &id015
+                              kind: member_expression
+                              regex: '(?:^|[\s(,:!?|&{\[])(?:req|request|ctx\.request|ctx|event|c\.req)\??\.(?:body|query|headers|params|cookies)\b|(?:^|[\s(,:!?|&{\[])patient\w*\??[.\[]|(?:req|request)\??\.session\??\.(?:id|sid)\b|\bsessionId\b|\bsid\b'
+                            - &id016
+                              kind: call_expression
+                              regex: '(?:^|[\s(,:!?|&{\[])(?:req|request|ctx\.request|ctx|event|c\.req)\??\.(?:body|query|headers|params|cookies)\b|(?:^|[\s(,:!?|&{\[])patient\w*\??[.\[]|(?:req|request)\??\.session\??\.(?:id|sid)\b|\bsessionId\b|\bsid\b'
+                            - &id017
+                              kind: binary_expression
+                              regex: '(?:^|[\s(,:!?|&{\[])(?:req|request|ctx\.request|ctx|event|c\.req)\??\.(?:body|query|headers|params|cookies)\b|(?:^|[\s(,:!?|&{\[])patient\w*\??[.\[]|(?:req|request)\??\.session\??\.(?:id|sid)\b|\bsessionId\b|\bsid\b'
+                            - &id018
+                              kind: ternary_expression
+                              regex: '(?:^|[\s(,:!?|&{\[])(?:req|request|ctx\.request|ctx|event|c\.req)\??\.(?:body|query|headers|params|cookies)\b|(?:^|[\s(,:!?|&{\[])patient\w*\??[.\[]|(?:req|request)\??\.session\??\.(?:id|sid)\b|\bsessionId\b|\bsid\b'
+                            - &id019
+                              kind: parenthesized_expression
+                              regex: '(?:^|[\s(,:!?|&{\[])(?:req|request|ctx\.request|ctx|event|c\.req)\??\.(?:body|query|headers|params|cookies)\b|(?:^|[\s(,:!?|&{\[])patient\w*\??[.\[]|(?:req|request)\??\.session\??\.(?:id|sid)\b|\bsessionId\b|\bsid\b'
+                            - &id020
+                              kind: await_expression
+                              regex: '(?:^|[\s(,:!?|&{\[])(?:req|request|ctx\.request|ctx|event|c\.req)\??\.(?:body|query|headers|params|cookies)\b|(?:^|[\s(,:!?|&{\[])patient\w*\??[.\[]|(?:req|request)\??\.session\??\.(?:id|sid)\b|\bsessionId\b|\bsid\b'
+                            - &id021
+                              kind: subscript_expression
+                              regex: '(?:^|[\s(,:!?|&{\[])(?:req|request|ctx\.request|ctx|event|c\.req)\??\.(?:body|query|headers|params|cookies)\b|(?:^|[\s(,:!?|&{\[])patient\w*\??[.\[]|(?:req|request)\??\.session\??\.(?:id|sid)\b|\bsessionId\b|\bsid\b'
+                            - &id022
+                              kind: as_expression
+                              regex: '(?:^|[\s(,:!?|&{\[])(?:req|request|ctx\.request|ctx|event|c\.req)\??\.(?:body|query|headers|params|cookies)\b|(?:^|[\s(,:!?|&{\[])patient\w*\??[.\[]|(?:req|request)\??\.session\??\.(?:id|sid)\b|\bsessionId\b|\bsid\b'
+                            - &id023
+                              kind: non_null_expression
+                              regex: '(?:^|[\s(,:!?|&{\[])(?:req|request|ctx\.request|ctx|event|c\.req)\??\.(?:body|query|headers|params|cookies)\b|(?:^|[\s(,:!?|&{\[])patient\w*\??[.\[]|(?:req|request)\??\.session\??\.(?:id|sid)\b|\bsessionId\b|\bsid\b'
+                            - &id024
+                              kind: binary_expression
+                              regex: '(?-u)(?:\|\||\?\?|\?|:)\s*(?:[''\x22`]|\d)|^\s*\(?\s*(?:[''\x22`]|\d)'
+                            - &id025
+                              kind: ternary_expression
+                              regex: '(?-u)(?:\|\||\?\?|\?|:)\s*(?:[''\x22`]|\d)|^\s*\(?\s*(?:[''\x22`]|\d)'
+                    - all:
+                      - has: &id026
+                          kind: pair
+                          all:
+                          - *id001
+                          - has:
+                              field: value
+                              any:
+                              - &id002
+                                kind: member_expression
+                                regex: '(?-u)^(?:String\()?\(?(?:(?:req|request)(?:\.session)?\??\.(?:user|auth)!?(?:\s+as\s+\w+\))?|ctx\.state\.user!?|\(await\s+(?:getServerSession|auth)\([\w\s,\.]*\)\)\??\.user!?|\(await\s+supabase\.auth\.getUser\(\)\)\??\.data\??\.user!?|\(?await\s+getUser\(\)\)?)\??\.(?:id|userId|user_id|sub|uid)!?\)?(?:\s*(?:\?\?|\|\|)\s*(?:null|undefined))?(?:!|\s+as\s+\w+)?$'
+                              - &id003
+                                kind: call_expression
+                                regex: '(?-u)^(?:String\()?\(?(?:(?:req|request)(?:\.session)?\??\.(?:user|auth)!?(?:\s+as\s+\w+\))?|ctx\.state\.user!?|\(await\s+(?:getServerSession|auth)\([\w\s,\.]*\)\)\??\.user!?|\(await\s+supabase\.auth\.getUser\(\)\)\??\.data\??\.user!?|\(?await\s+getUser\(\)\)?)\??\.(?:id|userId|user_id|sub|uid)!?\)?(?:\s*(?:\?\?|\|\|)\s*(?:null|undefined))?(?:!|\s+as\s+\w+)?$'
+                              - &id004
+                                kind: binary_expression
+                                regex: '(?-u)^(?:String\()?\(?(?:(?:req|request)(?:\.session)?\??\.(?:user|auth)!?(?:\s+as\s+\w+\))?|ctx\.state\.user!?|\(await\s+(?:getServerSession|auth)\([\w\s,\.]*\)\)\??\.user!?|\(await\s+supabase\.auth\.getUser\(\)\)\??\.data\??\.user!?|\(?await\s+getUser\(\)\)?)\??\.(?:id|userId|user_id|sub|uid)!?\)?(?:\s*(?:\?\?|\|\|)\s*(?:null|undefined))?(?:!|\s+as\s+\w+)?$'
+                              - &id005
+                                kind: non_null_expression
+                                regex: '(?-u)^(?:String\()?\(?(?:(?:req|request)(?:\.session)?\??\.(?:user|auth)!?(?:\s+as\s+\w+\))?|ctx\.state\.user!?|\(await\s+(?:getServerSession|auth)\([\w\s,\.]*\)\)\??\.user!?|\(await\s+supabase\.auth\.getUser\(\)\)\??\.data\??\.user!?|\(?await\s+getUser\(\)\)?)\??\.(?:id|userId|user_id|sub|uid)!?\)?(?:\s*(?:\?\?|\|\|)\s*(?:null|undefined))?(?:!|\s+as\s+\w+)?$'
+                              - &id006
+                                kind: object
+                                has:
+                                  kind: pair
+                                  all:
+                                  - has:
+                                      field: key
+                                      kind: property_identifier
+                                      regex: '^connect$'
+                                  - has:
+                                      field: value
+                                      kind: object
+                                      has:
+                                        kind: pair
+                                        all:
+                                        - has:
+                                            field: key
+                                            kind: property_identifier
+                                            regex: '^id$'
+                                        - has:
+                                            field: value
+                                            any:
+                                            - kind: member_expression
+                                              regex: '(?-u)^(?:String\()?\(?(?:(?:req|request)(?:\.session)?\??\.(?:user|auth)!?(?:\s+as\s+\w+\))?|ctx\.state\.user!?|\(await\s+(?:getServerSession|auth)\([\w\s,\.]*\)\)\??\.user!?|\(await\s+supabase\.auth\.getUser\(\)\)\??\.data\??\.user!?|\(?await\s+getUser\(\)\)?)\??\.(?:id|userId|user_id|sub|uid)!?\)?(?:\s*(?:\?\?|\|\|)\s*(?:null|undefined))?(?:!|\s+as\s+\w+)?$'
+                                            - kind: call_expression
+                                              regex: '(?-u)^(?:String\()?\(?(?:(?:req|request)(?:\.session)?\??\.(?:user|auth)!?(?:\s+as\s+\w+\))?|ctx\.state\.user!?|\(await\s+(?:getServerSession|auth)\([\w\s,\.]*\)\)\??\.user!?|\(await\s+supabase\.auth\.getUser\(\)\)\??\.data\??\.user!?|\(?await\s+getUser\(\)\)?)\??\.(?:id|userId|user_id|sub|uid)!?\)?(?:\s*(?:\?\?|\|\|)\s*(?:null|undefined))?(?:!|\s+as\s+\w+)?$'
+                                            - kind: binary_expression
+                                              regex: '(?-u)^(?:String\()?\(?(?:(?:req|request)(?:\.session)?\??\.(?:user|auth)!?(?:\s+as\s+\w+\))?|ctx\.state\.user!?|\(await\s+(?:getServerSession|auth)\([\w\s,\.]*\)\)\??\.user!?|\(await\s+supabase\.auth\.getUser\(\)\)\??\.data\??\.user!?|\(?await\s+getUser\(\)\)?)\??\.(?:id|userId|user_id|sub|uid)!?\)?(?:\s*(?:\?\?|\|\|)\s*(?:null|undefined))?(?:!|\s+as\s+\w+)?$'
+                                            - kind: non_null_expression
+                                              regex: '(?-u)^(?:String\()?\(?(?:(?:req|request)(?:\.session)?\??\.(?:user|auth)!?(?:\s+as\s+\w+\))?|ctx\.state\.user!?|\(await\s+(?:getServerSession|auth)\([\w\s,\.]*\)\)\??\.user!?|\(await\s+supabase\.auth\.getUser\(\)\)\??\.data\??\.user!?|\(?await\s+getUser\(\)\)?)\??\.(?:id|userId|user_id|sub|uid)!?\)?(?:\s*(?:\?\?|\|\|)\s*(?:null|undefined))?(?:!|\s+as\s+\w+)?$'
+                      - not:
+                          has: &id027
+                            kind: pair
+                            all:
+                            - *id001
+                            - not:
+                                has:
+                                  field: value
+                                  any:
+                                  - *id002
+                                  - *id003
+                                  - *id004
+                                  - *id005
+                                  - *id006
+                    - all:
+                      - &id028
+                        not:
+                          has:
+                            kind: pair
+                            all:
+                            - *id001
+                      - any:
+                        - has: &id029
+                            kind: pair
+                            all:
+                            - &id007
+                              has:
+                                field: key
+                                kind: property_identifier
+                                regex: '(?-u)^(?i:actor|actor_?id|actor_?user_?id|actor_?staff_?id|user|user_?id|performed_?by|changed_?by|doctor_?id|admin_?id|staff_?id|who)$'
+                            - has:
+                                field: value
+                                any:
+                                - *id002
+                                - *id003
+                                - *id004
+                                - *id005
+                                - *id006
+                        - has:
+                            kind: pair
+                            all:
+                            - *id007
+                            - has:
+                                field: value
+                                any:
+                                - *id008
+                                - *id009
+                                - *id010
+                                - *id011
+                                - *id012
+                                - *id013
+                                - *id014
+                                - *id015
+                                - *id016
+                                - *id017
+                                - *id018
+                                - *id019
+                                - *id020
+                                - *id021
+                                - *id022
+                                - *id023
+                                - *id024
+                                - *id025
+              - all:
+                - &id043
+                  has:
+                    kind: object
+                - &id044
+                  not:
+                    has:
+                      kind: object
+                      not:
+                        all:
+                        - not:
+                            has:
+                              kind: spread_element
+                        - any:
+                          - all:
+                            - has: *id026
+                            - not:
+                                has: *id027
+                          - all:
+                            - *id028
+                            - has: *id029
+                - &id045
+                  not:
+                    has:
+                      kind: spread_element
+  - not:
+      inside:
+        stopBy: end
+        any:
+        - kind: expression_statement
+        - kind: if_statement
+        - kind: lexical_declaration
+        - kind: variable_declaration
+        - kind: try_statement
+        all:
+        - any:
+          - follows: &id030
+              any:
+              - kind: expression_statement
+                regex: '(?:^|[\s;{(])(?:req|request|ctx\.state)(?:\??\.user(?:\.\w+)?|\[\s*[''\x22`]user[''\x22`]\s*\])\s*(?:=|\?\?=|\|\|=)(?:[^=]|$)|Object\.(?:assign|defineProperty)\(\s*(?:req|request|ctx\.state)\b|\b(?:const|let|var)\s+(?:req|request)\s*=|(?:^|[\s;{(])(?:req|request)\s*=(?:[^=>]|$)'
+              - kind: if_statement
+                regex: '(?:^|[\s;{(])(?:req|request|ctx\.state)(?:\??\.user(?:\.\w+)?|\[\s*[''\x22`]user[''\x22`]\s*\])\s*(?:=|\?\?=|\|\|=)(?:[^=]|$)|Object\.(?:assign|defineProperty)\(\s*(?:req|request|ctx\.state)\b|\b(?:const|let|var)\s+(?:req|request)\s*=|(?:^|[\s;{(])(?:req|request)\s*=(?:[^=>]|$)'
+              - kind: lexical_declaration
+                regex: '(?:^|[\s;{(])(?:req|request|ctx\.state)(?:\??\.user(?:\.\w+)?|\[\s*[''\x22`]user[''\x22`]\s*\])\s*(?:=|\?\?=|\|\|=)(?:[^=]|$)|Object\.(?:assign|defineProperty)\(\s*(?:req|request|ctx\.state)\b|\b(?:const|let|var)\s+(?:req|request)\s*=|(?:^|[\s;{(])(?:req|request)\s*=(?:[^=>]|$)'
+              - kind: variable_declaration
+                regex: '(?:^|[\s;{(])(?:req|request|ctx\.state)(?:\??\.user(?:\.\w+)?|\[\s*[''\x22`]user[''\x22`]\s*\])\s*(?:=|\?\?=|\|\|=)(?:[^=]|$)|Object\.(?:assign|defineProperty)\(\s*(?:req|request|ctx\.state)\b|\b(?:const|let|var)\s+(?:req|request)\s*=|(?:^|[\s;{(])(?:req|request)\s*=(?:[^=>]|$)'
+              - kind: try_statement
+                regex: '(?:^|[\s;{(])(?:req|request|ctx\.state)(?:\??\.user(?:\.\w+)?|\[\s*[''\x22`]user[''\x22`]\s*\])\s*(?:=|\?\?=|\|\|=)(?:[^=]|$)|Object\.(?:assign|defineProperty)\(\s*(?:req|request|ctx\.state)\b|\b(?:const|let|var)\s+(?:req|request)\s*=|(?:^|[\s;{(])(?:req|request)\s*=(?:[^=>]|$)'
+          - follows: &id038
+              any:
+              - &id031
+                kind: expression_statement
+              - &id032
+                kind: if_statement
+              - &id033
+                kind: lexical_declaration
+              - &id034
+                kind: variable_declaration
+              - &id035
+                kind: try_statement
+              - &id036
+                kind: comment
+              - &id037
+                kind: return_statement
+              follows: *id030
+          - follows: &id039
+              any:
+              - *id031
+              - *id032
+              - *id033
+              - *id034
+              - *id035
+              - *id036
+              - *id037
+              follows: *id038
+          - follows: &id040
+              any:
+              - *id031
+              - *id032
+              - *id033
+              - *id034
+              - *id035
+              - *id036
+              - *id037
+              follows: *id039
+          - follows: &id041
+              any:
+              - *id031
+              - *id032
+              - *id033
+              - *id034
+              - *id035
+              - *id036
+              - *id037
+              follows: *id040
+          - follows: &id042
+              any:
+              - *id031
+              - *id032
+              - *id033
+              - *id034
+              - *id035
+              - *id036
+              - *id037
+              follows: *id041
+          - follows:
+              any:
+              - *id031
+              - *id032
+              - *id033
+              - *id034
+              - *id035
+              - *id036
+              - *id037
+              follows: *id042
+control:
+  has:
+    field: arguments
+    kind: arguments
+    has:
+      kind: object
+      has:
+        kind: pair
+        all:
+        - has:
+            field: key
+            kind: property_identifier
+            regex: '^data$'
+        - has:
+            field: value
+            kind: array
+            all:
+            - *id043
+            - *id044
+            - *id045
+min_engine: 0.45.3
+table:
+  metavariable: '$TABLE'
+  access: write
+---
+id: audit-actor-recorded.typescript-generic.audit-write-actor-from
+practice_id: audit-actor-recorded
+language: typescript
+frameworks:
+- generic
+kind: items
+rule:
+  all:
+  - pattern: '$CLIENT.from($TABLE).insert($ROW)'
+  - has:
+      field: function
+      kind: member_expression
+      regex: '\.from\(\s*[''\"`][^''\"`]*(audit|access_log|activity_log|security_event)[^''\"`]*[''\"`]\s*\)\s*\.insert$'
+  - has:
+      field: arguments
+      kind: arguments
+      has:
+        any:
+        - kind: object
+        - kind: array
+  - has:
+      field: arguments
+      kind: arguments
+      has:
+        any:
+        - &id026
+          kind: object
+          all:
+          - not:
+              has:
+                kind: spread_element
+          - any:
+            - has:
+                kind: pair
+                all:
+                - &id001
+                  has:
+                    field: key
+                    kind: property_identifier
+                    regex: '(?-u)^(?i:actor|actor_?id|actor_?user_?id|actor_?staff_?id|performed_?by|changed_?by|who)$'
+                - has:
+                    field: value
+                    any:
+                    - &id008
+                      kind: string
+                    - &id009
+                      kind: number
+                    - &id010
+                      kind: 'true'
+                    - &id011
+                      kind: 'false'
+                    - &id012
+                      kind: template_string
+                      not:
+                        has:
+                          kind: template_substitution
+                    - &id013
+                      kind: as_expression
+                      has:
+                        any:
+                        - kind: string
+                        - kind: number
+                    - &id014
+                      kind: non_null_expression
+                      has:
+                        any:
+                        - kind: string
+                        - kind: number
+                    - &id015
+                      kind: member_expression
+                      regex: '(?:^|[\s(,:!?|&{\[])(?:req|request|ctx\.request|ctx|event|c\.req)\??\.(?:body|query|headers|params|cookies)\b|(?:^|[\s(,:!?|&{\[])patient\w*\??[.\[]|(?:req|request)\??\.session\??\.(?:id|sid)\b|\bsessionId\b|\bsid\b'
+                    - &id016
+                      kind: call_expression
+                      regex: '(?:^|[\s(,:!?|&{\[])(?:req|request|ctx\.request|ctx|event|c\.req)\??\.(?:body|query|headers|params|cookies)\b|(?:^|[\s(,:!?|&{\[])patient\w*\??[.\[]|(?:req|request)\??\.session\??\.(?:id|sid)\b|\bsessionId\b|\bsid\b'
+                    - &id017
+                      kind: binary_expression
+                      regex: '(?:^|[\s(,:!?|&{\[])(?:req|request|ctx\.request|ctx|event|c\.req)\??\.(?:body|query|headers|params|cookies)\b|(?:^|[\s(,:!?|&{\[])patient\w*\??[.\[]|(?:req|request)\??\.session\??\.(?:id|sid)\b|\bsessionId\b|\bsid\b'
+                    - &id018
+                      kind: ternary_expression
+                      regex: '(?:^|[\s(,:!?|&{\[])(?:req|request|ctx\.request|ctx|event|c\.req)\??\.(?:body|query|headers|params|cookies)\b|(?:^|[\s(,:!?|&{\[])patient\w*\??[.\[]|(?:req|request)\??\.session\??\.(?:id|sid)\b|\bsessionId\b|\bsid\b'
+                    - &id019
+                      kind: parenthesized_expression
+                      regex: '(?:^|[\s(,:!?|&{\[])(?:req|request|ctx\.request|ctx|event|c\.req)\??\.(?:body|query|headers|params|cookies)\b|(?:^|[\s(,:!?|&{\[])patient\w*\??[.\[]|(?:req|request)\??\.session\??\.(?:id|sid)\b|\bsessionId\b|\bsid\b'
+                    - &id020
+                      kind: await_expression
+                      regex: '(?:^|[\s(,:!?|&{\[])(?:req|request|ctx\.request|ctx|event|c\.req)\??\.(?:body|query|headers|params|cookies)\b|(?:^|[\s(,:!?|&{\[])patient\w*\??[.\[]|(?:req|request)\??\.session\??\.(?:id|sid)\b|\bsessionId\b|\bsid\b'
+                    - &id021
+                      kind: subscript_expression
+                      regex: '(?:^|[\s(,:!?|&{\[])(?:req|request|ctx\.request|ctx|event|c\.req)\??\.(?:body|query|headers|params|cookies)\b|(?:^|[\s(,:!?|&{\[])patient\w*\??[.\[]|(?:req|request)\??\.session\??\.(?:id|sid)\b|\bsessionId\b|\bsid\b'
+                    - &id022
+                      kind: as_expression
+                      regex: '(?:^|[\s(,:!?|&{\[])(?:req|request|ctx\.request|ctx|event|c\.req)\??\.(?:body|query|headers|params|cookies)\b|(?:^|[\s(,:!?|&{\[])patient\w*\??[.\[]|(?:req|request)\??\.session\??\.(?:id|sid)\b|\bsessionId\b|\bsid\b'
+                    - &id023
+                      kind: non_null_expression
+                      regex: '(?:^|[\s(,:!?|&{\[])(?:req|request|ctx\.request|ctx|event|c\.req)\??\.(?:body|query|headers|params|cookies)\b|(?:^|[\s(,:!?|&{\[])patient\w*\??[.\[]|(?:req|request)\??\.session\??\.(?:id|sid)\b|\bsessionId\b|\bsid\b'
+                    - &id024
+                      kind: binary_expression
+                      regex: '(?-u)(?:\|\||\?\?|\?|:)\s*(?:[''\x22`]|\d)|^\s*\(?\s*(?:[''\x22`]|\d)'
+                    - &id025
+                      kind: ternary_expression
+                      regex: '(?-u)(?:\|\||\?\?|\?|:)\s*(?:[''\x22`]|\d)|^\s*\(?\s*(?:[''\x22`]|\d)'
+            - all:
+              - has: &id027
+                  kind: pair
+                  all:
+                  - *id001
+                  - has:
+                      field: value
+                      any:
+                      - &id002
+                        kind: member_expression
+                        regex: '(?-u)^(?:String\()?\(?(?:(?:req|request)(?:\.session)?\??\.(?:user|auth)!?(?:\s+as\s+\w+\))?|ctx\.state\.user!?|\(await\s+(?:getServerSession|auth)\([\w\s,\.]*\)\)\??\.user!?|\(await\s+supabase\.auth\.getUser\(\)\)\??\.data\??\.user!?|\(?await\s+getUser\(\)\)?)\??\.(?:id|userId|user_id|sub|uid)!?\)?(?:\s*(?:\?\?|\|\|)\s*(?:null|undefined))?(?:!|\s+as\s+\w+)?$'
+                      - &id003
+                        kind: call_expression
+                        regex: '(?-u)^(?:String\()?\(?(?:(?:req|request)(?:\.session)?\??\.(?:user|auth)!?(?:\s+as\s+\w+\))?|ctx\.state\.user!?|\(await\s+(?:getServerSession|auth)\([\w\s,\.]*\)\)\??\.user!?|\(await\s+supabase\.auth\.getUser\(\)\)\??\.data\??\.user!?|\(?await\s+getUser\(\)\)?)\??\.(?:id|userId|user_id|sub|uid)!?\)?(?:\s*(?:\?\?|\|\|)\s*(?:null|undefined))?(?:!|\s+as\s+\w+)?$'
+                      - &id004
+                        kind: binary_expression
+                        regex: '(?-u)^(?:String\()?\(?(?:(?:req|request)(?:\.session)?\??\.(?:user|auth)!?(?:\s+as\s+\w+\))?|ctx\.state\.user!?|\(await\s+(?:getServerSession|auth)\([\w\s,\.]*\)\)\??\.user!?|\(await\s+supabase\.auth\.getUser\(\)\)\??\.data\??\.user!?|\(?await\s+getUser\(\)\)?)\??\.(?:id|userId|user_id|sub|uid)!?\)?(?:\s*(?:\?\?|\|\|)\s*(?:null|undefined))?(?:!|\s+as\s+\w+)?$'
+                      - &id005
+                        kind: non_null_expression
+                        regex: '(?-u)^(?:String\()?\(?(?:(?:req|request)(?:\.session)?\??\.(?:user|auth)!?(?:\s+as\s+\w+\))?|ctx\.state\.user!?|\(await\s+(?:getServerSession|auth)\([\w\s,\.]*\)\)\??\.user!?|\(await\s+supabase\.auth\.getUser\(\)\)\??\.data\??\.user!?|\(?await\s+getUser\(\)\)?)\??\.(?:id|userId|user_id|sub|uid)!?\)?(?:\s*(?:\?\?|\|\|)\s*(?:null|undefined))?(?:!|\s+as\s+\w+)?$'
+                      - &id006
+                        kind: object
+                        has:
+                          kind: pair
+                          all:
+                          - has:
+                              field: key
+                              kind: property_identifier
+                              regex: '^connect$'
+                          - has:
+                              field: value
+                              kind: object
+                              has:
+                                kind: pair
+                                all:
+                                - has:
+                                    field: key
+                                    kind: property_identifier
+                                    regex: '^id$'
+                                - has:
+                                    field: value
+                                    any:
+                                    - kind: member_expression
+                                      regex: '(?-u)^(?:String\()?\(?(?:(?:req|request)(?:\.session)?\??\.(?:user|auth)!?(?:\s+as\s+\w+\))?|ctx\.state\.user!?|\(await\s+(?:getServerSession|auth)\([\w\s,\.]*\)\)\??\.user!?|\(await\s+supabase\.auth\.getUser\(\)\)\??\.data\??\.user!?|\(?await\s+getUser\(\)\)?)\??\.(?:id|userId|user_id|sub|uid)!?\)?(?:\s*(?:\?\?|\|\|)\s*(?:null|undefined))?(?:!|\s+as\s+\w+)?$'
+                                    - kind: call_expression
+                                      regex: '(?-u)^(?:String\()?\(?(?:(?:req|request)(?:\.session)?\??\.(?:user|auth)!?(?:\s+as\s+\w+\))?|ctx\.state\.user!?|\(await\s+(?:getServerSession|auth)\([\w\s,\.]*\)\)\??\.user!?|\(await\s+supabase\.auth\.getUser\(\)\)\??\.data\??\.user!?|\(?await\s+getUser\(\)\)?)\??\.(?:id|userId|user_id|sub|uid)!?\)?(?:\s*(?:\?\?|\|\|)\s*(?:null|undefined))?(?:!|\s+as\s+\w+)?$'
+                                    - kind: binary_expression
+                                      regex: '(?-u)^(?:String\()?\(?(?:(?:req|request)(?:\.session)?\??\.(?:user|auth)!?(?:\s+as\s+\w+\))?|ctx\.state\.user!?|\(await\s+(?:getServerSession|auth)\([\w\s,\.]*\)\)\??\.user!?|\(await\s+supabase\.auth\.getUser\(\)\)\??\.data\??\.user!?|\(?await\s+getUser\(\)\)?)\??\.(?:id|userId|user_id|sub|uid)!?\)?(?:\s*(?:\?\?|\|\|)\s*(?:null|undefined))?(?:!|\s+as\s+\w+)?$'
+                                    - kind: non_null_expression
+                                      regex: '(?-u)^(?:String\()?\(?(?:(?:req|request)(?:\.session)?\??\.(?:user|auth)!?(?:\s+as\s+\w+\))?|ctx\.state\.user!?|\(await\s+(?:getServerSession|auth)\([\w\s,\.]*\)\)\??\.user!?|\(await\s+supabase\.auth\.getUser\(\)\)\??\.data\??\.user!?|\(?await\s+getUser\(\)\)?)\??\.(?:id|userId|user_id|sub|uid)!?\)?(?:\s*(?:\?\?|\|\|)\s*(?:null|undefined))?(?:!|\s+as\s+\w+)?$'
+              - not:
+                  has: &id028
+                    kind: pair
+                    all:
+                    - *id001
+                    - not:
+                        has:
+                          field: value
+                          any:
+                          - *id002
+                          - *id003
+                          - *id004
+                          - *id005
+                          - *id006
+            - all:
+              - &id029
+                not:
+                  has:
+                    kind: pair
+                    all:
+                    - *id001
+              - any:
+                - has: &id030
+                    kind: pair
+                    all:
+                    - &id007
+                      has:
+                        field: key
+                        kind: property_identifier
+                        regex: '(?-u)^(?i:actor|actor_?id|actor_?user_?id|actor_?staff_?id|user|user_?id|performed_?by|changed_?by|doctor_?id|admin_?id|staff_?id|who)$'
+                    - has:
+                        field: value
+                        any:
+                        - *id002
+                        - *id003
+                        - *id004
+                        - *id005
+                        - *id006
+                - has:
+                    kind: pair
+                    all:
+                    - *id007
+                    - has:
+                        field: value
+                        any:
+                        - *id008
+                        - *id009
+                        - *id010
+                        - *id011
+                        - *id012
+                        - *id013
+                        - *id014
+                        - *id015
+                        - *id016
+                        - *id017
+                        - *id018
+                        - *id019
+                        - *id020
+                        - *id021
+                        - *id022
+                        - *id023
+                        - *id024
+                        - *id025
+        - kind: array
+          any:
+          - has: *id026
+          - all:
+            - &id046
+              has:
+                kind: object
+            - &id047
+              not:
+                has:
+                  kind: object
+                  not:
+                    all:
+                    - &id044
+                      not:
+                        has:
+                          kind: spread_element
+                    - &id045
+                      any:
+                      - all:
+                        - has: *id027
+                        - not:
+                            has: *id028
+                      - all:
+                        - *id029
+                        - has: *id030
+            - &id048
+              not:
+                has:
+                  kind: spread_element
+  - not:
+      inside:
+        stopBy: end
+        any:
+        - kind: expression_statement
+        - kind: if_statement
+        - kind: lexical_declaration
+        - kind: variable_declaration
+        - kind: try_statement
+        all:
+        - any:
+          - follows: &id031
+              any:
+              - kind: expression_statement
+                regex: '(?:^|[\s;{(])(?:req|request|ctx\.state)(?:\??\.user(?:\.\w+)?|\[\s*[''\x22`]user[''\x22`]\s*\])\s*(?:=|\?\?=|\|\|=)(?:[^=]|$)|Object\.(?:assign|defineProperty)\(\s*(?:req|request|ctx\.state)\b|\b(?:const|let|var)\s+(?:req|request)\s*=|(?:^|[\s;{(])(?:req|request)\s*=(?:[^=>]|$)'
+              - kind: if_statement
+                regex: '(?:^|[\s;{(])(?:req|request|ctx\.state)(?:\??\.user(?:\.\w+)?|\[\s*[''\x22`]user[''\x22`]\s*\])\s*(?:=|\?\?=|\|\|=)(?:[^=]|$)|Object\.(?:assign|defineProperty)\(\s*(?:req|request|ctx\.state)\b|\b(?:const|let|var)\s+(?:req|request)\s*=|(?:^|[\s;{(])(?:req|request)\s*=(?:[^=>]|$)'
+              - kind: lexical_declaration
+                regex: '(?:^|[\s;{(])(?:req|request|ctx\.state)(?:\??\.user(?:\.\w+)?|\[\s*[''\x22`]user[''\x22`]\s*\])\s*(?:=|\?\?=|\|\|=)(?:[^=]|$)|Object\.(?:assign|defineProperty)\(\s*(?:req|request|ctx\.state)\b|\b(?:const|let|var)\s+(?:req|request)\s*=|(?:^|[\s;{(])(?:req|request)\s*=(?:[^=>]|$)'
+              - kind: variable_declaration
+                regex: '(?:^|[\s;{(])(?:req|request|ctx\.state)(?:\??\.user(?:\.\w+)?|\[\s*[''\x22`]user[''\x22`]\s*\])\s*(?:=|\?\?=|\|\|=)(?:[^=]|$)|Object\.(?:assign|defineProperty)\(\s*(?:req|request|ctx\.state)\b|\b(?:const|let|var)\s+(?:req|request)\s*=|(?:^|[\s;{(])(?:req|request)\s*=(?:[^=>]|$)'
+              - kind: try_statement
+                regex: '(?:^|[\s;{(])(?:req|request|ctx\.state)(?:\??\.user(?:\.\w+)?|\[\s*[''\x22`]user[''\x22`]\s*\])\s*(?:=|\?\?=|\|\|=)(?:[^=]|$)|Object\.(?:assign|defineProperty)\(\s*(?:req|request|ctx\.state)\b|\b(?:const|let|var)\s+(?:req|request)\s*=|(?:^|[\s;{(])(?:req|request)\s*=(?:[^=>]|$)'
+          - follows: &id039
+              any:
+              - &id032
+                kind: expression_statement
+              - &id033
+                kind: if_statement
+              - &id034
+                kind: lexical_declaration
+              - &id035
+                kind: variable_declaration
+              - &id036
+                kind: try_statement
+              - &id037
+                kind: comment
+              - &id038
+                kind: return_statement
+              follows: *id031
+          - follows: &id040
+              any:
+              - *id032
+              - *id033
+              - *id034
+              - *id035
+              - *id036
+              - *id037
+              - *id038
+              follows: *id039
+          - follows: &id041
+              any:
+              - *id032
+              - *id033
+              - *id034
+              - *id035
+              - *id036
+              - *id037
+              - *id038
+              follows: *id040
+          - follows: &id042
+              any:
+              - *id032
+              - *id033
+              - *id034
+              - *id035
+              - *id036
+              - *id037
+              - *id038
+              follows: *id041
+          - follows: &id043
+              any:
+              - *id032
+              - *id033
+              - *id034
+              - *id035
+              - *id036
+              - *id037
+              - *id038
+              follows: *id042
+          - follows:
+              any:
+              - *id032
+              - *id033
+              - *id034
+              - *id035
+              - *id036
+              - *id037
+              - *id038
+              follows: *id043
+control:
+  has:
+    field: arguments
+    kind: arguments
+    any:
+    - has:
+        kind: object
+        all:
+        - *id044
+        - *id045
+    - has:
+        kind: array
+        all:
+        - *id046
+        - *id047
+        - *id048
+min_engine: 0.45.3
+table:
+  metavariable: '$TABLE'
+  access: write

@@ -1,0 +1,32 @@
+{
+  "_about": "One source for what the setup page on custosa.com and `npx custosa setup` both say. Prices mirror the evaluator's billing settings (unit price, minimum top-up, sign-up credit and the units per 1,000 characters for guidance and fix): change them there first, then here. The database SQL is the evaluator's client setup guide's, with -v ON_ERROR_STOP=1 on the printed psql lines, the PG14 step in a transaction, the Supabase bucket grants and policy, and the read check excluding storage.buckets as the inspector's preflight does. inspectorVersion is the version the setup page pins in its by-hand entries; it must equal package.json's version (test/setup.test.mjs and the release workflow check it).",
+  "name": "custosa-phi-schema-check",
+  "inspectorVersion": "0.1.1",
+  "guide": "https://custosa.com/labs/setup",
+  "billing": "https://custosa.com/billing",
+  "tryPrompt": "Use PHI Schema Check to review how this app handles patient data. Run the check through to the end on your own and answer the questions you can from the code. Then show me the readiness score, the findings and the decisions only I can make, and ask me before you change any code or database.",
+  "credit": "PHI Schema Check is pay per use. Your account starts with $10 of credit at your first sign-in. Top up from $5 or redeem a coupon on your billing page to add to it.",
+  "zeroBalance": "Your account has no credit. Add credit or redeem a coupon on your billing page to run a check.",
+  "connectedCheck": "Check that custosa-phi-schema-check shows connected with its three tools (check_schema, schema_guidance and get_result_page), then send the prompt.",
+  "learning": "Learning: unless it is off for your account, PHI Schema Check keeps the facts your inspector sends (names, settings, rule results and file locations) and the results with their grades, linked to your account and company, to improve Custosa products. It starts on for accounts with a personal email address and off for work email and team accounts; change it on your billing page.",
+  "database": {
+    "role": "CREATE ROLE phisc_ro LOGIN PASSWORD 'YOUR_PASSWORD'\n  NOSUPERUSER NOCREATEDB NOCREATEROLE NOREPLICATION NOBYPASSRLS;",
+    "supabaseBuckets": "GRANT USAGE ON SCHEMA storage TO phisc_ro;\nGRANT SELECT ON storage.buckets TO phisc_ro;\nCREATE POLICY phisc_ro_read_buckets ON storage.buckets FOR SELECT TO phisc_ro USING (true);",
+    "pg14Steps": "BEGIN;\nGRANT CREATE ON SCHEMA public TO your_migration_role;\nREVOKE CREATE ON SCHEMA public FROM PUBLIC;\nCOMMIT;",
+    "readCheck": "SELECT n.nspname, c.relname\nFROM pg_class c JOIN pg_namespace n ON n.oid = c.relnamespace\nWHERE c.relkind IN ('r', 'p', 'v', 'm', 'f', 'S')\n  AND n.nspname NOT IN ('pg_catalog', 'information_schema')\n  -- Supabase Storage's bucket list (settings only) is the one table phisc_ro may read, while nothing inherits from it\n  AND NOT (n.nspname = 'storage' AND c.relname = 'buckets' AND c.relkind = 'r'\n           AND NOT EXISTS (SELECT 1 FROM pg_inherits i WHERE i.inhparent = c.oid))\n  AND (has_table_privilege('phisc_ro', c.oid, 'SELECT')\n       OR has_any_column_privilege('phisc_ro', c.oid, 'SELECT'));",
+    "largeObjectCheck": "SELECT l.oid FROM pg_largeobject_metadata l\nWHERE l.lomowner = 'phisc_ro'::regrole\n   OR EXISTS (SELECT 1 FROM aclexplode(l.lomacl) a\n              WHERE a.privilege_type IN ('SELECT', 'UPDATE')\n                AND (a.grantee = 0 OR a.grantee = 'phisc_ro'::regrole));\nSHOW lo_compat_privileges;",
+    "writeCheck": "SELECT 'relation' AS kind, n.nspname || '.' || c.relname AS object\nFROM pg_class c JOIN pg_namespace n ON n.oid = c.relnamespace\nWHERE c.relkind IN ('r', 'p', 'v', 'm', 'f', 'S', 't')\n  AND (CASE WHEN c.oid = 'pg_catalog.pg_settings'::regclass\n            THEN has_table_privilege('phisc_ro', c.oid, 'INSERT, DELETE, TRUNCATE, REFERENCES, TRIGGER')\n              OR has_any_column_privilege('phisc_ro', c.oid, 'INSERT, REFERENCES')\n            ELSE has_table_privilege('phisc_ro', c.oid, 'INSERT, UPDATE, DELETE, TRUNCATE, REFERENCES, TRIGGER')\n              OR has_any_column_privilege('phisc_ro', c.oid, 'INSERT, UPDATE, REFERENCES') END\n       OR CASE WHEN current_setting('server_version_num')::int >= 170000\n               THEN has_table_privilege('phisc_ro', c.oid, 'MAINTAIN') ELSE false END\n       OR CASE WHEN c.relkind = 'S'\n               THEN has_sequence_privilege('phisc_ro', c.oid, 'USAGE, UPDATE') ELSE false END)\nUNION ALL\nSELECT 'schema', nspname FROM pg_namespace\nWHERE nspname NOT LIKE 'pg\\_temp\\_%' AND nspname NOT LIKE 'pg\\_toast\\_temp\\_%'\n  AND has_schema_privilege('phisc_ro', oid, 'CREATE')\nUNION ALL\nSELECT 'database', current_database()\nWHERE has_database_privilege('phisc_ro', current_database(), 'CREATE')\nUNION ALL\nSELECT 'role', rolname FROM pg_roles\nWHERE pg_has_role('phisc_ro', oid, 'MEMBER')\n  AND (rolname NOT IN ('phisc_ro', 'pg_read_all_settings')\n       OR rolsuper OR rolcreatedb OR rolcreaterole OR rolreplication OR rolbypassrls)\nUNION ALL\nSELECT 'default privileges', d.defaclrole::regrole::text\nFROM pg_default_acl d, aclexplode(d.defaclacl) a\nWHERE (a.grantee = 0 OR pg_has_role('phisc_ro', a.grantee, 'MEMBER'))\n  AND (a.privilege_type IN ('INSERT', 'UPDATE', 'DELETE', 'TRUNCATE', 'REFERENCES', 'TRIGGER')\n       OR (d.defaclobjtype = 'S' AND a.privilege_type = 'USAGE')\n       OR (d.defaclobjtype = 'n' AND a.privilege_type = 'CREATE'))\nUNION ALL\nSELECT 'foreign server', srvname FROM pg_foreign_server\nWHERE has_server_privilege('phisc_ro', oid, 'USAGE')\nUNION ALL\nSELECT 'foreign data wrapper', fdwname FROM pg_foreign_data_wrapper\nWHERE has_foreign_data_wrapper_privilege('phisc_ro', oid, 'USAGE');",
+    "writeProbe": "psql -v ON_ERROR_STOP=1 \"service=phisc\" -c \"BEGIN; CREATE TABLE public.phisc_write_probe (x int); ROLLBACK;\"",
+    "definerCheck": "SELECT p.oid::regprocedure AS function, pg_get_userbyid(p.proowner) AS owner\nFROM pg_proc p JOIN pg_namespace n ON n.oid = p.pronamespace\nWHERE p.prosecdef\n  AND n.nspname NOT IN ('pg_catalog', 'information_schema')\n  AND has_function_privilege('phisc_ro', p.oid, 'EXECUTE');",
+    "service": "[phisc]\nhost=localhost\nport=5432\ndbname=your_database\nuser=phisc_ro",
+    "pgpass": "localhost:5432:your_database:phisc_ro:YOUR_PASSWORD",
+    "runFile": "psql -v ON_ERROR_STOP=1 -d your_database -f phisc_setup.sql"
+  },
+  "price": {
+    "unitUsd": "0.003",
+    "minTopUpUsd": 5,
+    "signupCreditUsd": 10,
+    "guidanceUnitsPer1000Chars": 1,
+    "fixUnitsPer1000Chars": 5
+  }
+}

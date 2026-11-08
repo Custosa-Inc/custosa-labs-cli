@@ -1,0 +1,53 @@
+id: auth-session-revocation.java-spring.signout-server
+practice_id: auth-session-revocation
+language: java
+frameworks:
+- spring
+kind: evidence
+rule:
+  any:
+  - all:
+    - pattern: $SESSION.invalidate()
+    - regex: (?i)^([A-Za-z0-9_]+\.)?(get)?[A-Za-z0-9_]*session(\([^)]*\))?\.invalidate\(\)$
+  - pattern: new SecurityContextLogoutHandler()
+  - all:
+    - kind: method_invocation
+      regex: \.logout\(\)\s*(\.\w+\([^)]*\))*$
+    - not:
+        kind: method_invocation
+        regex: \.logout\(\)\s*\.disable\(\)
+    - not:
+        inside:
+          kind: method_invocation
+          regex: \.logout\(\)\s*\.disable\(\)
+min_engine: 0.39.0
+---
+id: auth-session-revocation.java-spring.revoke-all
+practice_id: auth-session-revocation
+language: java
+frameworks:
+- spring
+kind: evidence
+rule:
+  any:
+  - all:
+    - kind: enhanced_for_statement
+      regex: getAllSessions\(
+    - has:
+        field: body
+        kind: block
+        regex: \.expireNow\(\)
+  - kind: method_invocation
+    regex: getAllSessions\([^)]*\)\s*\.(forEach|stream\(\)\s*\.forEach)\(\s*(SessionInformation::expireNow|\w+\s*->\s*\w+\.expireNow\(\))\s*\)$
+min_engine: 0.39.0
+---
+id: auth-session-revocation.java-spring.logout-disabled
+practice_id: auth-session-revocation
+language: java
+frameworks:
+- spring
+kind: violation
+rule:
+  kind: method_invocation
+  regex: \.logout\(\)\s*\.disable\(\)$|\.logout\(\s*\w+\s*->\s*\w+\.disable\(\)\s*\)$
+min_engine: 0.39.0

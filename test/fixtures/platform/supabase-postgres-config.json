@@ -1,0 +1,1 @@
+{"log_connections":true,"log_disconnections":false,"statement_timeout":"8s","max_connections":60}

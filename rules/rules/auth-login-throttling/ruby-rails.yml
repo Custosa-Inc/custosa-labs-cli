@@ -1,0 +1,88 @@
+id: auth-login-throttling.ruby-rails.sign-in
+practice_id: auth-login-throttling
+language: ruby
+frameworks:
+- rails
+kind: items
+rule:
+  all:
+  - any:
+    - kind: method
+  - has:
+      stopBy: end
+      any:
+      - kind: call
+        regex: (\.authenticate\(|valid_password\?\()
+control:
+  any:
+  - has:
+      field: body
+      has:
+        any:
+        - kind: call
+          regex: (?i)((rate_?limit\w*|limiter|throttl\w*)\.(limit|consume|check|hit|attempt|try\w*)\(|\b(check|enforce|apply)\w*(rate_?limit|throttle|lockout)\w*\(|locked_?(at|until)\b|is_?locked|is_?locked_?out|lockout|\bis\w*blocked\w*\(|too_?many_?(login_?)?attempts|failed_?(login_?)?(attempts?|count|logins?)\s*>=?|max_?(failed_?)?(login_?)?attempts|(re)?captcha\w*\.?verify|verify\w*captcha|turnstile|check\w*failed\w*counter\(|RateLimiter::(tooManyAttempts|attempt)|ratelimit\.Allow|\.Allow\(\))
+        - kind: assignment
+          regex: (?i)((rate_?limit\w*|limiter|throttl\w*)\.(limit|consume|check|hit|attempt|try\w*)\(|\b(check|enforce|apply)\w*(rate_?limit|throttle|lockout)\w*\(|locked_?(at|until)\b|is_?locked|is_?locked_?out|lockout|\bis\w*blocked\w*\(|too_?many_?(login_?)?attempts|failed_?(login_?)?(attempts?|count|logins?)\s*>=?|max_?(failed_?)?(login_?)?attempts|(re)?captcha\w*\.?verify|verify\w*captcha|turnstile|check\w*failed\w*counter\(|RateLimiter::(tooManyAttempts|attempt)|ratelimit\.Allow|\.Allow\(\))
+        - kind: if
+          regex: (?i)((rate_?limit\w*|limiter|throttl\w*)\.(limit|consume|check|hit|attempt|try\w*)\(|\b(check|enforce|apply)\w*(rate_?limit|throttle|lockout)\w*\(|locked_?(at|until)\b|is_?locked|is_?locked_?out|lockout|\bis\w*blocked\w*\(|too_?many_?(login_?)?attempts|failed_?(login_?)?(attempts?|count|logins?)\s*>=?|max_?(failed_?)?(login_?)?attempts|(re)?captcha\w*\.?verify|verify\w*captcha|turnstile|check\w*failed\w*counter\(|RateLimiter::(tooManyAttempts|attempt)|ratelimit\.Allow|\.Allow\(\))
+        - kind: unless
+          regex: (?i)((rate_?limit\w*|limiter|throttl\w*)\.(limit|consume|check|hit|attempt|try\w*)\(|\b(check|enforce|apply)\w*(rate_?limit|throttle|lockout)\w*\(|locked_?(at|until)\b|is_?locked|is_?locked_?out|lockout|\bis\w*blocked\w*\(|too_?many_?(login_?)?attempts|failed_?(login_?)?(attempts?|count|logins?)\s*>=?|max_?(failed_?)?(login_?)?attempts|(re)?captcha\w*\.?verify|verify\w*captcha|turnstile|check\w*failed\w*counter\(|RateLimiter::(tooManyAttempts|attempt)|ratelimit\.Allow|\.Allow\(\))
+        - kind: return
+          regex: (?i)((rate_?limit\w*|limiter|throttl\w*)\.(limit|consume|check|hit|attempt|try\w*)\(|\b(check|enforce|apply)\w*(rate_?limit|throttle|lockout)\w*\(|locked_?(at|until)\b|is_?locked|is_?locked_?out|lockout|\bis\w*blocked\w*\(|too_?many_?(login_?)?attempts|failed_?(login_?)?(attempts?|count|logins?)\s*>=?|max_?(failed_?)?(login_?)?attempts|(re)?captcha\w*\.?verify|verify\w*captcha|turnstile|check\w*failed\w*counter\(|RateLimiter::(tooManyAttempts|attempt)|ratelimit\.Allow|\.Allow\(\))
+        - kind: begin
+          regex: (?i)((rate_?limit\w*|limiter|throttl\w*)\.(limit|consume|check|hit|attempt|try\w*)\(|\b(check|enforce|apply)\w*(rate_?limit|throttle|lockout)\w*\(|locked_?(at|until)\b|is_?locked|is_?locked_?out|lockout|\bis\w*blocked\w*\(|too_?many_?(login_?)?attempts|failed_?(login_?)?(attempts?|count|logins?)\s*>=?|max_?(failed_?)?(login_?)?attempts|(re)?captcha\w*\.?verify|verify\w*captcha|turnstile|check\w*failed\w*counter\(|RateLimiter::(tooManyAttempts|attempt)|ratelimit\.Allow|\.Allow\(\))
+        - kind: if_modifier
+          regex: (?i)((rate_?limit\w*|limiter|throttl\w*)\.(limit|consume|check|hit|attempt|try\w*)\(|\b(check|enforce|apply)\w*(rate_?limit|throttle|lockout)\w*\(|locked_?(at|until)\b|is_?locked|is_?locked_?out|lockout|\bis\w*blocked\w*\(|too_?many_?(login_?)?attempts|failed_?(login_?)?(attempts?|count|logins?)\s*>=?|max_?(failed_?)?(login_?)?attempts|(re)?captcha\w*\.?verify|verify\w*captcha|turnstile|check\w*failed\w*counter\(|RateLimiter::(tooManyAttempts|attempt)|ratelimit\.Allow|\.Allow\(\))
+        - kind: unless_modifier
+          regex: (?i)((rate_?limit\w*|limiter|throttl\w*)\.(limit|consume|check|hit|attempt|try\w*)\(|\b(check|enforce|apply)\w*(rate_?limit|throttle|lockout)\w*\(|locked_?(at|until)\b|is_?locked|is_?locked_?out|lockout|\bis\w*blocked\w*\(|too_?many_?(login_?)?attempts|failed_?(login_?)?(attempts?|count|logins?)\s*>=?|max_?(failed_?)?(login_?)?attempts|(re)?captcha\w*\.?verify|verify\w*captcha|turnstile|check\w*failed\w*counter\(|RateLimiter::(tooManyAttempts|attempt)|ratelimit\.Allow|\.Allow\(\))
+        - kind: operator_assignment
+          regex: (?i)((rate_?limit\w*|limiter|throttl\w*)\.(limit|consume|check|hit|attempt|try\w*)\(|\b(check|enforce|apply)\w*(rate_?limit|throttle|lockout)\w*\(|locked_?(at|until)\b|is_?locked|is_?locked_?out|lockout|\bis\w*blocked\w*\(|too_?many_?(login_?)?attempts|failed_?(login_?)?(attempts?|count|logins?)\s*>=?|max_?(failed_?)?(login_?)?attempts|(re)?captcha\w*\.?verify|verify\w*captcha|turnstile|check\w*failed\w*counter\(|RateLimiter::(tooManyAttempts|attempt)|ratelimit\.Allow|\.Allow\(\))
+        - kind: identifier
+          regex: (?i)((rate_?limit\w*|limiter|throttl\w*)\.(limit|consume|check|hit|attempt|try\w*)\(|\b(check|enforce|apply)\w*(rate_?limit|throttle|lockout)\w*\(|locked_?(at|until)\b|is_?locked|is_?locked_?out|lockout|\bis\w*blocked\w*\(|too_?many_?(login_?)?attempts|failed_?(login_?)?(attempts?|count|logins?)\s*>=?|max_?(failed_?)?(login_?)?attempts|(re)?captcha\w*\.?verify|verify\w*captcha|turnstile|check\w*failed\w*counter\(|RateLimiter::(tooManyAttempts|attempt)|ratelimit\.Allow|\.Allow\(\))
+  - inside:
+      stopBy: end
+      kind: class
+      regex: '\brate_limit\s+to:'
+min_engine: 0.39.0
+---
+id: auth-login-throttling.ruby-rails.failure-record
+practice_id: auth-login-throttling
+language: ruby
+frameworks:
+- rails
+kind: evidence
+rule:
+  all:
+  - all:
+    - any:
+      - kind: method
+    - has:
+        stopBy: end
+        any:
+        - kind: call
+          regex: (\.authenticate\(|valid_password\?\()
+  - has:
+      field: body
+      has:
+        any:
+        - kind: call
+          regex: (?i)(failed_?login|login_?failed|LoginFailed|loginFailure|auth(entication)?_?fail\w*|failed_?attempts?\s*(\+\+|\+=|=\s*\w+\s*\+\s*1)|increment\w*\(\s*['\"]failed)
+        - kind: assignment
+          regex: (?i)(failed_?login|login_?failed|LoginFailed|loginFailure|auth(entication)?_?fail\w*|failed_?attempts?\s*(\+\+|\+=|=\s*\w+\s*\+\s*1)|increment\w*\(\s*['\"]failed)
+        - kind: if
+          regex: (?i)(failed_?login|login_?failed|LoginFailed|loginFailure|auth(entication)?_?fail\w*|failed_?attempts?\s*(\+\+|\+=|=\s*\w+\s*\+\s*1)|increment\w*\(\s*['\"]failed)
+        - kind: unless
+          regex: (?i)(failed_?login|login_?failed|LoginFailed|loginFailure|auth(entication)?_?fail\w*|failed_?attempts?\s*(\+\+|\+=|=\s*\w+\s*\+\s*1)|increment\w*\(\s*['\"]failed)
+        - kind: return
+          regex: (?i)(failed_?login|login_?failed|LoginFailed|loginFailure|auth(entication)?_?fail\w*|failed_?attempts?\s*(\+\+|\+=|=\s*\w+\s*\+\s*1)|increment\w*\(\s*['\"]failed)
+        - kind: begin
+          regex: (?i)(failed_?login|login_?failed|LoginFailed|loginFailure|auth(entication)?_?fail\w*|failed_?attempts?\s*(\+\+|\+=|=\s*\w+\s*\+\s*1)|increment\w*\(\s*['\"]failed)
+        - kind: if_modifier
+          regex: (?i)(failed_?login|login_?failed|LoginFailed|loginFailure|auth(entication)?_?fail\w*|failed_?attempts?\s*(\+\+|\+=|=\s*\w+\s*\+\s*1)|increment\w*\(\s*['\"]failed)
+        - kind: unless_modifier
+          regex: (?i)(failed_?login|login_?failed|LoginFailed|loginFailure|auth(entication)?_?fail\w*|failed_?attempts?\s*(\+\+|\+=|=\s*\w+\s*\+\s*1)|increment\w*\(\s*['\"]failed)
+        - kind: operator_assignment
+          regex: (?i)(failed_?login|login_?failed|LoginFailed|loginFailure|auth(entication)?_?fail\w*|failed_?attempts?\s*(\+\+|\+=|=\s*\w+\s*\+\s*1)|increment\w*\(\s*['\"]failed)
+        - kind: identifier
+          regex: (?i)(failed_?login|login_?failed|LoginFailed|loginFailure|auth(entication)?_?fail\w*|failed_?attempts?\s*(\+\+|\+=|=\s*\w+\s*\+\s*1)|increment\w*\(\s*['\"]failed)
+min_engine: 0.39.0

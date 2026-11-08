@@ -1,0 +1,253 @@
+# App-wide screen capture blocking and the app-switcher overlay (T23 B56e). Written by
+# scripts/gen_mobile_rules.py: don't edit. Only the root component's capture and overlay are pieces (P1 ruling 3).
+id: mobile-screen-privacy.kotlin-generic.capture-main-activity
+practice_id: mobile-screen-privacy
+language: kotlin
+frameworks:
+- generic
+kind: evidence
+rule:
+  kind: call_expression
+  all:
+  - any:
+    - all:
+      - has:
+          any:
+          - kind: simple_identifier
+            regex: ^(addFlags)$
+          - kind: navigation_expression
+            regex: \.\s*(addFlags)$
+      - has:
+          kind: call_suffix
+          regex: \bFLAG_SECURE\b
+    - all:
+      - has:
+          any:
+          - kind: simple_identifier
+            regex: ^(setFlags)$
+          - kind: navigation_expression
+            regex: \.\s*(setFlags)$
+      - has:
+          kind: call_suffix
+          regex: ^\(\s*([\w.]*\.)?FLAG_SECURE\s*,\s*([\w.]*\.)?FLAG_SECURE\s*\)$
+    - all:
+      - has:
+          any:
+          - kind: simple_identifier
+            regex: ^(setRecentsScreenshotEnabled)$
+          - kind: navigation_expression
+            regex: \.\s*(setRecentsScreenshotEnabled)$
+      - has:
+          kind: call_suffix
+          regex: ^\(\s*false\s*\)$
+  - inside:
+      stopBy: end
+      kind: function_declaration
+      has:
+        kind: simple_identifier
+        regex: ^onCreate$
+      inside:
+        stopBy: end
+        kind: class_declaration
+        has:
+          kind: type_identifier
+          regex: ^MainActivity$
+min_engine: 0.39.0
+---
+id: mobile-screen-privacy.kotlin-generic.screen-capture-local
+practice_id: mobile-screen-privacy
+language: kotlin
+frameworks:
+- generic
+kind: evidence
+rule:
+  kind: call_expression
+  any:
+  - all:
+    - any:
+      - all:
+        - has:
+            any:
+            - kind: simple_identifier
+              regex: ^(addFlags)$
+            - kind: navigation_expression
+              regex: \.\s*(addFlags)$
+        - has:
+            kind: call_suffix
+            regex: \bFLAG_SECURE\b
+      - &id001
+        all:
+        - has:
+            any:
+            - kind: simple_identifier
+              regex: ^(setFlags)$
+            - kind: navigation_expression
+              regex: \.\s*(setFlags)$
+        - has:
+            kind: call_suffix
+            regex: ^\(\s*([\w.]*\.)?FLAG_SECURE\s*,\s*([\w.]*\.)?FLAG_SECURE\s*\)$
+      - all:
+        - has:
+            any:
+            - kind: simple_identifier
+              regex: ^(setRecentsScreenshotEnabled)$
+            - kind: navigation_expression
+              regex: \.\s*(setRecentsScreenshotEnabled)$
+        - has:
+            kind: call_suffix
+            regex: ^\(\s*false\s*\)$
+    - not:
+        inside:
+          stopBy: end
+          kind: function_declaration
+          has:
+            kind: simple_identifier
+            regex: ^onCreate$
+          inside:
+            stopBy: end
+            kind: class_declaration
+            has:
+              kind: type_identifier
+              regex: ^MainActivity$
+  - all:
+    - all:
+      - all:
+        - has:
+            any:
+            - kind: simple_identifier
+              regex: ^(setFlags)$
+            - kind: navigation_expression
+              regex: \.\s*(setFlags)$
+        - has:
+            kind: call_suffix
+            regex: ^\(\s*[^,~]*\bFLAG_SECURE\b[^,]*,
+      - not:
+          all:
+          - has:
+              any:
+              - kind: simple_identifier
+                regex: ^(setFlags)$
+              - kind: navigation_expression
+                regex: \.\s*(setFlags)$
+          - has:
+              kind: call_suffix
+              regex: ^\(\s*[^,]*\binv\(\s*\)
+    - not: *id001
+min_engine: 0.39.0
+---
+id: mobile-screen-privacy.kotlin-generic.capture-released
+practice_id: mobile-screen-privacy
+language: kotlin
+frameworks:
+- generic
+kind: violation
+rule:
+  kind: call_expression
+  any:
+  - all:
+    - has:
+        any:
+        - kind: simple_identifier
+          regex: ^(clearFlags)$
+        - kind: navigation_expression
+          regex: \.\s*(clearFlags)$
+    - has:
+        kind: call_suffix
+        regex: \bFLAG_SECURE\b
+  - all:
+    - all:
+      - has:
+          any:
+          - kind: simple_identifier
+            regex: ^(setFlags)$
+          - kind: navigation_expression
+            regex: \.\s*(setFlags)$
+      - has:
+          kind: call_suffix
+          regex: \bFLAG_SECURE\b
+    - not:
+        all:
+        - all:
+          - has:
+              any:
+              - kind: simple_identifier
+                regex: ^(setFlags)$
+              - kind: navigation_expression
+                regex: \.\s*(setFlags)$
+          - has:
+              kind: call_suffix
+              regex: ^\(\s*[^,~]*\bFLAG_SECURE\b[^,]*,
+        - not:
+            all:
+            - has:
+                any:
+                - kind: simple_identifier
+                  regex: ^(setFlags)$
+                - kind: navigation_expression
+                  regex: \.\s*(setFlags)$
+            - has:
+                kind: call_suffix
+                regex: ^\(\s*[^,]*\binv\(\s*\)
+  - all:
+    - any:
+      - all:
+        - has:
+            any:
+            - kind: simple_identifier
+              regex: ^(setFlags)$
+            - kind: navigation_expression
+              regex: \.\s*(setFlags)$
+        - has:
+            kind: call_suffix
+            regex: ',\s*[A-Z_][A-Z0-9_]*\s*\)$'
+      - all:
+        - has:
+            any:
+            - kind: simple_identifier
+              regex: ^(clearFlags)$
+            - kind: navigation_expression
+              regex: \.\s*(clearFlags)$
+        - has:
+            kind: call_suffix
+            regex: ^\(\s*[A-Z_][A-Z0-9_]*\s*\)$
+    - not:
+        all:
+        - has:
+            any:
+            - kind: simple_identifier
+              regex: ^(setFlags|clearFlags)$
+            - kind: navigation_expression
+              regex: \.\s*(setFlags|clearFlags)$
+        - has:
+            kind: call_suffix
+            regex: \bFLAG_SECURE\b
+    - inside:
+        kind: source_file
+        stopBy: end
+        has:
+          stopBy: end
+          kind: import_header
+          regex: \bFLAG_SECURE\s+as\s+\w+
+  - all:
+    - all:
+      - has:
+          any:
+          - kind: simple_identifier
+            regex: ^(setRecentsScreenshotEnabled)$
+          - kind: navigation_expression
+            regex: \.\s*(setRecentsScreenshotEnabled)$
+      - has:
+          kind: call_suffix
+          regex: ^\(
+    - not:
+        all:
+        - has:
+            any:
+            - kind: simple_identifier
+              regex: ^(setRecentsScreenshotEnabled)$
+            - kind: navigation_expression
+              regex: \.\s*(setRecentsScreenshotEnabled)$
+        - has:
+            kind: call_suffix
+            regex: ^\(\s*false\s*\)$
+min_engine: 0.39.0

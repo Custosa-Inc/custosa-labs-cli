@@ -1,0 +1,652 @@
+# hsts-enabled (T23 B56b). Written by scripts/gen_hsts_rules.py: edit that script,
+# never this file. The practice function reads the pieces by name: header-<form> and redirect-<form> (NAMING.md).
+
+# header-django: SECURE_HSTS_SECONDS = an integer of at least 31536000 at module level in an allowlisted settings
+# file, with SecurityMiddleware in a literal MIDDLEWARE list and a literal SECURE_PROXY_SSL_HEADER tuple in the same
+# file. Evidence: the header piece.
+id: hsts-enabled.python-generic.header-django
+practice_id: hsts-enabled
+language: python
+frameworks:
+- generic
+kind: evidence
+path_regex: ^(([^/]+/)*[^/]+/)?settings(\.py|/(__init__|base|common|prod|production)\.py)$
+rule:
+  kind: assignment
+  has:
+    field: left
+    kind: identifier
+    regex: ^(SECURE_HSTS_SECONDS)$
+  inside:
+    kind: expression_statement
+    inside:
+      kind: module
+  all:
+  - has:
+      field: right
+      kind: integer
+      regex: ^(3153[6-9]\d{3}|315[4-9]\d{4}|31[6-9]\d{5}|3[2-9]\d{6}|[4-9]\d{7}|[1-9]\d{8,})$
+  - inside:
+      stopBy: end
+      kind: module
+      has:
+        stopBy: end
+        kind: assignment
+        has:
+          field: left
+          kind: identifier
+          regex: ^(MIDDLEWARE)$
+        all:
+        - has:
+            field: right
+            kind: list
+            has:
+              kind: string
+              regex: ^['\"]django\.middleware\.security\.SecurityMiddleware['\"]$
+        inside:
+          kind: expression_statement
+          inside:
+            kind: module
+  - inside:
+      stopBy: end
+      kind: module
+      has:
+        stopBy: end
+        kind: assignment
+        has:
+          field: left
+          kind: identifier
+          regex: ^(SECURE_PROXY_SSL_HEADER)$
+        all:
+        - has:
+            field: right
+            kind: tuple
+        inside:
+          kind: expression_statement
+          inside:
+            kind: module
+min_engine: 0.45.3
+---
+# redirect-django: SECURE_SSL_REDIRECT = True at module level in an allowlisted settings file, with the same
+# middleware and proxy header, and SECURE_REDIRECT_EXEMPT unset or empty in that file. Evidence: the redirect piece.
+id: hsts-enabled.python-generic.redirect-django
+practice_id: hsts-enabled
+language: python
+frameworks:
+- generic
+kind: evidence
+path_regex: ^(([^/]+/)*[^/]+/)?settings(\.py|/(__init__|base|common|prod|production)\.py)$
+rule:
+  kind: assignment
+  has:
+    field: left
+    kind: identifier
+    regex: ^(SECURE_SSL_REDIRECT)$
+  inside:
+    kind: expression_statement
+    inside:
+      kind: module
+  all:
+  - has:
+      field: right
+      kind: 'true'
+  - inside:
+      stopBy: end
+      kind: module
+      has:
+        stopBy: end
+        kind: assignment
+        has:
+          field: left
+          kind: identifier
+          regex: ^(MIDDLEWARE)$
+        all:
+        - has:
+            field: right
+            kind: list
+            has:
+              kind: string
+              regex: ^['\"]django\.middleware\.security\.SecurityMiddleware['\"]$
+        inside:
+          kind: expression_statement
+          inside:
+            kind: module
+  - inside:
+      stopBy: end
+      kind: module
+      has:
+        stopBy: end
+        kind: assignment
+        has:
+          field: left
+          kind: identifier
+          regex: ^(SECURE_PROXY_SSL_HEADER)$
+        all:
+        - has:
+            field: right
+            kind: tuple
+        inside:
+          kind: expression_statement
+          inside:
+            kind: module
+  - not:
+      inside:
+        stopBy: end
+        kind: module
+        has:
+          stopBy: end
+          kind: assignment
+          has:
+            field: left
+            kind: identifier
+            regex: ^(SECURE_REDIRECT_EXEMPT)$
+          all:
+          - not:
+              has:
+                field: right
+                any:
+                - kind: list
+                  regex: ^\[\s*\]$
+                - kind: tuple
+                  regex: ^\(\s*\)$
+min_engine: 0.45.3
+---
+# settings-assign: any plain assignment to SECURE_HSTS_SECONDS, SECURE_SSL_REDIRECT, SECURE_PROXY_SSL_HEADER,
+# MIDDLEWARE or SECURE_REDIRECT_EXEMPT, in any .py file. Evidence the function holds on outside the allowlist or
+# across two settings modules.
+id: hsts-enabled.python-generic.settings-assign
+practice_id: hsts-enabled
+language: python
+frameworks:
+- generic
+kind: evidence
+rule:
+  kind: assignment
+  has:
+    field: left
+    kind: identifier
+    regex: ^(SECURE_HSTS_SECONDS|SECURE_SSL_REDIRECT|SECURE_PROXY_SSL_HEADER|MIDDLEWARE|SECURE_REDIRECT_EXEMPT)$
+min_engine: 0.45.3
+---
+# unread-setting: one of the five names given a value that isn't a literal, or mutated (+=, append, remove, del, item
+# or slice assignment), in any .py file. Evidence the function holds on.
+id: hsts-enabled.python-generic.unread-setting
+practice_id: hsts-enabled
+language: python
+frameworks:
+- generic
+kind: evidence
+rule:
+  any:
+  - kind: assignment
+    has:
+      field: left
+      kind: identifier
+      regex: ^(SECURE_HSTS_SECONDS|SECURE_SSL_REDIRECT|SECURE_PROXY_SSL_HEADER|MIDDLEWARE|SECURE_REDIRECT_EXEMPT)$
+    all:
+    - has:
+        field: right
+        any:
+        - kind: identifier
+        - kind: call
+        - kind: attribute
+        - kind: subscript
+        - kind: binary_operator
+        - kind: boolean_operator
+        - kind: conditional_expression
+        - kind: list_comprehension
+        - kind: parenthesized_expression
+        - kind: list_splat
+        - kind: lambda
+        - kind: await
+        - kind: string
+          has:
+            kind: interpolation
+        - any:
+          - kind: list
+          - kind: tuple
+          has:
+            any:
+            - kind: identifier
+            - kind: call
+            - kind: attribute
+            - kind: subscript
+            - kind: binary_operator
+            - kind: boolean_operator
+            - kind: conditional_expression
+            - kind: list_comprehension
+            - kind: parenthesized_expression
+            - kind: list_splat
+            - kind: lambda
+            - kind: await
+            - kind: string
+              has:
+                kind: interpolation
+  - kind: augmented_assignment
+    has:
+      field: left
+      kind: identifier
+      regex: ^(SECURE_HSTS_SECONDS|SECURE_SSL_REDIRECT|SECURE_PROXY_SSL_HEADER|MIDDLEWARE|SECURE_REDIRECT_EXEMPT)$
+  - kind: call
+    has:
+      field: function
+      kind: attribute
+      regex: ^(SECURE_HSTS_SECONDS|SECURE_SSL_REDIRECT|SECURE_PROXY_SSL_HEADER|MIDDLEWARE|SECURE_REDIRECT_EXEMPT)\.(append|insert|extend|remove|pop|clear)$
+  - kind: delete_statement
+    regex: ^del\s+(SECURE_HSTS_SECONDS|SECURE_SSL_REDIRECT|SECURE_PROXY_SSL_HEADER|MIDDLEWARE|SECURE_REDIRECT_EXEMPT)\b
+  - kind: assignment
+    has:
+      field: left
+      kind: subscript
+      regex: ^(SECURE_HSTS_SECONDS|SECURE_SSL_REDIRECT|SECURE_PROXY_SSL_HEADER|MIDDLEWARE|SECURE_REDIRECT_EXEMPT)\s*\[
+min_engine: 0.45.3
+---
+# test-import: an import of test code (a tests, test_* or conftest module or name, or importlib.import_module of one),
+# in any .py file. Evidence the function holds on in a Django app, outside test paths.
+id: hsts-enabled.python-generic.test-import
+practice_id: hsts-enabled
+language: python
+frameworks:
+- generic
+kind: evidence
+rule:
+  any:
+  - kind: import_statement
+    has:
+      field: name
+      any:
+      - kind: dotted_name
+        regex: (^|\.)(tests?|test_[A-Za-z0-9_]*|conftest)(\.|$)
+      - kind: aliased_import
+        has:
+          field: name
+          kind: dotted_name
+          regex: (^|\.)(tests?|test_[A-Za-z0-9_]*|conftest)(\.|$)
+  - kind: import_from_statement
+    any:
+    - has:
+        field: module_name
+        kind: dotted_name
+        regex: (^|\.)(tests?|test_[A-Za-z0-9_]*|conftest)(\.|$)
+    - has:
+        field: name
+        any:
+        - kind: dotted_name
+          regex: ^(tests?|test_[A-Za-z0-9_]*|conftest)$
+        - kind: aliased_import
+          has:
+            field: name
+            kind: dotted_name
+            regex: ^(tests?|test_[A-Za-z0-9_]*|conftest)$
+  - kind: call
+    all:
+    - has:
+        field: function
+        kind: attribute
+        regex: ^importlib\.import_module$
+    - has:
+        field: arguments
+        kind: argument_list
+        has:
+          kind: string
+          regex: ^['\"]([\w.]*\.)?(tests?|test_\w*|conftest)(\.[\w.]*)?['\"]$
+min_engine: 0.45.3
+---
+# short-max-age: an HSTS age below a year, as a literal: helmet's maxAge, a Strict-Transport-Security value in a
+# next.config entry, a header call or vercel.json; Rails ssl_options hsts: { expires: } in production.rb or
+# application.rb; Django SECURE_HSTS_SECONDS in an allowlisted settings file; a Traefik headers middleware's
+# stsSeconds; an ingress ConfigMap's hsts-max-age. Fail.
+id: hsts-enabled.python-generic.short-max-age
+practice_id: hsts-enabled
+language: python
+frameworks:
+- generic
+kind: violation
+path_regex: ^(([^/]+/)*[^/]+/)?settings(\.py|/(__init__|base|common|prod|production)\.py)$
+rule:
+  kind: assignment
+  has:
+    field: left
+    kind: identifier
+    regex: ^(SECURE_HSTS_SECONDS)$
+  all:
+  - has:
+      field: right
+      kind: integer
+      regex: ^[1-9]\d*$
+  - not:
+      has:
+        field: right
+        kind: integer
+        regex: ^(3153[6-9]\d{3}|315[4-9]\d{4}|31[6-9]\d{5}|3[2-9]\d{6}|[4-9]\d{7}|[1-9]\d{8,})$
+min_engine: 0.45.3
+---
+# hsts-off: HSTS turned off: helmet({ hsts: false }) or helmet({ strictTransportSecurity: false }); Rails ssl_options
+# hsts: false in production.rb or application.rb; Django SECURE_HSTS_SECONDS = 0 in an allowlisted settings file; a
+# Traefik headers middleware's stsSeconds: 0; hsts: "false" in an ingress ConfigMap's data. Fail.
+id: hsts-enabled.python-generic.hsts-off
+practice_id: hsts-enabled
+language: python
+frameworks:
+- generic
+kind: violation
+path_regex: ^(([^/]+/)*[^/]+/)?settings(\.py|/(__init__|base|common|prod|production)\.py)$
+rule:
+  kind: assignment
+  has:
+    field: left
+    kind: identifier
+    regex: ^(SECURE_HSTS_SECONDS)$
+  all:
+  - has:
+      field: right
+      kind: integer
+      regex: ^0+$
+min_engine: 0.45.3
+---
+# ssl-redirect-off: SECURE_SSL_REDIRECT = False in a production settings file (settings/prod.py or
+# settings/production.py): it overrides the base file. Fail.
+id: hsts-enabled.python-generic.ssl-redirect-off
+practice_id: hsts-enabled
+language: python
+frameworks:
+- generic
+kind: violation
+path_regex: (^|/)settings/(prod|production)\.py$
+rule:
+  kind: assignment
+  has:
+    field: left
+    kind: identifier
+    regex: ^(SECURE_SSL_REDIRECT)$
+  all:
+  - has:
+      field: right
+      kind: 'false'
+min_engine: 0.45.3
+---
+# app-root: a Django manage.py's execute_from_command_line(...) call (the package.json and composer.json app roots are
+# dependency-scanning-ci's app-root, judged here too). One app root each (B56c counts them).
+id: hsts-enabled.python-generic.app-root
+practice_id: hsts-enabled
+language: python
+frameworks:
+- generic
+kind: evidence
+path_regex: (^|/)manage\.py$
+rule:
+  kind: call
+  has:
+    field: function
+    any:
+    - kind: identifier
+      regex: ^execute_from_command_line$
+    - kind: attribute
+      regex: \.execute_from_command_line$
+min_engine: 0.45.3
+---
+# header-talisman: Talisman(app, ...) at top level, app bound by the file's one app = Flask(__name__) with only
+# app.config statements between, HSTS on with the default or a year or more. Evidence: the header piece.
+id: hsts-enabled.python-generic.header-talisman
+practice_id: hsts-enabled
+language: python
+frameworks:
+- generic
+kind: evidence
+rule:
+  kind: call
+  has:
+    field: function
+    kind: identifier
+    regex: ^Talisman$
+  inside:
+    any:
+    - kind: expression_statement
+      inside:
+        kind: module
+    - kind: assignment
+      inside:
+        kind: expression_statement
+        inside:
+          kind: module
+  all:
+  - inside:
+      stopBy: end
+      kind: module
+      regex: (?s)(^|\n)app\s*=\s*Flask\(\s*__name__\s*\)[^\n]*\n(\s*(#[^\n]*|app\.config\[[^\n]*\]\s*=[^\n]*|app\.config\.from_\w+\([^\n]*\))?[ \t]*\n)*\s*(\w+\s*=\s*)?Talisman\(\s*app\b
+      not:
+        kind: module
+        regex: (?s)\bFlask\(.*\bFlask\(
+  - any:
+    - not:
+        has:
+          field: arguments
+          kind: argument_list
+          has:
+            kind: keyword_argument
+            regex: ^strict_transport_security\s*=
+    - has:
+        field: arguments
+        kind: argument_list
+        has:
+          kind: keyword_argument
+          regex: ^strict_transport_security\s*=\s*(True)$
+  - any:
+    - not:
+        has:
+          field: arguments
+          kind: argument_list
+          has:
+            kind: keyword_argument
+            regex: ^strict_transport_security_max_age\s*=
+    - has:
+        field: arguments
+        kind: argument_list
+        has:
+          kind: keyword_argument
+          regex: ^strict_transport_security_max_age\s*=\s*((3153[6-9]\d{3}|315[4-9]\d{4}|31[6-9]\d{5}|3[2-9]\d{6}|[4-9]\d{7}|[1-9]\d{8,}))$
+min_engine: 0.45.3
+---
+# redirect-talisman: the same Talisman(app) with force_https default or True, and no @talisman(force_https=False)
+# decorator in the file. Evidence: the redirect piece (voided by debug-or-testing).
+id: hsts-enabled.python-generic.redirect-talisman
+practice_id: hsts-enabled
+language: python
+frameworks:
+- generic
+kind: evidence
+rule:
+  kind: call
+  has:
+    field: function
+    kind: identifier
+    regex: ^Talisman$
+  inside:
+    any:
+    - kind: expression_statement
+      inside:
+        kind: module
+    - kind: assignment
+      inside:
+        kind: expression_statement
+        inside:
+          kind: module
+  all:
+  - inside:
+      stopBy: end
+      kind: module
+      regex: (?s)(^|\n)app\s*=\s*Flask\(\s*__name__\s*\)[^\n]*\n(\s*(#[^\n]*|app\.config\[[^\n]*\]\s*=[^\n]*|app\.config\.from_\w+\([^\n]*\))?[ \t]*\n)*\s*(\w+\s*=\s*)?Talisman\(\s*app\b
+      not:
+        kind: module
+        regex: (?s)\bFlask\(.*\bFlask\(
+  - any:
+    - not:
+        has:
+          field: arguments
+          kind: argument_list
+          has:
+            kind: keyword_argument
+            regex: ^force_https\s*=
+    - has:
+        field: arguments
+        kind: argument_list
+        has:
+          kind: keyword_argument
+          regex: ^force_https\s*=\s*(True)$
+  - not:
+      inside:
+        stopBy: end
+        kind: module
+        regex: (?s)@talisman\([^)]*\b(force_https|strict_transport_security)\s*=\s*False\b
+min_engine: 0.45.3
+---
+# debug-or-testing: DEBUG or TESTING set true or to a value that isn't a literal (a module or class name, app.config,
+# app.config.update, app.debug or app.testing, app.run(debug=), FLASK_DEBUG), or a config load whose values can't be
+# seen (from_envvar, from_file, from_prefixed_env, from_pyfile). Evidence the function reads to void redirect-talisman
+# and hold.
+id: hsts-enabled.python-generic.debug-or-testing
+practice_id: hsts-enabled
+language: python
+frameworks:
+- generic
+kind: evidence
+rule:
+  any:
+  - kind: assignment
+    has:
+      field: left
+      kind: identifier
+      regex: ^(DEBUG|TESTING)$
+    all:
+    - has:
+        field: right
+        any:
+        - kind: 'true'
+        - kind: identifier
+        - kind: call
+        - kind: attribute
+        - kind: subscript
+        - kind: binary_operator
+        - kind: boolean_operator
+        - kind: conditional_expression
+        - kind: list_comprehension
+        - kind: parenthesized_expression
+        - kind: list_splat
+        - kind: lambda
+        - kind: await
+        - kind: string
+          has:
+            kind: interpolation
+  - kind: assignment
+    all:
+    - has:
+        field: left
+        any:
+        - kind: subscript
+          regex: ^\w+\.config\[\s*['\"](DEBUG|TESTING)['\"]\s*\]$
+        - kind: attribute
+          regex: ^\w+\.(debug|testing)$
+        - kind: subscript
+          regex: ^os\.environ\[\s*['\"]FLASK_DEBUG['\"]\s*\]$
+    - not:
+        has:
+          field: right
+          any:
+          - kind: 'false'
+          - kind: string
+            regex: ^['\"](0|false|False)?['\"]$
+  - kind: call
+    all:
+    - has:
+        field: function
+        kind: attribute
+        regex: ^\w+\.(config\.update|run)$
+    - has:
+        field: arguments
+        kind: argument_list
+        has:
+          kind: keyword_argument
+          regex: ^(DEBUG|TESTING|debug)\s*=
+          not:
+            kind: keyword_argument
+            regex: ^(DEBUG|TESTING|debug)\s*=\s*False$
+  - kind: call
+    has:
+      field: function
+      kind: attribute
+      regex: ^\w+\.config\.from_(envvar|file|prefixed_env|pyfile)$
+min_engine: 0.45.3
+---
+# talisman-hsts-off: Talisman(..., strict_transport_security=False) or the same @talisman decorator. Fail.
+id: hsts-enabled.python-generic.talisman-hsts-off
+practice_id: hsts-enabled
+language: python
+frameworks:
+- generic
+kind: violation
+rule:
+  kind: call
+  has:
+    field: function
+    kind: identifier
+    regex: ^(Talisman|talisman)$
+  all:
+  - has:
+      field: arguments
+      kind: argument_list
+      has:
+        kind: keyword_argument
+        regex: ^strict_transport_security\s*=\s*(False)$
+min_engine: 0.45.3
+---
+# talisman-short-max-age: Talisman or @talisman with strict_transport_security_max_age below a year. Fail.
+id: hsts-enabled.python-generic.talisman-short-max-age
+practice_id: hsts-enabled
+language: python
+frameworks:
+- generic
+kind: violation
+rule:
+  kind: call
+  has:
+    field: function
+    kind: identifier
+    regex: ^(Talisman|talisman)$
+  all:
+  - has:
+      field: arguments
+      kind: argument_list
+      has:
+        kind: keyword_argument
+        regex: ^strict_transport_security_max_age\s*=\s*(\d+)$
+  - not:
+      has:
+        field: arguments
+        kind: argument_list
+        has:
+          kind: keyword_argument
+          regex: ^strict_transport_security_max_age\s*=\s*((3153[6-9]\d{3}|315[4-9]\d{4}|31[6-9]\d{5}|3[2-9]\d{6}|[4-9]\d{7}|[1-9]\d{8,}))$
+min_engine: 0.45.3
+---
+# force-https-off: Talisman(..., force_https=False) or a @talisman(force_https=False) view decorator: the redirect is
+# off for the app or that view. Fail.
+id: hsts-enabled.python-generic.force-https-off
+practice_id: hsts-enabled
+language: python
+frameworks:
+- generic
+kind: violation
+rule:
+  kind: call
+  has:
+    field: function
+    kind: identifier
+    regex: ^(Talisman|talisman)$
+  all:
+  - has:
+      field: arguments
+      kind: argument_list
+      has:
+        kind: keyword_argument
+        regex: ^force_https\s*=\s*(False)$
+min_engine: 0.45.3

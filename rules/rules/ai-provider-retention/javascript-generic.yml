@@ -1,0 +1,141 @@
+id: ai-provider-retention.javascript-generic.responses-store
+practice_id: ai-provider-retention
+language: javascript
+frameworks:
+- generic
+kind: items
+rule:
+  all:
+  - kind: call_expression
+  - has:
+      field: function
+      any:
+      - kind: member_expression
+        regex: '(^|\.)responses\.(create|stream|parse)$'
+  - not:
+      has:
+        field: arguments
+        kind: arguments
+        has:
+          kind: object
+          has:
+            kind: pair
+            all:
+            - has:
+                field: key
+                kind: property_identifier
+                regex: '^store$'
+            - not:
+                has:
+                  field: value
+                  any:
+                  - kind: 'true'
+                  - kind: 'false'
+control:
+  has:
+    field: arguments
+    kind: arguments
+    has:
+      kind: object
+      any:
+      - all:
+        - has:
+            kind: pair
+            all:
+            - has:
+                field: key
+                kind: property_identifier
+                regex: '^store$'
+            - has:
+                field: value
+                kind: 'false'
+        - not:
+            has:
+              kind: spread_element
+      - pattern:
+          context: 'x = { $$$BEFORE, store: false }'
+          selector: object
+min_engine: 0.45.3
+---
+id: ai-provider-retention.javascript-generic.store-on
+practice_id: ai-provider-retention
+language: javascript
+frameworks:
+- generic
+kind: violation
+rule:
+  all:
+  - kind: pair
+  - any:
+    - all:
+      - has:
+          field: key
+          kind: property_identifier
+          regex: '^store$'
+      - has:
+          field: value
+          kind: 'true'
+    - has:
+        field: key
+        kind: property_identifier
+        regex: '^(previous_response_id|conversation)$'
+  - inside:
+      kind: object
+      inside:
+        kind: arguments
+        inside:
+          kind: call_expression
+          has:
+            field: function
+            kind: member_expression
+            regex: '(^|\.)(responses\.(create|stream|parse)|chat\.completions\.(create|stream|parse))$'
+min_engine: 0.45.3
+---
+id: ai-provider-retention.javascript-generic.stateful-endpoint
+practice_id: ai-provider-retention
+language: javascript
+frameworks:
+- generic
+kind: violation
+rule:
+  all:
+  - kind: call_expression
+  - has:
+      field: function
+      kind: member_expression
+      regex: '^(openai|client|oai|openaiClient|this\.openai|this\.client)\.(files\.create|uploads\.create|batches\.create)$|\.(beta\.)?(threads|assistants|vectorStores)\.\w+$|\.conversations\.create$'
+min_engine: 0.45.3
+---
+id: ai-provider-retention.javascript-generic.gemini-developer-api
+practice_id: ai-provider-retention
+language: javascript
+frameworks:
+- generic
+kind: violation
+rule:
+  any:
+  - pattern: 'new GoogleGenerativeAI($$$)'
+  - all:
+    - pattern: 'new GoogleGenAI($$$)'
+    - not:
+        has:
+          stopBy: end
+          kind: pair
+          all:
+          - has:
+              field: key
+              kind: property_identifier
+              regex: '^vertexai$'
+          - has:
+              field: value
+              kind: 'true'
+  - kind: string
+    regex: '^[''"]https://generativelanguage\.googleapis\.com/'
+  - all:
+    - kind: template_string
+    - regex: '^`https://generativelanguage\.googleapis\.com/'
+    - not:
+        inside:
+          stopBy: end
+          kind: template_string
+min_engine: 0.45.3

@@ -1,0 +1,119 @@
+id: password-encoder-slow-hash.php-generic.slow-hash
+practice_id: password-encoder-slow-hash
+language: php
+frameworks: [generic]
+kind: evidence
+rule:
+  all:
+    - any:
+        - pattern: {context: "<?php password_hash($$$);", selector: function_call_expression}
+        - pattern: {context: "<?php password_verify($$$);", selector: function_call_expression}
+        - pattern: {context: "<?php sodium_crypto_pwhash_str($$$);", selector: function_call_expression}
+        - pattern: {context: "<?php sodium_crypto_pwhash_str_verify($$$);", selector: function_call_expression}
+    - not:
+        has:
+          field: arguments
+          stopBy: end
+          kind: array_element_initializer
+          regex: '^[''"]cost[''"]\s*=>\s*[0-9]$'
+min_engine: 0.39.0
+---
+id: password-encoder-slow-hash.php-generic.fast-hash
+practice_id: password-encoder-slow-hash
+language: php
+frameworks: [generic]
+kind: violation
+rule:
+  all:
+    - any:
+        - pattern: {context: "<?php md5($$$);", selector: function_call_expression}
+        - pattern: {context: "<?php sha1($$$);", selector: function_call_expression}
+        - pattern: {context: "<?php hash($$$);", selector: function_call_expression}
+        - pattern: {context: "<?php crc32($$$);", selector: function_call_expression}
+    - has:
+        field: arguments
+        stopBy: end
+        any:
+          - kind: name
+            regex: '(?i)^(pass|pwd|passwd|password|passphrase|(new|plain|raw|old|current|user|admin)_?pass(word)?)$'
+          - kind: string_content
+            regex: '(?i)^(pass|pwd|passwd|password)$'
+    - not:
+        inside:
+          stopBy: end
+          any:
+            - kind: method_declaration
+            - kind: function_definition
+          has:
+            stopBy: end
+            kind: function_call_expression
+            has:
+              field: function
+              kind: name
+              regex: '^(openssl_encrypt|openssl_decrypt|sodium_crypto_secretbox|sodium_crypto_secretbox_open|sodium_crypto_aead_\w+)$'
+min_engine: 0.39.0
+---
+id: password-encoder-slow-hash.php-generic.low-cost
+practice_id: password-encoder-slow-hash
+language: php
+frameworks: [generic]
+kind: violation
+rule:
+  all:
+    - pattern: {context: "<?php password_hash($$$);", selector: function_call_expression}
+    - has:
+        field: arguments
+        stopBy: end
+        kind: array_element_initializer
+        regex: '^[''"]cost[''"]\s*=>\s*[0-9]$'
+min_engine: 0.39.0
+---
+id: password-encoder-slow-hash.php-generic.plain-compare
+practice_id: password-encoder-slow-hash
+language: php
+frameworks: [generic]
+kind: violation
+rule:
+  all:
+    - any:
+        - pattern: {context: "<?php $A == $B;", selector: binary_expression}
+        - pattern: {context: "<?php $A === $B;", selector: binary_expression}
+        - pattern: {context: "<?php $A != $B;", selector: binary_expression}
+        - pattern: {context: "<?php $A !== $B;", selector: binary_expression}
+    - has:
+        field: left
+        any:
+          - kind: variable_name
+            has:
+              kind: name
+              regex: '(?i)^(pass|pwd|passwd|password|passphrase|(new|plain|raw|input|given|supplied)_?pass(word)?)$'
+          - kind: subscript_expression
+            has:
+              kind: string
+              has:
+                kind: string_content
+                regex: '(?i)^(pass|pwd|passwd|password)$'
+          - kind: member_access_expression
+            has:
+              field: name
+              kind: name
+              regex: '(?i)^(pass|pwd|passwd|password)$'
+    - has:
+        field: right
+        any:
+          - kind: variable_name
+            has:
+              kind: name
+              regex: '(?i)^(pass|pwd|passwd|password|passphrase|(new|plain|raw|input|given|supplied)_?pass(word)?)$'
+          - kind: subscript_expression
+            has:
+              kind: string
+              has:
+                kind: string_content
+                regex: '(?i)^(pass|pwd|passwd|password)$'
+          - kind: member_access_expression
+            has:
+              field: name
+              kind: name
+              regex: '(?i)^(pass|pwd|passwd|password)$'
+min_engine: 0.39.0

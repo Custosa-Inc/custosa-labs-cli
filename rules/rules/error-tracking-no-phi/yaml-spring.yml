@@ -1,0 +1,24 @@
+id: error-tracking-no-phi.yaml-spring.pii-on
+practice_id: error-tracking-no-phi
+language: yaml
+frameworks:
+- spring
+kind: violation
+rule:
+  any:
+  - kind: block_mapping_pair
+    regex: '^sentry\.send-default-pii\s*:\s*true\s*$'
+  - all:
+    - kind: block_mapping_pair
+    - regex: '^send-default-pii\s*:\s*true\s*$'
+    - inside:
+        kind: block_mapping
+        inside:
+          kind: block_node
+          inside:
+            kind: block_mapping_pair
+            has:
+              field: key
+              kind: flow_node
+              regex: '^sentry$'
+min_engine: 0.45.3

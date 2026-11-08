@@ -1,0 +1,51 @@
+id: purge-deleted-rows.python-generic.soft-delete
+practice_id: purge-deleted-rows
+language: python
+frameworks:
+- generic
+kind: items
+rule:
+  any:
+  - kind: call
+    regex: \.update\([^)]*\b(deleted_at|is_deleted|deleted)\s*=\s*(timezone\.now\(\)|datetime\.\w+\(\)|now\(\)|func\.now\(\)|True)
+  - kind: assignment
+    regex: ^\w+\.(deleted_at|is_deleted|deleted)\s*=\s*(timezone\.now\(\)|datetime\.\w+\(\)|now\(\)|func\.now\(\)|True)$
+control:
+  inside:
+    stopBy: end
+    kind: class_definition
+    regex: \.filter\([^)]*deleted_at__(lt|lte)\s*=\s*[A-Za-z_][^)]*\)\.delete\(\)
+min_engine: 0.39.0
+---
+id: purge-deleted-rows.python-generic.purge-soft-deleted
+practice_id: purge-deleted-rows
+language: python
+frameworks:
+- generic
+kind: evidence
+rule:
+  all:
+  - kind: call
+    regex: \.filter\([^)]*deleted_at__(lt|lte)\s*=\s*[A-Za-z_][^)]*\)\.delete\(\)$
+  - not:
+      kind: call
+      regex: (?i)audit
+min_engine: 0.39.0
+---
+id: purge-deleted-rows.python-generic.purge-history
+practice_id: purge-deleted-rows
+language: python
+frameworks:
+- generic
+kind: evidence
+rule:
+  all:
+  - kind: call
+    regex: ^(Historical\w+|\w*(History|Version)\w*)\.objects\.filter\([^)]+\)\.delete\(\)$
+  - not:
+      kind: call
+      regex: (?i)audit
+  - not:
+      kind: call
+      regex: \.filter\(\s*(id|pk)\s*=\s*[^,()]+\)
+min_engine: 0.39.0

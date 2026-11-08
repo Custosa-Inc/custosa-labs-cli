@@ -1,0 +1,120 @@
+# Candidates for one scoped data-access layer (read only where row-level security is off on a patient table): a Prisma
+# client extension whose query hook for every model sets a where on a tenant, owner or user key, ZenStack's
+# enhance(prisma, { user }), or a Sequelize default scope on such a key. A candidate never passes the practice:
+# whether every query goes through it is for a person (needs_review); with none, RLS off fails.
+id: rls-enabled.typescript-generic.scoped-layer
+practice_id: rls-enabled
+language: typescript
+frameworks:
+- generic
+kind: evidence
+rule:
+  any:
+  - kind: call_expression
+    pattern: '$P.$extends($$$)'
+    all:
+    - has:
+        stopBy: end
+        kind: property_identifier
+        regex: '^\$allModels$'
+    - has:
+        stopBy: end
+        any:
+        - kind: assignment_expression
+          regex: '^args\.where\s*='
+          has:
+            field: right
+            kind: object
+            has:
+              any:
+              - kind: pair
+                all:
+                - has:
+                    field: key
+                    kind: property_identifier
+                    regex: '(?i)^(tenant|tenant_?id|owner|owner_?id|user|user_?id|account|account_?id|org|org_?id|organization_?id|clinic|clinic_?id|practice_?id)$'
+                - not:
+                    has:
+                      field: value
+                      any:
+                      - kind: 'null'
+                      - kind: 'true'
+                      - kind: 'false'
+                      - kind: number
+                      - kind: string
+                      - kind: template_string
+                      - kind: undefined
+              - kind: shorthand_property_identifier
+                regex: '(?i)^(tenant|tenant_?id|owner|owner_?id|user|user_?id|account|account_?id|org|org_?id|organization_?id|clinic|clinic_?id|practice_?id)$'
+        - kind: pair
+          has:
+            field: key
+            kind: property_identifier
+            regex: '^where$'
+          all:
+          - has:
+              field: value
+              kind: object
+              has:
+                any:
+                - kind: pair
+                  all:
+                  - has:
+                      field: key
+                      kind: property_identifier
+                      regex: '(?i)^(tenant|tenant_?id|owner|owner_?id|user|user_?id|account|account_?id|org|org_?id|organization_?id|clinic|clinic_?id|practice_?id)$'
+                  - not:
+                      has:
+                        field: value
+                        any:
+                        - kind: 'null'
+                        - kind: 'true'
+                        - kind: 'false'
+                        - kind: number
+                        - kind: string
+                        - kind: template_string
+                        - kind: undefined
+                - kind: shorthand_property_identifier
+                  regex: '(?i)^(tenant|tenant_?id|owner|owner_?id|user|user_?id|account|account_?id|org|org_?id|organization_?id|clinic|clinic_?id|practice_?id)$'
+  - kind: call_expression
+    pattern: 'enhance($DB, $CTX, $$$)'
+    has:
+      field: arguments
+      kind: arguments
+      has:
+        stopBy: end
+        any:
+        - kind: property_identifier
+          regex: '^user$'
+        - kind: shorthand_property_identifier
+          regex: '^user$'
+  - kind: call_expression
+    pattern: 'enhance($DB, $CTX)'
+    has:
+      field: arguments
+      kind: arguments
+      has:
+        stopBy: end
+        any:
+        - kind: property_identifier
+          regex: '^user$'
+        - kind: shorthand_property_identifier
+          regex: '^user$'
+  - kind: pair
+    all:
+    - has:
+        field: key
+        kind: property_identifier
+        regex: '^defaultScope$'
+    - has:
+        stopBy: end
+        kind: property_identifier
+        regex: '^where$'
+    - has:
+        stopBy: end
+        any:
+        - kind: property_identifier
+          regex: '(?i)tenant|owner|user_?id|userId|account_?id|org(anization)?_?id|clinic_?id|practice_?id|current_?user|principal'
+        - kind: shorthand_property_identifier
+          regex: '(?i)tenant|owner|user_?id|userId|account_?id|org(anization)?_?id|clinic_?id|practice_?id|current_?user|principal'
+min_engine: 0.39.0

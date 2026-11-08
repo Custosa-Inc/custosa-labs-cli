@@ -1,0 +1,11 @@
+id: secrets-hashed-or-encrypted.php-generic.raw-password-assign
+practice_id: secrets-hashed-or-encrypted
+language: php
+frameworks:
+- generic
+kind: violation
+rule:
+  all:
+  - kind: assignment_expression
+    regex: ^\$\w+->(password|api_key|secret|token)\s*=\s*\$(request->(password|input\(['\"]password['\"]\))|\w+)$
+min_engine: 0.39.0

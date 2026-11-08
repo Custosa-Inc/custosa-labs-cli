@@ -1,0 +1,195 @@
+# Patient values in push, email and SMS content (T23 B56d). Written by
+# scripts/gen_notification_rules.py: don't edit. The practice is capped at needs_review.
+id: notification-content-minimal.go-generic.send
+practice_id: notification-content-minimal
+language: go
+frameworks:
+- generic
+kind: evidence
+rule:
+  any:
+  - kind: composite_literal
+    has:
+      field: type
+      kind: qualified_type
+      regex: ^messaging\s*\.\s*(Message|MulticastMessage|Notification|AndroidNotification|WebpushNotification)$
+  - kind: call_expression
+    has:
+      field: function
+      kind: selector_expression
+      regex: \.\s*(CreateMessage|SetBody|SetSubject|SetHTMLContent|SetPlainTextContent)$|^(mail\s*\.\s*(NewSingleEmail|NewContent)|smtp\s*\.\s*SendMail)$
+min_engine: 0.39.0
+---
+id: notification-content-minimal.go-generic.clinical-interpolated
+practice_id: notification-content-minimal
+language: go
+frameworks:
+- generic
+kind: violation
+rule:
+  any:
+  - any:
+    - kind: call_expression
+      all:
+      - has:
+          field: function
+          kind: selector_expression
+          regex: ^(fmt\s*\.\s*(Sprintf|Sprint|Sprintln)|strings\s*\.\s*Join)$
+      - has:
+          field: arguments
+          has:
+            stopBy: end
+            any: &id001
+            - kind: identifier
+              regex: ^(?i:\w*(diagnos|condition|medication|prescription|dosage|lab_?results?|test_?results?|results?_?value|reason_?for_?visit|appointment_?reason|visit_?reason|procedure|medical_?record_?number|date_?of_?birth)\w*|(get_?)?(mrn|dob|ssn))$
+            - kind: field_identifier
+              regex: ^(?i:\w*(diagnos|condition|medication|prescription|dosage|lab_?results?|test_?results?|results?_?value|reason_?for_?visit|appointment_?reason|visit_?reason|procedure|medical_?record_?number|date_?of_?birth)\w*|(get_?)?(mrn|dob|ssn))$
+    - kind: binary_expression
+      regex: \+
+      all:
+      - has:
+          any:
+          - kind: interpreted_string_literal
+          - kind: raw_string_literal
+      - has:
+          stopBy: end
+          any: *id001
+    inside:
+      stopBy: end
+      any:
+      - kind: composite_literal
+        has:
+          field: type
+          kind: qualified_type
+          regex: ^messaging\s*\.\s*(Message|MulticastMessage|Notification|AndroidNotification|WebpushNotification)$
+      - kind: argument_list
+        inside:
+          kind: call_expression
+          has:
+            field: function
+            kind: selector_expression
+            regex: \.\s*(CreateMessage|SetBody|SetSubject|SetHTMLContent|SetPlainTextContent)$|^(mail\s*\.\s*(NewSingleEmail|NewContent)|smtp\s*\.\s*SendMail)$
+  - any:
+    - any:
+      - &id003
+        kind: selector_expression
+        has:
+          field: field
+          kind: field_identifier
+          regex: ^(?i:\w*(diagnos|condition|medication|prescription|dosage|lab_?results?|test_?results?|results?_?value|reason_?for_?visit|appointment_?reason|visit_?reason|procedure|medical_?record_?number|date_?of_?birth)\w*|(get_?)?(mrn|dob|ssn))$
+      inside:
+        any:
+        - kind: literal_element
+          inside: &id002
+            kind: keyed_element
+            inside:
+              stopBy: end
+              kind: composite_literal
+              has:
+                field: type
+                kind: qualified_type
+                regex: ^messaging\s*\.\s*(Message|MulticastMessage|Notification|AndroidNotification|WebpushNotification)$
+        - *id002
+    - any:
+      - *id003
+      - kind: identifier
+        regex: ^(?i:\w*(diagnos|condition|medication|prescription|dosage|lab_?results?|test_?results?|results?_?value|reason_?for_?visit|appointment_?reason|visit_?reason|procedure|medical_?record_?number|date_?of_?birth)\w*|(get_?)?(mrn|dob|ssn))$
+      inside:
+        kind: argument_list
+        inside:
+          kind: call_expression
+          has:
+            field: function
+            kind: selector_expression
+            regex: \.\s*(CreateMessage|SetBody|SetSubject|SetHTMLContent|SetPlainTextContent)$|^(mail\s*\.\s*(NewSingleEmail|NewContent)|smtp\s*\.\s*SendMail)$
+min_engine: 0.39.0
+---
+id: notification-content-minimal.go-generic.identifying-interpolated
+practice_id: notification-content-minimal
+language: go
+frameworks:
+- generic
+kind: evidence
+rule:
+  any:
+  - any:
+    - kind: call_expression
+      all:
+      - has:
+          field: function
+          kind: selector_expression
+          regex: ^(fmt\s*\.\s*(Sprintf|Sprint|Sprintln)|strings\s*\.\s*Join)$
+      - has:
+          field: arguments
+          has:
+            stopBy: end
+            any: &id001
+            - kind: identifier
+              regex: ^(?i:(first|last|full|given|family|middle|display|preferred)_?name)$
+            - kind: field_identifier
+              regex: ^(?i:(first|last|full|given|family|middle|display|preferred)_?name)$
+            - kind: selector_expression
+              regex: ^(?i:([\w$]+\s*\.\s*)*(patient|user|member|recipient|person|client|customer)\s*\.\s*name)$
+    - kind: binary_expression
+      regex: \+
+      all:
+      - has:
+          any:
+          - kind: interpreted_string_literal
+          - kind: raw_string_literal
+      - has:
+          stopBy: end
+          any: *id001
+    inside:
+      stopBy: end
+      any:
+      - kind: composite_literal
+        has:
+          field: type
+          kind: qualified_type
+          regex: ^messaging\s*\.\s*(Message|MulticastMessage|Notification|AndroidNotification|WebpushNotification)$
+      - kind: argument_list
+        inside:
+          kind: call_expression
+          has:
+            field: function
+            kind: selector_expression
+            regex: \.\s*(CreateMessage|SetBody|SetSubject|SetHTMLContent|SetPlainTextContent)$|^(mail\s*\.\s*(NewSingleEmail|NewContent)|smtp\s*\.\s*SendMail)$
+  - any:
+    - any:
+      - &id003
+        kind: selector_expression
+        has:
+          field: field
+          kind: field_identifier
+          regex: ^(?i:(first|last|full|given|family|middle|display|preferred)_?name)$
+      - &id004
+        kind: selector_expression
+        regex: ^(?i:([\w$]+\s*\.\s*)*(patient|user|member|recipient|person|client|customer)\s*\.\s*name)$
+      inside:
+        any:
+        - kind: literal_element
+          inside: &id002
+            kind: keyed_element
+            inside:
+              stopBy: end
+              kind: composite_literal
+              has:
+                field: type
+                kind: qualified_type
+                regex: ^messaging\s*\.\s*(Message|MulticastMessage|Notification|AndroidNotification|WebpushNotification)$
+        - *id002
+    - any:
+      - *id003
+      - *id004
+      - kind: identifier
+        regex: ^(?i:(first|last|full|given|family|middle|display|preferred)_?name)$
+      inside:
+        kind: argument_list
+        inside:
+          kind: call_expression
+          has:
+            field: function
+            kind: selector_expression
+            regex: \.\s*(CreateMessage|SetBody|SetSubject|SetHTMLContent|SetPlainTextContent)$|^(mail\s*\.\s*(NewSingleEmail|NewContent)|smtp\s*\.\s*SendMail)$
+min_engine: 0.39.0

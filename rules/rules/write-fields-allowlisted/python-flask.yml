@@ -1,0 +1,79 @@
+id: write-fields-allowlisted.python-flask.body-into-write
+practice_id: write-fields-allowlisted
+language: python
+frameworks:
+- flask
+kind: violation
+rule:
+  any:
+  - all:
+    - pattern: $M(**$D)
+    - inside:
+        stopBy: end
+        kind: function_definition
+        has:
+          stopBy: end
+          any:
+          - pattern: $D = request.get_json()
+          - pattern: $D = request.json
+          - pattern: $D = request.form
+          - pattern: $D = request.form.to_dict()
+          - pattern: $D = request.get_json(force=True)
+          - pattern: $D = request.values
+  - all:
+    - pattern: $M.create(**$D)
+    - inside:
+        stopBy: end
+        kind: function_definition
+        has:
+          stopBy: end
+          any:
+          - pattern: $D = request.get_json()
+          - pattern: $D = request.json
+          - pattern: $D = request.form
+          - pattern: $D = request.form.to_dict()
+          - pattern: $D = request.get_json(force=True)
+          - pattern: $D = request.values
+  - all:
+    - pattern: $M.objects.create(**$D)
+    - inside:
+        stopBy: end
+        kind: function_definition
+        has:
+          stopBy: end
+          any:
+          - pattern: $D = request.get_json()
+          - pattern: $D = request.json
+          - pattern: $D = request.form
+          - pattern: $D = request.form.to_dict()
+          - pattern: $D = request.get_json(force=True)
+          - pattern: $D = request.values
+  - all:
+    - pattern: $M.update(**$D)
+    - inside:
+        stopBy: end
+        kind: function_definition
+        has:
+          stopBy: end
+          any:
+          - pattern: $D = request.get_json()
+          - pattern: $D = request.json
+          - pattern: $D = request.form
+          - pattern: $D = request.form.to_dict()
+          - pattern: $D = request.get_json(force=True)
+          - pattern: $D = request.values
+  - all:
+    - pattern: $M.query.filter_by($$$).update($D)
+    - inside:
+        stopBy: end
+        kind: function_definition
+        has:
+          stopBy: end
+          any:
+          - pattern: $D = request.get_json()
+          - pattern: $D = request.json
+          - pattern: $D = request.form
+          - pattern: $D = request.form.to_dict()
+          - pattern: $D = request.get_json(force=True)
+          - pattern: $D = request.values
+min_engine: 0.39.0

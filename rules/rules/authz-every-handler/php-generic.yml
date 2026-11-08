@@ -1,0 +1,37 @@
+# OpenEMR-style REST route maps: each "VERB /path/:param" => function entry is an item (a record named by the path).
+# The control is the caller read inside the closure: the signed-in user from $_SESSION or the request's user
+# ($request->getRequestUser...). RestConfig's authorization checks and AclMain::aclCheckCore are role (ACL) checks:
+# they say who may call, never which record, so they don't count (as hasRole doesn't on Spring). Routes in other
+# shapes (Laravel, Slim, plain pages behind globals.php) are left out.
+id: authz-every-handler.php-generic.route
+practice_id: authz-every-handler
+language: php
+frameworks:
+- generic
+kind: items
+rule:
+  kind: array_element_initializer
+  all:
+  - has:
+      any:
+      - kind: encapsed_string
+        regex: '^[''\"](GET|POST|PUT|PATCH|DELETE) /[^''\"]*:\w'
+      - kind: string
+        regex: '^[''\"](GET|POST|PUT|PATCH|DELETE) /[^''\"]*:\w'
+  - has:
+      any:
+      - kind: anonymous_function
+      - kind: arrow_function
+control:
+  has:
+    any:
+    - kind: anonymous_function
+    - kind: arrow_function
+    has:
+      stopBy: end
+      any:
+      - kind: subscript_expression
+        regex: '^\$_SESSION\[\s*[''\"]authUser'
+      - kind: member_call_expression
+        regex: '->(getRequestUser\w*|getRequestUserUUID\w*)\('
+min_engine: 0.39.0

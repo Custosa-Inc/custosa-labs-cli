@@ -1,0 +1,141 @@
+{
+  "about": "Shared probes for the free-text screen (T23-P1-C296, C300): text the assistant writes, such as a verdict's reason, a concern's text or a decider_ref. Core runs every entry through app.validation (tests/core/test_free_text_probes.py), and the CLI runs the same file through its screens. refuse: free text that must be refused (core: free_text_spans). send: free text that must be sent, so none is an over-refusal. roots_refuse: searched roots that must be refused (core: prose_value_spans). sequences: ordered screens of (field, text, expect) that the CLI runs in one process, so state left by one screen can't change the next; core runs each entry on its own (decider_ref: free_text_spans or role_ref_shape; reason and concern: free_text_spans; root: prose_value_spans). known_gaps: shapes a side gets wrong today, with the answer they should get (want), the side that gets it wrong (gap_in: both or cli) and why. Core's test checks that core still gets the other answer where the gap is core's too, so a fix has to move the entry.",
+  "refuse": [
+    "MRN 0012-3456",
+    "MRN 1234 5678",
+    "MRN: 00 12 34 56",
+    "MRN: 12-34-567",
+    "account no. 1234-5678",
+    "patient 123-4567",
+    "birth date: March 12, 1984",
+    "dob=19840312",
+    "DOB 19840312",
+    "d.o.b. 03-12-84",
+    "dob: 3/12/84",
+    "Dr. Jean-Luc Picard",
+    "Dr. Mary-Jane Watson",
+    "Dr. JANE SMITH",
+    "Dr Jane van der Berg",
+    "MRN 0012\u20133456",
+    "MRN 0012\u20143456",
+    "MRN 0012.3456",
+    "MRN 0012 - 3456",
+    "mrn: 1234",
+    "patient # 1234",
+    "chart no. 1234",
+    "policy number 1234",
+    "insurance 98765",
+    "record no. 55555",
+    "W123456789",
+    "ticket ABC1234567",
+    "code 4471-882-19",
+    "see PR 1234-56-78",
+    "lives at 12 Oak Tree Lane",
+    "Jane Smith has diabetes",
+    "Dr. Jos\u00e9 Garc\u00eda",
+    "Dr. Siobh\u00e1n Murphy",
+    "Dr. Zo\u00eb Kim",
+    "Jos\u00e9 Garc\u00eda has diabetes",
+    "1234567890",
+    "4151234567",
+    "0123456789",
+    "\u0131nsurance 98765",
+    "\u0130nsurance 98765",
+    "pat\u0131ent # 1234",
+    "Jane Smith has d\u0131abetes",
+    "soc\u0131al security 123 45 6789",
+    "mrn\u001c1234",
+    "mrn\u00851234",
+    "u_5551234567890123",
+    "1111111111111111111111111111111111111111111111111111111111111111"
+  ],
+  "send": [
+    "The dob column is unencrypted",
+    "patient_id has no index",
+    "Dr. column naming",
+    "Dr. Who",
+    "dob column is DATE",
+    "born_at timestamptz",
+    "Migration 2024 03 12 adds index",
+    "version 1-2-3-4-5",
+    "port 5432 5433",
+    "The Patient Table Has RLS",
+    "updated at 2026-11-03T21:40:00Z",
+    "created 2026-11-03T21:40:00.123+00:00",
+    "fixed in 1ea2abf8",
+    "commit 8d557cca is the head",
+    "bump to 1.2.3",
+    "requires v2.10.0-rc.1",
+    "Patients see only their own rows",
+    "The patient table has no RLS policy",
+    "Next Auth stores the session in a cookie",
+    "Jos\u00e9 checked the migrations folder"
+  ],
+  "roots_refuse": [
+    "u_5551234567890123",
+    "1111111111111111111111111111111111111111111111111111111111111111"
+  ],
+  "sequences": [
+    [
+      {
+        "field": "decider_ref",
+        "text": "owner-2024-03-12",
+        "expect": "refuse"
+      },
+      {
+        "field": "reason",
+        "text": "Jane Roe 1981-04-05 was in the seed file",
+        "expect": "refuse"
+      },
+      {
+        "field": "concern",
+        "text": "Mary Major 1983-02-03 in export",
+        "expect": "refuse"
+      }
+    ]
+  ],
+  "known_gaps": [
+    {
+      "text": "DR. JANE SMITH",
+      "want": "refuse",
+      "reason": "the title match is case-sensitive (C296 follow-up)",
+      "gap_in": "both"
+    },
+    {
+      "text": "dr. Jane Smith",
+      "want": "refuse",
+      "reason": "the title match is case-sensitive (C296 follow-up)",
+      "gap_in": "both"
+    },
+    {
+      "text": "Dr. J. Smith",
+      "want": "refuse",
+      "reason": "an initial is not a name part of two or more letters (C296 follow-up)",
+      "gap_in": "both"
+    },
+    {
+      "text": "Dr. O'Brien-Smith Jr",
+      "want": "refuse",
+      "reason": "a name part can't hold an apostrophe (C296 follow-up)",
+      "gap_in": "both"
+    },
+    {
+      "text": "MRN 0012_3456",
+      "want": "refuse",
+      "reason": "an underscore doesn't join the digit groups of a record number (C296 follow-up)",
+      "gap_in": "both"
+    },
+    {
+      "text": "Mr. Robot Test Fixture",
+      "want": "send",
+      "reason": "a title before two capitalised words reads as a name, a known over-refusal from before C296 (follow-up)",
+      "gap_in": "both"
+    },
+    {
+      "text": "mrn\ufeff1234",
+      "want": "send",
+      "gap_in": "cli",
+      "reason": "the CLI reads U+FEFF as a separator in a record number and refuses it; core sends it (C300)"
+    }
+  ]
+}

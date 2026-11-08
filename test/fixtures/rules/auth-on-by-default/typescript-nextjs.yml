@@ -1,0 +1,18 @@
+id: auth-on-by-default.typescript-nextjs.route-handler
+practice_id: auth-on-by-default
+language: typescript
+frameworks: [nextjs]
+kind: items
+rule:
+  kind: function_declaration
+  inside:
+    kind: export_statement
+  has:
+    field: name
+    kind: identifier
+    regex: ^(GET|POST|PUT|PATCH|DELETE)$
+control:
+  has:
+    pattern: await requireUser($$$ARGS)
+    stopBy: end
+min_engine: 0.45.0

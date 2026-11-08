@@ -1,0 +1,17 @@
+<DescribeDBParametersResponse xmlns="http://rds.amazonaws.com/doc/2014-10-31/">
+  <DescribeDBParametersResult>
+    <Parameters>
+      <Parameter>
+        <ParameterName>rds.force_ssl</ParameterName>
+        <ParameterValue>1</ParameterValue>
+        <Source>system</Source>
+        <ApplyType>dynamic</ApplyType>
+        <DataType>boolean</DataType>
+        <IsModifiable>true</IsModifiable>
+      </Parameter>
+    </Parameters>
+  </DescribeDBParametersResult>
+  <ResponseMetadata>
+    <RequestId>00000000-0000-0000-0000-000000000003</RequestId>
+  </ResponseMetadata>
+</DescribeDBParametersResponse>

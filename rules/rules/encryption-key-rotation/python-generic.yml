@@ -1,0 +1,37 @@
+id: encryption-key-rotation.python-generic.kms-client
+practice_id: encryption-key-rotation
+language: python
+frameworks:
+- generic
+kind: evidence
+rule:
+  any:
+  - kind: call
+    regex: \.(generate_data_key|encrypt_symmetric)\(
+  - kind: call
+    regex: ^MultiFernet\(
+  - kind: call
+    regex: ^(boto3\.)?client\(\s*['\"]kms['\"]
+min_engine: 0.39.0
+---
+id: encryption-key-rotation.python-generic.hardcoded-key
+practice_id: encryption-key-rotation
+language: python
+frameworks:
+- generic
+kind: violation
+rule:
+  kind: call
+  regex: ^(Fernet|AESGCM|ChaCha20Poly1305)\(\s*b?['\"][^'\"]{8,}['\"]|^AES\.new\(\s*b?['\"][^'\"]{8,}['\"]
+min_engine: 0.39.0
+---
+id: encryption-key-rotation.python-generic.fixed-iv
+practice_id: encryption-key-rotation
+language: python
+frameworks:
+- generic
+kind: violation
+rule:
+  kind: call
+  regex: ^AES\.new\([^,]+,\s*AES\.MODE_\w+,\s*(b?['\"]|bytes\(\d+\))|modes\.(CBC|GCM|CTR)\(\s*(b['\"]|bytes\(\d+\)|b?['\"]\\x00)
+min_engine: 0.39.0

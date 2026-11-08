@@ -1,0 +1,1 @@
+{"region":"us-east-1","walg_enabled":true,"pitr_enabled":true,"backups":[{"id":1,"is_physical_backup":true,"status":"COMPLETED","inserted_at":"2026-10-19T00:00:00Z"}],"physical_backup_data":{"earliest_physical_backup_date_unix":1760000000,"latest_physical_backup_date_unix":1760900000}}

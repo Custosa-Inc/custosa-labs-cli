@@ -1,0 +1,58 @@
+id: session-cookie-flags.php-laravel.cookie-set
+practice_id: session-cookie-flags
+language: php
+frameworks:
+- laravel
+kind: items
+rule:
+  any:
+  - kind: object_creation_expression
+    regex: ^new\s+SessionConfiguration\(
+  - kind: function_call_expression
+    regex: ^(setcookie|session_set_cookie_params)\(
+control:
+  all:
+  - has:
+      kind: arguments
+      regex: (?i)['\"]?(cookie_?)?http_?only['\"]?\s*(=>|:|=)\s*(true|True)\b
+  - has:
+      kind: arguments
+      regex: (?i)['\"]?(cookie_?)?secure['\"]?\s*(=>|:|=)\s*(true|True|process\.env\.NODE_ENV\s*===?\s*['\"]production['\"]|!\s*\w*[dD]ev\w*|\w*[pP]roduction\w*|env\(['\"]SESSION_SECURE_COOKIE)
+  - has:
+      kind: arguments
+      regex: (?i)['\"]?(cookie_?)?same_?site['\"]?\s*(=>|:|=)\s*['\"]?(lax|strict)['\"]?
+min_engine: 0.39.0
+---
+id: session-cookie-flags.php-laravel.flag-off
+practice_id: session-cookie-flags
+language: php
+frameworks:
+- laravel
+kind: violation
+rule:
+  any:
+  - kind: argument
+    regex: (?i)^cookie_?(http_?only|secure)\s*:\s*false$|^cookie_?same_?site\s*:\s*['\"]none['\"]$
+  - kind: array_element_initializer
+    regex: (?i)^['\"](http_?only|secure)['\"]\s*=>\s*false$|^['\"]same_?site['\"]\s*=>\s*(['\"]none['\"]|null)$
+min_engine: 0.39.0
+---
+id: session-cookie-flags.php-laravel.session-config
+practice_id: session-cookie-flags
+language: php
+frameworks:
+- laravel
+kind: evidence
+rule:
+  all:
+  - kind: array_creation_expression
+  - has:
+      kind: array_element_initializer
+      regex: ^['\"]http_only['\"]\s*=>\s*true$
+  - has:
+      kind: array_element_initializer
+      regex: ^['\"]secure['\"]\s*=>\s*(true|env\(['\"]SESSION_SECURE_COOKIE['\"],\s*true\))$
+  - has:
+      kind: array_element_initializer
+      regex: ^['\"]same_site['\"]\s*=>\s*['\"](lax|strict)['\"]$
+min_engine: 0.39.0

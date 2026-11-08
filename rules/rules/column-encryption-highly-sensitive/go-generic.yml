@@ -1,0 +1,21 @@
+id: column-encryption-highly-sensitive.go-generic.app-encryption
+practice_id: column-encryption-highly-sensitive
+language: go
+frameworks:
+- generic
+kind: evidence
+rule:
+  kind: call_expression
+  regex: ^(cipher\.NewGCM|chacha20poly1305\.NewX?|secretbox\.Seal)\(
+min_engine: 0.39.0
+---
+id: column-encryption-highly-sensitive.go-generic.weak-cipher
+practice_id: column-encryption-highly-sensitive
+language: go
+frameworks:
+- generic
+kind: violation
+rule:
+  kind: call_expression
+  regex: ^(des\.NewCipher|des\.NewTripleDESCipher|rc4\.NewCipher)\(
+min_engine: 0.39.0

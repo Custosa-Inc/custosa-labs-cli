@@ -1,0 +1,702 @@
+id: audit-actor-recorded.python-generic.pool-context
+practice_id: audit-actor-recorded
+language: python
+frameworks:
+- generic
+kind: violation
+rule:
+  any:
+  - all:
+    - kind: string
+      regex: '(?i)(?:set_config\s*\(\s*''(?:app\.(?:user_id|current_user_id|current_user|user|actor|actor_id|uid|userid|account_id|current_account_id)|request\.jwt\.claims|request\.jwt\.claim\.sub|jwt\.claims)''|\bset\s+(?:local\s+|session\s+)?(?:app\.(?:user_id|current_user_id|current_user|user|actor|actor_id|uid|userid|account_id|current_account_id)|request\.jwt\.claims|request\.jwt\.claim\.sub|jwt\.claims)\s*(?:=|to)|-c\s*(?:app\.(?:user_id|current_user_id|current_user|user|actor|actor_id|uid|userid|account_id|current_account_id)|request\.jwt\.claims|request\.jwt\.claim\.sub|jwt\.claims)\s*=)'
+    - inside:
+        stopBy: end
+        kind: decorated_definition
+        has:
+          kind: decorator
+          regex: 'listens_for\s*\(.*[''\"](connect|checkout|first_connect)[''\"]'
+  - all:
+    - kind: string
+      regex: '(?i)-c\s*(?:app\.(?:user_id|current_user_id|current_user|user|actor|actor_id|uid|userid|account_id|current_account_id)|request\.jwt\.claims|request\.jwt\.claim\.sub|jwt\.claims)\s*='
+    - inside:
+        kind: pair
+        has:
+          field: key
+          kind: string
+          regex: '^[''"]options[''"]$'
+min_engine: 0.45.3
+---
+id: audit-actor-recorded.python-generic.session-level-context
+practice_id: audit-actor-recorded
+language: python
+frameworks:
+- generic
+kind: violation
+rule:
+  all:
+  - kind: string
+    regex: '(?i)(?:set_config\s*\(\s*''(?:app\.(?:user_id|current_user_id|current_user|user|actor|actor_id|uid|userid|account_id|current_account_id)|request\.jwt\.claims|request\.jwt\.claim\.sub|jwt\.claims)''\s*,[\s\S]*,\s*false\s*\)|\bset\s+(?:session\s+)?(?:app\.(?:user_id|current_user_id|current_user|user|actor|actor_id|uid|userid|account_id|current_account_id)|request\.jwt\.claims|request\.jwt\.claim\.sub|jwt\.claims)\s*(?:=|to))'
+  - inside:
+      stopBy: end
+      kind: call
+      has:
+        field: function
+        kind: attribute
+        regex: '\.(execute|exec_driver_sql|executemany|raw)$'
+  - not:
+      inside:
+        stopBy: end
+        kind: decorated_definition
+        has:
+          kind: decorator
+          regex: 'listens_for\s*\(.*[''\"](connect|checkout|first_connect)[''\"]'
+min_engine: 0.45.3
+---
+id: audit-actor-recorded.python-generic.audit-write-actor
+practice_id: audit-actor-recorded
+language: python
+frameworks:
+- generic
+kind: items
+rule:
+  all:
+  - pattern: '$TABLE.objects.create($$$FIELDS)'
+  - has:
+      field: function
+      kind: attribute
+      regex: '^(AuditLog|AuditEvent|AccessLog|AuditTrail|ActivityLog|SecurityEvent)\.objects\.create$'
+  - not:
+      has:
+        field: arguments
+        kind: argument_list
+        has:
+          kind: dictionary_splat
+  - has:
+      field: arguments
+      kind: argument_list
+      all:
+      - &id017
+        not:
+          has:
+            kind: dictionary_splat
+      - any:
+        - has:
+            kind: keyword_argument
+            all:
+            - &id001
+              has:
+                field: name
+                kind: identifier
+                regex: '(?-u)^(?i:actor|actor_id|actor_user_id|actor_staff_id|performed_by|changed_by|who)$'
+            - &id004
+              has:
+                field: value
+                any:
+                - kind: string
+                - kind: integer
+                - kind: float
+                - kind: 'true'
+                - kind: 'false'
+                - kind: call
+                  regex: '(?-u)request\.(POST|GET|data|json|headers|query_params|COOKIES|META|body|FILES)\b|\bpatient\w*\.|session\[\s*[''\x22]'
+                - kind: attribute
+                  regex: '(?-u)request\.(POST|GET|data|json|headers|query_params|COOKIES|META|body|FILES)\b|\bpatient\w*\.|session\[\s*[''\x22]|^[''\x22]|\s[''\x22]|\bor\s+\d|\belse\s+([''\x22]|\d)'
+                - kind: subscript
+                  regex: '(?-u)request\.(POST|GET|data|json|headers|query_params|COOKIES|META|body|FILES)\b|\bpatient\w*\.|session\[\s*[''\x22]|^[''\x22]|\s[''\x22]|\bor\s+\d|\belse\s+([''\x22]|\d)'
+                - kind: boolean_operator
+                  regex: '(?-u)request\.(POST|GET|data|json|headers|query_params|COOKIES|META|body|FILES)\b|\bpatient\w*\.|session\[\s*[''\x22]|^[''\x22]|\s[''\x22]|\bor\s+\d|\belse\s+([''\x22]|\d)'
+                - kind: conditional_expression
+                  regex: '(?-u)request\.(POST|GET|data|json|headers|query_params|COOKIES|META|body|FILES)\b|\bpatient\w*\.|session\[\s*[''\x22]|^[''\x22]|\s[''\x22]|\bor\s+\d|\belse\s+([''\x22]|\d)'
+                - kind: binary_operator
+                  regex: '(?-u)request\.(POST|GET|data|json|headers|query_params|COOKIES|META|body|FILES)\b|\bpatient\w*\.|session\[\s*[''\x22]|^[''\x22]|\s[''\x22]|\bor\s+\d|\belse\s+([''\x22]|\d)'
+        - all:
+          - has: &id018
+              kind: keyword_argument
+              all:
+              - *id001
+              - &id002
+                has:
+                  field: value
+                  any:
+                  - kind: attribute
+                    regex: '^(?:str\()?(?:self\.)?(?:request\.user|request\.auth(?:\.user)?|g\.user|current_user)(?:\.(?:id|pk|user_id|uid|username|staff_id))?\)?(?:\s+if\s+[\s\S]+\s+else\s+None)?$|^getattr\(\s*(?:self\.)?(?:request|g)(?:\.user)?\s*,\s*[''\x22](?:user|id|pk)[''\x22]\s*(?:,\s*None\s*)?\)$|^f[''\x22]\{(?:self\.)?(?:request\.user|request\.auth(?:\.user)?|g\.user|current_user)(?:\.(?:id|pk|user_id|uid|username))?\}[''\x22]$|^session(?:\[\s*[''\x22]user_id[''\x22]\s*\]|\.get\(\s*[''\x22]user_id[''\x22]\s*\))$'
+                  - kind: identifier
+                    regex: '^(?:str\()?(?:self\.)?(?:request\.user|request\.auth(?:\.user)?|g\.user|current_user)(?:\.(?:id|pk|user_id|uid|username|staff_id))?\)?(?:\s+if\s+[\s\S]+\s+else\s+None)?$|^getattr\(\s*(?:self\.)?(?:request|g)(?:\.user)?\s*,\s*[''\x22](?:user|id|pk)[''\x22]\s*(?:,\s*None\s*)?\)$|^f[''\x22]\{(?:self\.)?(?:request\.user|request\.auth(?:\.user)?|g\.user|current_user)(?:\.(?:id|pk|user_id|uid|username))?\}[''\x22]$|^session(?:\[\s*[''\x22]user_id[''\x22]\s*\]|\.get\(\s*[''\x22]user_id[''\x22]\s*\))$'
+                  - kind: call
+                    regex: '^(?:str\()?(?:self\.)?(?:request\.user|request\.auth(?:\.user)?|g\.user|current_user)(?:\.(?:id|pk|user_id|uid|username|staff_id))?\)?(?:\s+if\s+[\s\S]+\s+else\s+None)?$|^getattr\(\s*(?:self\.)?(?:request|g)(?:\.user)?\s*,\s*[''\x22](?:user|id|pk)[''\x22]\s*(?:,\s*None\s*)?\)$|^f[''\x22]\{(?:self\.)?(?:request\.user|request\.auth(?:\.user)?|g\.user|current_user)(?:\.(?:id|pk|user_id|uid|username))?\}[''\x22]$|^session(?:\[\s*[''\x22]user_id[''\x22]\s*\]|\.get\(\s*[''\x22]user_id[''\x22]\s*\))$'
+                  - kind: conditional_expression
+                    regex: '^(?:str\()?(?:self\.)?(?:request\.user|request\.auth(?:\.user)?|g\.user|current_user)(?:\.(?:id|pk|user_id|uid|username|staff_id))?\)?(?:\s+if\s+[\s\S]+\s+else\s+None)?$|^getattr\(\s*(?:self\.)?(?:request|g)(?:\.user)?\s*,\s*[''\x22](?:user|id|pk)[''\x22]\s*(?:,\s*None\s*)?\)$|^f[''\x22]\{(?:self\.)?(?:request\.user|request\.auth(?:\.user)?|g\.user|current_user)(?:\.(?:id|pk|user_id|uid|username))?\}[''\x22]$|^session(?:\[\s*[''\x22]user_id[''\x22]\s*\]|\.get\(\s*[''\x22]user_id[''\x22]\s*\))$'
+                  - kind: string
+                    regex: '^(?:str\()?(?:self\.)?(?:request\.user|request\.auth(?:\.user)?|g\.user|current_user)(?:\.(?:id|pk|user_id|uid|username|staff_id))?\)?(?:\s+if\s+[\s\S]+\s+else\s+None)?$|^getattr\(\s*(?:self\.)?(?:request|g)(?:\.user)?\s*,\s*[''\x22](?:user|id|pk)[''\x22]\s*(?:,\s*None\s*)?\)$|^f[''\x22]\{(?:self\.)?(?:request\.user|request\.auth(?:\.user)?|g\.user|current_user)(?:\.(?:id|pk|user_id|uid|username))?\}[''\x22]$|^session(?:\[\s*[''\x22]user_id[''\x22]\s*\]|\.get\(\s*[''\x22]user_id[''\x22]\s*\))$'
+                  - kind: subscript
+                    regex: '^(?:str\()?(?:self\.)?(?:request\.user|request\.auth(?:\.user)?|g\.user|current_user)(?:\.(?:id|pk|user_id|uid|username|staff_id))?\)?(?:\s+if\s+[\s\S]+\s+else\s+None)?$|^getattr\(\s*(?:self\.)?(?:request|g)(?:\.user)?\s*,\s*[''\x22](?:user|id|pk)[''\x22]\s*(?:,\s*None\s*)?\)$|^f[''\x22]\{(?:self\.)?(?:request\.user|request\.auth(?:\.user)?|g\.user|current_user)(?:\.(?:id|pk|user_id|uid|username))?\}[''\x22]$|^session(?:\[\s*[''\x22]user_id[''\x22]\s*\]|\.get\(\s*[''\x22]user_id[''\x22]\s*\))$'
+          - not:
+              has: &id019
+                kind: keyword_argument
+                all:
+                - *id001
+                - not: *id002
+        - all:
+          - &id020
+            not:
+              has:
+                kind: keyword_argument
+                all:
+                - *id001
+          - any:
+            - has: &id021
+                kind: keyword_argument
+                all:
+                - &id003
+                  has:
+                    field: name
+                    kind: identifier
+                    regex: '(?-u)^(?i:actor|actor_id|actor_user_id|user|user_id|performed_by|changed_by|staff|staff_id|who)$'
+                - *id002
+            - has:
+                kind: keyword_argument
+                all:
+                - *id003
+                - *id004
+  - not:
+      inside:
+        stopBy: end
+        any:
+        - kind: expression_statement
+        - kind: if_statement
+        - kind: with_statement
+        - kind: try_statement
+        all:
+        - any:
+          - follows: &id005
+              any:
+              - kind: expression_statement
+                regex: '(?:^|\s)(?:self\.)?request(?:\.user(?:\.\w+)?|\[\s*[''\x22]user[''\x22]\s*\]|\.__dict__\[\s*[''\x22]user[''\x22]\s*\])?\s*(?:=|\|=)(?:[^=]|$)|vars\(\s*(?:self\.)?request\s*\)\s*\[|(?:self\.)?request\.__dict__\.update\(|object\.__setattr__\(\s*(?:self\.)?request\s*,|setattr\(\s*(?:self\.)?request\s*,\s*[''\x22]user[''\x22]'
+              - kind: if_statement
+                regex: '(?:^|\s)(?:self\.)?request(?:\.user(?:\.\w+)?|\[\s*[''\x22]user[''\x22]\s*\]|\.__dict__\[\s*[''\x22]user[''\x22]\s*\])?\s*(?:=|\|=)(?:[^=]|$)|vars\(\s*(?:self\.)?request\s*\)\s*\[|(?:self\.)?request\.__dict__\.update\(|object\.__setattr__\(\s*(?:self\.)?request\s*,|setattr\(\s*(?:self\.)?request\s*,\s*[''\x22]user[''\x22]'
+              - kind: with_statement
+                regex: '(?:^|\s)(?:self\.)?request(?:\.user(?:\.\w+)?|\[\s*[''\x22]user[''\x22]\s*\]|\.__dict__\[\s*[''\x22]user[''\x22]\s*\])?\s*(?:=|\|=)(?:[^=]|$)|vars\(\s*(?:self\.)?request\s*\)\s*\[|(?:self\.)?request\.__dict__\.update\(|object\.__setattr__\(\s*(?:self\.)?request\s*,|setattr\(\s*(?:self\.)?request\s*,\s*[''\x22]user[''\x22]'
+              - kind: try_statement
+                regex: '(?:^|\s)(?:self\.)?request(?:\.user(?:\.\w+)?|\[\s*[''\x22]user[''\x22]\s*\]|\.__dict__\[\s*[''\x22]user[''\x22]\s*\])?\s*(?:=|\|=)(?:[^=]|$)|vars\(\s*(?:self\.)?request\s*\)\s*\[|(?:self\.)?request\.__dict__\.update\(|object\.__setattr__\(\s*(?:self\.)?request\s*,|setattr\(\s*(?:self\.)?request\s*,\s*[''\x22]user[''\x22]'
+          - follows: &id012
+              any:
+              - &id006
+                kind: expression_statement
+              - &id007
+                kind: if_statement
+              - &id008
+                kind: with_statement
+              - &id009
+                kind: try_statement
+              - &id010
+                kind: comment
+              - &id011
+                kind: return_statement
+              follows: *id005
+          - follows: &id013
+              any:
+              - *id006
+              - *id007
+              - *id008
+              - *id009
+              - *id010
+              - *id011
+              follows: *id012
+          - follows: &id014
+              any:
+              - *id006
+              - *id007
+              - *id008
+              - *id009
+              - *id010
+              - *id011
+              follows: *id013
+          - follows: &id015
+              any:
+              - *id006
+              - *id007
+              - *id008
+              - *id009
+              - *id010
+              - *id011
+              follows: *id014
+          - follows: &id016
+              any:
+              - *id006
+              - *id007
+              - *id008
+              - *id009
+              - *id010
+              - *id011
+              follows: *id015
+          - follows:
+              any:
+              - *id006
+              - *id007
+              - *id008
+              - *id009
+              - *id010
+              - *id011
+              follows: *id016
+control:
+  has:
+    field: arguments
+    kind: argument_list
+    all:
+    - *id017
+    - any:
+      - all:
+        - has: *id018
+        - not:
+            has: *id019
+      - all:
+        - *id020
+        - has: *id021
+min_engine: 0.45.3
+table:
+  metavariable: '$TABLE'
+  access: write
+---
+id: audit-actor-recorded.python-generic.audit-write-actor-save
+practice_id: audit-actor-recorded
+language: python
+frameworks:
+- generic
+kind: items
+rule:
+  all:
+  - pattern: '$TABLE($$$FIELDS).save()'
+  - has:
+      field: function
+      kind: attribute
+      regex: '^(AuditLog|AuditEvent|AccessLog|AuditTrail|ActivityLog|SecurityEvent)\('
+  - has:
+      field: function
+      kind: attribute
+      has:
+        field: object
+        kind: call
+        has:
+          field: arguments
+          kind: argument_list
+          all:
+          - &id017
+            not:
+              has:
+                kind: dictionary_splat
+          - any:
+            - has:
+                kind: keyword_argument
+                all:
+                - &id001
+                  has:
+                    field: name
+                    kind: identifier
+                    regex: '(?-u)^(?i:actor|actor_id|actor_user_id|actor_staff_id|performed_by|changed_by|who)$'
+                - &id004
+                  has:
+                    field: value
+                    any:
+                    - kind: string
+                    - kind: integer
+                    - kind: float
+                    - kind: 'true'
+                    - kind: 'false'
+                    - kind: call
+                      regex: '(?-u)request\.(POST|GET|data|json|headers|query_params|COOKIES|META|body|FILES)\b|\bpatient\w*\.|session\[\s*[''\x22]'
+                    - kind: attribute
+                      regex: '(?-u)request\.(POST|GET|data|json|headers|query_params|COOKIES|META|body|FILES)\b|\bpatient\w*\.|session\[\s*[''\x22]|^[''\x22]|\s[''\x22]|\bor\s+\d|\belse\s+([''\x22]|\d)'
+                    - kind: subscript
+                      regex: '(?-u)request\.(POST|GET|data|json|headers|query_params|COOKIES|META|body|FILES)\b|\bpatient\w*\.|session\[\s*[''\x22]|^[''\x22]|\s[''\x22]|\bor\s+\d|\belse\s+([''\x22]|\d)'
+                    - kind: boolean_operator
+                      regex: '(?-u)request\.(POST|GET|data|json|headers|query_params|COOKIES|META|body|FILES)\b|\bpatient\w*\.|session\[\s*[''\x22]|^[''\x22]|\s[''\x22]|\bor\s+\d|\belse\s+([''\x22]|\d)'
+                    - kind: conditional_expression
+                      regex: '(?-u)request\.(POST|GET|data|json|headers|query_params|COOKIES|META|body|FILES)\b|\bpatient\w*\.|session\[\s*[''\x22]|^[''\x22]|\s[''\x22]|\bor\s+\d|\belse\s+([''\x22]|\d)'
+                    - kind: binary_operator
+                      regex: '(?-u)request\.(POST|GET|data|json|headers|query_params|COOKIES|META|body|FILES)\b|\bpatient\w*\.|session\[\s*[''\x22]|^[''\x22]|\s[''\x22]|\bor\s+\d|\belse\s+([''\x22]|\d)'
+            - all:
+              - has: &id018
+                  kind: keyword_argument
+                  all:
+                  - *id001
+                  - &id002
+                    has:
+                      field: value
+                      any:
+                      - kind: attribute
+                        regex: '^(?:str\()?(?:self\.)?(?:request\.user|request\.auth(?:\.user)?|g\.user|current_user)(?:\.(?:id|pk|user_id|uid|username|staff_id))?\)?(?:\s+if\s+[\s\S]+\s+else\s+None)?$|^getattr\(\s*(?:self\.)?(?:request|g)(?:\.user)?\s*,\s*[''\x22](?:user|id|pk)[''\x22]\s*(?:,\s*None\s*)?\)$|^f[''\x22]\{(?:self\.)?(?:request\.user|request\.auth(?:\.user)?|g\.user|current_user)(?:\.(?:id|pk|user_id|uid|username))?\}[''\x22]$|^session(?:\[\s*[''\x22]user_id[''\x22]\s*\]|\.get\(\s*[''\x22]user_id[''\x22]\s*\))$'
+                      - kind: identifier
+                        regex: '^(?:str\()?(?:self\.)?(?:request\.user|request\.auth(?:\.user)?|g\.user|current_user)(?:\.(?:id|pk|user_id|uid|username|staff_id))?\)?(?:\s+if\s+[\s\S]+\s+else\s+None)?$|^getattr\(\s*(?:self\.)?(?:request|g)(?:\.user)?\s*,\s*[''\x22](?:user|id|pk)[''\x22]\s*(?:,\s*None\s*)?\)$|^f[''\x22]\{(?:self\.)?(?:request\.user|request\.auth(?:\.user)?|g\.user|current_user)(?:\.(?:id|pk|user_id|uid|username))?\}[''\x22]$|^session(?:\[\s*[''\x22]user_id[''\x22]\s*\]|\.get\(\s*[''\x22]user_id[''\x22]\s*\))$'
+                      - kind: call
+                        regex: '^(?:str\()?(?:self\.)?(?:request\.user|request\.auth(?:\.user)?|g\.user|current_user)(?:\.(?:id|pk|user_id|uid|username|staff_id))?\)?(?:\s+if\s+[\s\S]+\s+else\s+None)?$|^getattr\(\s*(?:self\.)?(?:request|g)(?:\.user)?\s*,\s*[''\x22](?:user|id|pk)[''\x22]\s*(?:,\s*None\s*)?\)$|^f[''\x22]\{(?:self\.)?(?:request\.user|request\.auth(?:\.user)?|g\.user|current_user)(?:\.(?:id|pk|user_id|uid|username))?\}[''\x22]$|^session(?:\[\s*[''\x22]user_id[''\x22]\s*\]|\.get\(\s*[''\x22]user_id[''\x22]\s*\))$'
+                      - kind: conditional_expression
+                        regex: '^(?:str\()?(?:self\.)?(?:request\.user|request\.auth(?:\.user)?|g\.user|current_user)(?:\.(?:id|pk|user_id|uid|username|staff_id))?\)?(?:\s+if\s+[\s\S]+\s+else\s+None)?$|^getattr\(\s*(?:self\.)?(?:request|g)(?:\.user)?\s*,\s*[''\x22](?:user|id|pk)[''\x22]\s*(?:,\s*None\s*)?\)$|^f[''\x22]\{(?:self\.)?(?:request\.user|request\.auth(?:\.user)?|g\.user|current_user)(?:\.(?:id|pk|user_id|uid|username))?\}[''\x22]$|^session(?:\[\s*[''\x22]user_id[''\x22]\s*\]|\.get\(\s*[''\x22]user_id[''\x22]\s*\))$'
+                      - kind: string
+                        regex: '^(?:str\()?(?:self\.)?(?:request\.user|request\.auth(?:\.user)?|g\.user|current_user)(?:\.(?:id|pk|user_id|uid|username|staff_id))?\)?(?:\s+if\s+[\s\S]+\s+else\s+None)?$|^getattr\(\s*(?:self\.)?(?:request|g)(?:\.user)?\s*,\s*[''\x22](?:user|id|pk)[''\x22]\s*(?:,\s*None\s*)?\)$|^f[''\x22]\{(?:self\.)?(?:request\.user|request\.auth(?:\.user)?|g\.user|current_user)(?:\.(?:id|pk|user_id|uid|username))?\}[''\x22]$|^session(?:\[\s*[''\x22]user_id[''\x22]\s*\]|\.get\(\s*[''\x22]user_id[''\x22]\s*\))$'
+                      - kind: subscript
+                        regex: '^(?:str\()?(?:self\.)?(?:request\.user|request\.auth(?:\.user)?|g\.user|current_user)(?:\.(?:id|pk|user_id|uid|username|staff_id))?\)?(?:\s+if\s+[\s\S]+\s+else\s+None)?$|^getattr\(\s*(?:self\.)?(?:request|g)(?:\.user)?\s*,\s*[''\x22](?:user|id|pk)[''\x22]\s*(?:,\s*None\s*)?\)$|^f[''\x22]\{(?:self\.)?(?:request\.user|request\.auth(?:\.user)?|g\.user|current_user)(?:\.(?:id|pk|user_id|uid|username))?\}[''\x22]$|^session(?:\[\s*[''\x22]user_id[''\x22]\s*\]|\.get\(\s*[''\x22]user_id[''\x22]\s*\))$'
+              - not:
+                  has: &id019
+                    kind: keyword_argument
+                    all:
+                    - *id001
+                    - not: *id002
+            - all:
+              - &id020
+                not:
+                  has:
+                    kind: keyword_argument
+                    all:
+                    - *id001
+              - any:
+                - has: &id021
+                    kind: keyword_argument
+                    all:
+                    - &id003
+                      has:
+                        field: name
+                        kind: identifier
+                        regex: '(?-u)^(?i:actor|actor_id|actor_user_id|user|user_id|performed_by|changed_by|staff|staff_id|who)$'
+                    - *id002
+                - has:
+                    kind: keyword_argument
+                    all:
+                    - *id003
+                    - *id004
+  - not:
+      inside:
+        stopBy: end
+        any:
+        - kind: expression_statement
+        - kind: if_statement
+        - kind: with_statement
+        - kind: try_statement
+        all:
+        - any:
+          - follows: &id005
+              any:
+              - kind: expression_statement
+                regex: '(?:^|\s)(?:self\.)?request(?:\.user(?:\.\w+)?|\[\s*[''\x22]user[''\x22]\s*\]|\.__dict__\[\s*[''\x22]user[''\x22]\s*\])?\s*(?:=|\|=)(?:[^=]|$)|vars\(\s*(?:self\.)?request\s*\)\s*\[|(?:self\.)?request\.__dict__\.update\(|object\.__setattr__\(\s*(?:self\.)?request\s*,|setattr\(\s*(?:self\.)?request\s*,\s*[''\x22]user[''\x22]'
+              - kind: if_statement
+                regex: '(?:^|\s)(?:self\.)?request(?:\.user(?:\.\w+)?|\[\s*[''\x22]user[''\x22]\s*\]|\.__dict__\[\s*[''\x22]user[''\x22]\s*\])?\s*(?:=|\|=)(?:[^=]|$)|vars\(\s*(?:self\.)?request\s*\)\s*\[|(?:self\.)?request\.__dict__\.update\(|object\.__setattr__\(\s*(?:self\.)?request\s*,|setattr\(\s*(?:self\.)?request\s*,\s*[''\x22]user[''\x22]'
+              - kind: with_statement
+                regex: '(?:^|\s)(?:self\.)?request(?:\.user(?:\.\w+)?|\[\s*[''\x22]user[''\x22]\s*\]|\.__dict__\[\s*[''\x22]user[''\x22]\s*\])?\s*(?:=|\|=)(?:[^=]|$)|vars\(\s*(?:self\.)?request\s*\)\s*\[|(?:self\.)?request\.__dict__\.update\(|object\.__setattr__\(\s*(?:self\.)?request\s*,|setattr\(\s*(?:self\.)?request\s*,\s*[''\x22]user[''\x22]'
+              - kind: try_statement
+                regex: '(?:^|\s)(?:self\.)?request(?:\.user(?:\.\w+)?|\[\s*[''\x22]user[''\x22]\s*\]|\.__dict__\[\s*[''\x22]user[''\x22]\s*\])?\s*(?:=|\|=)(?:[^=]|$)|vars\(\s*(?:self\.)?request\s*\)\s*\[|(?:self\.)?request\.__dict__\.update\(|object\.__setattr__\(\s*(?:self\.)?request\s*,|setattr\(\s*(?:self\.)?request\s*,\s*[''\x22]user[''\x22]'
+          - follows: &id012
+              any:
+              - &id006
+                kind: expression_statement
+              - &id007
+                kind: if_statement
+              - &id008
+                kind: with_statement
+              - &id009
+                kind: try_statement
+              - &id010
+                kind: comment
+              - &id011
+                kind: return_statement
+              follows: *id005
+          - follows: &id013
+              any:
+              - *id006
+              - *id007
+              - *id008
+              - *id009
+              - *id010
+              - *id011
+              follows: *id012
+          - follows: &id014
+              any:
+              - *id006
+              - *id007
+              - *id008
+              - *id009
+              - *id010
+              - *id011
+              follows: *id013
+          - follows: &id015
+              any:
+              - *id006
+              - *id007
+              - *id008
+              - *id009
+              - *id010
+              - *id011
+              follows: *id014
+          - follows: &id016
+              any:
+              - *id006
+              - *id007
+              - *id008
+              - *id009
+              - *id010
+              - *id011
+              follows: *id015
+          - follows:
+              any:
+              - *id006
+              - *id007
+              - *id008
+              - *id009
+              - *id010
+              - *id011
+              follows: *id016
+control:
+  has:
+    field: function
+    kind: attribute
+    has:
+      field: object
+      kind: call
+      has:
+        field: arguments
+        kind: argument_list
+        all:
+        - *id017
+        - any:
+          - all:
+            - has: *id018
+            - not:
+                has: *id019
+          - all:
+            - *id020
+            - has: *id021
+min_engine: 0.45.3
+table:
+  metavariable: '$TABLE'
+  access: write
+---
+id: audit-actor-recorded.python-generic.audit-write-actor-bulk
+practice_id: audit-actor-recorded
+language: python
+frameworks:
+- generic
+kind: items
+rule:
+  all:
+  - pattern: '$TABLE.objects.bulk_create($$$ITEMS)'
+  - has:
+      field: function
+      kind: attribute
+      regex: '^(AuditLog|AuditEvent|AccessLog|AuditTrail|ActivityLog|SecurityEvent)\.objects\.bulk_create$'
+  - has:
+      field: arguments
+      kind: argument_list
+      has:
+        kind: list
+        any:
+        - has:
+            kind: call
+            has:
+              field: arguments
+              kind: argument_list
+              all:
+              - &id005
+                not:
+                  has:
+                    kind: dictionary_splat
+              - any:
+                - has:
+                    kind: keyword_argument
+                    all:
+                    - &id001
+                      has:
+                        field: name
+                        kind: identifier
+                        regex: '(?-u)^(?i:actor|actor_id|actor_user_id|actor_staff_id|performed_by|changed_by|who)$'
+                    - &id004
+                      has:
+                        field: value
+                        any:
+                        - kind: string
+                        - kind: integer
+                        - kind: float
+                        - kind: 'true'
+                        - kind: 'false'
+                        - kind: call
+                          regex: '(?-u)request\.(POST|GET|data|json|headers|query_params|COOKIES|META|body|FILES)\b|\bpatient\w*\.|session\[\s*[''\x22]'
+                        - kind: attribute
+                          regex: '(?-u)request\.(POST|GET|data|json|headers|query_params|COOKIES|META|body|FILES)\b|\bpatient\w*\.|session\[\s*[''\x22]|^[''\x22]|\s[''\x22]|\bor\s+\d|\belse\s+([''\x22]|\d)'
+                        - kind: subscript
+                          regex: '(?-u)request\.(POST|GET|data|json|headers|query_params|COOKIES|META|body|FILES)\b|\bpatient\w*\.|session\[\s*[''\x22]|^[''\x22]|\s[''\x22]|\bor\s+\d|\belse\s+([''\x22]|\d)'
+                        - kind: boolean_operator
+                          regex: '(?-u)request\.(POST|GET|data|json|headers|query_params|COOKIES|META|body|FILES)\b|\bpatient\w*\.|session\[\s*[''\x22]|^[''\x22]|\s[''\x22]|\bor\s+\d|\belse\s+([''\x22]|\d)'
+                        - kind: conditional_expression
+                          regex: '(?-u)request\.(POST|GET|data|json|headers|query_params|COOKIES|META|body|FILES)\b|\bpatient\w*\.|session\[\s*[''\x22]|^[''\x22]|\s[''\x22]|\bor\s+\d|\belse\s+([''\x22]|\d)'
+                        - kind: binary_operator
+                          regex: '(?-u)request\.(POST|GET|data|json|headers|query_params|COOKIES|META|body|FILES)\b|\bpatient\w*\.|session\[\s*[''\x22]|^[''\x22]|\s[''\x22]|\bor\s+\d|\belse\s+([''\x22]|\d)'
+                - all:
+                  - has: &id006
+                      kind: keyword_argument
+                      all:
+                      - *id001
+                      - &id002
+                        has:
+                          field: value
+                          any:
+                          - kind: attribute
+                            regex: '^(?:str\()?(?:self\.)?(?:request\.user|request\.auth(?:\.user)?|g\.user|current_user)(?:\.(?:id|pk|user_id|uid|username|staff_id))?\)?(?:\s+if\s+[\s\S]+\s+else\s+None)?$|^getattr\(\s*(?:self\.)?(?:request|g)(?:\.user)?\s*,\s*[''\x22](?:user|id|pk)[''\x22]\s*(?:,\s*None\s*)?\)$|^f[''\x22]\{(?:self\.)?(?:request\.user|request\.auth(?:\.user)?|g\.user|current_user)(?:\.(?:id|pk|user_id|uid|username))?\}[''\x22]$|^session(?:\[\s*[''\x22]user_id[''\x22]\s*\]|\.get\(\s*[''\x22]user_id[''\x22]\s*\))$'
+                          - kind: identifier
+                            regex: '^(?:str\()?(?:self\.)?(?:request\.user|request\.auth(?:\.user)?|g\.user|current_user)(?:\.(?:id|pk|user_id|uid|username|staff_id))?\)?(?:\s+if\s+[\s\S]+\s+else\s+None)?$|^getattr\(\s*(?:self\.)?(?:request|g)(?:\.user)?\s*,\s*[''\x22](?:user|id|pk)[''\x22]\s*(?:,\s*None\s*)?\)$|^f[''\x22]\{(?:self\.)?(?:request\.user|request\.auth(?:\.user)?|g\.user|current_user)(?:\.(?:id|pk|user_id|uid|username))?\}[''\x22]$|^session(?:\[\s*[''\x22]user_id[''\x22]\s*\]|\.get\(\s*[''\x22]user_id[''\x22]\s*\))$'
+                          - kind: call
+                            regex: '^(?:str\()?(?:self\.)?(?:request\.user|request\.auth(?:\.user)?|g\.user|current_user)(?:\.(?:id|pk|user_id|uid|username|staff_id))?\)?(?:\s+if\s+[\s\S]+\s+else\s+None)?$|^getattr\(\s*(?:self\.)?(?:request|g)(?:\.user)?\s*,\s*[''\x22](?:user|id|pk)[''\x22]\s*(?:,\s*None\s*)?\)$|^f[''\x22]\{(?:self\.)?(?:request\.user|request\.auth(?:\.user)?|g\.user|current_user)(?:\.(?:id|pk|user_id|uid|username))?\}[''\x22]$|^session(?:\[\s*[''\x22]user_id[''\x22]\s*\]|\.get\(\s*[''\x22]user_id[''\x22]\s*\))$'
+                          - kind: conditional_expression
+                            regex: '^(?:str\()?(?:self\.)?(?:request\.user|request\.auth(?:\.user)?|g\.user|current_user)(?:\.(?:id|pk|user_id|uid|username|staff_id))?\)?(?:\s+if\s+[\s\S]+\s+else\s+None)?$|^getattr\(\s*(?:self\.)?(?:request|g)(?:\.user)?\s*,\s*[''\x22](?:user|id|pk)[''\x22]\s*(?:,\s*None\s*)?\)$|^f[''\x22]\{(?:self\.)?(?:request\.user|request\.auth(?:\.user)?|g\.user|current_user)(?:\.(?:id|pk|user_id|uid|username))?\}[''\x22]$|^session(?:\[\s*[''\x22]user_id[''\x22]\s*\]|\.get\(\s*[''\x22]user_id[''\x22]\s*\))$'
+                          - kind: string
+                            regex: '^(?:str\()?(?:self\.)?(?:request\.user|request\.auth(?:\.user)?|g\.user|current_user)(?:\.(?:id|pk|user_id|uid|username|staff_id))?\)?(?:\s+if\s+[\s\S]+\s+else\s+None)?$|^getattr\(\s*(?:self\.)?(?:request|g)(?:\.user)?\s*,\s*[''\x22](?:user|id|pk)[''\x22]\s*(?:,\s*None\s*)?\)$|^f[''\x22]\{(?:self\.)?(?:request\.user|request\.auth(?:\.user)?|g\.user|current_user)(?:\.(?:id|pk|user_id|uid|username))?\}[''\x22]$|^session(?:\[\s*[''\x22]user_id[''\x22]\s*\]|\.get\(\s*[''\x22]user_id[''\x22]\s*\))$'
+                          - kind: subscript
+                            regex: '^(?:str\()?(?:self\.)?(?:request\.user|request\.auth(?:\.user)?|g\.user|current_user)(?:\.(?:id|pk|user_id|uid|username|staff_id))?\)?(?:\s+if\s+[\s\S]+\s+else\s+None)?$|^getattr\(\s*(?:self\.)?(?:request|g)(?:\.user)?\s*,\s*[''\x22](?:user|id|pk)[''\x22]\s*(?:,\s*None\s*)?\)$|^f[''\x22]\{(?:self\.)?(?:request\.user|request\.auth(?:\.user)?|g\.user|current_user)(?:\.(?:id|pk|user_id|uid|username))?\}[''\x22]$|^session(?:\[\s*[''\x22]user_id[''\x22]\s*\]|\.get\(\s*[''\x22]user_id[''\x22]\s*\))$'
+                  - not:
+                      has: &id007
+                        kind: keyword_argument
+                        all:
+                        - *id001
+                        - not: *id002
+                - all:
+                  - &id008
+                    not:
+                      has:
+                        kind: keyword_argument
+                        all:
+                        - *id001
+                  - any:
+                    - has: &id009
+                        kind: keyword_argument
+                        all:
+                        - &id003
+                          has:
+                            field: name
+                            kind: identifier
+                            regex: '(?-u)^(?i:actor|actor_id|actor_user_id|user|user_id|performed_by|changed_by|staff|staff_id|who)$'
+                        - *id002
+                    - has:
+                        kind: keyword_argument
+                        all:
+                        - *id003
+                        - *id004
+        - all:
+          - has:
+              kind: call
+          - not:
+              has:
+                kind: call
+                not:
+                  has:
+                    field: arguments
+                    kind: argument_list
+                    all:
+                    - *id005
+                    - &id022
+                      any:
+                      - all:
+                        - has: *id006
+                        - not:
+                            has: *id007
+                      - all:
+                        - *id008
+                        - has: *id009
+  - not:
+      inside:
+        stopBy: end
+        any:
+        - kind: expression_statement
+        - kind: if_statement
+        - kind: with_statement
+        - kind: try_statement
+        all:
+        - any:
+          - follows: &id010
+              any:
+              - kind: expression_statement
+                regex: '(?:^|\s)(?:self\.)?request(?:\.user(?:\.\w+)?|\[\s*[''\x22]user[''\x22]\s*\]|\.__dict__\[\s*[''\x22]user[''\x22]\s*\])?\s*(?:=|\|=)(?:[^=]|$)|vars\(\s*(?:self\.)?request\s*\)\s*\[|(?:self\.)?request\.__dict__\.update\(|object\.__setattr__\(\s*(?:self\.)?request\s*,|setattr\(\s*(?:self\.)?request\s*,\s*[''\x22]user[''\x22]'
+              - kind: if_statement
+                regex: '(?:^|\s)(?:self\.)?request(?:\.user(?:\.\w+)?|\[\s*[''\x22]user[''\x22]\s*\]|\.__dict__\[\s*[''\x22]user[''\x22]\s*\])?\s*(?:=|\|=)(?:[^=]|$)|vars\(\s*(?:self\.)?request\s*\)\s*\[|(?:self\.)?request\.__dict__\.update\(|object\.__setattr__\(\s*(?:self\.)?request\s*,|setattr\(\s*(?:self\.)?request\s*,\s*[''\x22]user[''\x22]'
+              - kind: with_statement
+                regex: '(?:^|\s)(?:self\.)?request(?:\.user(?:\.\w+)?|\[\s*[''\x22]user[''\x22]\s*\]|\.__dict__\[\s*[''\x22]user[''\x22]\s*\])?\s*(?:=|\|=)(?:[^=]|$)|vars\(\s*(?:self\.)?request\s*\)\s*\[|(?:self\.)?request\.__dict__\.update\(|object\.__setattr__\(\s*(?:self\.)?request\s*,|setattr\(\s*(?:self\.)?request\s*,\s*[''\x22]user[''\x22]'
+              - kind: try_statement
+                regex: '(?:^|\s)(?:self\.)?request(?:\.user(?:\.\w+)?|\[\s*[''\x22]user[''\x22]\s*\]|\.__dict__\[\s*[''\x22]user[''\x22]\s*\])?\s*(?:=|\|=)(?:[^=]|$)|vars\(\s*(?:self\.)?request\s*\)\s*\[|(?:self\.)?request\.__dict__\.update\(|object\.__setattr__\(\s*(?:self\.)?request\s*,|setattr\(\s*(?:self\.)?request\s*,\s*[''\x22]user[''\x22]'
+          - follows: &id017
+              any:
+              - &id011
+                kind: expression_statement
+              - &id012
+                kind: if_statement
+              - &id013
+                kind: with_statement
+              - &id014
+                kind: try_statement
+              - &id015
+                kind: comment
+              - &id016
+                kind: return_statement
+              follows: *id010
+          - follows: &id018
+              any:
+              - *id011
+              - *id012
+              - *id013
+              - *id014
+              - *id015
+              - *id016
+              follows: *id017
+          - follows: &id019
+              any:
+              - *id011
+              - *id012
+              - *id013
+              - *id014
+              - *id015
+              - *id016
+              follows: *id018
+          - follows: &id020
+              any:
+              - *id011
+              - *id012
+              - *id013
+              - *id014
+              - *id015
+              - *id016
+              follows: *id019
+          - follows: &id021
+              any:
+              - *id011
+              - *id012
+              - *id013
+              - *id014
+              - *id015
+              - *id016
+              follows: *id020
+          - follows:
+              any:
+              - *id011
+              - *id012
+              - *id013
+              - *id014
+              - *id015
+              - *id016
+              follows: *id021
+control:
+  has:
+    field: arguments
+    kind: argument_list
+    has:
+      kind: list
+      all:
+      - has:
+          kind: call
+      - not:
+          has:
+            kind: call
+            not:
+              has:
+                field: arguments
+                kind: argument_list
+                all:
+                - *id005
+                - *id022
+min_engine: 0.45.3
+table:
+  metavariable: '$TABLE'
+  access: write

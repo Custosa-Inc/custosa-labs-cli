@@ -1,0 +1,29 @@
+id: auth-session-revocation.python-django.signout-server
+practice_id: auth-session-revocation
+language: python
+frameworks:
+- django
+kind: evidence
+rule:
+  any:
+  - kind: call
+    regex: ^(auth_)?logout\(\s*request\s*\)$|^auth\.logout\(\s*request\s*\)$|^django_logout\(
+  - kind: call
+    regex: ^request\.session\.flush\(\)$
+  - kind: call
+    regex: \.blacklist\(\)$
+min_engine: 0.39.0
+---
+id: auth-session-revocation.python-django.revoke-all
+practice_id: auth-session-revocation
+language: python
+frameworks:
+- django
+kind: evidence
+rule:
+  any:
+  - kind: call
+    regex: ^(Session|UserSession|Token)\.objects\.filter\(\s*user(_id)?\s*=\s*[A-Za-z0-9_.]+\s*\)\.delete\(\)$
+  - kind: call
+    regex: \.session_set\.all\(\)\.delete\(\)$
+min_engine: 0.39.0

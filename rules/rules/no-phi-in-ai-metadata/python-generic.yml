@@ -1,0 +1,101 @@
+id: no-phi-in-ai-metadata.python-generic.metadata-phi
+practice_id: no-phi-in-ai-metadata
+language: python
+frameworks:
+- generic
+kind: violation
+rule:
+  all:
+  - kind: keyword_argument
+  - has:
+      field: name
+      kind: identifier
+      regex: '^(user|safety_identifier|metadata|prompt_cache_key|tags|labels)$'
+  - has:
+      field: value
+      any:
+      - kind: attribute
+        regex: '\.(name|first_name|last_name|full_name|email|phone|dob|date_of_birth|birth_date|ssn|mrn|diagnosis|address)$'
+      - kind: string
+        has:
+          kind: interpolation
+      - has:
+          stopBy: end
+          any:
+          - kind: attribute
+            regex: '\.(name|first_name|last_name|full_name|email|phone|dob|date_of_birth|birth_date|ssn|mrn|diagnosis|address)$'
+          - kind: string
+            has:
+              kind: interpolation
+          - all:
+            - kind: pair
+            - has:
+                field: key
+                kind: string
+                regex: '^[''"](?i:patient_?name|name|full_?name|first_?name|last_?name|email|dob|date_?of_?birth|birth_?date|mrn|ssn|phone|diagnosis|address)[''"]$'
+  - inside:
+      kind: argument_list
+      inside:
+        kind: call
+        has:
+          field: function
+          kind: attribute
+          regex: '\.(responses\.(create|stream|parse)|chat\.completions\.(create|stream|parse)|messages\.(create|stream)|batches\.create|generate_content)$'
+min_engine: 0.45.3
+---
+id: no-phi-in-ai-metadata.python-generic.dynamic-schema
+practice_id: no-phi-in-ai-metadata
+language: python
+frameworks:
+- generic
+kind: violation
+rule:
+  all:
+  - kind: string
+  - has:
+      kind: interpolation
+  - inside:
+      stopBy: end
+      kind: keyword_argument
+      has:
+        field: name
+        kind: identifier
+        regex: '^(tools|functions|response_format|tool_choice|text)$'
+  - inside:
+      stopBy: end
+      kind: call
+      has:
+        field: function
+        kind: attribute
+        regex: '\.(responses\.(create|stream|parse)|chat\.completions\.(create|stream|parse)|messages\.(create|stream))$'
+min_engine: 0.45.3
+---
+id: no-phi-in-ai-metadata.python-generic.caller-tools
+practice_id: no-phi-in-ai-metadata
+language: python
+frameworks:
+- generic
+kind: violation
+rule:
+  all:
+  - kind: keyword_argument
+  - has:
+      field: name
+      kind: identifier
+      regex: '^(tools|functions)$'
+  - has:
+      field: value
+      any:
+      - kind: subscript
+        regex: '^(request\.json|request\.data|body|payload|data)\[\s*[''"](tools|functions)[''"]\s*\]$'
+      - kind: attribute
+        regex: '^(body|payload|request_body)\.(tools|functions)$'
+  - inside:
+      kind: argument_list
+      inside:
+        kind: call
+        has:
+          field: function
+          kind: attribute
+          regex: '\.(responses\.(create|stream|parse)|chat\.completions\.(create|stream|parse)|messages\.(create|stream))$'
+min_engine: 0.45.3

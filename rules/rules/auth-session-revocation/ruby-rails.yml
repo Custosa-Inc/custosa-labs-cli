@@ -1,0 +1,24 @@
+id: auth-session-revocation.ruby-rails.signout-server
+practice_id: auth-session-revocation
+language: ruby
+frameworks:
+- rails
+kind: evidence
+rule:
+  any:
+  - kind: identifier
+    regex: ^reset_session$
+  - kind: call
+    regex: ^(reset_session|sign_out(_all_scopes)?\b|session\.delete\(:user_id\))
+min_engine: 0.39.0
+---
+id: auth-session-revocation.ruby-rails.revoke-all
+practice_id: auth-session-revocation
+language: ruby
+frameworks:
+- rails
+kind: evidence
+rule:
+  kind: call
+  regex: \.(sessions|user_sessions|tokens|access_tokens|refresh_tokens)\.(destroy_all|delete_all)$|\.invalidate_all_sessions!
+min_engine: 0.39.0

@@ -1,0 +1,11 @@
+{
+ "id": "/subscriptions/00000000-0000-0000-0000-00000000aaaa/resourceGroups/clinic-rg/providers/Microsoft.OperationalInsights/workspaces/clinic-logs",
+ "name": "clinic-logs",
+ "properties": {
+  "customerId": "00000000-0000-0000-0000-00000000bbbb",
+  "retentionInDays": 90,
+  "sku": {
+   "name": "PerGB2018"
+  }
+ }
+}

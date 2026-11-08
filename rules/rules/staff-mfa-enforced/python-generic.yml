@@ -1,0 +1,52 @@
+# Framework-free Python sign-in (T23 B47): a function that checks a password (check_password, verify_password,
+# checkpw, check_password_hash, a passlib or argon2 verify) and starts a session (login_user, a session[...] write,
+# set_cookie, create_session), one item each. The control is python-django's: an OTP or WebAuthn verify on that path,
+# not inside an if on an "MFA enabled" flag. MFA on one sign-in path says nothing of another. A repository whose
+# sign-in lives outside its code has no item here, and the practice reads needs_review, never not_applicable.
+id: staff-mfa-enforced.python-generic.sign-in
+practice_id: staff-mfa-enforced
+language: python
+frameworks:
+- generic
+kind: items
+rule:
+  all:
+  - kind: function_definition
+  - has:
+      stopBy: end
+      kind: call
+      regex: ^([0-9A-Za-z_]+\.)*(check_password|verify_password|checkpw|check_password_hash)\(|^(pbkdf2_sha256|bcrypt_sha256|sha256_crypt|sha512_crypt|argon2|pwd_context|pwd_ctx|password_hasher)\.verify\(|PasswordHasher\(\)\.verify\(
+  - has:
+      stopBy: end
+      any:
+      - kind: call
+        regex: ^([0-9A-Za-z_]+\.)?login_user\(|\.set_cookie\(|^([0-9A-Za-z_]+\.)?(create|start|new)_session\(
+      - kind: assignment
+        has:
+          field: left
+          kind: subscript
+          regex: ^([0-9A-Za-z_]+\.)?session\[
+control:
+  has:
+    stopBy: end
+    all:
+    - kind: call
+      regex: (?i)(verify_token|match_token|verify_totp|verify_otp|totp\.verify|TOTP\([^)]*\)\.verify|pyotp|otp_login|devices_for_user|verify_authentication_response)
+    - not:
+        inside:
+          stopBy: end
+          kind: if_statement
+          has:
+            field: condition
+            any:
+            - kind: attribute
+              regex: (?i)^\(\s*!?\s*[A-Za-z0-9_.?]*\.(otp|totp|mfaCode|mfa_code|code)\s*\)$|(mfa|otp|totp|two_?factor|2fa|tfa)_?(enabled|enrolled|active|registered|configured)|(mfa|otp|two_?factor)_?required_?for_?login|is_?mfa_?required|mfa_?required|requires_?mfa|nextLevel|has_?mfa|factors\.(length|totp)|mfa_?types|\$this->types
+            - kind: call
+              regex: (?i)^\(\s*!?\s*[A-Za-z0-9_.?]*\.(otp|totp|mfaCode|mfa_code|code)\s*\)$|(mfa|otp|totp|two_?factor|2fa|tfa)_?(enabled|enrolled|active|registered|configured)|(mfa|otp|two_?factor)_?required_?for_?login|is_?mfa_?required|mfa_?required|requires_?mfa|nextLevel|has_?mfa|factors\.(length|totp)|mfa_?types|\$this->types
+            - kind: identifier
+              regex: (?i)^\(\s*!?\s*[A-Za-z0-9_.?]*\.(otp|totp|mfaCode|mfa_code|code)\s*\)$|(mfa|otp|totp|two_?factor|2fa|tfa)_?(enabled|enrolled|active|registered|configured)|(mfa|otp|two_?factor)_?required_?for_?login|is_?mfa_?required|mfa_?required|requires_?mfa|nextLevel|has_?mfa|factors\.(length|totp)|mfa_?types|\$this->types
+            - kind: boolean_operator
+              regex: (?i)^\(\s*!?\s*[A-Za-z0-9_.?]*\.(otp|totp|mfaCode|mfa_code|code)\s*\)$|(mfa|otp|totp|two_?factor|2fa|tfa)_?(enabled|enrolled|active|registered|configured)|(mfa|otp|two_?factor)_?required_?for_?login|is_?mfa_?required|mfa_?required|requires_?mfa|nextLevel|has_?mfa|factors\.(length|totp)|mfa_?types|\$this->types
+            - kind: comparison_operator
+              regex: (?i)^\(\s*!?\s*[A-Za-z0-9_.?]*\.(otp|totp|mfaCode|mfa_code|code)\s*\)$|(mfa|otp|totp|two_?factor|2fa|tfa)_?(enabled|enrolled|active|registered|configured)|(mfa|otp|two_?factor)_?required_?for_?login|is_?mfa_?required|mfa_?required|requires_?mfa|nextLevel|has_?mfa|factors\.(length|totp)|mfa_?types|\$this->types
+min_engine: 0.39.0

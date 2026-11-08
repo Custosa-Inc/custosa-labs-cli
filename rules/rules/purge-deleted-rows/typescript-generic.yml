@@ -1,0 +1,160 @@
+id: purge-deleted-rows.typescript-generic.soft-delete
+practice_id: purge-deleted-rows
+language: typescript
+frameworks:
+- generic
+kind: items
+rule:
+  any:
+  - all:
+    - pattern: $P.$TABLE.update($$$ARGS)
+    - has:
+        field: arguments
+        kind: arguments
+        regex: \bdata\s*:\s*\{[^}]*\b(deleted_?[aA]t|is_?[dD]eleted|deleted|isDeleted|deletedAt|discarded_?[aA]t|archived_?[aA]t)\s*:\s*(new Date|Date\.now|true|now\(|sql`now|new Date\(\))
+  - all:
+    - pattern: $P.$TABLE.updateMany($$$ARGS)
+    - has:
+        field: arguments
+        kind: arguments
+        regex: \bdata\s*:\s*\{[^}]*\b(deleted_?[aA]t|is_?[dD]eleted|deleted|isDeleted|deletedAt|discarded_?[aA]t|archived_?[aA]t)\s*:\s*(new Date|Date\.now|true|now\()
+  - all:
+    - pattern: $DB.update($TABLE).set($VALUES)
+    - has:
+        field: arguments
+        kind: arguments
+        regex: \b(deleted_?[aA]t|is_?[dD]eleted|deleted|isDeleted|deletedAt|discarded_?[aA]t|archived_?[aA]t)\s*:\s*(new Date|Date\.now|true|sql`now)
+  - all:
+    - pattern: $C.from($TABLE).update($VALUES)
+    - has:
+        field: arguments
+        kind: arguments
+        regex: \b['\"]?(deleted_?[aA]t|is_?[dD]eleted|deleted|isDeleted|deletedAt|discarded_?[aA]t|archived_?[aA]t)['\"]?\s*:\s*(new Date|Date\.now|true)
+control:
+  all:
+  - any:
+    - pattern: $Q.$T.update($$$A)
+    - pattern: $Q.$T.updateMany($$$A)
+  - inside:
+      stopBy: end
+      kind: program
+      has:
+        stopBy: end
+        all:
+        - pattern: $R.$T.deleteMany($$$B)
+        - kind: call_expression
+          regex: '\.deleteMany\(\s*\{\s*where\s*:\s*\{[^{}]*\b(deleted_?[aA]t|deletedAt)\s*:\s*\{\s*(lt|lte)\s*:'
+        - not:
+            kind: call_expression
+            regex: new Date\(\s*0?\s*\)|new Date\(\s*['\"`]\d{4}|['\"`]\d{4}-\d\d-\d\d
+table:
+  metavariable: $TABLE
+  access: write
+min_engine: 0.39.0
+---
+id: purge-deleted-rows.typescript-generic.soft-delete-model
+practice_id: purge-deleted-rows
+language: typescript
+frameworks:
+- generic
+kind: items
+rule:
+  any:
+  - kind: decorator
+    regex: ^@DeleteDateColumn\b
+  - kind: pair
+    regex: ^paranoid\s*:\s*true$
+  - kind: call_expression
+    regex: ^(await\s+)?(this\.)?[\w.]+\.(softDelete|softRemove)\(
+control:
+  inside:
+    stopBy: end
+    any:
+    - kind: class_declaration
+      regex: \.(delete|destroy)\w*\([\s\S]*(deleted_?[aA]t|deletedAt)[\s\S]*(LessThan|Op\.lt)\(
+    - kind: class
+      regex: \.(delete|destroy)\w*\([\s\S]*(deleted_?[aA]t|deletedAt)[\s\S]*(LessThan|Op\.lt)\(
+min_engine: 0.39.0
+---
+id: purge-deleted-rows.typescript-generic.purge-soft-deleted
+practice_id: purge-deleted-rows
+language: typescript
+frameworks:
+- generic
+kind: evidence
+rule:
+  all:
+  - pattern: $P.$TABLE.deleteMany($$$ARGS)
+  - kind: call_expression
+    regex: '\.deleteMany\(\s*\{\s*where\s*:\s*\{[^{}]*\b(deleted_?[aA]t|deletedAt)\s*:\s*\{\s*(lt|lte)\s*:'
+  - not:
+      kind: call_expression
+      regex: new Date\(\s*0?\s*\)|new Date\(\s*['\"`]\d{4}|['\"`]\d{4}-\d\d-\d\d
+  - not:
+      kind: call_expression
+      regex: (?i)^[\w.]*audit
+table:
+  metavariable: $TABLE
+  access: write
+min_engine: 0.39.0
+---
+id: purge-deleted-rows.typescript-generic.purge-soft-deleted-sql
+practice_id: purge-deleted-rows
+language: typescript
+frameworks:
+- generic
+kind: evidence
+rule:
+  any:
+  - all:
+    - kind: string
+      regex: (?i)delete\s+from\s+[\w.\"]+\s+where\s+[\w.\"]*deleted_?at\s*(<|<=)\s*(now\(\)|current_(date|timestamp)|\$\d|\?|:\w+)
+    - not:
+        kind: string
+        regex: (?i)delete\s+from\s+[\w.\"]*audit
+  - all:
+    - kind: template_string
+      regex: (?i)delete\s+from\s+[\w.\"]+\s+where\s+[\w.\"]*deleted_?at\s*(<|<=)\s*(now\(\)|current_(date|timestamp)|\$\d|\?|:\w+)
+    - not:
+        kind: template_string
+        regex: (?i)delete\s+from\s+[\w.\"]*audit
+  - kind: call_expression
+    regex: \.delete\(\)[\s\S]*\.(lt|lte)\(\s*['\"]deleted_at['\"]\s*,\s*[A-Za-z_]
+min_engine: 0.39.0
+---
+id: purge-deleted-rows.typescript-generic.purge-history
+practice_id: purge-deleted-rows
+language: typescript
+frameworks:
+- generic
+kind: evidence
+rule:
+  any:
+  - all:
+    - kind: call_expression
+      regex: '^(await\s+)?[\w.]*\.\w*(History|Histories|Version|Versions|history|versions)\w*\.deleteMany\(\s*\{\s*where\s*:'
+    - not:
+        kind: call_expression
+        regex: (?i)audit
+    - not:
+        kind: call_expression
+        regex: where\s*:\s*\{\s*id\s*(:\s*[^,{}]+)?\s*\}
+  - all:
+    - kind: string
+      regex: (?i)delete\s+from\s+[\w.\"]*(_history|_versions?|_revisions|history_\w+)\b\s+where\b
+    - not:
+        kind: string
+        regex: (?i)delete\s+from\s+[\w.\"]*audit
+    - not:
+        kind: string
+        regex: (?i)(?-u:\b)where\s+[\w.\"]*(?-u:\b)id\"?\s*=\s*[^\s\'\"`]+\s*[\'\"`]$
+  - all:
+    - kind: template_string
+      regex: (?i)delete\s+from\s+[\w.\"]*(_history|_versions?|_revisions|history_\w+)\b\s+where\b
+    - not:
+        kind: template_string
+        regex: (?i)delete\s+from\s+[\w.\"]*audit
+    - not:
+        kind: template_string
+        regex: (?i)(?-u:\b)where\s+[\w.\"]*(?-u:\b)id\"?\s*=\s*[^\s\'\"`]+\s*[\'\"`]$
+min_engine: 0.39.0

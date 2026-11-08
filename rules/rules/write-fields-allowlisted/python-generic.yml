@@ -1,0 +1,319 @@
+id: write-fields-allowlisted.python-generic.denylist
+practice_id: write-fields-allowlisted
+language: python
+frameworks:
+- generic
+kind: violation
+rule:
+  any:
+  - all:
+    - kind: call
+    - has:
+        field: function
+        kind: attribute
+        all:
+        - has:
+            field: attribute
+            kind: identifier
+            regex: ^pop$
+        - has:
+            field: object
+            any:
+            - kind: identifier
+              regex: (?i)^(vals|values|vlist|data|payload|body|params|fields|attrs|validated_data|cleaned_data|update|updates|changes|record|row|item|input|form|form_data|json_data|request_data|\w+_data|\w+_vals|\w+_values|\w+_payload)$
+            - kind: attribute
+              regex: ^(self\.)?request\.(data|POST|json|form)$
+            - kind: subscript
+              regex: ^(vals|values|vlist|data)\[
+    - has:
+        field: arguments
+        has:
+          kind: string
+  - all:
+    - kind: delete_statement
+    - has:
+        kind: subscript
+        all:
+        - has:
+            field: value
+            any:
+            - kind: identifier
+              regex: (?i)^(vals|values|vlist|data|payload|body|params|fields|attrs|validated_data|cleaned_data|update|updates|changes|record|row|item|input|form|form_data|json_data|request_data|\w+_data|\w+_vals|\w+_values|\w+_payload)$
+            - kind: subscript
+              regex: ^(vals|values|vlist|data)\[
+        - has:
+            field: subscript
+            kind: string
+  - kind: dictionary_comprehension
+    regex: (?s)for\s+\w+\s*,\s*\w+\s+in\s+.*\.items\(\).*\bif\s+\w+\s+not\s+in\b
+min_engine: 0.39.0
+---
+id: write-fields-allowlisted.python-generic.spread-request
+practice_id: write-fields-allowlisted
+language: python
+frameworks:
+- generic
+kind: violation
+rule:
+  all:
+  - kind: dictionary_splat
+  - has:
+      any:
+      - kind: attribute
+        regex: ^(await\s+)?(self\.)?request\.(data|POST|GET|json|form|values|args|get_json\(\)|json\(\)|form\(\)|body)
+      - kind: call
+        regex: ^(await\s+)?(self\.)?request\.(data|POST|GET|json|form|values|args|get_json\(\)|json\(\)|form\(\)|body)
+      - kind: await
+        regex: ^(await\s+)?(self\.)?request\.(data|POST|GET|json|form|values|args|get_json\(\)|json\(\)|form\(\)|body)
+      - kind: subscript
+        regex: ^(await\s+)?(self\.)?request\.(data|POST|GET|json|form|values|args|get_json\(\)|json\(\)|form\(\)|body)
+min_engine: 0.39.0
+---
+id: write-fields-allowlisted.python-generic.setattr-loop
+practice_id: write-fields-allowlisted
+language: python
+frameworks:
+- generic
+kind: violation
+rule:
+  all:
+  - kind: for_statement
+  - has:
+      field: right
+      kind: call
+      regex: \.items\(\)$
+  - has:
+      field: body
+      stopBy: end
+      kind: call
+      regex: ^setattr\(
+min_engine: 0.39.0
+---
+id: write-fields-allowlisted.python-generic.identity-from-request
+practice_id: write-fields-allowlisted
+language: python
+frameworks:
+- generic
+kind: violation
+rule:
+  all:
+  - kind: keyword_argument
+  - has:
+      field: name
+      kind: identifier
+      regex: (?i)^(user|user_?id|owner|owner_?id|tenant|tenant_?id|org|org_?id|organi[sz]ation|organi[sz]ation_?id|account_?id|clinic|clinic_?id|practice_?id|provider_?id|created_?by|updated_?by|author|author_?id|role|roles|role_?id|is_?admin|is_?staff|is_?superuser|health_?prof(essional)?|healthprof|signed_?by|physician|doctor)$
+  - has:
+      field: value
+      any:
+      - kind: attribute
+        regex: ^(await\s+)?(self\.)?request\.(data|POST|GET|json|form|values|args|get_json\(\)|json\(\)|form\(\)|body)
+      - kind: subscript
+        regex: ^(await\s+)?(self\.)?request\.(data|POST|GET|json|form|values|args|get_json\(\)|json\(\)|form\(\)|body)
+      - kind: call
+        regex: ^(await\s+)?(self\.)?request\.(data|POST|GET|json|form|values|args|get_json\(\)|json\(\)|form\(\)|body)
+  - inside:
+      stopBy: end
+      kind: call
+      has:
+        field: function
+        any:
+        - kind: attribute
+          regex: \.(create|bulk_create|update|update_or_create|get_or_create|save|write|insert|add|merge|from_dict)$
+        - kind: identifier
+          regex: ^[A-Z]\w*$
+min_engine: 0.39.0
+---
+id: write-fields-allowlisted.python-generic.identity-kwarg
+practice_id: write-fields-allowlisted
+language: python
+frameworks:
+- generic
+kind: items
+rule:
+  all:
+  - kind: keyword_argument
+  - has:
+      field: name
+      kind: identifier
+      regex: (?i)^(user|user_?id|owner|owner_?id|tenant|tenant_?id|org|org_?id|organi[sz]ation|organi[sz]ation_?id|account_?id|clinic|clinic_?id|practice_?id|provider_?id|created_?by|updated_?by|author|author_?id|role|roles|role_?id|is_?admin|is_?staff|is_?superuser|health_?prof(essional)?|healthprof|signed_?by|physician|doctor)$
+  - inside:
+      stopBy: neighbor
+      kind: argument_list
+      inside:
+        stopBy: neighbor
+        kind: call
+        has:
+          field: function
+          any:
+          - kind: attribute
+            regex: \.(create|bulk_create|update|update_or_create|get_or_create|save|write|insert|add|merge|from_dict)$
+          - kind: identifier
+            regex: ^[A-Z]\w*$
+control:
+  has:
+    field: value
+    any:
+    - kind: attribute
+      regex: ^(self\.)?request\.user\b|^(current_user|g\.user|flask_login\.current_user)\b|Transaction\(\)\.user|get_health_professional\(\)|^user\.id$|^(session|auth)\b
+    - kind: call
+      regex: ^(self\.)?request\.user\b|^(current_user|g\.user|flask_login\.current_user)\b|Transaction\(\)\.user|get_health_professional\(\)|^user\.id$|^(session|auth)\b
+    - kind: identifier
+      regex: ^(self\.)?request\.user\b|^(current_user|g\.user|flask_login\.current_user)\b|Transaction\(\)\.user|get_health_professional\(\)|^user\.id$|^(session|auth)\b
+    - kind: subscript
+      regex: ^(self\.)?request\.user\b|^(current_user|g\.user|flask_login\.current_user)\b|Transaction\(\)\.user|get_health_professional\(\)|^user\.id$|^(session|auth)\b
+min_engine: 0.39.0
+---
+id: write-fields-allowlisted.python-generic.tryton-identity-field
+practice_id: write-fields-allowlisted
+language: python
+frameworks:
+- generic
+kind: items
+rule:
+  all:
+  - kind: assignment
+  - has:
+      field: right
+      kind: call
+      regex: ^fields\.Many2One\(\s*['\"](res\.user|gnuhealth\.healthprofessional|company\.employee)['\"]
+  - inside:
+      stopBy: end
+      kind: class_definition
+      has:
+        field: superclasses
+        kind: argument_list
+        regex: \bModelSQL\b
+control:
+  inside:
+    stopBy: end
+    kind: class_definition
+    has:
+      stopBy: end
+      kind: function_definition
+      all:
+      - has:
+          field: name
+          kind: identifier
+          regex: ^create$
+      - has:
+          stopBy: end
+          kind: assignment
+          all:
+          - has:
+              field: left
+              kind: subscript
+          - has:
+              field: right
+              kind: call
+              regex: get_health_professional\(\)|Transaction\(\)\.user|^int\(\s*Transaction\(\)\.user
+min_engine: 0.39.0
+---
+id: write-fields-allowlisted.python-generic.body-into-write
+practice_id: write-fields-allowlisted
+language: python
+frameworks:
+- generic
+kind: violation
+rule:
+  any:
+  - all:
+    - pattern: $M(**$D)
+    - inside:
+        stopBy: end
+        kind: function_definition
+        has:
+          field: body
+          has:
+            kind: expression_statement
+            has:
+              any:
+              - pattern: $D = request.POST.dict()
+              - pattern: $D = request.data
+              - pattern: $D = json.loads(request.body)
+              - pattern: $D = request.get_json()
+              - pattern: $D = request.json
+              - pattern: $D = dict(request.POST)
+              - pattern: $D = request.POST.copy()
+              - pattern: $D = request.data.copy()
+              - pattern: $D = dict(request.data)
+  - all:
+    - pattern: $M.create(**$D)
+    - inside:
+        stopBy: end
+        kind: function_definition
+        has:
+          field: body
+          has:
+            kind: expression_statement
+            has:
+              any:
+              - pattern: $D = request.POST.dict()
+              - pattern: $D = request.data
+              - pattern: $D = json.loads(request.body)
+              - pattern: $D = request.get_json()
+              - pattern: $D = request.json
+              - pattern: $D = dict(request.POST)
+              - pattern: $D = request.POST.copy()
+              - pattern: $D = request.data.copy()
+              - pattern: $D = dict(request.data)
+  - all:
+    - pattern: $M.objects.create(**$D)
+    - inside:
+        stopBy: end
+        kind: function_definition
+        has:
+          field: body
+          has:
+            kind: expression_statement
+            has:
+              any:
+              - pattern: $D = request.POST.dict()
+              - pattern: $D = request.data
+              - pattern: $D = json.loads(request.body)
+              - pattern: $D = request.get_json()
+              - pattern: $D = request.json
+              - pattern: $D = dict(request.POST)
+              - pattern: $D = request.POST.copy()
+              - pattern: $D = request.data.copy()
+              - pattern: $D = dict(request.data)
+  - all:
+    - pattern: $M.update(**$D)
+    - inside:
+        stopBy: end
+        kind: function_definition
+        has:
+          field: body
+          has:
+            kind: expression_statement
+            has:
+              any:
+              - pattern: $D = request.POST.dict()
+              - pattern: $D = request.data
+              - pattern: $D = json.loads(request.body)
+              - pattern: $D = request.get_json()
+              - pattern: $D = request.json
+              - pattern: $D = dict(request.POST)
+              - pattern: $D = request.POST.copy()
+              - pattern: $D = request.data.copy()
+              - pattern: $D = dict(request.data)
+  - all:
+    - pattern: $M.objects.filter($$$F).update(**$D)
+    - inside:
+        stopBy: end
+        kind: function_definition
+        has:
+          field: body
+          has:
+            kind: expression_statement
+            has:
+              any:
+              - pattern: $D = request.POST.dict()
+              - pattern: $D = request.data
+              - pattern: $D = json.loads(request.body)
+              - pattern: $D = request.get_json()
+              - pattern: $D = request.json
+              - pattern: $D = dict(request.POST)
+              - pattern: $D = request.POST.copy()
+              - pattern: $D = request.data.copy()
+              - pattern: $D = dict(request.data)
+min_engine: 0.39.0

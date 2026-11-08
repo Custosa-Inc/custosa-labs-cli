@@ -1,0 +1,22 @@
+# Candidates for one scoped data-access layer (read only where row-level security is off on a patient table):
+# Hibernate's @TenantId, a CurrentTenantIdentifierResolver, an @Filter whose condition names a tenant, owner or user
+# column. One @Query bound to the principal scopes one query, not every query: not a candidate. A candidate never
+# passes the practice (needs_review); with none, RLS off fails.
+id: rls-enabled.java-generic.scoped-layer
+practice_id: rls-enabled
+language: java
+frameworks:
+- generic
+kind: evidence
+rule:
+  any:
+  - any:
+    - kind: annotation
+      regex: '^@TenantId\b'
+    - kind: marker_annotation
+      regex: '^@TenantId\b'
+  - kind: annotation
+    regex: '^@Filter\b(?s:.*)condition\s*=\s*\"[^\"]*(?i:tenant|owner|user_?id|account_?id|org_?id|clinic_?id)'
+  - kind: type_identifier
+    regex: '^CurrentTenantIdentifierResolver$'
+min_engine: 0.39.0

@@ -1,0 +1,284 @@
+# Patient values in push, email and SMS content (T23 B56d). Written by
+# scripts/gen_notification_rules.py: don't edit. The practice is capped at needs_review.
+id: notification-content-minimal.python-generic.send
+practice_id: notification-content-minimal
+language: python
+frameworks:
+- generic
+kind: evidence
+rule:
+  kind: call
+  any:
+  - has:
+      field: function
+      any:
+      - kind: identifier
+        regex: ^(\w+\.)*(send_mail|send_mass_mail|mail_admins|EmailMessage|EmailMultiAlternatives)$|^(\w+\.)*messaging\s*\.\s*(Message|MulticastMessage|Notification|send|send_each)$|^(?i:[\w.]*twilio[\w.]*)\s*\.\s*messages\s*\.\s*create$
+      - kind: attribute
+        regex: ^(\w+\.)*(send_mail|send_mass_mail|mail_admins|EmailMessage|EmailMultiAlternatives)$|^(\w+\.)*messaging\s*\.\s*(Message|MulticastMessage|Notification|send|send_each)$|^(?i:[\w.]*twilio[\w.]*)\s*\.\s*messages\s*\.\s*create$
+  - all:
+    - has:
+        field: function
+        kind: attribute
+        regex: \.\s*messages\s*\.\s*create$
+    - inside:
+        stopBy: end
+        kind: module
+        has:
+          any:
+          - kind: import_from_statement
+            regex: ^from\s+twilio\b
+          - kind: import_statement
+            regex: ^import\s+twilio\b
+  - all:
+    - has:
+        field: function
+        any:
+        - kind: identifier
+          regex: ^Mail$
+        - kind: attribute
+          regex: \.\s*Mail$
+    - inside:
+        stopBy: end
+        kind: module
+        has:
+          any:
+          - kind: import_from_statement
+            regex: ^from\s+sendgrid\b
+          - kind: import_statement
+            regex: ^import\s+sendgrid\b
+min_engine: 0.39.0
+---
+id: notification-content-minimal.python-generic.clinical-interpolated
+practice_id: notification-content-minimal
+language: python
+frameworks:
+- generic
+kind: violation
+rule:
+  any:
+  - any:
+    - kind: string
+      has:
+        kind: interpolation
+        has:
+          stopBy: end
+          any: &id001
+          - kind: identifier
+            regex: ^(?i:\w*(diagnos|condition|medication|prescription|dosage|lab_?results?|test_?results?|results?_?value|reason_?for_?visit|appointment_?reason|visit_?reason|procedure|medical_?record_?number|date_?of_?birth)\w*|(get_?)?(mrn|dob|ssn))$
+    - kind: binary_operator
+      regex: '[+%]'
+      all:
+      - has:
+          kind: string
+      - has:
+          stopBy: end
+          any: *id001
+    - kind: call
+      all:
+      - has:
+          field: function
+          kind: attribute
+          regex: \.\s*(format|format_map|join)$
+      - has:
+          field: arguments
+          has:
+            stopBy: end
+            any: *id001
+    inside:
+      stopBy: end
+      kind: argument_list
+      inside: &id002
+        kind: call
+        any:
+        - has:
+            field: function
+            any:
+            - kind: identifier
+              regex: ^(\w+\.)*(send_mail|send_mass_mail|mail_admins|EmailMessage|EmailMultiAlternatives)$|^(\w+\.)*messaging\s*\.\s*(Message|MulticastMessage|Notification|send|send_each)$|^(?i:[\w.]*twilio[\w.]*)\s*\.\s*messages\s*\.\s*create$
+            - kind: attribute
+              regex: ^(\w+\.)*(send_mail|send_mass_mail|mail_admins|EmailMessage|EmailMultiAlternatives)$|^(\w+\.)*messaging\s*\.\s*(Message|MulticastMessage|Notification|send|send_each)$|^(?i:[\w.]*twilio[\w.]*)\s*\.\s*messages\s*\.\s*create$
+        - all:
+          - has:
+              field: function
+              kind: attribute
+              regex: \.\s*messages\s*\.\s*create$
+          - inside:
+              stopBy: end
+              kind: module
+              has:
+                any:
+                - kind: import_from_statement
+                  regex: ^from\s+twilio\b
+                - kind: import_statement
+                  regex: ^import\s+twilio\b
+        - all:
+          - has:
+              field: function
+              any:
+              - kind: identifier
+                regex: ^Mail$
+              - kind: attribute
+                regex: \.\s*Mail$
+          - inside:
+              stopBy: end
+              kind: module
+              has:
+                any:
+                - kind: import_from_statement
+                  regex: ^from\s+sendgrid\b
+                - kind: import_statement
+                  regex: ^import\s+sendgrid\b
+    not:
+      inside:
+        stopBy: end
+        kind: keyword_argument
+        has:
+          field: name
+          kind: identifier
+          regex: ^(to|cc|bcc|from_email|recipient_list|token|to_emails)$
+  - any:
+    - any: &id003
+      - kind: attribute
+        has:
+          field: attribute
+          kind: identifier
+          regex: ^(?i:\w*(diagnos|condition|medication|prescription|dosage|lab_?results?|test_?results?|results?_?value|reason_?for_?visit|appointment_?reason|visit_?reason|procedure|medical_?record_?number|date_?of_?birth)\w*|(get_?)?(mrn|dob|ssn))$
+      - kind: identifier
+        regex: ^(?i:\w*(diagnos|condition|medication|prescription|dosage|lab_?results?|test_?results?|results?_?value|reason_?for_?visit|appointment_?reason|visit_?reason|procedure|medical_?record_?number|date_?of_?birth)\w*|(get_?)?(mrn|dob|ssn))$
+      inside:
+        kind: argument_list
+        inside: *id002
+    - kind: keyword_argument
+      all:
+      - has:
+          field: value
+          any: *id003
+      - not:
+          has:
+            field: name
+            kind: identifier
+            regex: ^(to|cc|bcc|from_email|recipient_list|token|to_emails)$
+      - inside:
+          kind: argument_list
+          inside: *id002
+min_engine: 0.39.0
+---
+id: notification-content-minimal.python-generic.identifying-interpolated
+practice_id: notification-content-minimal
+language: python
+frameworks:
+- generic
+kind: evidence
+rule:
+  any:
+  - any:
+    - kind: string
+      has:
+        kind: interpolation
+        has:
+          stopBy: end
+          any: &id001
+          - kind: identifier
+            regex: ^(?i:(first|last|full|given|family|middle|display|preferred)_?name)$
+          - kind: attribute
+            regex: ^(?i:([\w$]+\s*\.\s*)*(patient|user|member|recipient|person|client|customer)\s*\.\s*name)$
+    - kind: binary_operator
+      regex: '[+%]'
+      all:
+      - has:
+          kind: string
+      - has:
+          stopBy: end
+          any: *id001
+    - kind: call
+      all:
+      - has:
+          field: function
+          kind: attribute
+          regex: \.\s*(format|format_map|join)$
+      - has:
+          field: arguments
+          has:
+            stopBy: end
+            any: *id001
+    inside:
+      stopBy: end
+      kind: argument_list
+      inside: &id002
+        kind: call
+        any:
+        - has:
+            field: function
+            any:
+            - kind: identifier
+              regex: ^(\w+\.)*(send_mail|send_mass_mail|mail_admins|EmailMessage|EmailMultiAlternatives)$|^(\w+\.)*messaging\s*\.\s*(Message|MulticastMessage|Notification|send|send_each)$|^(?i:[\w.]*twilio[\w.]*)\s*\.\s*messages\s*\.\s*create$
+            - kind: attribute
+              regex: ^(\w+\.)*(send_mail|send_mass_mail|mail_admins|EmailMessage|EmailMultiAlternatives)$|^(\w+\.)*messaging\s*\.\s*(Message|MulticastMessage|Notification|send|send_each)$|^(?i:[\w.]*twilio[\w.]*)\s*\.\s*messages\s*\.\s*create$
+        - all:
+          - has:
+              field: function
+              kind: attribute
+              regex: \.\s*messages\s*\.\s*create$
+          - inside:
+              stopBy: end
+              kind: module
+              has:
+                any:
+                - kind: import_from_statement
+                  regex: ^from\s+twilio\b
+                - kind: import_statement
+                  regex: ^import\s+twilio\b
+        - all:
+          - has:
+              field: function
+              any:
+              - kind: identifier
+                regex: ^Mail$
+              - kind: attribute
+                regex: \.\s*Mail$
+          - inside:
+              stopBy: end
+              kind: module
+              has:
+                any:
+                - kind: import_from_statement
+                  regex: ^from\s+sendgrid\b
+                - kind: import_statement
+                  regex: ^import\s+sendgrid\b
+    not:
+      inside:
+        stopBy: end
+        kind: keyword_argument
+        has:
+          field: name
+          kind: identifier
+          regex: ^(to|cc|bcc|from_email|recipient_list|token|to_emails)$
+  - any:
+    - any: &id003
+      - kind: attribute
+        has:
+          field: attribute
+          kind: identifier
+          regex: ^(?i:(first|last|full|given|family|middle|display|preferred)_?name)$
+      - kind: identifier
+        regex: ^(?i:(first|last|full|given|family|middle|display|preferred)_?name)$
+      - kind: attribute
+        regex: ^(?i:([\w$]+\s*\.\s*)*(patient|user|member|recipient|person|client|customer)\s*\.\s*name)$
+      inside:
+        kind: argument_list
+        inside: *id002
+    - kind: keyword_argument
+      all:
+      - has:
+          field: value
+          any: *id003
+      - not:
+          has:
+            field: name
+            kind: identifier
+            regex: ^(to|cc|bcc|from_email|recipient_list|token|to_emails)$
+      - inside:
+          kind: argument_list
+          inside: *id002
+min_engine: 0.39.0

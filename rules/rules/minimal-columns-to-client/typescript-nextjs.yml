@@ -1,0 +1,144 @@
+# Supabase queries in Next.js client code (files marked "use client"), one item each: a select() on a from(...) chain
+# (after an insert, update or upsert too) or on a variable holding one, with no argument or a literal list. The
+# control is a literal that names columns; select() and any list with * are a violation (every column reaches the
+# browser). A column list held in a variable is left out (not read), and a server component that passes whole rows to
+# a client component is not seen.
+id: minimal-columns-to-client.typescript-nextjs.client-select
+practice_id: minimal-columns-to-client
+language: typescript
+frameworks:
+- nextjs
+kind: items
+rule:
+  all:
+  - kind: call_expression
+    has:
+      field: function
+      kind: member_expression
+      has:
+        field: property
+        kind: property_identifier
+        regex: '^select$'
+  - any:
+    - has:
+        field: function
+        kind: member_expression
+        has:
+          field: object
+          stopBy: end
+          pattern: '$C.from($T)'
+    - all:
+      - pattern: '$Q.select($$$)'
+      - inside:
+          stopBy: end
+          any:
+          - kind: arrow_function
+          - kind: function_expression
+          - kind: function_declaration
+          - kind: method_definition
+          - kind: program
+          has:
+            stopBy: end
+            kind: variable_declarator
+            pattern:
+              context: 'const $Q = $V'
+              selector: variable_declarator
+            has:
+              field: value
+              stopBy: end
+              pattern: '$C.from($T)'
+  - any:
+    - has:
+        field: arguments
+        kind: arguments
+        regex: '^\(\s*\)$'
+    - has:
+        field: arguments
+        kind: arguments
+        has:
+          any:
+          - kind: string
+          - kind: template_string
+  - inside:
+      kind: program
+      stopBy: end
+      has:
+        kind: expression_statement
+        regex: '^[''"]use client[''"]'
+control:
+  has:
+    field: arguments
+    kind: arguments
+    has:
+      any:
+      - kind: string
+        regex: '^[''\"][^*''\"]*\w[^*''\"]*[''\"]$'
+      - kind: template_string
+        regex: '^`[^*`$]*\w[^*`$]*`$'
+min_engine: 0.39.0
+---
+id: minimal-columns-to-client.typescript-nextjs.select-all
+practice_id: minimal-columns-to-client
+language: typescript
+frameworks:
+- nextjs
+kind: violation
+rule:
+  all:
+  - kind: call_expression
+    has:
+      field: function
+      kind: member_expression
+      has:
+        field: property
+        kind: property_identifier
+        regex: '^select$'
+  - any:
+    - has:
+        field: function
+        kind: member_expression
+        has:
+          field: object
+          stopBy: end
+          pattern: '$C.from($T)'
+    - all:
+      - pattern: '$Q.select($$$)'
+      - inside:
+          stopBy: end
+          any:
+          - kind: arrow_function
+          - kind: function_expression
+          - kind: function_declaration
+          - kind: method_definition
+          - kind: program
+          has:
+            stopBy: end
+            kind: variable_declarator
+            pattern:
+              context: 'const $Q = $V'
+              selector: variable_declarator
+            has:
+              field: value
+              stopBy: end
+              pattern: '$C.from($T)'
+  - inside:
+      kind: program
+      stopBy: end
+      has:
+        kind: expression_statement
+        regex: '^[''"]use client[''"]'
+  - any:
+    - has:
+        field: arguments
+        kind: arguments
+        regex: '^\(\s*\)$'
+    - has:
+        field: arguments
+        kind: arguments
+        has:
+          any:
+          - kind: string
+            regex: '\*'
+          - kind: template_string
+            regex: '\*'
+min_engine: 0.39.0

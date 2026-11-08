@@ -1,0 +1,50 @@
+# Rails controller methods that read a record id from params (params[:id], params[:<name>_id]), one item each (a
+# before_action finder such as set_patient included). The control is the caller in the method or the class:
+# current_user (or current_account, Current.user), Pundit's authorize or policy_scope, CanCanCan's authorize! or a
+# class-level load_and_authorize_resource. before_action :authenticate_user! alone says signed in, never which record.
+id: authz-every-handler.ruby-rails.action
+practice_id: authz-every-handler
+language: ruby
+frameworks:
+- rails
+kind: items
+rule:
+  kind: method
+  all:
+  - inside:
+      kind: class
+      stopBy: end
+      has:
+        field: name
+        kind: constant
+        regex: 'Controller$'
+  - has:
+      stopBy: end
+      kind: element_reference
+      regex: '^params\[\s*:(id|\w+_id)\s*\]'
+control:
+  any:
+  - has:
+      stopBy: end
+      kind: identifier
+      regex: '^(current_user|current_account|current_member|current_admin)$'
+  - has:
+      stopBy: end
+      kind: call
+      regex: '^Current\.(user|account|member)\b'
+  - has:
+      stopBy: end
+      kind: call
+      regex: '^(authorize!|authorize\b|policy_scope\b)'
+  - inside:
+      kind: class
+      stopBy: end
+      has:
+        kind: body_statement
+        has:
+          any:
+          - kind: identifier
+            regex: '^load_and_authorize_resource$'
+          - kind: call
+            regex: '^load_and_authorize_resource\b'
+min_engine: 0.39.0

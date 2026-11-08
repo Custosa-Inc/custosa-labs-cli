@@ -1,0 +1,87 @@
+id: rag-retrieval-scoped.go-generic.ai-provider-host
+practice_id: rag-retrieval-scoped
+language: go
+frameworks:
+- generic
+kind: evidence
+rule:
+  any:
+  - kind: interpreted_string_literal
+    regex: '(?i)(api\.openai\.com|api\.anthropic\.com|generativelanguage\.googleapis\.com|aiplatform\.googleapis\.com|\.openai\.azure\.com|bedrock-runtime\.[a-z0-9-]+\.amazonaws\.com|api\.mistral\.ai|api\.groq\.com|api\.together\.xyz|api\.cohere\.(com|ai)|api\.deepseek\.com|api\.x\.ai|api\.perplexity\.ai|api\.fireworks\.ai|openrouter\.ai/api|api-inference\.huggingface\.co|api\.replicate\.com|(localhost|127\.0\.0\.1):(11434|1234)\b|ollama[\w.-]*(:\d+)?/api/(chat|generate|embed)|https?://[\w.-]+(:\d+)?(/[\w.-]+)*/v1/(chat/completions|completions|messages|embeddings)\b)'
+  - kind: raw_string_literal
+    regex: '(?i)(api\.openai\.com|api\.anthropic\.com|generativelanguage\.googleapis\.com|aiplatform\.googleapis\.com|\.openai\.azure\.com|bedrock-runtime\.[a-z0-9-]+\.amazonaws\.com|api\.mistral\.ai|api\.groq\.com|api\.together\.xyz|api\.cohere\.(com|ai)|api\.deepseek\.com|api\.x\.ai|api\.perplexity\.ai|api\.fireworks\.ai|openrouter\.ai/api|api-inference\.huggingface\.co|api\.replicate\.com|(localhost|127\.0\.0\.1):(11434|1234)\b|ollama[\w.-]*(:\d+)?/api/(chat|generate|embed)|https?://[\w.-]+(:\d+)?(/[\w.-]+)*/v1/(chat/completions|completions|messages|embeddings)\b)'
+min_engine: 0.45.3
+---
+id: rag-retrieval-scoped.go-generic.vector-store-host
+practice_id: rag-retrieval-scoped
+language: go
+frameworks:
+- generic
+kind: evidence
+rule:
+  any:
+  - all:
+    - kind: interpreted_string_literal
+      regex: '(?i)(api\.pinecone\.io|controller\.[\w-]+\.pinecone\.io|\.svc\.[\w.${}#%()-]*pinecone\.io|[\w-]+\.[\w.-]+\.weaviate\.cloud|[\w-]+\.weaviate\.network|\.cloud\.qdrant\.io|zillizcloud\.com|api\.trychroma\.com|-vector\.upstash\.io|api\.turbopuffer\.com|[a-z0-9]+-[\w-]+\.turbopuffer\.com|\.apps\.astra\.datastax\.com|\.search\.windows\.net|\.aoss\.amazonaws\.com|\$vectorSearch\b|(localhost|127\.0\.0\.1|qdrant[\w.-]*|milvus[\w.-]*):(6333|6334|19530)\b|(localhost|127\.0\.0\.1):8000/api/v[12]/(collections|tenants|databases)\b|chroma[\w.-]*:8000\b|(localhost|127\.0\.0\.1):8080/v1/(graphql|objects|schema|batch)\b|weaviate[\w.-]*:8080\b)'
+  - all:
+    - kind: raw_string_literal
+      regex: '(?i)(api\.pinecone\.io|controller\.[\w-]+\.pinecone\.io|\.svc\.[\w.${}#%()-]*pinecone\.io|[\w-]+\.[\w.-]+\.weaviate\.cloud|[\w-]+\.weaviate\.network|\.cloud\.qdrant\.io|zillizcloud\.com|api\.trychroma\.com|-vector\.upstash\.io|api\.turbopuffer\.com|[a-z0-9]+-[\w-]+\.turbopuffer\.com|\.apps\.astra\.datastax\.com|\.search\.windows\.net|\.aoss\.amazonaws\.com|\$vectorSearch\b|(localhost|127\.0\.0\.1|qdrant[\w.-]*|milvus[\w.-]*):(6333|6334|19530)\b|(localhost|127\.0\.0\.1):8000/api/v[12]/(collections|tenants|databases)\b|chroma[\w.-]*:8000\b|(localhost|127\.0\.0\.1):8080/v1/(graphql|objects|schema|batch)\b|weaviate[\w.-]*:8080\b)'
+min_engine: 0.45.3
+---
+id: rag-retrieval-scoped.go-generic.vector-sql
+practice_id: rag-retrieval-scoped
+language: go
+frameworks:
+- generic
+kind: evidence
+rule:
+  any:
+  - all:
+    - kind: interpreted_string_literal
+      regex: '<=>|<->|<#>|<\+>|<~>|<%>'
+    - regex: '(?i)embedding|vector|halfvec|sparsevec'
+  - all:
+    - kind: interpreted_string_literal
+      regex: '(?is)\bselect\b.*\bfrom\b|\border\s+by\b'
+    - regex: '<#>|<\+>|<~>|<%>'
+  - all:
+    - kind: interpreted_string_literal
+      regex: '(?is)\bselect\b.*\bfrom\b|\border\s+by\b'
+    - regex: '<->'
+    - not:
+        kind: interpreted_string_literal
+        regex: '(?i)(ST_\w+\s*\([^<>;]*\)|\b(the_geom|geom\w*|geog\w*|geometry|geography)\b|::\s*geo(metry|graphy))\s*<->\s*(ST_\w+\s*\(|\b(the_geom|geom\w*|geog\w*)\b|''[^'']*''\s*::\s*geo(metry|graphy)|[$:?%]\w*\s*::\s*geo(metry|graphy))'
+  - all:
+    - kind: interpreted_string_literal
+      regex: '(?is)\bselect\b.*\bfrom\b|\border\s+by\b'
+    - regex: '(?s)<->.*<->'
+  - all:
+    - kind: interpreted_string_literal
+      regex: '(?is)\bselect\b.*\bfrom\b|\border\s+by\b'
+    - regex: '<=>'
+    - regex: '(?is)\border\s+by\b|<=>[^,;]*\bas\s+\w|<=>\s*[^\s,;()]+(\s*::\s*\w+(\([\d,\s]+\))?)?\s*\)*\s*[<>]=?\s*[-\d.$:?%]|<=>\s*(''|\[|array\b|\w+\s*\(|[^\s,;)]*::)|(\]''|\)|::\s*\w+(\([\d,\s]+\))?)\s*<=>|\bselect\b[^;]*<=>[^;]*\bfrom\b'
+  - all:
+    - kind: raw_string_literal
+      regex: '<=>|<->|<#>|<\+>|<~>|<%>'
+    - regex: '(?i)embedding|vector|halfvec|sparsevec'
+  - all:
+    - kind: raw_string_literal
+      regex: '(?is)\bselect\b.*\bfrom\b|\border\s+by\b'
+    - regex: '<#>|<\+>|<~>|<%>'
+  - all:
+    - kind: raw_string_literal
+      regex: '(?is)\bselect\b.*\bfrom\b|\border\s+by\b'
+    - regex: '<->'
+    - not:
+        kind: raw_string_literal
+        regex: '(?i)(ST_\w+\s*\([^<>;]*\)|\b(the_geom|geom\w*|geog\w*|geometry|geography)\b|::\s*geo(metry|graphy))\s*<->\s*(ST_\w+\s*\(|\b(the_geom|geom\w*|geog\w*)\b|''[^'']*''\s*::\s*geo(metry|graphy)|[$:?%]\w*\s*::\s*geo(metry|graphy))'
+  - all:
+    - kind: raw_string_literal
+      regex: '(?is)\bselect\b.*\bfrom\b|\border\s+by\b'
+    - regex: '(?s)<->.*<->'
+  - all:
+    - kind: raw_string_literal
+      regex: '(?is)\bselect\b.*\bfrom\b|\border\s+by\b'
+    - regex: '<=>'
+    - regex: '(?is)\border\s+by\b|<=>[^,;]*\bas\s+\w|<=>\s*[^\s,;()]+(\s*::\s*\w+(\([\d,\s]+\))?)?\s*\)*\s*[<>]=?\s*[-\d.$:?%]|<=>\s*(''|\[|array\b|\w+\s*\(|[^\s,;)]*::)|(\]''|\)|::\s*\w+(\([\d,\s]+\))?)\s*<=>|\bselect\b[^;]*<=>[^;]*\bfrom\b'
+min_engine: 0.45.3

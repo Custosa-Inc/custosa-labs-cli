@@ -1,0 +1,56 @@
+id: security-events-logged.ruby-generic.denial
+practice_id: security-events-logged
+language: ruby
+frameworks:
+- generic
+kind: items
+rule:
+  any:
+  - kind: call
+    regex: '(?-u)^head\s*\(?\s*:(forbidden|unauthorized)'
+  - kind: call
+    regex: '^render\b.*status:\s*(:forbidden|:unauthorized|40[13])'
+  - kind: call
+    regex: '^raise\s+(Pundit::NotAuthorizedError|CanCan::AccessDenied|ActionController::Forbidden)'
+control:
+  all:
+  - kind: call
+  - any:
+    - follows: &id001
+        kind: call
+        regex: '^[\w.:@]*(?i)(audit|security_?events?|log_?security|record_?security|log_?denied|record_?denied|log_?access_?denied)\w*'
+        not:
+          any:
+          - kind: call
+            regex: '^[\w.:@>$-]*(?i)(skip|disable|without|bypass|noaudit|no_audit)'
+          - kind: call
+            regex: '^(?:await\s+)?[\w.$>:@-]*[.>:](find\w*|count\w*|aggregate|is\w+|set\w*|clear|remove\w*|disable\w*|toString|get\w*|exists\??)\s*[(\s]'
+    - follows:
+        any:
+        - &id002
+          kind: call
+        - &id003
+          kind: comment
+        - &id004
+          kind: assignment
+        - &id005
+          kind: if
+        - &id006
+          kind: unless
+        follows: *id001
+    - follows:
+        any:
+        - *id002
+        - *id003
+        - *id004
+        - *id005
+        - *id006
+        follows:
+          any:
+          - *id002
+          - *id003
+          - *id004
+          - *id005
+          - *id006
+          follows: *id001
+min_engine: 0.45.3

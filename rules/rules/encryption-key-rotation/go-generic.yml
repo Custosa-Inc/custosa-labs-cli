@@ -1,0 +1,21 @@
+id: encryption-key-rotation.go-generic.kms-client
+practice_id: encryption-key-rotation
+language: go
+frameworks:
+- generic
+kind: evidence
+rule:
+  kind: call_expression
+  regex: \.(GenerateDataKey|GenerateDataKeyWithContext)\(|^kms\.New(FromConfig)?\(
+min_engine: 0.39.0
+---
+id: encryption-key-rotation.go-generic.hardcoded-key
+practice_id: encryption-key-rotation
+language: go
+frameworks:
+- generic
+kind: violation
+rule:
+  kind: call_expression
+  regex: ^aes\.NewCipher\(\s*\[\]byte\(\s*\"[^\"]{8,}\"\s*\)\s*\)$
+min_engine: 0.39.0

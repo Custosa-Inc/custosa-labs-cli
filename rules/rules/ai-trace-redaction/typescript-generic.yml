@@ -1,0 +1,220 @@
+id: ai-trace-redaction.typescript-generic.langfuse-client
+practice_id: ai-trace-redaction
+language: typescript
+frameworks:
+- generic
+kind: items
+rule:
+  all:
+  - kind: new_expression
+  - has:
+      field: constructor
+      any:
+      - kind: identifier
+        regex: '^(Langfuse|LangfuseClient|CallbackHandler|LangfuseSpanProcessor|LangfuseExporter)$'
+      - kind: member_expression
+        regex: '\.(Langfuse|LangfuseClient|CallbackHandler|LangfuseSpanProcessor|LangfuseExporter)$'
+control:
+  has:
+    field: arguments
+    kind: arguments
+    has:
+      kind: object
+      all:
+      - has:
+          any:
+          - kind: pair
+            all:
+            - has:
+                field: key
+                kind: property_identifier
+                regex: '^mask$'
+            - has:
+                field: value
+                any:
+                - kind: arrow_function
+                - kind: function_expression
+                - kind: identifier
+                - kind: member_expression
+                - kind: call_expression
+                not:
+                  any:
+                  - pattern: '({ data }) => data'
+                  - pattern: '($X1) => $X1'
+                  - pattern: '$X2 => $X2'
+                  - pattern: 'function ($X3) { return $X3; }'
+          - kind: method_definition
+            has:
+              field: name
+              kind: property_identifier
+              regex: '^mask$'
+          - kind: shorthand_property_identifier
+            regex: '^mask$'
+      - not:
+          has:
+            kind: spread_element
+min_engine: 0.45.3
+---
+id: ai-trace-redaction.typescript-generic.ai-sdk-telemetry
+practice_id: ai-trace-redaction
+language: typescript
+frameworks:
+- generic
+kind: items
+rule:
+  all:
+  - kind: pair
+  - has:
+      field: key
+      kind: property_identifier
+      regex: '^experimental_telemetry$'
+  - has:
+      field: value
+      kind: object
+      has:
+        kind: pair
+        all:
+        - has:
+            field: key
+            kind: property_identifier
+            regex: '^isEnabled$'
+        - not:
+            has:
+              field: value
+              kind: 'false'
+control:
+  all:
+  - has:
+      field: value
+      kind: object
+      has:
+        kind: pair
+        all:
+        - has:
+            field: key
+            kind: property_identifier
+            regex: '^recordInputs$'
+        - has:
+            field: value
+            kind: 'false'
+  - has:
+      field: value
+      kind: object
+      has:
+        kind: pair
+        all:
+        - has:
+            field: key
+            kind: property_identifier
+            regex: '^recordOutputs$'
+        - has:
+            field: value
+            kind: 'false'
+  - has:
+      field: value
+      kind: object
+      not:
+        has:
+          kind: spread_element
+min_engine: 0.45.3
+---
+id: ai-trace-redaction.typescript-generic.langsmith-client
+practice_id: ai-trace-redaction
+language: typescript
+frameworks:
+- generic
+kind: items
+rule:
+  all:
+  - kind: new_expression
+  - has:
+      field: constructor
+      kind: identifier
+      regex: '^Client$'
+  - has:
+      field: arguments
+      kind: arguments
+      has:
+        kind: object
+        has:
+          kind: pair
+          has:
+            field: key
+            kind: property_identifier
+            regex: '^hide(Inputs|Outputs)$'
+control:
+  has:
+    field: arguments
+    kind: arguments
+    has:
+      kind: object
+      all:
+      - has:
+          kind: pair
+          all:
+          - has:
+              field: key
+              kind: property_identifier
+              regex: '^hideInputs$'
+          - has:
+              field: value
+              any:
+              - &id001
+                kind: arrow_function
+              - &id002
+                kind: function_expression
+              - &id003
+                kind: identifier
+              - &id004
+                kind: member_expression
+              - &id005
+                kind: call_expression
+              - kind: 'true'
+              not:
+                any:
+                - &id006
+                  pattern: '({ data }) => data'
+                - &id007
+                  pattern: '($X1) => $X1'
+                - &id008
+                  pattern: '$X2 => $X2'
+                - &id009
+                  pattern: 'function ($X3) { return $X3; }'
+      - has:
+          kind: pair
+          all:
+          - has:
+              field: key
+              kind: property_identifier
+              regex: '^hideOutputs$'
+          - has:
+              field: value
+              any:
+              - *id001
+              - *id002
+              - *id003
+              - *id004
+              - *id005
+              - kind: 'true'
+              not:
+                any:
+                - *id006
+                - *id007
+                - *id008
+                - *id009
+min_engine: 0.45.3
+---
+id: ai-trace-redaction.typescript-generic.helicone-proxy
+practice_id: ai-trace-redaction
+language: typescript
+frameworks:
+- generic
+kind: violation
+rule:
+  any:
+  - kind: string
+    regex: '^[''"]https://([a-z0-9-]+\.)?helicone\.ai(/|[''"])'
+  - all:
+    - kind: template_string
+    - regex: '^`https://([a-z0-9-]+\.)?helicone\.ai(/|`)'
+min_engine: 0.45.3

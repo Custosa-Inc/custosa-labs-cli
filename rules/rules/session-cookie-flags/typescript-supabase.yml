@@ -1,0 +1,98 @@
+id: session-cookie-flags.typescript-supabase.cookie-set
+practice_id: session-cookie-flags
+language: typescript
+frameworks:
+- supabase
+kind: items
+rule:
+  any:
+  - all:
+    - kind: call_expression
+    - has:
+        field: function
+        kind: member_expression
+        any:
+        - kind: member_expression
+          regex: ^(res|response|reply|ctx|c)\.(cookie|setCookie)$
+        - kind: member_expression
+          regex: (cookies\(\)|\.cookies|cookieStore|cookieJar)\.set$
+    - not:
+        has:
+          field: arguments
+          kind: arguments
+          regex: ^\(\s*['\"`](theme|locale|lang|language|i18n\w*|consent|cookie_?consent\w*|tz|timezone|currency|sidebar\w*|ui[-_]\w*|pref\w*|_ga\w*|NEXT_LOCALE|color[-_]?scheme)['\"`]
+  - all:
+    - kind: call_expression
+      regex: ^(session|expressSession|cookieSession)\(
+    - has:
+        field: arguments
+        kind: arguments
+        regex: cookie
+control:
+  any:
+  - all:
+    - has:
+        field: arguments
+        kind: arguments
+        regex: (?i)['\"]?(cookie_?)?http_?only['\"]?\s*(=>|:|=)\s*(true|True)\b
+    - has:
+        field: arguments
+        kind: arguments
+        regex: (?i)['\"]?(cookie_?)?secure['\"]?\s*(=>|:|=)\s*(true|True|process\.env\.NODE_ENV\s*===?\s*['\"]production['\"]|!\s*\w*[dD]ev\w*|\w*[pP]roduction\w*|env\(['\"]SESSION_SECURE_COOKIE)
+    - has:
+        field: arguments
+        kind: arguments
+        regex: (?i)['\"]?(cookie_?)?same_?site['\"]?\s*(=>|:|=)\s*['\"]?(lax|strict)['\"]?
+  - all:
+    - kind: call_expression
+      regex: ^(session|expressSession|cookieSession)\(
+    - has:
+        field: arguments
+        kind: arguments
+        regex: (?i)secure\s*:\s*(true|process\.env)
+    - has:
+        field: arguments
+        kind: arguments
+        regex: (?i)['\"]?(cookie_?)?same_?site['\"]?\s*(=>|:|=)\s*['\"]?(lax|strict)['\"]?
+    - not:
+        has:
+          field: arguments
+          kind: arguments
+          regex: (?i)httpOnly\s*:\s*false
+min_engine: 0.39.0
+---
+id: session-cookie-flags.typescript-supabase.flag-off
+practice_id: session-cookie-flags
+language: typescript
+frameworks:
+- supabase
+kind: violation
+rule:
+  all:
+  - kind: pair
+    regex: (?i)^(httpOnly|secure)\s*:\s*false$|^sameSite\s*:\s*['\"]none['\"]$
+min_engine: 0.39.0
+---
+id: session-cookie-flags.typescript-supabase.supabase-browser-client
+practice_id: session-cookie-flags
+language: typescript
+frameworks:
+- supabase
+kind: evidence
+rule:
+  pattern: createBrowserClient($$$)
+min_engine: 0.39.0
+---
+id: session-cookie-flags.typescript-supabase.no-store-header
+practice_id: session-cookie-flags
+language: typescript
+frameworks:
+- supabase
+kind: evidence
+rule:
+  any:
+  - kind: call_expression
+    regex: (?i)\.(setHeader|set|header|append)\(\s*['\"]cache-control['\"]\s*,\s*['\"][^'\"]*no-store
+  - kind: pair
+    regex: (?i)^['\"]cache-control['\"]\s*:\s*['\"][^'\"]*no-store
+min_engine: 0.39.0

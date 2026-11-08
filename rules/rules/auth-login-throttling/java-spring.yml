@@ -1,0 +1,84 @@
+id: auth-login-throttling.java-spring.sign-in
+practice_id: auth-login-throttling
+language: java
+frameworks:
+- spring
+kind: items
+rule:
+  all:
+  - any:
+    - kind: method_declaration
+  - has:
+      stopBy: end
+      any:
+      - kind: method_invocation
+        regex: (authenticationManager|authManager)\.authenticate\(|passwordEncoder\.matches\(
+control:
+  any:
+  - has:
+      field: body
+      has:
+        any:
+        - kind: local_variable_declaration
+          regex: (?i)((rate_?limit\w*|limiter|throttl\w*)\.(limit|consume|check|hit|attempt|try\w*)\(|\b(check|enforce|apply)\w*(rate_?limit|throttle|lockout)\w*\(|locked_?(at|until)\b|is_?locked|is_?locked_?out|lockout|\bis\w*blocked\w*\(|too_?many_?(login_?)?attempts|failed_?(login_?)?(attempts?|count|logins?)\s*>=?|max_?(failed_?)?(login_?)?attempts|(re)?captcha\w*\.?verify|verify\w*captcha|turnstile|check\w*failed\w*counter\(|RateLimiter::(tooManyAttempts|attempt)|ratelimit\.Allow|\.Allow\(\))
+        - kind: expression_statement
+          regex: (?i)((rate_?limit\w*|limiter|throttl\w*)\.(limit|consume|check|hit|attempt|try\w*)\(|\b(check|enforce|apply)\w*(rate_?limit|throttle|lockout)\w*\(|locked_?(at|until)\b|is_?locked|is_?locked_?out|lockout|\bis\w*blocked\w*\(|too_?many_?(login_?)?attempts|failed_?(login_?)?(attempts?|count|logins?)\s*>=?|max_?(failed_?)?(login_?)?attempts|(re)?captcha\w*\.?verify|verify\w*captcha|turnstile|check\w*failed\w*counter\(|RateLimiter::(tooManyAttempts|attempt)|ratelimit\.Allow|\.Allow\(\))
+        - kind: return_statement
+          regex: (?i)((rate_?limit\w*|limiter|throttl\w*)\.(limit|consume|check|hit|attempt|try\w*)\(|\b(check|enforce|apply)\w*(rate_?limit|throttle|lockout)\w*\(|locked_?(at|until)\b|is_?locked|is_?locked_?out|lockout|\bis\w*blocked\w*\(|too_?many_?(login_?)?attempts|failed_?(login_?)?(attempts?|count|logins?)\s*>=?|max_?(failed_?)?(login_?)?attempts|(re)?captcha\w*\.?verify|verify\w*captcha|turnstile|check\w*failed\w*counter\(|RateLimiter::(tooManyAttempts|attempt)|ratelimit\.Allow|\.Allow\(\))
+        - kind: if_statement
+          regex: (?i)((rate_?limit\w*|limiter|throttl\w*)\.(limit|consume|check|hit|attempt|try\w*)\(|\b(check|enforce|apply)\w*(rate_?limit|throttle|lockout)\w*\(|locked_?(at|until)\b|is_?locked|is_?locked_?out|lockout|\bis\w*blocked\w*\(|too_?many_?(login_?)?attempts|failed_?(login_?)?(attempts?|count|logins?)\s*>=?|max_?(failed_?)?(login_?)?attempts|(re)?captcha\w*\.?verify|verify\w*captcha|turnstile|check\w*failed\w*counter\(|RateLimiter::(tooManyAttempts|attempt)|ratelimit\.Allow|\.Allow\(\))
+        - kind: try_statement
+          regex: (?i)((rate_?limit\w*|limiter|throttl\w*)\.(limit|consume|check|hit|attempt|try\w*)\(|\b(check|enforce|apply)\w*(rate_?limit|throttle|lockout)\w*\(|locked_?(at|until)\b|is_?locked|is_?locked_?out|lockout|\bis\w*blocked\w*\(|too_?many_?(login_?)?attempts|failed_?(login_?)?(attempts?|count|logins?)\s*>=?|max_?(failed_?)?(login_?)?attempts|(re)?captcha\w*\.?verify|verify\w*captcha|turnstile|check\w*failed\w*counter\(|RateLimiter::(tooManyAttempts|attempt)|ratelimit\.Allow|\.Allow\(\))
+        - kind: try_with_resources_statement
+          regex: (?i)((rate_?limit\w*|limiter|throttl\w*)\.(limit|consume|check|hit|attempt|try\w*)\(|\b(check|enforce|apply)\w*(rate_?limit|throttle|lockout)\w*\(|locked_?(at|until)\b|is_?locked|is_?locked_?out|lockout|\bis\w*blocked\w*\(|too_?many_?(login_?)?attempts|failed_?(login_?)?(attempts?|count|logins?)\s*>=?|max_?(failed_?)?(login_?)?attempts|(re)?captcha\w*\.?verify|verify\w*captcha|turnstile|check\w*failed\w*counter\(|RateLimiter::(tooManyAttempts|attempt)|ratelimit\.Allow|\.Allow\(\))
+        - kind: for_statement
+          regex: (?i)((rate_?limit\w*|limiter|throttl\w*)\.(limit|consume|check|hit|attempt|try\w*)\(|\b(check|enforce|apply)\w*(rate_?limit|throttle|lockout)\w*\(|locked_?(at|until)\b|is_?locked|is_?locked_?out|lockout|\bis\w*blocked\w*\(|too_?many_?(login_?)?attempts|failed_?(login_?)?(attempts?|count|logins?)\s*>=?|max_?(failed_?)?(login_?)?attempts|(re)?captcha\w*\.?verify|verify\w*captcha|turnstile|check\w*failed\w*counter\(|RateLimiter::(tooManyAttempts|attempt)|ratelimit\.Allow|\.Allow\(\))
+        - kind: enhanced_for_statement
+          regex: (?i)((rate_?limit\w*|limiter|throttl\w*)\.(limit|consume|check|hit|attempt|try\w*)\(|\b(check|enforce|apply)\w*(rate_?limit|throttle|lockout)\w*\(|locked_?(at|until)\b|is_?locked|is_?locked_?out|lockout|\bis\w*blocked\w*\(|too_?many_?(login_?)?attempts|failed_?(login_?)?(attempts?|count|logins?)\s*>=?|max_?(failed_?)?(login_?)?attempts|(re)?captcha\w*\.?verify|verify\w*captcha|turnstile|check\w*failed\w*counter\(|RateLimiter::(tooManyAttempts|attempt)|ratelimit\.Allow|\.Allow\(\))
+        - kind: while_statement
+          regex: (?i)((rate_?limit\w*|limiter|throttl\w*)\.(limit|consume|check|hit|attempt|try\w*)\(|\b(check|enforce|apply)\w*(rate_?limit|throttle|lockout)\w*\(|locked_?(at|until)\b|is_?locked|is_?locked_?out|lockout|\bis\w*blocked\w*\(|too_?many_?(login_?)?attempts|failed_?(login_?)?(attempts?|count|logins?)\s*>=?|max_?(failed_?)?(login_?)?attempts|(re)?captcha\w*\.?verify|verify\w*captcha|turnstile|check\w*failed\w*counter\(|RateLimiter::(tooManyAttempts|attempt)|ratelimit\.Allow|\.Allow\(\))
+        - kind: throw_statement
+          regex: (?i)((rate_?limit\w*|limiter|throttl\w*)\.(limit|consume|check|hit|attempt|try\w*)\(|\b(check|enforce|apply)\w*(rate_?limit|throttle|lockout)\w*\(|locked_?(at|until)\b|is_?locked|is_?locked_?out|lockout|\bis\w*blocked\w*\(|too_?many_?(login_?)?attempts|failed_?(login_?)?(attempts?|count|logins?)\s*>=?|max_?(failed_?)?(login_?)?attempts|(re)?captcha\w*\.?verify|verify\w*captcha|turnstile|check\w*failed\w*counter\(|RateLimiter::(tooManyAttempts|attempt)|ratelimit\.Allow|\.Allow\(\))
+min_engine: 0.39.0
+---
+id: auth-login-throttling.java-spring.failure-record
+practice_id: auth-login-throttling
+language: java
+frameworks:
+- spring
+kind: evidence
+rule:
+  all:
+  - all:
+    - any:
+      - kind: method_declaration
+    - has:
+        stopBy: end
+        any:
+        - kind: method_invocation
+          regex: (authenticationManager|authManager)\.authenticate\(|passwordEncoder\.matches\(
+  - has:
+      field: body
+      has:
+        any:
+        - kind: local_variable_declaration
+          regex: (?i)(failed_?login|login_?failed|LoginFailed|loginFailure|auth(entication)?_?fail\w*|failed_?attempts?\s*(\+\+|\+=|=\s*\w+\s*\+\s*1)|increment\w*\(\s*['\"]failed)
+        - kind: expression_statement
+          regex: (?i)(failed_?login|login_?failed|LoginFailed|loginFailure|auth(entication)?_?fail\w*|failed_?attempts?\s*(\+\+|\+=|=\s*\w+\s*\+\s*1)|increment\w*\(\s*['\"]failed)
+        - kind: return_statement
+          regex: (?i)(failed_?login|login_?failed|LoginFailed|loginFailure|auth(entication)?_?fail\w*|failed_?attempts?\s*(\+\+|\+=|=\s*\w+\s*\+\s*1)|increment\w*\(\s*['\"]failed)
+        - kind: if_statement
+          regex: (?i)(failed_?login|login_?failed|LoginFailed|loginFailure|auth(entication)?_?fail\w*|failed_?attempts?\s*(\+\+|\+=|=\s*\w+\s*\+\s*1)|increment\w*\(\s*['\"]failed)
+        - kind: try_statement
+          regex: (?i)(failed_?login|login_?failed|LoginFailed|loginFailure|auth(entication)?_?fail\w*|failed_?attempts?\s*(\+\+|\+=|=\s*\w+\s*\+\s*1)|increment\w*\(\s*['\"]failed)
+        - kind: try_with_resources_statement
+          regex: (?i)(failed_?login|login_?failed|LoginFailed|loginFailure|auth(entication)?_?fail\w*|failed_?attempts?\s*(\+\+|\+=|=\s*\w+\s*\+\s*1)|increment\w*\(\s*['\"]failed)
+        - kind: for_statement
+          regex: (?i)(failed_?login|login_?failed|LoginFailed|loginFailure|auth(entication)?_?fail\w*|failed_?attempts?\s*(\+\+|\+=|=\s*\w+\s*\+\s*1)|increment\w*\(\s*['\"]failed)
+        - kind: enhanced_for_statement
+          regex: (?i)(failed_?login|login_?failed|LoginFailed|loginFailure|auth(entication)?_?fail\w*|failed_?attempts?\s*(\+\+|\+=|=\s*\w+\s*\+\s*1)|increment\w*\(\s*['\"]failed)
+        - kind: while_statement
+          regex: (?i)(failed_?login|login_?failed|LoginFailed|loginFailure|auth(entication)?_?fail\w*|failed_?attempts?\s*(\+\+|\+=|=\s*\w+\s*\+\s*1)|increment\w*\(\s*['\"]failed)
+        - kind: throw_statement
+          regex: (?i)(failed_?login|login_?failed|LoginFailed|loginFailure|auth(entication)?_?fail\w*|failed_?attempts?\s*(\+\+|\+=|=\s*\w+\s*\+\s*1)|increment\w*\(\s*['\"]failed)
+min_engine: 0.39.0

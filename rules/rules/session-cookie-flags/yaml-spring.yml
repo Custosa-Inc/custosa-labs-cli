@@ -1,0 +1,22 @@
+id: session-cookie-flags.yaml-spring.flag-off
+practice_id: session-cookie-flags
+language: yaml
+frameworks:
+- spring
+kind: violation
+rule:
+  all:
+  - kind: block_mapping_pair
+    regex: (?i)^(server\.servlet\.session\.cookie\.)?(http-only|secure)\s*:\s*false$|^(server\.servlet\.session\.cookie\.)?same-site\s*:\s*['\"]?none['\"]?$
+min_engine: 0.39.0
+---
+id: session-cookie-flags.yaml-spring.secure-setting
+practice_id: session-cookie-flags
+language: yaml
+frameworks:
+- spring
+kind: evidence
+rule:
+  kind: block_mapping_pair
+  regex: ^(server\.servlet\.session\.cookie\.)?secure\s*:\s*true$
+min_engine: 0.39.0

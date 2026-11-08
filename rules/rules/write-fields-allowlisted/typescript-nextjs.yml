@@ -1,0 +1,1051 @@
+id: write-fields-allowlisted.typescript-nextjs.write
+practice_id: write-fields-allowlisted
+language: typescript
+frameworks:
+- nextjs
+kind: items
+rule:
+  kind: call_expression
+  not:
+    inside:
+      kind: member_expression
+      field: object
+      regex: \.(values|set)$
+  has:
+    field: function
+    kind: member_expression
+    all:
+    - any:
+      - has:
+          field: property
+          kind: property_identifier
+          regex: ^(create|createMany|update|updateMany|upsert|insert|insertMany|values|save|findByIdAndUpdate|findOneAndUpdate|updateOne|bulkCreate|replaceOne)$
+      - all:  # Drizzle: db.update(t).set(data) (T27-P1-C60 F3.3)
+        - has:
+            field: property
+            kind: property_identifier
+            regex: ^set$
+        - has:
+            field: object
+            kind: call_expression
+            has:
+              field: function
+              kind: member_expression
+              has:
+                field: property
+                kind: property_identifier
+                regex: ^update$
+    - not:
+        has:
+          field: object
+          kind: identifier
+          regex: ^(Object|crypto|hash|hmac|cipher|decipher|md|sha|digest|Reflect|JSON|Math|Array|Promise|pdf|doc|jsPDF|workbook|wb|zip|canvas|ctx|image|img|localStorage|sessionStorage|cache|history|editor)$
+    - not:
+        has:
+          field: object
+          stopBy: end
+          kind: call_expression
+          has:
+            field: function
+            any:
+            - kind: identifier
+              regex: (createHash|createHmac|createCipheriv|createDecipheriv|createSign|createVerify)$
+            - kind: member_expression
+              regex: (createHash|createHmac|createCipheriv|createDecipheriv|createSign|createVerify)$
+control:
+  any:
+  - all:
+    - has:
+        field: arguments
+        has:
+          stopBy: end
+          kind: object
+    - not:
+        has:
+          field: arguments
+          has:
+            stopBy: end
+            kind: shorthand_property_identifier
+            regex: ^(data|values|set|update|create|attributes)$
+    - not:
+        has:
+          field: arguments
+          has:
+            stopBy: end
+            kind: spread_element
+            not:
+              has: &id001
+                any:
+                - pattern: $SCHEMA.parse($$$)
+                - pattern: $SCHEMA.parseAsync($$$)
+    - not:
+        has:
+          field: arguments
+          has:
+            any:
+            - all:
+              - kind: identifier
+              - not:
+                  kind: identifier
+                  regex: ^(id|ID|uuid|[A-Za-z0-9]*(Id|ID|_id|_ID)|where|filter|query|opts|options)$
+            - all:
+              - kind: member_expression
+              - not:
+                  kind: member_expression
+                  regex: \.(id|ID|uuid|[A-Za-z0-9]*(Id|ID|_id|_ID))$
+            - kind: call_expression
+            - kind: await_expression
+            - kind: as_expression
+            - kind: satisfies_expression
+            - kind: non_null_expression
+            - kind: array
+              has:
+                any:
+                - kind: identifier
+                - kind: member_expression
+                - kind: subscript_expression
+                - kind: call_expression
+                - kind: await_expression
+                - kind: spread_element
+                - kind: parenthesized_expression
+                - kind: ternary_expression
+                - kind: binary_expression
+                - kind: new_expression
+                - kind: array
+                - kind: as_expression
+                - kind: satisfies_expression
+                - kind: non_null_expression
+    - not:
+        has:
+          field: arguments
+          has:
+            stopBy: end
+            kind: pair
+            all:
+            - has:
+                field: key
+                any:
+                - kind: property_identifier
+                  regex: ^['\"]?(data|values|set|update|\$set|create|attributes)['\"]?$
+                - kind: string
+                  regex: ^['\"]?(data|values|set|update|\$set|create|attributes)['\"]?$
+            - not:
+                has:
+                  field: value
+                  any:
+                  - kind: object
+                  - all:
+                    - kind: array
+                    - not:
+                        has:
+                          any:
+                          - kind: identifier
+                          - kind: member_expression
+                          - kind: subscript_expression
+                          - kind: call_expression
+                          - kind: await_expression
+                          - kind: spread_element
+                          - kind: parenthesized_expression
+                          - kind: ternary_expression
+                          - kind: binary_expression
+                          - kind: new_expression
+                          - kind: array
+                          - kind: as_expression
+                          - kind: satisfies_expression
+                          - kind: non_null_expression
+                  - *id001
+  - has:
+      field: arguments
+      has: *id001
+  - all:
+    - pattern: '$M.$W({ $$$A, data: $D })'
+    - inside:
+        stopBy: end
+        any: &id002
+        - kind: arrow_function
+        - kind: function_declaration
+        - kind: function_expression
+        - kind: method_definition
+        has:
+          stopBy: end
+          all:
+          - any:
+            - pattern: const $D = $S.parse($$$P)
+            - pattern: const $D = await $S.parseAsync($$$P)
+            - pattern: const $D = $S.safeParse($$$P).data
+            - pattern: const $D = $S.validateSync($$$P)
+          - not:
+              kind: lexical_declaration
+              regex: passthrough\(|catchall\(|unknown\(\s*true|(?-u:\b)any\(\)|z\.record\(
+  - all:
+    - pattern: '$M.$W({ $$$A, data: $D, $$$B })'
+    - inside:
+        stopBy: end
+        any: *id002
+        has:
+          stopBy: end
+          all:
+          - any:
+            - pattern: const $D = $S.parse($$$P)
+            - pattern: const $D = await $S.parseAsync($$$P)
+            - pattern: const $D = $S.safeParse($$$P).data
+            - pattern: const $D = $S.validateSync($$$P)
+          - not:
+              kind: lexical_declaration
+              regex: passthrough\(|catchall\(|unknown\(\s*true|(?-u:\b)any\(\)|z\.record\(
+  - all:
+    - pattern: $M.$W($D)
+    - inside:
+        stopBy: end
+        any: *id002
+        has:
+          stopBy: end
+          all:
+          - any:
+            - pattern: const $D = $S.parse($$$P)
+            - pattern: const $D = await $S.parseAsync($$$P)
+            - pattern: const $D = $S.safeParse($$$P).data
+            - pattern: const $D = $S.validateSync($$$P)
+          - not:
+              kind: lexical_declaration
+              regex: passthrough\(|catchall\(|unknown\(\s*true|(?-u:\b)any\(\)|z\.record\(
+  - all:
+    - pattern: $M.$W($ID, $D)
+    - inside:
+        stopBy: end
+        any: *id002
+        has:
+          stopBy: end
+          all:
+          - any:
+            - pattern: const $D = $S.parse($$$P)
+            - pattern: const $D = await $S.parseAsync($$$P)
+            - pattern: const $D = $S.safeParse($$$P).data
+            - pattern: const $D = $S.validateSync($$$P)
+          - not:
+              kind: lexical_declaration
+              regex: passthrough\(|catchall\(|unknown\(\s*true|(?-u:\b)any\(\)|z\.record\(
+min_engine: 0.39.0
+---
+id: write-fields-allowlisted.typescript-nextjs.body-into-write
+practice_id: write-fields-allowlisted
+language: typescript
+frameworks:
+- nextjs
+kind: violation
+rule:
+  any:
+  - all:
+    - pattern: Object.assign($TARGET, $$$SOURCES)
+    - has:
+        field: arguments
+        has:
+          any:
+          - kind: await_expression
+            regex: ^await\s+(req|request)\.(json|formData)\(\)$
+          - kind: call_expression
+            regex: ^Object\.fromEntries\(
+  - all:
+    - &id003
+      kind: call_expression
+      not: &id001
+        inside:
+          kind: member_expression
+          field: object
+          regex: \.(values|set)$
+      has: &id002
+        field: function
+        kind: member_expression
+        all:
+        - any:
+          - has:
+              field: property
+              kind: property_identifier
+              regex: ^(create|createMany|update|updateMany|upsert|insert|insertMany|values|save|findByIdAndUpdate|findOneAndUpdate|updateOne|bulkCreate|replaceOne)$
+          - all:  # Drizzle: db.update(t).set(data) (T27-P1-C60 F3.3)
+            - has:
+                field: property
+                kind: property_identifier
+                regex: ^set$
+            - has:
+                field: object
+                kind: call_expression
+                has:
+                  field: function
+                  kind: member_expression
+                  has:
+                    field: property
+                    kind: property_identifier
+                    regex: ^update$
+        - not:
+            has:
+              field: object
+              kind: identifier
+              regex: ^(Object|crypto|hash|hmac|cipher|decipher|md|sha|digest|Reflect|JSON|Math|Array|Promise|pdf|doc|jsPDF|workbook|wb|zip|canvas|ctx|image|img|localStorage|sessionStorage|cache|history|editor)$
+        - not:
+            has:
+              field: object
+              stopBy: end
+              kind: call_expression
+              has:
+                field: function
+                any:
+                - kind: identifier
+                  regex: (createHash|createHmac|createCipheriv|createDecipheriv|createSign|createVerify)$
+                - kind: member_expression
+                  regex: (createHash|createHmac|createCipheriv|createDecipheriv|createSign|createVerify)$
+    - has:
+        field: arguments
+        stopBy: end
+        any:
+        - kind: await_expression
+          regex: ^await\s+(req|request)\.(json|formData)\(\)$
+          all:
+          - not:
+              inside:
+                kind: member_expression
+                field: object
+          - not:
+              inside:
+                stopBy: end
+                kind: call_expression
+                inside:
+                  stopBy: end
+                  kind: call_expression
+                  not: *id001
+                  has: *id002
+        - kind: call_expression
+          regex: ^Object\.fromEntries\(
+          all:
+          - not:
+              inside:
+                kind: member_expression
+                field: object
+          - not:
+              inside:
+                stopBy: end
+                kind: call_expression
+                inside:
+                  stopBy: end
+                  kind: call_expression
+                  not: *id001
+                  has: *id002
+  - all:
+    - *id003
+    - any:
+      - all:
+        - pattern: $M.$W($D)
+        - inside:
+            stopBy: end
+            any: &id004
+            - kind: arrow_function
+            - kind: function_declaration
+            - kind: function_expression
+            - kind: method_definition
+            has:
+              stopBy: end
+              any:
+              - pattern: const $D = await req.json()
+              - pattern: const $D = await request.json()
+              - pattern: let $D = await req.json()
+              - pattern: let $D = await request.json()
+              - pattern: const $D = await req.formData()
+              - pattern: const $D = await request.formData()
+              - pattern: const $D = Object.fromEntries($$$)
+              - pattern: const $D = (await req.json()) as $T
+              - pattern: const $D = (await request.json()) as $T
+      - all:
+        - pattern: $M.$W($ID, $D)
+        - inside:
+            stopBy: end
+            any: *id004
+            has:
+              stopBy: end
+              any:
+              - pattern: const $D = await req.json()
+              - pattern: const $D = await request.json()
+              - pattern: let $D = await req.json()
+              - pattern: let $D = await request.json()
+              - pattern: const $D = await req.formData()
+              - pattern: const $D = await request.formData()
+              - pattern: const $D = Object.fromEntries($$$)
+              - pattern: const $D = (await req.json()) as $T
+              - pattern: const $D = (await request.json()) as $T
+      - all:
+        - pattern: $M.$W([$D])
+        - inside:
+            stopBy: end
+            any: *id004
+            has:
+              stopBy: end
+              any:
+              - pattern: const $D = await req.json()
+              - pattern: const $D = await request.json()
+              - pattern: let $D = await req.json()
+              - pattern: let $D = await request.json()
+              - pattern: const $D = await req.formData()
+              - pattern: const $D = await request.formData()
+              - pattern: const $D = Object.fromEntries($$$)
+              - pattern: const $D = (await req.json()) as $T
+              - pattern: const $D = (await request.json()) as $T
+      - all:
+        - pattern: '$M.$W({ $$$A, data: $D })'
+        - inside:
+            stopBy: end
+            any: *id004
+            has:
+              stopBy: end
+              any:
+              - pattern: const $D = await req.json()
+              - pattern: const $D = await request.json()
+              - pattern: let $D = await req.json()
+              - pattern: let $D = await request.json()
+              - pattern: const $D = await req.formData()
+              - pattern: const $D = await request.formData()
+              - pattern: const $D = Object.fromEntries($$$)
+              - pattern: const $D = (await req.json()) as $T
+              - pattern: const $D = (await request.json()) as $T
+      - all:
+        - pattern: '$M.$W({ $$$A, data: $D, $$$B })'
+        - inside:
+            stopBy: end
+            any: *id004
+            has:
+              stopBy: end
+              any:
+              - pattern: const $D = await req.json()
+              - pattern: const $D = await request.json()
+              - pattern: let $D = await req.json()
+              - pattern: let $D = await request.json()
+              - pattern: const $D = await req.formData()
+              - pattern: const $D = await request.formData()
+              - pattern: const $D = Object.fromEntries($$$)
+              - pattern: const $D = (await req.json()) as $T
+              - pattern: const $D = (await request.json()) as $T
+      - all:
+        - pattern: $M.$W({ $$$A, ...$D })
+        - inside:
+            stopBy: end
+            any: *id004
+            has:
+              stopBy: end
+              any:
+              - pattern: const $D = await req.json()
+              - pattern: const $D = await request.json()
+              - pattern: let $D = await req.json()
+              - pattern: let $D = await request.json()
+              - pattern: const $D = await req.formData()
+              - pattern: const $D = await request.formData()
+              - pattern: const $D = Object.fromEntries($$$)
+              - pattern: const $D = (await req.json()) as $T
+              - pattern: const $D = (await request.json()) as $T
+      - all:
+        - pattern: $M.$W({ $$$A, ...$D, $$$B })
+        - inside:
+            stopBy: end
+            any: *id004
+            has:
+              stopBy: end
+              any:
+              - pattern: const $D = await req.json()
+              - pattern: const $D = await request.json()
+              - pattern: let $D = await req.json()
+              - pattern: let $D = await request.json()
+              - pattern: const $D = await req.formData()
+              - pattern: const $D = await request.formData()
+              - pattern: const $D = Object.fromEntries($$$)
+              - pattern: const $D = (await req.json()) as $T
+              - pattern: const $D = (await request.json()) as $T
+      - all:
+        - pattern: '$M.$W({ $$$A, data: { ...$D } })'
+        - inside:
+            stopBy: end
+            any: *id004
+            has:
+              stopBy: end
+              any:
+              - pattern: const $D = await req.json()
+              - pattern: const $D = await request.json()
+              - pattern: let $D = await req.json()
+              - pattern: let $D = await request.json()
+              - pattern: const $D = await req.formData()
+              - pattern: const $D = await request.formData()
+              - pattern: const $D = Object.fromEntries($$$)
+              - pattern: const $D = (await req.json()) as $T
+              - pattern: const $D = (await request.json()) as $T
+      - all:
+        - pattern: '$M.$W({ $$$A, data: { ...$D }, $$$B })'
+        - inside:
+            stopBy: end
+            any: *id004
+            has:
+              stopBy: end
+              any:
+              - pattern: const $D = await req.json()
+              - pattern: const $D = await request.json()
+              - pattern: let $D = await req.json()
+              - pattern: let $D = await request.json()
+              - pattern: const $D = await req.formData()
+              - pattern: const $D = await request.formData()
+              - pattern: const $D = Object.fromEntries($$$)
+              - pattern: const $D = (await req.json()) as $T
+              - pattern: const $D = (await request.json()) as $T
+      - all:
+        - pattern: '$M.$W({ $$$A, data: { ...$D, $$$X } })'
+        - inside:
+            stopBy: end
+            any: *id004
+            has:
+              stopBy: end
+              any:
+              - pattern: const $D = await req.json()
+              - pattern: const $D = await request.json()
+              - pattern: let $D = await req.json()
+              - pattern: let $D = await request.json()
+              - pattern: const $D = await req.formData()
+              - pattern: const $D = await request.formData()
+              - pattern: const $D = Object.fromEntries($$$)
+              - pattern: const $D = (await req.json()) as $T
+              - pattern: const $D = (await request.json()) as $T
+      - all:
+        - pattern: '$M.$W({ $$$A, data: { ...$D, $$$X }, $$$B })'
+        - inside:
+            stopBy: end
+            any: *id004
+            has:
+              stopBy: end
+              any:
+              - pattern: const $D = await req.json()
+              - pattern: const $D = await request.json()
+              - pattern: let $D = await req.json()
+              - pattern: let $D = await request.json()
+              - pattern: const $D = await req.formData()
+              - pattern: const $D = await request.formData()
+              - pattern: const $D = Object.fromEntries($$$)
+              - pattern: const $D = (await req.json()) as $T
+              - pattern: const $D = (await request.json()) as $T
+      - all:
+        - pattern: '$M.$W({ $$$A, data: { $$$X, ...$D } })'
+        - inside:
+            stopBy: end
+            any: *id004
+            has:
+              stopBy: end
+              any:
+              - pattern: const $D = await req.json()
+              - pattern: const $D = await request.json()
+              - pattern: let $D = await req.json()
+              - pattern: let $D = await request.json()
+              - pattern: const $D = await req.formData()
+              - pattern: const $D = await request.formData()
+              - pattern: const $D = Object.fromEntries($$$)
+              - pattern: const $D = (await req.json()) as $T
+              - pattern: const $D = (await request.json()) as $T
+      - all:
+        - pattern: '$M.$W({ $$$A, data: { $$$X, ...$D }, $$$B })'
+        - inside:
+            stopBy: end
+            any: *id004
+            has:
+              stopBy: end
+              any:
+              - pattern: const $D = await req.json()
+              - pattern: const $D = await request.json()
+              - pattern: let $D = await req.json()
+              - pattern: let $D = await request.json()
+              - pattern: const $D = await req.formData()
+              - pattern: const $D = await request.formData()
+              - pattern: const $D = Object.fromEntries($$$)
+              - pattern: const $D = (await req.json()) as $T
+              - pattern: const $D = (await request.json()) as $T
+      - all:
+        - pattern: $M.$W({ data })
+        - inside:
+            stopBy: end
+            any: *id004
+            has:
+              stopBy: end
+              any:
+              - pattern: const data = await req.json()
+              - pattern: const data = await request.json()
+              - pattern: let data = await req.json()
+              - pattern: let data = await request.json()
+              - pattern: const data = await req.formData()
+              - pattern: const data = await request.formData()
+              - pattern: const data = Object.fromEntries($$$)
+              - pattern: const data = (await req.json()) as $T
+              - pattern: const data = (await request.json()) as $T
+      - all:
+        - pattern: $M.$W({ $$$A, data })
+        - inside:
+            stopBy: end
+            any: *id004
+            has:
+              stopBy: end
+              any:
+              - pattern: const data = await req.json()
+              - pattern: const data = await request.json()
+              - pattern: let data = await req.json()
+              - pattern: let data = await request.json()
+              - pattern: const data = await req.formData()
+              - pattern: const data = await request.formData()
+              - pattern: const data = Object.fromEntries($$$)
+              - pattern: const data = (await req.json()) as $T
+              - pattern: const data = (await request.json()) as $T
+      - all:
+        - pattern: $M.$W({ data, $$$B })
+        - inside:
+            stopBy: end
+            any: *id004
+            has:
+              stopBy: end
+              any:
+              - pattern: const data = await req.json()
+              - pattern: const data = await request.json()
+              - pattern: let data = await req.json()
+              - pattern: let data = await request.json()
+              - pattern: const data = await req.formData()
+              - pattern: const data = await request.formData()
+              - pattern: const data = Object.fromEntries($$$)
+              - pattern: const data = (await req.json()) as $T
+              - pattern: const data = (await request.json()) as $T
+min_engine: 0.39.0
+---
+id: write-fields-allowlisted.typescript-nextjs.denylist
+practice_id: write-fields-allowlisted
+language: typescript
+frameworks:
+- nextjs
+kind: violation
+rule:
+  any:
+  - all:
+    - kind: unary_expression
+      regex: ^delete\s
+    - has:
+        any:
+        - kind: member_expression
+          regex: ^((req|request)\.body|(body|raw|form|post|data|input|payload|values|vals|fields|updates|changes|dto|attrs|params|patch|update|json|formData))(\.[0-9A-Za-z_]+|\[)
+        - kind: subscript_expression
+          regex: ^((req|request)\.body|(body|raw|form|post|data|input|payload|values|vals|fields|updates|changes|dto|attrs|params|patch|update|json|formData))\[
+        - kind: parenthesized_expression
+          regex: ^\(\s*((req|request)\.body|(body|raw|form|post|data|input|payload|values|vals|fields|updates|changes|dto|attrs|params|patch|update|json|formData))
+  - pattern: Reflect.deleteProperty($OBJ, $$$)
+  - pattern: omit($OBJ, $$$)
+  - pattern: _.omit($OBJ, $$$)
+  - pattern: lodash.omit($OBJ, $$$)
+  - pattern: $SCHEMA.omit($$$)
+  - all:
+    - kind: variable_declarator
+    - has:
+        field: name
+        kind: object_pattern
+        has:
+          kind: rest_pattern
+    - has:
+        field: value
+        any:
+        - kind: member_expression
+          regex: ^(req|request)\.(body|query)$
+        - kind: await_expression
+          regex: ^await\s+(req|request)\.(json|formData)\(\)
+        - kind: identifier
+          regex: ^(body|raw|form|post|data|input|payload|values|vals|fields|updates|changes|dto|attrs|params|patch|update|json|formData)$
+min_engine: 0.39.0
+---
+id: write-fields-allowlisted.typescript-nextjs.identity-from-request
+practice_id: write-fields-allowlisted
+language: typescript
+frameworks:
+- nextjs
+kind: violation
+rule:
+  all:
+  - kind: pair
+  - has:
+      field: key
+      any:
+      - kind: property_identifier
+        regex: (?i)^['\"]?(user_?id|owner_?id|tenant_?id|org_?id|organi[sz]ation_?id|account_?id|clinic_?id|practice_?id|provider_?id|created_?by|updated_?by|author_?id|role|roles|role_?id|is_?admin|is_?staff|is_?superuser|permissions)['\"]?$
+      - kind: string
+        regex: (?i)^['\"]?(user_?id|owner_?id|tenant_?id|org_?id|organi[sz]ation_?id|account_?id|clinic_?id|practice_?id|provider_?id|created_?by|updated_?by|author_?id|role|roles|role_?id|is_?admin|is_?staff|is_?superuser|permissions)['\"]?$
+  - has:
+      field: value
+      any:
+      - kind: member_expression
+        regex: ^(body|data|input|payload|values|json|formData|searchParams|params)(?-u:\b)|^(req|request)\.(body|query|params|headers|json|formData|nextUrl)(?-u:\b)
+      - kind: subscript_expression
+        regex: ^(body|data|input|payload|values|json|formData|searchParams|params)(?-u:\b)|^(req|request)\.(body|query|params|headers|json|formData|nextUrl)(?-u:\b)
+      - kind: call_expression
+        regex: ^(body|data|input|payload|values|json|formData|searchParams|params)(?-u:\b)|^(req|request)\.(body|query|params|headers|json|formData|nextUrl)(?-u:\b)
+      - kind: as_expression
+        regex: ^(body|data|input|payload|values|json|formData|searchParams|params)(?-u:\b)|^(req|request)\.(body|query|params|headers|json|formData|nextUrl)(?-u:\b)
+      - kind: await_expression
+        regex: ^(body|data|input|payload|values|json|formData|searchParams|params)(?-u:\b)|^(req|request)\.(body|query|params|headers|json|formData|nextUrl)(?-u:\b)
+  - inside:
+      stopBy: end
+      kind: call_expression
+      not:
+        inside:
+          kind: member_expression
+          field: object
+          regex: \.(values|set)$
+      has:
+        field: function
+        kind: member_expression
+        all:
+        - any:
+          - has:
+              field: property
+              kind: property_identifier
+              regex: ^(create|createMany|update|updateMany|upsert|insert|insertMany|values|save|findByIdAndUpdate|findOneAndUpdate|updateOne|bulkCreate|replaceOne)$
+          - all:  # Drizzle: db.update(t).set(data) (T27-P1-C60 F3.3)
+            - has:
+                field: property
+                kind: property_identifier
+                regex: ^set$
+            - has:
+                field: object
+                kind: call_expression
+                has:
+                  field: function
+                  kind: member_expression
+                  has:
+                    field: property
+                    kind: property_identifier
+                    regex: ^update$
+        - not:
+            has:
+              field: object
+              kind: identifier
+              regex: ^(Object|crypto|hash|hmac|cipher|decipher|md|sha|digest|Reflect|JSON|Math|Array|Promise|pdf|doc|jsPDF|workbook|wb|zip|canvas|ctx|image|img|localStorage|sessionStorage|cache|history|editor)$
+        - not:
+            has:
+              field: object
+              stopBy: end
+              kind: call_expression
+              has:
+                field: function
+                any:
+                - kind: identifier
+                  regex: (createHash|createHmac|createCipheriv|createDecipheriv|createSign|createVerify)$
+                - kind: member_expression
+                  regex: (createHash|createHmac|createCipheriv|createDecipheriv|createSign|createVerify)$
+min_engine: 0.39.0
+---
+id: write-fields-allowlisted.typescript-nextjs.identity-field
+practice_id: write-fields-allowlisted
+language: typescript
+frameworks:
+- nextjs
+kind: items
+rule:
+  all:
+  - any:
+    - all:
+      - kind: pair
+      - has:
+          field: key
+          any:
+          - kind: property_identifier
+            regex: (?i)^['\"]?(user_?id|owner_?id|tenant_?id|org_?id|organi[sz]ation_?id|account_?id|clinic_?id|practice_?id|provider_?id|created_?by|updated_?by|author_?id|role|roles|role_?id|is_?admin|is_?staff|is_?superuser|permissions)['\"]?$
+          - kind: string
+            regex: (?i)^['\"]?(user_?id|owner_?id|tenant_?id|org_?id|organi[sz]ation_?id|account_?id|clinic_?id|practice_?id|provider_?id|created_?by|updated_?by|author_?id|role|roles|role_?id|is_?admin|is_?staff|is_?superuser|permissions)['\"]?$
+    - kind: shorthand_property_identifier
+      regex: (?i)^['\"]?(user_?id|owner_?id|tenant_?id|org_?id|organi[sz]ation_?id|account_?id|clinic_?id|practice_?id|provider_?id|created_?by|updated_?by|author_?id|role|roles|role_?id|is_?admin|is_?staff|is_?superuser|permissions)['\"]?$
+  - inside:
+      stopBy: end
+      kind: call_expression
+      not:
+        inside:
+          kind: member_expression
+          field: object
+          regex: \.(values|set)$
+      has:
+        field: function
+        kind: member_expression
+        all:
+        - any:
+          - has:
+              field: property
+              kind: property_identifier
+              regex: ^(create|createMany|update|updateMany|upsert|insert|insertMany|values|save|findByIdAndUpdate|findOneAndUpdate|updateOne|bulkCreate|replaceOne)$
+          - all:  # Drizzle: db.update(t).set(data) (T27-P1-C60 F3.3)
+            - has:
+                field: property
+                kind: property_identifier
+                regex: ^set$
+            - has:
+                field: object
+                kind: call_expression
+                has:
+                  field: function
+                  kind: member_expression
+                  has:
+                    field: property
+                    kind: property_identifier
+                    regex: ^update$
+        - not:
+            has:
+              field: object
+              kind: identifier
+              regex: ^(Object|crypto|hash|hmac|cipher|decipher|md|sha|digest|Reflect|JSON|Math|Array|Promise|pdf|doc|jsPDF|workbook|wb|zip|canvas|ctx|image|img|localStorage|sessionStorage|cache|history|editor)$
+        - not:
+            has:
+              field: object
+              stopBy: end
+              kind: call_expression
+              has:
+                field: function
+                any:
+                - kind: identifier
+                  regex: (createHash|createHmac|createCipheriv|createDecipheriv|createSign|createVerify)$
+                - kind: member_expression
+                  regex: (createHash|createHmac|createCipheriv|createDecipheriv|createSign|createVerify)$
+control:
+  all:
+  - kind: pair
+  - has:
+      field: value
+      any:
+      - kind: member_expression
+        regex: ^(await\s+)?(session|auth|currentUser|principal|claims|token|jwt)(?-u:\b)
+      - kind: call_expression
+        regex: ^(await\s+)?(session|auth|currentUser|principal|claims|token|jwt)(?-u:\b)
+      - kind: await_expression
+        regex: ^(await\s+)?(session|auth|currentUser|principal|claims|token|jwt)(?-u:\b)
+      - kind: identifier
+        regex: ^(await\s+)?(session|auth|currentUser|principal|claims|token|jwt)(?-u:\b)
+      - kind: member_expression
+        regex: ^(req|request|ctx|context|res\.locals|locals)\.(user|auth|session|state\.user|tenant)(?-u:\b)
+      - kind: call_expression
+        regex: ^(req|request|ctx|context|res\.locals|locals)\.(user|auth|session|state\.user|tenant)(?-u:\b)
+      - kind: member_expression
+        regex: ^user\.(id|sub|tenantId|tenant_id|orgId|organizationId)$
+      - kind: call_expression
+        regex: ^(await\s+)?(auth\.uid|getUserId|getCurrentUserId|requireUser|getServerSession|currentUserId)\(
+      - kind: await_expression
+        regex: ^(await\s+)?(auth\.uid|getUserId|getCurrentUserId|requireUser|getServerSession|currentUserId)\(
+      - kind: string
+        regex: ^['\"](patient|staff|clinician|viewer|member|user)['\"]$
+min_engine: 0.39.0
+---
+id: write-fields-allowlisted.typescript-nextjs.schema-passthrough
+practice_id: write-fields-allowlisted
+language: typescript
+frameworks:
+- nextjs
+kind: violation
+rule:
+  any:
+  - pattern: $SCHEMA.passthrough()
+  - pattern: $SCHEMA.catchall($$$)
+  - pattern: $SCHEMA.unknown(true)
+  - kind: pair
+    regex: ^additionalProperties\s*:\s*true$
+  - kind: pair
+    regex: ^(whitelist|forbidUnknownValues)\s*:\s*false$
+min_engine: 0.39.0
+---
+# A route handler taking the request body (await request.json(), request.formData()), one item each: the
+# entry point of a write. The control is a strict schema parse in the handler (zod parse, safeParse,
+# parseAsync). Whether the parsed fields alone reach the write, and identity from the session, is dataflow.
+id: write-fields-allowlisted.typescript-nextjs.entry
+practice_id: write-fields-allowlisted
+language: typescript
+frameworks:
+- nextjs
+kind: items
+rule:
+  all:
+  - any:
+    - kind: function_declaration
+      all:
+      - has:
+          field: name
+          kind: identifier
+          regex: '^(GET|POST|PUT|PATCH|DELETE)$'
+      - inside:
+          kind: export_statement
+    - kind: variable_declarator
+      all:
+      - has:
+          field: name
+          kind: identifier
+          regex: '^(GET|POST|PUT|PATCH|DELETE)$'
+      - has:
+          field: value
+          kind: arrow_function
+      - inside:
+          kind: lexical_declaration
+          inside:
+            kind: export_statement
+  - has:
+      stopBy: end
+      kind: call_expression
+      regex: '^(req|request)\.(json|formData)\(\)$'
+  - not:
+      has:
+        stopBy: end
+        kind: call_expression
+        not:
+          inside:
+            kind: member_expression
+            field: object
+            regex: '\.(values|set)$'
+        has:
+          field: function
+          kind: member_expression
+          all:
+          - any:
+            - has:
+                field: property
+                kind: property_identifier
+                regex: '^(create|createMany|update|updateMany|upsert|insert|insertMany|values|save|findByIdAndUpdate|findOneAndUpdate|updateOne|bulkCreate|replaceOne)$'
+            - all:  # Drizzle: db.update(t).set(data) (T27-P1-C60 F3.3)
+              - has:
+                  field: property
+                  kind: property_identifier
+                  regex: '^set$'
+              - has:
+                  field: object
+                  kind: call_expression
+                  has:
+                    field: function
+                    kind: member_expression
+                    has:
+                      field: property
+                      kind: property_identifier
+                      regex: '^update$'
+          - not:
+              has:
+                field: object
+                kind: identifier
+                regex: '^(Object|crypto|hash|hmac|cipher|decipher|md|sha|digest|Reflect|JSON|Math|Array|Promise|pdf|doc|jsPDF|workbook|wb|zip|canvas|ctx|image|img|localStorage|sessionStorage|cache|history|editor)$'
+          - not:
+              has:
+                field: object
+                stopBy: end
+                kind: call_expression
+                has:
+                  field: function
+                  any:
+                  - kind: identifier
+                    regex: '(createHash|createHmac|createCipheriv|createDecipheriv|createSign|createVerify)$'
+                  - kind: member_expression
+                    regex: '(createHash|createHmac|createCipheriv|createDecipheriv|createSign|createVerify)$'
+control:
+  has:
+    stopBy: end
+    any:
+    - kind: call_expression
+      pattern: '$S.parse($$$)'
+      not:
+        kind: call_expression
+        regex: '^JSON\.'
+    - kind: call_expression
+      pattern: '$S.parseAsync($$$)'
+      not:
+        kind: call_expression
+        regex: '^JSON\.'
+    - kind: call_expression
+      pattern: '$S.safeParse($$$)'
+      not:
+        kind: call_expression
+        regex: '^JSON\.'
+    - kind: call_expression
+      pattern: '$S.safeParseAsync($$$)'
+      not:
+        kind: call_expression
+        regex: '^JSON\.'
+min_engine: 0.39.0
+---
+# The same entry point as evidence: the write its body feeds isn't in view (no write call in the handler; a
+# helper, a service, another file), so this entry item, at the same place, is held for a person
+# (needs_review). A handler with a write in view is no entry: its write items judge it and fail without
+# their control.
+id: write-fields-allowlisted.typescript-nextjs.fields-unobserved-entry
+practice_id: write-fields-allowlisted
+language: typescript
+frameworks:
+- nextjs
+kind: evidence
+rule:
+  all:
+  - any:
+    - kind: function_declaration
+      all:
+      - has:
+          field: name
+          kind: identifier
+          regex: '^(GET|POST|PUT|PATCH|DELETE)$'
+      - inside:
+          kind: export_statement
+    - kind: variable_declarator
+      all:
+      - has:
+          field: name
+          kind: identifier
+          regex: '^(GET|POST|PUT|PATCH|DELETE)$'
+      - has:
+          field: value
+          kind: arrow_function
+      - inside:
+          kind: lexical_declaration
+          inside:
+            kind: export_statement
+  - has:
+      stopBy: end
+      kind: call_expression
+      regex: '^(req|request)\.(json|formData)\(\)$'
+  - not:
+      has:
+        stopBy: end
+        kind: call_expression
+        not:
+          inside:
+            kind: member_expression
+            field: object
+            regex: '\.(values|set)$'
+        has:
+          field: function
+          kind: member_expression
+          all:
+          - any:
+            - has:
+                field: property
+                kind: property_identifier
+                regex: '^(create|createMany|update|updateMany|upsert|insert|insertMany|values|save|findByIdAndUpdate|findOneAndUpdate|updateOne|bulkCreate|replaceOne)$'
+            - all:  # Drizzle: db.update(t).set(data) (T27-P1-C60 F3.3)
+              - has:
+                  field: property
+                  kind: property_identifier
+                  regex: '^set$'
+              - has:
+                  field: object
+                  kind: call_expression
+                  has:
+                    field: function
+                    kind: member_expression
+                    has:
+                      field: property
+                      kind: property_identifier
+                      regex: '^update$'
+          - not:
+              has:
+                field: object
+                kind: identifier
+                regex: '^(Object|crypto|hash|hmac|cipher|decipher|md|sha|digest|Reflect|JSON|Math|Array|Promise|pdf|doc|jsPDF|workbook|wb|zip|canvas|ctx|image|img|localStorage|sessionStorage|cache|history|editor)$'
+          - not:
+              has:
+                field: object
+                stopBy: end
+                kind: call_expression
+                has:
+                  field: function
+                  any:
+                  - kind: identifier
+                    regex: '(createHash|createHmac|createCipheriv|createDecipheriv|createSign|createVerify)$'
+                  - kind: member_expression
+                    regex: '(createHash|createHmac|createCipheriv|createDecipheriv|createSign|createVerify)$'
+min_engine: 0.39.0

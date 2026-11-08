@@ -1,0 +1,43 @@
+# FastAPI path operations whose path takes a parameter (a record id), one item each (the function under the
+# decorator). The control is the signed-in user as a dependency: a Depends or Security parameter, or a route
+# dependencies entry, whose provider names the user, principal, claims or auth (never the bare OAuth2 scheme, which
+# only reads the token string, and never a provider named optional, which lets anonymous callers through), or
+# request.state.user. A dependency set on the router or app is not seen.
+id: authz-every-handler.python-fastapi.route
+practice_id: authz-every-handler
+language: python
+frameworks:
+- fastapi
+kind: items
+rule:
+  kind: function_definition
+  inside:
+    kind: decorated_definition
+    has:
+      kind: decorator
+      regex: '^@\w+\.(get|post|put|patch|delete|api_route)\(\s*f?[''\"][^''\"]*\{'
+control:
+  any:
+  - has:
+      stopBy: end
+      kind: call
+      regex: '^(Depends|Security)\(\s*[\w.]*(?i:user|principal|claims|auth|identity|current)'
+      not:
+        kind: call
+        regex: '(?i)scheme|optional|maybe|try_'
+  - has:
+      stopBy: end
+      kind: attribute
+      regex: '^request\.state\.(user|claims|principal)\b'
+  - inside:
+      kind: decorated_definition
+      has:
+        kind: decorator
+        has:
+          stopBy: end
+          kind: call
+          regex: '^(Depends|Security)\(\s*[\w.]*(?i:user|principal|claims|auth|identity|current)'
+          not:
+            kind: call
+            regex: '(?i)scheme|optional|maybe|try_'
+min_engine: 0.39.0

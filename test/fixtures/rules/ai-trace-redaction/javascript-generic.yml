@@ -1,0 +1,28 @@
+id: ai-trace-redaction.javascript-generic.console-phi
+practice_id: ai-trace-redaction
+language: javascript
+frameworks: [generic]
+kind: violation
+rule:
+  any:
+    - pattern: console.log($$$ARGS)
+    - pattern: console.info($$$ARGS)
+  has:
+    kind: member_expression
+    regex: \.patient\b
+    stopBy: end
+min_engine: 0.45.0
+---
+id: ai-trace-redaction.javascript-generic.local-storage
+practice_id: ai-trace-redaction
+language: javascript
+frameworks: [generic]
+kind: violation
+rule:
+  pattern:
+    context: localStorage.setItem($KEY, $VALUE)
+    selector: call_expression
+  inside:
+    kind: function_declaration
+    stopBy: end
+min_engine: 0.45.0

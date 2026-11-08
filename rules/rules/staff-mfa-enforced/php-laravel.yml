@@ -1,0 +1,87 @@
+id: staff-mfa-enforced.php-laravel.sign-in
+practice_id: staff-mfa-enforced
+language: php
+frameworks:
+- laravel
+kind: items
+rule:
+  all:
+  - any:
+    - kind: method_declaration
+    - kind: function_definition
+  - has:
+      stopBy: end
+      any:
+      - kind: function_call_expression
+        regex: ^(password_verify|\$[0-9A-Za-z_]+->(passwordVerify|checkPassword|verifyPassword)|AuthHash::passwordVerify|Auth::attempt|auth\(\)->attempt|Auth::validate|Hash::check)
+      - kind: member_call_expression
+        regex: ^(password_verify|\$[0-9A-Za-z_]+->(passwordVerify|checkPassword|verifyPassword)|AuthHash::passwordVerify|Auth::attempt|auth\(\)->attempt|Auth::validate|Hash::check)
+      - kind: scoped_call_expression
+        regex: ^(password_verify|\$[0-9A-Za-z_]+->(passwordVerify|checkPassword|verifyPassword)|AuthHash::passwordVerify|Auth::attempt|auth\(\)->attempt|Auth::validate|Hash::check)
+control:
+  has:
+    stopBy: end
+    all:
+    - any:
+      - kind: function_call_expression
+        regex: (?i)(verifyKey|verifyCode|validateToken|verifyTotp|checkTotp|verifyOtp|totp->verify|google2fa|TwoFactorAuthenticationProvider|->verify\(|u2f|webauthn)
+      - kind: member_call_expression
+        regex: (?i)(verifyKey|verifyCode|validateToken|verifyTotp|checkTotp|verifyOtp|totp->verify|google2fa|TwoFactorAuthenticationProvider|->verify\(|u2f|webauthn)
+      - kind: scoped_call_expression
+        regex: (?i)(verifyKey|verifyCode|validateToken|verifyTotp|checkTotp|verifyOtp|totp->verify|google2fa|TwoFactorAuthenticationProvider|->verify\(|u2f|webauthn)
+    - not:
+        inside:
+          stopBy: end
+          kind: if_statement
+          has:
+            field: condition
+            kind: parenthesized_expression
+            regex: (?i)^\(\s*!?\s*[A-Za-z0-9_.?]*\.(otp|totp|mfaCode|mfa_code|code)\s*\)$|(mfa|otp|totp|two_?factor|2fa|tfa)_?(enabled|enrolled|active|registered|configured)|(mfa|otp|two_?factor)_?required_?for_?login|is_?mfa_?required|mfa_?required|requires_?mfa|nextLevel|has_?mfa|factors\.(length|totp)|mfa_?types|\$this->types
+min_engine: 0.39.0
+---
+id: staff-mfa-enforced.php-laravel.mfa-optional
+practice_id: staff-mfa-enforced
+language: php
+frameworks:
+- laravel
+kind: violation
+rule:
+  any:
+  - all:
+    - kind: method_declaration
+    - has:
+        field: name
+        kind: name
+        regex: (?i)^(is_?)?mfa_?required$|^requires_?mfa$
+    - has:
+        field: body
+        has:
+          kind: return_statement
+          all:
+          - kind: return_statement
+            regex: '!\s*empty\(|count\(|enabled|enrolled|registered|types'
+          - not:
+              kind: return_statement
+              regex: (?i)(role|is_?staff|staff|admin|clinician|practitioner|provider|doctor|physician|nurse)
+  - all:
+    - kind: if_statement
+    - has:
+        field: condition
+        kind: parenthesized_expression
+        regex: (?i)^\(\s*!?\s*[A-Za-z0-9_.?]*\.(otp|totp|mfaCode|mfa_code|code)\s*\)$|(mfa|otp|totp|two_?factor|2fa|tfa)_?(enabled|enrolled|active|registered|configured)|(mfa|otp|two_?factor)_?required_?for_?login|is_?mfa_?required|mfa_?required|requires_?mfa|nextLevel|has_?mfa|factors\.(length|totp)|mfa_?types|\$this->types
+    - not:
+        has:
+          field: condition
+          kind: parenthesized_expression
+          regex: (?i)(role|is_?staff|staff|admin|clinician|practitioner|provider|doctor|physician|nurse)
+    - has:
+        field: body
+        stopBy: end
+        any:
+        - kind: function_call_expression
+          regex: (?i)(verifyKey|verifyCode|validateToken|verifyTotp|checkTotp|verifyOtp|totp->verify|google2fa|TwoFactorAuthenticationProvider|->verify\(|u2f|webauthn)
+        - kind: member_call_expression
+          regex: (?i)(verifyKey|verifyCode|validateToken|verifyTotp|checkTotp|verifyOtp|totp->verify|google2fa|TwoFactorAuthenticationProvider|->verify\(|u2f|webauthn)
+        - kind: scoped_call_expression
+          regex: (?i)(verifyKey|verifyCode|validateToken|verifyTotp|checkTotp|verifyOtp|totp->verify|google2fa|TwoFactorAuthenticationProvider|->verify\(|u2f|webauthn)
+min_engine: 0.39.0

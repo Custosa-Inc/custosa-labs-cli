@@ -1,0 +1,95 @@
+id: write-fields-allowlisted.python-fastapi.body-into-write
+practice_id: write-fields-allowlisted
+language: python
+frameworks:
+- fastapi
+kind: violation
+rule:
+  any:
+  - all:
+    - pattern: $M(**$D)
+    - inside:
+        stopBy: end
+        kind: function_definition
+        has:
+          stopBy: end
+          any:
+          - pattern: $D = await request.json()
+          - pattern: $D = await request.form()
+  - all:
+    - pattern: $M.create(**$D)
+    - inside:
+        stopBy: end
+        kind: function_definition
+        has:
+          stopBy: end
+          any:
+          - pattern: $D = await request.json()
+          - pattern: $D = await request.form()
+  - all:
+    - pattern: $M.objects.create(**$D)
+    - inside:
+        stopBy: end
+        kind: function_definition
+        has:
+          stopBy: end
+          any:
+          - pattern: $D = await request.json()
+          - pattern: $D = await request.form()
+  - all:
+    - pattern: $M.update(**$D)
+    - inside:
+        stopBy: end
+        kind: function_definition
+        has:
+          stopBy: end
+          any:
+          - pattern: $D = await request.json()
+          - pattern: $D = await request.form()
+  - all:
+    - pattern: $M.query.filter_by($$$).update($D)
+    - inside:
+        stopBy: end
+        kind: function_definition
+        has:
+          stopBy: end
+          any:
+          - pattern: $D = await request.json()
+          - pattern: $D = await request.form()
+min_engine: 0.39.0
+---
+id: write-fields-allowlisted.python-fastapi.extra-allowed
+practice_id: write-fields-allowlisted
+language: python
+frameworks:
+- fastapi
+kind: violation
+rule:
+  any:
+  - all:
+    - kind: keyword_argument
+    - has:
+        field: name
+        kind: identifier
+        regex: ^extra$
+    - has:
+        field: value
+        any:
+        - kind: string
+          regex: ^['\"]allow['\"]$
+        - kind: attribute
+          regex: ^Extra\.allow$
+  - all:
+    - kind: assignment
+    - has:
+        field: left
+        kind: identifier
+        regex: ^extra$
+    - has:
+        field: right
+        any:
+        - kind: string
+          regex: ^['\"]allow['\"]$
+        - kind: attribute
+          regex: ^Extra\.allow$
+min_engine: 0.39.0

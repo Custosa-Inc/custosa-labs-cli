@@ -1,0 +1,62 @@
+{
+ "name": "DefaultManagementPolicy",
+ "properties": {
+  "policy": {
+   "rules": [
+    {
+     "enabled": true,
+     "name": "archive-diagnostics",
+     "type": "Lifecycle",
+     "definition": {
+      "filters": {
+       "blobTypes": [
+        "appendBlob",
+        "blockBlob"
+       ],
+       "prefixMatch": [
+        "insights-logs-postgresqllogs/"
+       ]
+      },
+      "actions": {
+       "baseBlob": {
+        "tierToArchive": {
+         "daysAfterModificationGreaterThan": 90
+        },
+        "delete": {
+         "daysAfterModificationGreaterThan": 400
+        }
+       },
+       "snapshot": {
+        "delete": {
+         "daysAfterCreationGreaterThan": 30
+        }
+       }
+      }
+     }
+    },
+    {
+     "enabled": true,
+     "name": "tmp-cleanup",
+     "type": "Lifecycle",
+     "definition": {
+      "filters": {
+       "blobTypes": [
+        "blockBlob"
+       ],
+       "prefixMatch": [
+        "tmp/"
+       ]
+      },
+      "actions": {
+       "baseBlob": {
+        "delete": {
+         "daysAfterModificationGreaterThan": 7
+        }
+       }
+      }
+     }
+    }
+   ]
+  }
+ }
+}

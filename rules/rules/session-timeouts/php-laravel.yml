@@ -1,0 +1,21 @@
+id: session-timeouts.php-laravel.idle-within
+practice_id: session-timeouts
+language: php
+frameworks:
+- laravel
+kind: evidence
+rule:
+  kind: array_element_initializer
+  regex: ^['\"]lifetime['\"]\s*=>\s*(([1-9]|[1-5][0-9]|60)|env\(['\"]SESSION_LIFETIME['\"],\s*([1-9]|[1-5][0-9]|60)\))$
+min_engine: 0.39.0
+---
+id: session-timeouts.php-laravel.over-limit
+practice_id: session-timeouts
+language: php
+frameworks:
+- laravel
+kind: violation
+rule:
+  kind: array_element_initializer
+  regex: ^['\"]lifetime['\"]\s*=>\s*((6[1-9]|[7-9][0-9]|[0-9]{3,})|env\(['\"]SESSION_LIFETIME['\"],\s*(6[1-9]|[7-9][0-9]|[0-9]{3,})\))$
+min_engine: 0.39.0

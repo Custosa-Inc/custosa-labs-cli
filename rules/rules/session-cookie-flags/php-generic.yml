@@ -1,0 +1,38 @@
+id: session-cookie-flags.php-generic.cookie-set
+practice_id: session-cookie-flags
+language: php
+frameworks:
+- generic
+kind: items
+rule:
+  any:
+  - kind: object_creation_expression
+    regex: ^new\s+SessionConfiguration\(
+  - kind: function_call_expression
+    regex: ^(setcookie|session_set_cookie_params)\(
+control:
+  all:
+  - has:
+      kind: arguments
+      regex: (?i)['\"]?(cookie_?)?http_?only['\"]?\s*(=>|:|=)\s*(true|True)\b
+  - has:
+      kind: arguments
+      regex: (?i)['\"]?(cookie_?)?secure['\"]?\s*(=>|:|=)\s*(true|True|process\.env\.NODE_ENV\s*===?\s*['\"]production['\"]|!\s*\w*[dD]ev\w*|\w*[pP]roduction\w*|env\(['\"]SESSION_SECURE_COOKIE)
+  - has:
+      kind: arguments
+      regex: (?i)['\"]?(cookie_?)?same_?site['\"]?\s*(=>|:|=)\s*['\"]?(lax|strict)['\"]?
+min_engine: 0.39.0
+---
+id: session-cookie-flags.php-generic.flag-off
+practice_id: session-cookie-flags
+language: php
+frameworks:
+- generic
+kind: violation
+rule:
+  any:
+  - kind: argument
+    regex: (?i)^cookie_?(http_?only|secure)\s*:\s*false$|^cookie_?same_?site\s*:\s*['\"]none['\"]$
+  - kind: array_element_initializer
+    regex: (?i)^['\"](http_?only|secure)['\"]\s*=>\s*false$|^['\"]same_?site['\"]\s*=>\s*(['\"]none['\"]|null)$
+min_engine: 0.39.0

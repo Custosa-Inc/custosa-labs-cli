@@ -1,0 +1,3464 @@
+# Next.js handlers that write to the database (a route handler, a Server Action, a pages/api handler), one item each.
+# The control is a write whose data is the result of a schema parse in the same handler (zod or valibot parse or
+# safeParse, used as the data, its .data, or spread into the data), where the schema keeps only its fields (no
+# .passthrough(), z.any, z.record, z.unknown, catchall or .strict(false)); or a write whose data is an object literal
+# naming its fields and carrying the request's values. A parse whose result is dropped, or a literal of constants (an
+# audit row), is not the control. A write of the whole request body (req.body, await req.json(), Object.fromEntries of
+# a form, JSON.parse of the body, or a variable holding one, directly or through a second variable, as the data or
+# spread into it) is a violation. Dropping named keys (delete body.role, const { role, ...rest } = body) is a
+# denylist, never the control. Whether identity fields come from the session is dataflow (needs_review).
+id: write-fields-allowlisted.javascript-nextjs.write
+practice_id: write-fields-allowlisted
+language: javascript
+frameworks: [nextjs]
+kind: items
+rule:
+  all:
+  - any:
+    - kind: function_declaration
+      all:
+      - has:
+          field: name
+          kind: identifier
+          regex: '^(GET|POST|PUT|PATCH|DELETE)$'
+      - inside: {kind: export_statement}
+    - kind: variable_declarator
+      all:
+      - has:
+          field: name
+          kind: identifier
+          regex: '^(GET|POST|PUT|PATCH|DELETE)$'
+      - has: {field: value, kind: arrow_function}
+      - inside:
+          kind: lexical_declaration
+          inside: {kind: export_statement}
+    - kind: function_declaration
+      regex: '^async\b'
+      all:
+      - inside:
+          kind: export_statement
+          inside:
+            kind: program
+            has:
+              kind: expression_statement
+              regex: '^[''"]use server[''"]'
+    - kind: function_declaration
+      regex: '^async\b'
+      all:
+      - has:
+          field: body
+          kind: statement_block
+          has:
+            kind: expression_statement
+            regex: '^[''"]use server[''"]'
+    - kind: function_declaration
+      all:
+      - inside:
+          kind: export_statement
+          regex: '^export\s+default\b'
+      - has:
+          field: parameters
+          kind: formal_parameters
+          regex: '^\(\s*req\b[^,]*,\s*res\b'
+  - has:
+      stopBy: end
+      any:
+      - kind: call_expression
+        pattern: '$P.$M.$OP({ $$$, data: $X })'
+        has:
+          field: function
+          kind: member_expression
+          has:
+            field: property
+            kind: property_identifier
+            regex: '^(create|update|upsert|createMany|updateMany)$'
+      - kind: call_expression
+        pattern: '$P.$M.$OP({ data: $X, $$$ })'
+        has:
+          field: function
+          kind: member_expression
+          has:
+            field: property
+            kind: property_identifier
+            regex: '^(create|update|upsert|createMany|updateMany)$'
+      - pattern: '$C.from($T).insert($X)'
+      - pattern: '$C.from($T).update($X)'
+      - pattern: '$C.from($T).upsert($X)'
+      - pattern: '$DB.insert($T).values($X)'
+      - pattern: '$DB.update($T).set($X)'
+      - kind: call_expression
+        pattern: '$P.$M.$OP({ $$$, data })'
+        has:
+          field: function
+          kind: member_expression
+          has:
+            field: property
+            kind: property_identifier
+            regex: '^(create|update|upsert|createMany|updateMany)$'
+      - kind: call_expression
+        pattern: '$P.$M.$OP({ data, $$$ })'
+        has:
+          field: function
+          kind: member_expression
+          has:
+            field: property
+            kind: property_identifier
+            regex: '^(create|update|upsert|createMany|updateMany)$'
+control:
+  has:
+    stopBy: end
+    any:
+    - any:
+      - all:
+        - kind: call_expression
+          pattern: '$P.$M.$OP({ $$$, data: $D })'
+          has:
+            field: function
+            kind: member_expression
+            has:
+              field: property
+              kind: property_identifier
+              regex: '^(create|update|upsert|createMany|updateMany)$'
+        - inside:
+            stopBy: end
+            any:
+            - {kind: function_declaration}
+            - {kind: arrow_function}
+            - {kind: function_expression}
+            - {kind: method_definition}
+            has:
+              stopBy: end
+              kind: variable_declarator
+              any:
+              - pattern:
+                  context: 'const $D = $S.parse($$$)'
+                  selector: variable_declarator
+              - pattern:
+                  context: 'const $D = await $S.parseAsync($$$)'
+                  selector: variable_declarator
+              - pattern:
+                  context: 'const $D = $S.safeParse($$$)'
+                  selector: variable_declarator
+              - pattern:
+                  context: 'const $D = await $S.safeParseAsync($$$)'
+                  selector: variable_declarator
+              - pattern:
+                  context: 'const $D = parse($SC, $$$)'
+                  selector: variable_declarator
+              - pattern:
+                  context: 'const $D = await parseAsync($SC, $$$)'
+                  selector: variable_declarator
+              not:
+                kind: variable_declarator
+                regex: 'passthrough|z\.any\(|z\.record\(|z\.unknown\(|catchall|strict\(\s*false|=\s*(await\s+)?(JSON|Date|URL|path|qs|querystring|cookie)\.parse'
+        - not:
+            inside:
+              kind: program
+              stopBy: end
+              has:
+                stopBy: end
+                kind: variable_declarator
+                regex: 'passthrough|z\.any\(|z\.record\(|z\.unknown\(|catchall|strict\(\s*false'
+                pattern:
+                  context: 'const $S = $V'
+                  selector: variable_declarator
+      - all:
+        - kind: call_expression
+          pattern: '$P.$M.$OP({ data: $D, $$$ })'
+          has:
+            field: function
+            kind: member_expression
+            has:
+              field: property
+              kind: property_identifier
+              regex: '^(create|update|upsert|createMany|updateMany)$'
+        - inside:
+            stopBy: end
+            any:
+            - {kind: function_declaration}
+            - {kind: arrow_function}
+            - {kind: function_expression}
+            - {kind: method_definition}
+            has:
+              stopBy: end
+              kind: variable_declarator
+              any:
+              - pattern:
+                  context: 'const $D = $S.parse($$$)'
+                  selector: variable_declarator
+              - pattern:
+                  context: 'const $D = await $S.parseAsync($$$)'
+                  selector: variable_declarator
+              - pattern:
+                  context: 'const $D = $S.safeParse($$$)'
+                  selector: variable_declarator
+              - pattern:
+                  context: 'const $D = await $S.safeParseAsync($$$)'
+                  selector: variable_declarator
+              - pattern:
+                  context: 'const $D = parse($SC, $$$)'
+                  selector: variable_declarator
+              - pattern:
+                  context: 'const $D = await parseAsync($SC, $$$)'
+                  selector: variable_declarator
+              not:
+                kind: variable_declarator
+                regex: 'passthrough|z\.any\(|z\.record\(|z\.unknown\(|catchall|strict\(\s*false|=\s*(await\s+)?(JSON|Date|URL|path|qs|querystring|cookie)\.parse'
+        - not:
+            inside:
+              kind: program
+              stopBy: end
+              has:
+                stopBy: end
+                kind: variable_declarator
+                regex: 'passthrough|z\.any\(|z\.record\(|z\.unknown\(|catchall|strict\(\s*false'
+                pattern:
+                  context: 'const $S = $V'
+                  selector: variable_declarator
+      - all:
+        - pattern: '$C.from($T).insert($D)'
+        - inside:
+            stopBy: end
+            any:
+            - {kind: function_declaration}
+            - {kind: arrow_function}
+            - {kind: function_expression}
+            - {kind: method_definition}
+            has:
+              stopBy: end
+              kind: variable_declarator
+              any:
+              - pattern:
+                  context: 'const $D = $S.parse($$$)'
+                  selector: variable_declarator
+              - pattern:
+                  context: 'const $D = await $S.parseAsync($$$)'
+                  selector: variable_declarator
+              - pattern:
+                  context: 'const $D = $S.safeParse($$$)'
+                  selector: variable_declarator
+              - pattern:
+                  context: 'const $D = await $S.safeParseAsync($$$)'
+                  selector: variable_declarator
+              - pattern:
+                  context: 'const $D = parse($SC, $$$)'
+                  selector: variable_declarator
+              - pattern:
+                  context: 'const $D = await parseAsync($SC, $$$)'
+                  selector: variable_declarator
+              not:
+                kind: variable_declarator
+                regex: 'passthrough|z\.any\(|z\.record\(|z\.unknown\(|catchall|strict\(\s*false|=\s*(await\s+)?(JSON|Date|URL|path|qs|querystring|cookie)\.parse'
+        - not:
+            inside:
+              kind: program
+              stopBy: end
+              has:
+                stopBy: end
+                kind: variable_declarator
+                regex: 'passthrough|z\.any\(|z\.record\(|z\.unknown\(|catchall|strict\(\s*false'
+                pattern:
+                  context: 'const $S = $V'
+                  selector: variable_declarator
+      - all:
+        - pattern: '$C.from($T).update($D)'
+        - inside:
+            stopBy: end
+            any:
+            - {kind: function_declaration}
+            - {kind: arrow_function}
+            - {kind: function_expression}
+            - {kind: method_definition}
+            has:
+              stopBy: end
+              kind: variable_declarator
+              any:
+              - pattern:
+                  context: 'const $D = $S.parse($$$)'
+                  selector: variable_declarator
+              - pattern:
+                  context: 'const $D = await $S.parseAsync($$$)'
+                  selector: variable_declarator
+              - pattern:
+                  context: 'const $D = $S.safeParse($$$)'
+                  selector: variable_declarator
+              - pattern:
+                  context: 'const $D = await $S.safeParseAsync($$$)'
+                  selector: variable_declarator
+              - pattern:
+                  context: 'const $D = parse($SC, $$$)'
+                  selector: variable_declarator
+              - pattern:
+                  context: 'const $D = await parseAsync($SC, $$$)'
+                  selector: variable_declarator
+              not:
+                kind: variable_declarator
+                regex: 'passthrough|z\.any\(|z\.record\(|z\.unknown\(|catchall|strict\(\s*false|=\s*(await\s+)?(JSON|Date|URL|path|qs|querystring|cookie)\.parse'
+        - not:
+            inside:
+              kind: program
+              stopBy: end
+              has:
+                stopBy: end
+                kind: variable_declarator
+                regex: 'passthrough|z\.any\(|z\.record\(|z\.unknown\(|catchall|strict\(\s*false'
+                pattern:
+                  context: 'const $S = $V'
+                  selector: variable_declarator
+      - all:
+        - pattern: '$C.from($T).upsert($D)'
+        - inside:
+            stopBy: end
+            any:
+            - {kind: function_declaration}
+            - {kind: arrow_function}
+            - {kind: function_expression}
+            - {kind: method_definition}
+            has:
+              stopBy: end
+              kind: variable_declarator
+              any:
+              - pattern:
+                  context: 'const $D = $S.parse($$$)'
+                  selector: variable_declarator
+              - pattern:
+                  context: 'const $D = await $S.parseAsync($$$)'
+                  selector: variable_declarator
+              - pattern:
+                  context: 'const $D = $S.safeParse($$$)'
+                  selector: variable_declarator
+              - pattern:
+                  context: 'const $D = await $S.safeParseAsync($$$)'
+                  selector: variable_declarator
+              - pattern:
+                  context: 'const $D = parse($SC, $$$)'
+                  selector: variable_declarator
+              - pattern:
+                  context: 'const $D = await parseAsync($SC, $$$)'
+                  selector: variable_declarator
+              not:
+                kind: variable_declarator
+                regex: 'passthrough|z\.any\(|z\.record\(|z\.unknown\(|catchall|strict\(\s*false|=\s*(await\s+)?(JSON|Date|URL|path|qs|querystring|cookie)\.parse'
+        - not:
+            inside:
+              kind: program
+              stopBy: end
+              has:
+                stopBy: end
+                kind: variable_declarator
+                regex: 'passthrough|z\.any\(|z\.record\(|z\.unknown\(|catchall|strict\(\s*false'
+                pattern:
+                  context: 'const $S = $V'
+                  selector: variable_declarator
+      - all:
+        - pattern: '$DB.insert($T).values($D)'
+        - inside:
+            stopBy: end
+            any:
+            - {kind: function_declaration}
+            - {kind: arrow_function}
+            - {kind: function_expression}
+            - {kind: method_definition}
+            has:
+              stopBy: end
+              kind: variable_declarator
+              any:
+              - pattern:
+                  context: 'const $D = $S.parse($$$)'
+                  selector: variable_declarator
+              - pattern:
+                  context: 'const $D = await $S.parseAsync($$$)'
+                  selector: variable_declarator
+              - pattern:
+                  context: 'const $D = $S.safeParse($$$)'
+                  selector: variable_declarator
+              - pattern:
+                  context: 'const $D = await $S.safeParseAsync($$$)'
+                  selector: variable_declarator
+              - pattern:
+                  context: 'const $D = parse($SC, $$$)'
+                  selector: variable_declarator
+              - pattern:
+                  context: 'const $D = await parseAsync($SC, $$$)'
+                  selector: variable_declarator
+              not:
+                kind: variable_declarator
+                regex: 'passthrough|z\.any\(|z\.record\(|z\.unknown\(|catchall|strict\(\s*false|=\s*(await\s+)?(JSON|Date|URL|path|qs|querystring|cookie)\.parse'
+        - not:
+            inside:
+              kind: program
+              stopBy: end
+              has:
+                stopBy: end
+                kind: variable_declarator
+                regex: 'passthrough|z\.any\(|z\.record\(|z\.unknown\(|catchall|strict\(\s*false'
+                pattern:
+                  context: 'const $S = $V'
+                  selector: variable_declarator
+      - all:
+        - pattern: '$DB.update($T).set($D)'
+        - inside:
+            stopBy: end
+            any:
+            - {kind: function_declaration}
+            - {kind: arrow_function}
+            - {kind: function_expression}
+            - {kind: method_definition}
+            has:
+              stopBy: end
+              kind: variable_declarator
+              any:
+              - pattern:
+                  context: 'const $D = $S.parse($$$)'
+                  selector: variable_declarator
+              - pattern:
+                  context: 'const $D = await $S.parseAsync($$$)'
+                  selector: variable_declarator
+              - pattern:
+                  context: 'const $D = $S.safeParse($$$)'
+                  selector: variable_declarator
+              - pattern:
+                  context: 'const $D = await $S.safeParseAsync($$$)'
+                  selector: variable_declarator
+              - pattern:
+                  context: 'const $D = parse($SC, $$$)'
+                  selector: variable_declarator
+              - pattern:
+                  context: 'const $D = await parseAsync($SC, $$$)'
+                  selector: variable_declarator
+              not:
+                kind: variable_declarator
+                regex: 'passthrough|z\.any\(|z\.record\(|z\.unknown\(|catchall|strict\(\s*false|=\s*(await\s+)?(JSON|Date|URL|path|qs|querystring|cookie)\.parse'
+        - not:
+            inside:
+              kind: program
+              stopBy: end
+              has:
+                stopBy: end
+                kind: variable_declarator
+                regex: 'passthrough|z\.any\(|z\.record\(|z\.unknown\(|catchall|strict\(\s*false'
+                pattern:
+                  context: 'const $S = $V'
+                  selector: variable_declarator
+      - all:
+        - kind: call_expression
+          pattern: '$P.$M.$OP({ $$$, data: $D.data })'
+          has:
+            field: function
+            kind: member_expression
+            has:
+              field: property
+              kind: property_identifier
+              regex: '^(create|update|upsert|createMany|updateMany)$'
+        - inside:
+            stopBy: end
+            any:
+            - {kind: function_declaration}
+            - {kind: arrow_function}
+            - {kind: function_expression}
+            - {kind: method_definition}
+            has:
+              stopBy: end
+              kind: variable_declarator
+              any:
+              - pattern:
+                  context: 'const $D = $S.parse($$$)'
+                  selector: variable_declarator
+              - pattern:
+                  context: 'const $D = await $S.parseAsync($$$)'
+                  selector: variable_declarator
+              - pattern:
+                  context: 'const $D = $S.safeParse($$$)'
+                  selector: variable_declarator
+              - pattern:
+                  context: 'const $D = await $S.safeParseAsync($$$)'
+                  selector: variable_declarator
+              - pattern:
+                  context: 'const $D = parse($SC, $$$)'
+                  selector: variable_declarator
+              - pattern:
+                  context: 'const $D = await parseAsync($SC, $$$)'
+                  selector: variable_declarator
+              not:
+                kind: variable_declarator
+                regex: 'passthrough|z\.any\(|z\.record\(|z\.unknown\(|catchall|strict\(\s*false|=\s*(await\s+)?(JSON|Date|URL|path|qs|querystring|cookie)\.parse'
+        - not:
+            inside:
+              kind: program
+              stopBy: end
+              has:
+                stopBy: end
+                kind: variable_declarator
+                regex: 'passthrough|z\.any\(|z\.record\(|z\.unknown\(|catchall|strict\(\s*false'
+                pattern:
+                  context: 'const $S = $V'
+                  selector: variable_declarator
+      - all:
+        - kind: call_expression
+          pattern: '$P.$M.$OP({ data: $D.data, $$$ })'
+          has:
+            field: function
+            kind: member_expression
+            has:
+              field: property
+              kind: property_identifier
+              regex: '^(create|update|upsert|createMany|updateMany)$'
+        - inside:
+            stopBy: end
+            any:
+            - {kind: function_declaration}
+            - {kind: arrow_function}
+            - {kind: function_expression}
+            - {kind: method_definition}
+            has:
+              stopBy: end
+              kind: variable_declarator
+              any:
+              - pattern:
+                  context: 'const $D = $S.parse($$$)'
+                  selector: variable_declarator
+              - pattern:
+                  context: 'const $D = await $S.parseAsync($$$)'
+                  selector: variable_declarator
+              - pattern:
+                  context: 'const $D = $S.safeParse($$$)'
+                  selector: variable_declarator
+              - pattern:
+                  context: 'const $D = await $S.safeParseAsync($$$)'
+                  selector: variable_declarator
+              - pattern:
+                  context: 'const $D = parse($SC, $$$)'
+                  selector: variable_declarator
+              - pattern:
+                  context: 'const $D = await parseAsync($SC, $$$)'
+                  selector: variable_declarator
+              not:
+                kind: variable_declarator
+                regex: 'passthrough|z\.any\(|z\.record\(|z\.unknown\(|catchall|strict\(\s*false|=\s*(await\s+)?(JSON|Date|URL|path|qs|querystring|cookie)\.parse'
+        - not:
+            inside:
+              kind: program
+              stopBy: end
+              has:
+                stopBy: end
+                kind: variable_declarator
+                regex: 'passthrough|z\.any\(|z\.record\(|z\.unknown\(|catchall|strict\(\s*false'
+                pattern:
+                  context: 'const $S = $V'
+                  selector: variable_declarator
+      - all:
+        - pattern: '$C.from($T).insert($D.data)'
+        - inside:
+            stopBy: end
+            any:
+            - {kind: function_declaration}
+            - {kind: arrow_function}
+            - {kind: function_expression}
+            - {kind: method_definition}
+            has:
+              stopBy: end
+              kind: variable_declarator
+              any:
+              - pattern:
+                  context: 'const $D = $S.parse($$$)'
+                  selector: variable_declarator
+              - pattern:
+                  context: 'const $D = await $S.parseAsync($$$)'
+                  selector: variable_declarator
+              - pattern:
+                  context: 'const $D = $S.safeParse($$$)'
+                  selector: variable_declarator
+              - pattern:
+                  context: 'const $D = await $S.safeParseAsync($$$)'
+                  selector: variable_declarator
+              - pattern:
+                  context: 'const $D = parse($SC, $$$)'
+                  selector: variable_declarator
+              - pattern:
+                  context: 'const $D = await parseAsync($SC, $$$)'
+                  selector: variable_declarator
+              not:
+                kind: variable_declarator
+                regex: 'passthrough|z\.any\(|z\.record\(|z\.unknown\(|catchall|strict\(\s*false|=\s*(await\s+)?(JSON|Date|URL|path|qs|querystring|cookie)\.parse'
+        - not:
+            inside:
+              kind: program
+              stopBy: end
+              has:
+                stopBy: end
+                kind: variable_declarator
+                regex: 'passthrough|z\.any\(|z\.record\(|z\.unknown\(|catchall|strict\(\s*false'
+                pattern:
+                  context: 'const $S = $V'
+                  selector: variable_declarator
+      - all:
+        - pattern: '$C.from($T).update($D.data)'
+        - inside:
+            stopBy: end
+            any:
+            - {kind: function_declaration}
+            - {kind: arrow_function}
+            - {kind: function_expression}
+            - {kind: method_definition}
+            has:
+              stopBy: end
+              kind: variable_declarator
+              any:
+              - pattern:
+                  context: 'const $D = $S.parse($$$)'
+                  selector: variable_declarator
+              - pattern:
+                  context: 'const $D = await $S.parseAsync($$$)'
+                  selector: variable_declarator
+              - pattern:
+                  context: 'const $D = $S.safeParse($$$)'
+                  selector: variable_declarator
+              - pattern:
+                  context: 'const $D = await $S.safeParseAsync($$$)'
+                  selector: variable_declarator
+              - pattern:
+                  context: 'const $D = parse($SC, $$$)'
+                  selector: variable_declarator
+              - pattern:
+                  context: 'const $D = await parseAsync($SC, $$$)'
+                  selector: variable_declarator
+              not:
+                kind: variable_declarator
+                regex: 'passthrough|z\.any\(|z\.record\(|z\.unknown\(|catchall|strict\(\s*false|=\s*(await\s+)?(JSON|Date|URL|path|qs|querystring|cookie)\.parse'
+        - not:
+            inside:
+              kind: program
+              stopBy: end
+              has:
+                stopBy: end
+                kind: variable_declarator
+                regex: 'passthrough|z\.any\(|z\.record\(|z\.unknown\(|catchall|strict\(\s*false'
+                pattern:
+                  context: 'const $S = $V'
+                  selector: variable_declarator
+      - all:
+        - pattern: '$C.from($T).upsert($D.data)'
+        - inside:
+            stopBy: end
+            any:
+            - {kind: function_declaration}
+            - {kind: arrow_function}
+            - {kind: function_expression}
+            - {kind: method_definition}
+            has:
+              stopBy: end
+              kind: variable_declarator
+              any:
+              - pattern:
+                  context: 'const $D = $S.parse($$$)'
+                  selector: variable_declarator
+              - pattern:
+                  context: 'const $D = await $S.parseAsync($$$)'
+                  selector: variable_declarator
+              - pattern:
+                  context: 'const $D = $S.safeParse($$$)'
+                  selector: variable_declarator
+              - pattern:
+                  context: 'const $D = await $S.safeParseAsync($$$)'
+                  selector: variable_declarator
+              - pattern:
+                  context: 'const $D = parse($SC, $$$)'
+                  selector: variable_declarator
+              - pattern:
+                  context: 'const $D = await parseAsync($SC, $$$)'
+                  selector: variable_declarator
+              not:
+                kind: variable_declarator
+                regex: 'passthrough|z\.any\(|z\.record\(|z\.unknown\(|catchall|strict\(\s*false|=\s*(await\s+)?(JSON|Date|URL|path|qs|querystring|cookie)\.parse'
+        - not:
+            inside:
+              kind: program
+              stopBy: end
+              has:
+                stopBy: end
+                kind: variable_declarator
+                regex: 'passthrough|z\.any\(|z\.record\(|z\.unknown\(|catchall|strict\(\s*false'
+                pattern:
+                  context: 'const $S = $V'
+                  selector: variable_declarator
+      - all:
+        - pattern: '$DB.insert($T).values($D.data)'
+        - inside:
+            stopBy: end
+            any:
+            - {kind: function_declaration}
+            - {kind: arrow_function}
+            - {kind: function_expression}
+            - {kind: method_definition}
+            has:
+              stopBy: end
+              kind: variable_declarator
+              any:
+              - pattern:
+                  context: 'const $D = $S.parse($$$)'
+                  selector: variable_declarator
+              - pattern:
+                  context: 'const $D = await $S.parseAsync($$$)'
+                  selector: variable_declarator
+              - pattern:
+                  context: 'const $D = $S.safeParse($$$)'
+                  selector: variable_declarator
+              - pattern:
+                  context: 'const $D = await $S.safeParseAsync($$$)'
+                  selector: variable_declarator
+              - pattern:
+                  context: 'const $D = parse($SC, $$$)'
+                  selector: variable_declarator
+              - pattern:
+                  context: 'const $D = await parseAsync($SC, $$$)'
+                  selector: variable_declarator
+              not:
+                kind: variable_declarator
+                regex: 'passthrough|z\.any\(|z\.record\(|z\.unknown\(|catchall|strict\(\s*false|=\s*(await\s+)?(JSON|Date|URL|path|qs|querystring|cookie)\.parse'
+        - not:
+            inside:
+              kind: program
+              stopBy: end
+              has:
+                stopBy: end
+                kind: variable_declarator
+                regex: 'passthrough|z\.any\(|z\.record\(|z\.unknown\(|catchall|strict\(\s*false'
+                pattern:
+                  context: 'const $S = $V'
+                  selector: variable_declarator
+      - all:
+        - pattern: '$DB.update($T).set($D.data)'
+        - inside:
+            stopBy: end
+            any:
+            - {kind: function_declaration}
+            - {kind: arrow_function}
+            - {kind: function_expression}
+            - {kind: method_definition}
+            has:
+              stopBy: end
+              kind: variable_declarator
+              any:
+              - pattern:
+                  context: 'const $D = $S.parse($$$)'
+                  selector: variable_declarator
+              - pattern:
+                  context: 'const $D = await $S.parseAsync($$$)'
+                  selector: variable_declarator
+              - pattern:
+                  context: 'const $D = $S.safeParse($$$)'
+                  selector: variable_declarator
+              - pattern:
+                  context: 'const $D = await $S.safeParseAsync($$$)'
+                  selector: variable_declarator
+              - pattern:
+                  context: 'const $D = parse($SC, $$$)'
+                  selector: variable_declarator
+              - pattern:
+                  context: 'const $D = await parseAsync($SC, $$$)'
+                  selector: variable_declarator
+              not:
+                kind: variable_declarator
+                regex: 'passthrough|z\.any\(|z\.record\(|z\.unknown\(|catchall|strict\(\s*false|=\s*(await\s+)?(JSON|Date|URL|path|qs|querystring|cookie)\.parse'
+        - not:
+            inside:
+              kind: program
+              stopBy: end
+              has:
+                stopBy: end
+                kind: variable_declarator
+                regex: 'passthrough|z\.any\(|z\.record\(|z\.unknown\(|catchall|strict\(\s*false'
+                pattern:
+                  context: 'const $S = $V'
+                  selector: variable_declarator
+      - all:
+        - kind: call_expression
+          pattern: '$P.$M.$OP({ $$$, data: { ...$D, $$$ } })'
+          has:
+            field: function
+            kind: member_expression
+            has:
+              field: property
+              kind: property_identifier
+              regex: '^(create|update|upsert|createMany|updateMany)$'
+        - inside:
+            stopBy: end
+            any:
+            - {kind: function_declaration}
+            - {kind: arrow_function}
+            - {kind: function_expression}
+            - {kind: method_definition}
+            has:
+              stopBy: end
+              kind: variable_declarator
+              any:
+              - pattern:
+                  context: 'const $D = $S.parse($$$)'
+                  selector: variable_declarator
+              - pattern:
+                  context: 'const $D = await $S.parseAsync($$$)'
+                  selector: variable_declarator
+              - pattern:
+                  context: 'const $D = $S.safeParse($$$)'
+                  selector: variable_declarator
+              - pattern:
+                  context: 'const $D = await $S.safeParseAsync($$$)'
+                  selector: variable_declarator
+              - pattern:
+                  context: 'const $D = parse($SC, $$$)'
+                  selector: variable_declarator
+              - pattern:
+                  context: 'const $D = await parseAsync($SC, $$$)'
+                  selector: variable_declarator
+              not:
+                kind: variable_declarator
+                regex: 'passthrough|z\.any\(|z\.record\(|z\.unknown\(|catchall|strict\(\s*false|=\s*(await\s+)?(JSON|Date|URL|path|qs|querystring|cookie)\.parse'
+        - not:
+            inside:
+              kind: program
+              stopBy: end
+              has:
+                stopBy: end
+                kind: variable_declarator
+                regex: 'passthrough|z\.any\(|z\.record\(|z\.unknown\(|catchall|strict\(\s*false'
+                pattern:
+                  context: 'const $S = $V'
+                  selector: variable_declarator
+      - all:
+        - kind: call_expression
+          pattern: '$P.$M.$OP({ data: { ...$D, $$$ }, $$$ })'
+          has:
+            field: function
+            kind: member_expression
+            has:
+              field: property
+              kind: property_identifier
+              regex: '^(create|update|upsert|createMany|updateMany)$'
+        - inside:
+            stopBy: end
+            any:
+            - {kind: function_declaration}
+            - {kind: arrow_function}
+            - {kind: function_expression}
+            - {kind: method_definition}
+            has:
+              stopBy: end
+              kind: variable_declarator
+              any:
+              - pattern:
+                  context: 'const $D = $S.parse($$$)'
+                  selector: variable_declarator
+              - pattern:
+                  context: 'const $D = await $S.parseAsync($$$)'
+                  selector: variable_declarator
+              - pattern:
+                  context: 'const $D = $S.safeParse($$$)'
+                  selector: variable_declarator
+              - pattern:
+                  context: 'const $D = await $S.safeParseAsync($$$)'
+                  selector: variable_declarator
+              - pattern:
+                  context: 'const $D = parse($SC, $$$)'
+                  selector: variable_declarator
+              - pattern:
+                  context: 'const $D = await parseAsync($SC, $$$)'
+                  selector: variable_declarator
+              not:
+                kind: variable_declarator
+                regex: 'passthrough|z\.any\(|z\.record\(|z\.unknown\(|catchall|strict\(\s*false|=\s*(await\s+)?(JSON|Date|URL|path|qs|querystring|cookie)\.parse'
+        - not:
+            inside:
+              kind: program
+              stopBy: end
+              has:
+                stopBy: end
+                kind: variable_declarator
+                regex: 'passthrough|z\.any\(|z\.record\(|z\.unknown\(|catchall|strict\(\s*false'
+                pattern:
+                  context: 'const $S = $V'
+                  selector: variable_declarator
+      - all:
+        - pattern: '$C.from($T).insert({ ...$D, $$$ })'
+        - inside:
+            stopBy: end
+            any:
+            - {kind: function_declaration}
+            - {kind: arrow_function}
+            - {kind: function_expression}
+            - {kind: method_definition}
+            has:
+              stopBy: end
+              kind: variable_declarator
+              any:
+              - pattern:
+                  context: 'const $D = $S.parse($$$)'
+                  selector: variable_declarator
+              - pattern:
+                  context: 'const $D = await $S.parseAsync($$$)'
+                  selector: variable_declarator
+              - pattern:
+                  context: 'const $D = $S.safeParse($$$)'
+                  selector: variable_declarator
+              - pattern:
+                  context: 'const $D = await $S.safeParseAsync($$$)'
+                  selector: variable_declarator
+              - pattern:
+                  context: 'const $D = parse($SC, $$$)'
+                  selector: variable_declarator
+              - pattern:
+                  context: 'const $D = await parseAsync($SC, $$$)'
+                  selector: variable_declarator
+              not:
+                kind: variable_declarator
+                regex: 'passthrough|z\.any\(|z\.record\(|z\.unknown\(|catchall|strict\(\s*false|=\s*(await\s+)?(JSON|Date|URL|path|qs|querystring|cookie)\.parse'
+        - not:
+            inside:
+              kind: program
+              stopBy: end
+              has:
+                stopBy: end
+                kind: variable_declarator
+                regex: 'passthrough|z\.any\(|z\.record\(|z\.unknown\(|catchall|strict\(\s*false'
+                pattern:
+                  context: 'const $S = $V'
+                  selector: variable_declarator
+      - all:
+        - pattern: '$C.from($T).update({ ...$D, $$$ })'
+        - inside:
+            stopBy: end
+            any:
+            - {kind: function_declaration}
+            - {kind: arrow_function}
+            - {kind: function_expression}
+            - {kind: method_definition}
+            has:
+              stopBy: end
+              kind: variable_declarator
+              any:
+              - pattern:
+                  context: 'const $D = $S.parse($$$)'
+                  selector: variable_declarator
+              - pattern:
+                  context: 'const $D = await $S.parseAsync($$$)'
+                  selector: variable_declarator
+              - pattern:
+                  context: 'const $D = $S.safeParse($$$)'
+                  selector: variable_declarator
+              - pattern:
+                  context: 'const $D = await $S.safeParseAsync($$$)'
+                  selector: variable_declarator
+              - pattern:
+                  context: 'const $D = parse($SC, $$$)'
+                  selector: variable_declarator
+              - pattern:
+                  context: 'const $D = await parseAsync($SC, $$$)'
+                  selector: variable_declarator
+              not:
+                kind: variable_declarator
+                regex: 'passthrough|z\.any\(|z\.record\(|z\.unknown\(|catchall|strict\(\s*false|=\s*(await\s+)?(JSON|Date|URL|path|qs|querystring|cookie)\.parse'
+        - not:
+            inside:
+              kind: program
+              stopBy: end
+              has:
+                stopBy: end
+                kind: variable_declarator
+                regex: 'passthrough|z\.any\(|z\.record\(|z\.unknown\(|catchall|strict\(\s*false'
+                pattern:
+                  context: 'const $S = $V'
+                  selector: variable_declarator
+      - all:
+        - pattern: '$C.from($T).upsert({ ...$D, $$$ })'
+        - inside:
+            stopBy: end
+            any:
+            - {kind: function_declaration}
+            - {kind: arrow_function}
+            - {kind: function_expression}
+            - {kind: method_definition}
+            has:
+              stopBy: end
+              kind: variable_declarator
+              any:
+              - pattern:
+                  context: 'const $D = $S.parse($$$)'
+                  selector: variable_declarator
+              - pattern:
+                  context: 'const $D = await $S.parseAsync($$$)'
+                  selector: variable_declarator
+              - pattern:
+                  context: 'const $D = $S.safeParse($$$)'
+                  selector: variable_declarator
+              - pattern:
+                  context: 'const $D = await $S.safeParseAsync($$$)'
+                  selector: variable_declarator
+              - pattern:
+                  context: 'const $D = parse($SC, $$$)'
+                  selector: variable_declarator
+              - pattern:
+                  context: 'const $D = await parseAsync($SC, $$$)'
+                  selector: variable_declarator
+              not:
+                kind: variable_declarator
+                regex: 'passthrough|z\.any\(|z\.record\(|z\.unknown\(|catchall|strict\(\s*false|=\s*(await\s+)?(JSON|Date|URL|path|qs|querystring|cookie)\.parse'
+        - not:
+            inside:
+              kind: program
+              stopBy: end
+              has:
+                stopBy: end
+                kind: variable_declarator
+                regex: 'passthrough|z\.any\(|z\.record\(|z\.unknown\(|catchall|strict\(\s*false'
+                pattern:
+                  context: 'const $S = $V'
+                  selector: variable_declarator
+      - all:
+        - pattern: '$DB.insert($T).values({ ...$D, $$$ })'
+        - inside:
+            stopBy: end
+            any:
+            - {kind: function_declaration}
+            - {kind: arrow_function}
+            - {kind: function_expression}
+            - {kind: method_definition}
+            has:
+              stopBy: end
+              kind: variable_declarator
+              any:
+              - pattern:
+                  context: 'const $D = $S.parse($$$)'
+                  selector: variable_declarator
+              - pattern:
+                  context: 'const $D = await $S.parseAsync($$$)'
+                  selector: variable_declarator
+              - pattern:
+                  context: 'const $D = $S.safeParse($$$)'
+                  selector: variable_declarator
+              - pattern:
+                  context: 'const $D = await $S.safeParseAsync($$$)'
+                  selector: variable_declarator
+              - pattern:
+                  context: 'const $D = parse($SC, $$$)'
+                  selector: variable_declarator
+              - pattern:
+                  context: 'const $D = await parseAsync($SC, $$$)'
+                  selector: variable_declarator
+              not:
+                kind: variable_declarator
+                regex: 'passthrough|z\.any\(|z\.record\(|z\.unknown\(|catchall|strict\(\s*false|=\s*(await\s+)?(JSON|Date|URL|path|qs|querystring|cookie)\.parse'
+        - not:
+            inside:
+              kind: program
+              stopBy: end
+              has:
+                stopBy: end
+                kind: variable_declarator
+                regex: 'passthrough|z\.any\(|z\.record\(|z\.unknown\(|catchall|strict\(\s*false'
+                pattern:
+                  context: 'const $S = $V'
+                  selector: variable_declarator
+      - all:
+        - pattern: '$DB.update($T).set({ ...$D, $$$ })'
+        - inside:
+            stopBy: end
+            any:
+            - {kind: function_declaration}
+            - {kind: arrow_function}
+            - {kind: function_expression}
+            - {kind: method_definition}
+            has:
+              stopBy: end
+              kind: variable_declarator
+              any:
+              - pattern:
+                  context: 'const $D = $S.parse($$$)'
+                  selector: variable_declarator
+              - pattern:
+                  context: 'const $D = await $S.parseAsync($$$)'
+                  selector: variable_declarator
+              - pattern:
+                  context: 'const $D = $S.safeParse($$$)'
+                  selector: variable_declarator
+              - pattern:
+                  context: 'const $D = await $S.safeParseAsync($$$)'
+                  selector: variable_declarator
+              - pattern:
+                  context: 'const $D = parse($SC, $$$)'
+                  selector: variable_declarator
+              - pattern:
+                  context: 'const $D = await parseAsync($SC, $$$)'
+                  selector: variable_declarator
+              not:
+                kind: variable_declarator
+                regex: 'passthrough|z\.any\(|z\.record\(|z\.unknown\(|catchall|strict\(\s*false|=\s*(await\s+)?(JSON|Date|URL|path|qs|querystring|cookie)\.parse'
+        - not:
+            inside:
+              kind: program
+              stopBy: end
+              has:
+                stopBy: end
+                kind: variable_declarator
+                regex: 'passthrough|z\.any\(|z\.record\(|z\.unknown\(|catchall|strict\(\s*false'
+                pattern:
+                  context: 'const $S = $V'
+                  selector: variable_declarator
+      - all:
+        - kind: call_expression
+          pattern: '$P.$M.$OP({ $$$, data: { $$$, ...$D } })'
+          has:
+            field: function
+            kind: member_expression
+            has:
+              field: property
+              kind: property_identifier
+              regex: '^(create|update|upsert|createMany|updateMany)$'
+        - inside:
+            stopBy: end
+            any:
+            - {kind: function_declaration}
+            - {kind: arrow_function}
+            - {kind: function_expression}
+            - {kind: method_definition}
+            has:
+              stopBy: end
+              kind: variable_declarator
+              any:
+              - pattern:
+                  context: 'const $D = $S.parse($$$)'
+                  selector: variable_declarator
+              - pattern:
+                  context: 'const $D = await $S.parseAsync($$$)'
+                  selector: variable_declarator
+              - pattern:
+                  context: 'const $D = $S.safeParse($$$)'
+                  selector: variable_declarator
+              - pattern:
+                  context: 'const $D = await $S.safeParseAsync($$$)'
+                  selector: variable_declarator
+              - pattern:
+                  context: 'const $D = parse($SC, $$$)'
+                  selector: variable_declarator
+              - pattern:
+                  context: 'const $D = await parseAsync($SC, $$$)'
+                  selector: variable_declarator
+              not:
+                kind: variable_declarator
+                regex: 'passthrough|z\.any\(|z\.record\(|z\.unknown\(|catchall|strict\(\s*false|=\s*(await\s+)?(JSON|Date|URL|path|qs|querystring|cookie)\.parse'
+        - not:
+            inside:
+              kind: program
+              stopBy: end
+              has:
+                stopBy: end
+                kind: variable_declarator
+                regex: 'passthrough|z\.any\(|z\.record\(|z\.unknown\(|catchall|strict\(\s*false'
+                pattern:
+                  context: 'const $S = $V'
+                  selector: variable_declarator
+      - all:
+        - kind: call_expression
+          pattern: '$P.$M.$OP({ data: { $$$, ...$D }, $$$ })'
+          has:
+            field: function
+            kind: member_expression
+            has:
+              field: property
+              kind: property_identifier
+              regex: '^(create|update|upsert|createMany|updateMany)$'
+        - inside:
+            stopBy: end
+            any:
+            - {kind: function_declaration}
+            - {kind: arrow_function}
+            - {kind: function_expression}
+            - {kind: method_definition}
+            has:
+              stopBy: end
+              kind: variable_declarator
+              any:
+              - pattern:
+                  context: 'const $D = $S.parse($$$)'
+                  selector: variable_declarator
+              - pattern:
+                  context: 'const $D = await $S.parseAsync($$$)'
+                  selector: variable_declarator
+              - pattern:
+                  context: 'const $D = $S.safeParse($$$)'
+                  selector: variable_declarator
+              - pattern:
+                  context: 'const $D = await $S.safeParseAsync($$$)'
+                  selector: variable_declarator
+              - pattern:
+                  context: 'const $D = parse($SC, $$$)'
+                  selector: variable_declarator
+              - pattern:
+                  context: 'const $D = await parseAsync($SC, $$$)'
+                  selector: variable_declarator
+              not:
+                kind: variable_declarator
+                regex: 'passthrough|z\.any\(|z\.record\(|z\.unknown\(|catchall|strict\(\s*false|=\s*(await\s+)?(JSON|Date|URL|path|qs|querystring|cookie)\.parse'
+        - not:
+            inside:
+              kind: program
+              stopBy: end
+              has:
+                stopBy: end
+                kind: variable_declarator
+                regex: 'passthrough|z\.any\(|z\.record\(|z\.unknown\(|catchall|strict\(\s*false'
+                pattern:
+                  context: 'const $S = $V'
+                  selector: variable_declarator
+      - all:
+        - pattern: '$C.from($T).insert({ $$$, ...$D })'
+        - inside:
+            stopBy: end
+            any:
+            - {kind: function_declaration}
+            - {kind: arrow_function}
+            - {kind: function_expression}
+            - {kind: method_definition}
+            has:
+              stopBy: end
+              kind: variable_declarator
+              any:
+              - pattern:
+                  context: 'const $D = $S.parse($$$)'
+                  selector: variable_declarator
+              - pattern:
+                  context: 'const $D = await $S.parseAsync($$$)'
+                  selector: variable_declarator
+              - pattern:
+                  context: 'const $D = $S.safeParse($$$)'
+                  selector: variable_declarator
+              - pattern:
+                  context: 'const $D = await $S.safeParseAsync($$$)'
+                  selector: variable_declarator
+              - pattern:
+                  context: 'const $D = parse($SC, $$$)'
+                  selector: variable_declarator
+              - pattern:
+                  context: 'const $D = await parseAsync($SC, $$$)'
+                  selector: variable_declarator
+              not:
+                kind: variable_declarator
+                regex: 'passthrough|z\.any\(|z\.record\(|z\.unknown\(|catchall|strict\(\s*false|=\s*(await\s+)?(JSON|Date|URL|path|qs|querystring|cookie)\.parse'
+        - not:
+            inside:
+              kind: program
+              stopBy: end
+              has:
+                stopBy: end
+                kind: variable_declarator
+                regex: 'passthrough|z\.any\(|z\.record\(|z\.unknown\(|catchall|strict\(\s*false'
+                pattern:
+                  context: 'const $S = $V'
+                  selector: variable_declarator
+      - all:
+        - pattern: '$C.from($T).update({ $$$, ...$D })'
+        - inside:
+            stopBy: end
+            any:
+            - {kind: function_declaration}
+            - {kind: arrow_function}
+            - {kind: function_expression}
+            - {kind: method_definition}
+            has:
+              stopBy: end
+              kind: variable_declarator
+              any:
+              - pattern:
+                  context: 'const $D = $S.parse($$$)'
+                  selector: variable_declarator
+              - pattern:
+                  context: 'const $D = await $S.parseAsync($$$)'
+                  selector: variable_declarator
+              - pattern:
+                  context: 'const $D = $S.safeParse($$$)'
+                  selector: variable_declarator
+              - pattern:
+                  context: 'const $D = await $S.safeParseAsync($$$)'
+                  selector: variable_declarator
+              - pattern:
+                  context: 'const $D = parse($SC, $$$)'
+                  selector: variable_declarator
+              - pattern:
+                  context: 'const $D = await parseAsync($SC, $$$)'
+                  selector: variable_declarator
+              not:
+                kind: variable_declarator
+                regex: 'passthrough|z\.any\(|z\.record\(|z\.unknown\(|catchall|strict\(\s*false|=\s*(await\s+)?(JSON|Date|URL|path|qs|querystring|cookie)\.parse'
+        - not:
+            inside:
+              kind: program
+              stopBy: end
+              has:
+                stopBy: end
+                kind: variable_declarator
+                regex: 'passthrough|z\.any\(|z\.record\(|z\.unknown\(|catchall|strict\(\s*false'
+                pattern:
+                  context: 'const $S = $V'
+                  selector: variable_declarator
+      - all:
+        - pattern: '$C.from($T).upsert({ $$$, ...$D })'
+        - inside:
+            stopBy: end
+            any:
+            - {kind: function_declaration}
+            - {kind: arrow_function}
+            - {kind: function_expression}
+            - {kind: method_definition}
+            has:
+              stopBy: end
+              kind: variable_declarator
+              any:
+              - pattern:
+                  context: 'const $D = $S.parse($$$)'
+                  selector: variable_declarator
+              - pattern:
+                  context: 'const $D = await $S.parseAsync($$$)'
+                  selector: variable_declarator
+              - pattern:
+                  context: 'const $D = $S.safeParse($$$)'
+                  selector: variable_declarator
+              - pattern:
+                  context: 'const $D = await $S.safeParseAsync($$$)'
+                  selector: variable_declarator
+              - pattern:
+                  context: 'const $D = parse($SC, $$$)'
+                  selector: variable_declarator
+              - pattern:
+                  context: 'const $D = await parseAsync($SC, $$$)'
+                  selector: variable_declarator
+              not:
+                kind: variable_declarator
+                regex: 'passthrough|z\.any\(|z\.record\(|z\.unknown\(|catchall|strict\(\s*false|=\s*(await\s+)?(JSON|Date|URL|path|qs|querystring|cookie)\.parse'
+        - not:
+            inside:
+              kind: program
+              stopBy: end
+              has:
+                stopBy: end
+                kind: variable_declarator
+                regex: 'passthrough|z\.any\(|z\.record\(|z\.unknown\(|catchall|strict\(\s*false'
+                pattern:
+                  context: 'const $S = $V'
+                  selector: variable_declarator
+      - all:
+        - pattern: '$DB.insert($T).values({ $$$, ...$D })'
+        - inside:
+            stopBy: end
+            any:
+            - {kind: function_declaration}
+            - {kind: arrow_function}
+            - {kind: function_expression}
+            - {kind: method_definition}
+            has:
+              stopBy: end
+              kind: variable_declarator
+              any:
+              - pattern:
+                  context: 'const $D = $S.parse($$$)'
+                  selector: variable_declarator
+              - pattern:
+                  context: 'const $D = await $S.parseAsync($$$)'
+                  selector: variable_declarator
+              - pattern:
+                  context: 'const $D = $S.safeParse($$$)'
+                  selector: variable_declarator
+              - pattern:
+                  context: 'const $D = await $S.safeParseAsync($$$)'
+                  selector: variable_declarator
+              - pattern:
+                  context: 'const $D = parse($SC, $$$)'
+                  selector: variable_declarator
+              - pattern:
+                  context: 'const $D = await parseAsync($SC, $$$)'
+                  selector: variable_declarator
+              not:
+                kind: variable_declarator
+                regex: 'passthrough|z\.any\(|z\.record\(|z\.unknown\(|catchall|strict\(\s*false|=\s*(await\s+)?(JSON|Date|URL|path|qs|querystring|cookie)\.parse'
+        - not:
+            inside:
+              kind: program
+              stopBy: end
+              has:
+                stopBy: end
+                kind: variable_declarator
+                regex: 'passthrough|z\.any\(|z\.record\(|z\.unknown\(|catchall|strict\(\s*false'
+                pattern:
+                  context: 'const $S = $V'
+                  selector: variable_declarator
+      - all:
+        - pattern: '$DB.update($T).set({ $$$, ...$D })'
+        - inside:
+            stopBy: end
+            any:
+            - {kind: function_declaration}
+            - {kind: arrow_function}
+            - {kind: function_expression}
+            - {kind: method_definition}
+            has:
+              stopBy: end
+              kind: variable_declarator
+              any:
+              - pattern:
+                  context: 'const $D = $S.parse($$$)'
+                  selector: variable_declarator
+              - pattern:
+                  context: 'const $D = await $S.parseAsync($$$)'
+                  selector: variable_declarator
+              - pattern:
+                  context: 'const $D = $S.safeParse($$$)'
+                  selector: variable_declarator
+              - pattern:
+                  context: 'const $D = await $S.safeParseAsync($$$)'
+                  selector: variable_declarator
+              - pattern:
+                  context: 'const $D = parse($SC, $$$)'
+                  selector: variable_declarator
+              - pattern:
+                  context: 'const $D = await parseAsync($SC, $$$)'
+                  selector: variable_declarator
+              not:
+                kind: variable_declarator
+                regex: 'passthrough|z\.any\(|z\.record\(|z\.unknown\(|catchall|strict\(\s*false|=\s*(await\s+)?(JSON|Date|URL|path|qs|querystring|cookie)\.parse'
+        - not:
+            inside:
+              kind: program
+              stopBy: end
+              has:
+                stopBy: end
+                kind: variable_declarator
+                regex: 'passthrough|z\.any\(|z\.record\(|z\.unknown\(|catchall|strict\(\s*false'
+                pattern:
+                  context: 'const $S = $V'
+                  selector: variable_declarator
+      - all:
+        - kind: call_expression
+          pattern: '$P.$M.$OP({ $$$, data: { ...$D.data, $$$ } })'
+          has:
+            field: function
+            kind: member_expression
+            has:
+              field: property
+              kind: property_identifier
+              regex: '^(create|update|upsert|createMany|updateMany)$'
+        - inside:
+            stopBy: end
+            any:
+            - {kind: function_declaration}
+            - {kind: arrow_function}
+            - {kind: function_expression}
+            - {kind: method_definition}
+            has:
+              stopBy: end
+              kind: variable_declarator
+              any:
+              - pattern:
+                  context: 'const $D = $S.parse($$$)'
+                  selector: variable_declarator
+              - pattern:
+                  context: 'const $D = await $S.parseAsync($$$)'
+                  selector: variable_declarator
+              - pattern:
+                  context: 'const $D = $S.safeParse($$$)'
+                  selector: variable_declarator
+              - pattern:
+                  context: 'const $D = await $S.safeParseAsync($$$)'
+                  selector: variable_declarator
+              - pattern:
+                  context: 'const $D = parse($SC, $$$)'
+                  selector: variable_declarator
+              - pattern:
+                  context: 'const $D = await parseAsync($SC, $$$)'
+                  selector: variable_declarator
+              not:
+                kind: variable_declarator
+                regex: 'passthrough|z\.any\(|z\.record\(|z\.unknown\(|catchall|strict\(\s*false|=\s*(await\s+)?(JSON|Date|URL|path|qs|querystring|cookie)\.parse'
+        - not:
+            inside:
+              kind: program
+              stopBy: end
+              has:
+                stopBy: end
+                kind: variable_declarator
+                regex: 'passthrough|z\.any\(|z\.record\(|z\.unknown\(|catchall|strict\(\s*false'
+                pattern:
+                  context: 'const $S = $V'
+                  selector: variable_declarator
+      - all:
+        - kind: call_expression
+          pattern: '$P.$M.$OP({ data: { ...$D.data, $$$ }, $$$ })'
+          has:
+            field: function
+            kind: member_expression
+            has:
+              field: property
+              kind: property_identifier
+              regex: '^(create|update|upsert|createMany|updateMany)$'
+        - inside:
+            stopBy: end
+            any:
+            - {kind: function_declaration}
+            - {kind: arrow_function}
+            - {kind: function_expression}
+            - {kind: method_definition}
+            has:
+              stopBy: end
+              kind: variable_declarator
+              any:
+              - pattern:
+                  context: 'const $D = $S.parse($$$)'
+                  selector: variable_declarator
+              - pattern:
+                  context: 'const $D = await $S.parseAsync($$$)'
+                  selector: variable_declarator
+              - pattern:
+                  context: 'const $D = $S.safeParse($$$)'
+                  selector: variable_declarator
+              - pattern:
+                  context: 'const $D = await $S.safeParseAsync($$$)'
+                  selector: variable_declarator
+              - pattern:
+                  context: 'const $D = parse($SC, $$$)'
+                  selector: variable_declarator
+              - pattern:
+                  context: 'const $D = await parseAsync($SC, $$$)'
+                  selector: variable_declarator
+              not:
+                kind: variable_declarator
+                regex: 'passthrough|z\.any\(|z\.record\(|z\.unknown\(|catchall|strict\(\s*false|=\s*(await\s+)?(JSON|Date|URL|path|qs|querystring|cookie)\.parse'
+        - not:
+            inside:
+              kind: program
+              stopBy: end
+              has:
+                stopBy: end
+                kind: variable_declarator
+                regex: 'passthrough|z\.any\(|z\.record\(|z\.unknown\(|catchall|strict\(\s*false'
+                pattern:
+                  context: 'const $S = $V'
+                  selector: variable_declarator
+      - all:
+        - pattern: '$C.from($T).insert({ ...$D.data, $$$ })'
+        - inside:
+            stopBy: end
+            any:
+            - {kind: function_declaration}
+            - {kind: arrow_function}
+            - {kind: function_expression}
+            - {kind: method_definition}
+            has:
+              stopBy: end
+              kind: variable_declarator
+              any:
+              - pattern:
+                  context: 'const $D = $S.parse($$$)'
+                  selector: variable_declarator
+              - pattern:
+                  context: 'const $D = await $S.parseAsync($$$)'
+                  selector: variable_declarator
+              - pattern:
+                  context: 'const $D = $S.safeParse($$$)'
+                  selector: variable_declarator
+              - pattern:
+                  context: 'const $D = await $S.safeParseAsync($$$)'
+                  selector: variable_declarator
+              - pattern:
+                  context: 'const $D = parse($SC, $$$)'
+                  selector: variable_declarator
+              - pattern:
+                  context: 'const $D = await parseAsync($SC, $$$)'
+                  selector: variable_declarator
+              not:
+                kind: variable_declarator
+                regex: 'passthrough|z\.any\(|z\.record\(|z\.unknown\(|catchall|strict\(\s*false|=\s*(await\s+)?(JSON|Date|URL|path|qs|querystring|cookie)\.parse'
+        - not:
+            inside:
+              kind: program
+              stopBy: end
+              has:
+                stopBy: end
+                kind: variable_declarator
+                regex: 'passthrough|z\.any\(|z\.record\(|z\.unknown\(|catchall|strict\(\s*false'
+                pattern:
+                  context: 'const $S = $V'
+                  selector: variable_declarator
+      - all:
+        - pattern: '$C.from($T).update({ ...$D.data, $$$ })'
+        - inside:
+            stopBy: end
+            any:
+            - {kind: function_declaration}
+            - {kind: arrow_function}
+            - {kind: function_expression}
+            - {kind: method_definition}
+            has:
+              stopBy: end
+              kind: variable_declarator
+              any:
+              - pattern:
+                  context: 'const $D = $S.parse($$$)'
+                  selector: variable_declarator
+              - pattern:
+                  context: 'const $D = await $S.parseAsync($$$)'
+                  selector: variable_declarator
+              - pattern:
+                  context: 'const $D = $S.safeParse($$$)'
+                  selector: variable_declarator
+              - pattern:
+                  context: 'const $D = await $S.safeParseAsync($$$)'
+                  selector: variable_declarator
+              - pattern:
+                  context: 'const $D = parse($SC, $$$)'
+                  selector: variable_declarator
+              - pattern:
+                  context: 'const $D = await parseAsync($SC, $$$)'
+                  selector: variable_declarator
+              not:
+                kind: variable_declarator
+                regex: 'passthrough|z\.any\(|z\.record\(|z\.unknown\(|catchall|strict\(\s*false|=\s*(await\s+)?(JSON|Date|URL|path|qs|querystring|cookie)\.parse'
+        - not:
+            inside:
+              kind: program
+              stopBy: end
+              has:
+                stopBy: end
+                kind: variable_declarator
+                regex: 'passthrough|z\.any\(|z\.record\(|z\.unknown\(|catchall|strict\(\s*false'
+                pattern:
+                  context: 'const $S = $V'
+                  selector: variable_declarator
+      - all:
+        - pattern: '$C.from($T).upsert({ ...$D.data, $$$ })'
+        - inside:
+            stopBy: end
+            any:
+            - {kind: function_declaration}
+            - {kind: arrow_function}
+            - {kind: function_expression}
+            - {kind: method_definition}
+            has:
+              stopBy: end
+              kind: variable_declarator
+              any:
+              - pattern:
+                  context: 'const $D = $S.parse($$$)'
+                  selector: variable_declarator
+              - pattern:
+                  context: 'const $D = await $S.parseAsync($$$)'
+                  selector: variable_declarator
+              - pattern:
+                  context: 'const $D = $S.safeParse($$$)'
+                  selector: variable_declarator
+              - pattern:
+                  context: 'const $D = await $S.safeParseAsync($$$)'
+                  selector: variable_declarator
+              - pattern:
+                  context: 'const $D = parse($SC, $$$)'
+                  selector: variable_declarator
+              - pattern:
+                  context: 'const $D = await parseAsync($SC, $$$)'
+                  selector: variable_declarator
+              not:
+                kind: variable_declarator
+                regex: 'passthrough|z\.any\(|z\.record\(|z\.unknown\(|catchall|strict\(\s*false|=\s*(await\s+)?(JSON|Date|URL|path|qs|querystring|cookie)\.parse'
+        - not:
+            inside:
+              kind: program
+              stopBy: end
+              has:
+                stopBy: end
+                kind: variable_declarator
+                regex: 'passthrough|z\.any\(|z\.record\(|z\.unknown\(|catchall|strict\(\s*false'
+                pattern:
+                  context: 'const $S = $V'
+                  selector: variable_declarator
+      - all:
+        - pattern: '$DB.insert($T).values({ ...$D.data, $$$ })'
+        - inside:
+            stopBy: end
+            any:
+            - {kind: function_declaration}
+            - {kind: arrow_function}
+            - {kind: function_expression}
+            - {kind: method_definition}
+            has:
+              stopBy: end
+              kind: variable_declarator
+              any:
+              - pattern:
+                  context: 'const $D = $S.parse($$$)'
+                  selector: variable_declarator
+              - pattern:
+                  context: 'const $D = await $S.parseAsync($$$)'
+                  selector: variable_declarator
+              - pattern:
+                  context: 'const $D = $S.safeParse($$$)'
+                  selector: variable_declarator
+              - pattern:
+                  context: 'const $D = await $S.safeParseAsync($$$)'
+                  selector: variable_declarator
+              - pattern:
+                  context: 'const $D = parse($SC, $$$)'
+                  selector: variable_declarator
+              - pattern:
+                  context: 'const $D = await parseAsync($SC, $$$)'
+                  selector: variable_declarator
+              not:
+                kind: variable_declarator
+                regex: 'passthrough|z\.any\(|z\.record\(|z\.unknown\(|catchall|strict\(\s*false|=\s*(await\s+)?(JSON|Date|URL|path|qs|querystring|cookie)\.parse'
+        - not:
+            inside:
+              kind: program
+              stopBy: end
+              has:
+                stopBy: end
+                kind: variable_declarator
+                regex: 'passthrough|z\.any\(|z\.record\(|z\.unknown\(|catchall|strict\(\s*false'
+                pattern:
+                  context: 'const $S = $V'
+                  selector: variable_declarator
+      - all:
+        - pattern: '$DB.update($T).set({ ...$D.data, $$$ })'
+        - inside:
+            stopBy: end
+            any:
+            - {kind: function_declaration}
+            - {kind: arrow_function}
+            - {kind: function_expression}
+            - {kind: method_definition}
+            has:
+              stopBy: end
+              kind: variable_declarator
+              any:
+              - pattern:
+                  context: 'const $D = $S.parse($$$)'
+                  selector: variable_declarator
+              - pattern:
+                  context: 'const $D = await $S.parseAsync($$$)'
+                  selector: variable_declarator
+              - pattern:
+                  context: 'const $D = $S.safeParse($$$)'
+                  selector: variable_declarator
+              - pattern:
+                  context: 'const $D = await $S.safeParseAsync($$$)'
+                  selector: variable_declarator
+              - pattern:
+                  context: 'const $D = parse($SC, $$$)'
+                  selector: variable_declarator
+              - pattern:
+                  context: 'const $D = await parseAsync($SC, $$$)'
+                  selector: variable_declarator
+              not:
+                kind: variable_declarator
+                regex: 'passthrough|z\.any\(|z\.record\(|z\.unknown\(|catchall|strict\(\s*false|=\s*(await\s+)?(JSON|Date|URL|path|qs|querystring|cookie)\.parse'
+        - not:
+            inside:
+              kind: program
+              stopBy: end
+              has:
+                stopBy: end
+                kind: variable_declarator
+                regex: 'passthrough|z\.any\(|z\.record\(|z\.unknown\(|catchall|strict\(\s*false'
+                pattern:
+                  context: 'const $S = $V'
+                  selector: variable_declarator
+      - all:
+        - kind: call_expression
+          pattern: '$P.$M.$OP({ $$$, data: { $$$, ...$D.data } })'
+          has:
+            field: function
+            kind: member_expression
+            has:
+              field: property
+              kind: property_identifier
+              regex: '^(create|update|upsert|createMany|updateMany)$'
+        - inside:
+            stopBy: end
+            any:
+            - {kind: function_declaration}
+            - {kind: arrow_function}
+            - {kind: function_expression}
+            - {kind: method_definition}
+            has:
+              stopBy: end
+              kind: variable_declarator
+              any:
+              - pattern:
+                  context: 'const $D = $S.parse($$$)'
+                  selector: variable_declarator
+              - pattern:
+                  context: 'const $D = await $S.parseAsync($$$)'
+                  selector: variable_declarator
+              - pattern:
+                  context: 'const $D = $S.safeParse($$$)'
+                  selector: variable_declarator
+              - pattern:
+                  context: 'const $D = await $S.safeParseAsync($$$)'
+                  selector: variable_declarator
+              - pattern:
+                  context: 'const $D = parse($SC, $$$)'
+                  selector: variable_declarator
+              - pattern:
+                  context: 'const $D = await parseAsync($SC, $$$)'
+                  selector: variable_declarator
+              not:
+                kind: variable_declarator
+                regex: 'passthrough|z\.any\(|z\.record\(|z\.unknown\(|catchall|strict\(\s*false|=\s*(await\s+)?(JSON|Date|URL|path|qs|querystring|cookie)\.parse'
+        - not:
+            inside:
+              kind: program
+              stopBy: end
+              has:
+                stopBy: end
+                kind: variable_declarator
+                regex: 'passthrough|z\.any\(|z\.record\(|z\.unknown\(|catchall|strict\(\s*false'
+                pattern:
+                  context: 'const $S = $V'
+                  selector: variable_declarator
+      - all:
+        - kind: call_expression
+          pattern: '$P.$M.$OP({ data: { $$$, ...$D.data }, $$$ })'
+          has:
+            field: function
+            kind: member_expression
+            has:
+              field: property
+              kind: property_identifier
+              regex: '^(create|update|upsert|createMany|updateMany)$'
+        - inside:
+            stopBy: end
+            any:
+            - {kind: function_declaration}
+            - {kind: arrow_function}
+            - {kind: function_expression}
+            - {kind: method_definition}
+            has:
+              stopBy: end
+              kind: variable_declarator
+              any:
+              - pattern:
+                  context: 'const $D = $S.parse($$$)'
+                  selector: variable_declarator
+              - pattern:
+                  context: 'const $D = await $S.parseAsync($$$)'
+                  selector: variable_declarator
+              - pattern:
+                  context: 'const $D = $S.safeParse($$$)'
+                  selector: variable_declarator
+              - pattern:
+                  context: 'const $D = await $S.safeParseAsync($$$)'
+                  selector: variable_declarator
+              - pattern:
+                  context: 'const $D = parse($SC, $$$)'
+                  selector: variable_declarator
+              - pattern:
+                  context: 'const $D = await parseAsync($SC, $$$)'
+                  selector: variable_declarator
+              not:
+                kind: variable_declarator
+                regex: 'passthrough|z\.any\(|z\.record\(|z\.unknown\(|catchall|strict\(\s*false|=\s*(await\s+)?(JSON|Date|URL|path|qs|querystring|cookie)\.parse'
+        - not:
+            inside:
+              kind: program
+              stopBy: end
+              has:
+                stopBy: end
+                kind: variable_declarator
+                regex: 'passthrough|z\.any\(|z\.record\(|z\.unknown\(|catchall|strict\(\s*false'
+                pattern:
+                  context: 'const $S = $V'
+                  selector: variable_declarator
+      - all:
+        - pattern: '$C.from($T).insert({ $$$, ...$D.data })'
+        - inside:
+            stopBy: end
+            any:
+            - {kind: function_declaration}
+            - {kind: arrow_function}
+            - {kind: function_expression}
+            - {kind: method_definition}
+            has:
+              stopBy: end
+              kind: variable_declarator
+              any:
+              - pattern:
+                  context: 'const $D = $S.parse($$$)'
+                  selector: variable_declarator
+              - pattern:
+                  context: 'const $D = await $S.parseAsync($$$)'
+                  selector: variable_declarator
+              - pattern:
+                  context: 'const $D = $S.safeParse($$$)'
+                  selector: variable_declarator
+              - pattern:
+                  context: 'const $D = await $S.safeParseAsync($$$)'
+                  selector: variable_declarator
+              - pattern:
+                  context: 'const $D = parse($SC, $$$)'
+                  selector: variable_declarator
+              - pattern:
+                  context: 'const $D = await parseAsync($SC, $$$)'
+                  selector: variable_declarator
+              not:
+                kind: variable_declarator
+                regex: 'passthrough|z\.any\(|z\.record\(|z\.unknown\(|catchall|strict\(\s*false|=\s*(await\s+)?(JSON|Date|URL|path|qs|querystring|cookie)\.parse'
+        - not:
+            inside:
+              kind: program
+              stopBy: end
+              has:
+                stopBy: end
+                kind: variable_declarator
+                regex: 'passthrough|z\.any\(|z\.record\(|z\.unknown\(|catchall|strict\(\s*false'
+                pattern:
+                  context: 'const $S = $V'
+                  selector: variable_declarator
+      - all:
+        - pattern: '$C.from($T).update({ $$$, ...$D.data })'
+        - inside:
+            stopBy: end
+            any:
+            - {kind: function_declaration}
+            - {kind: arrow_function}
+            - {kind: function_expression}
+            - {kind: method_definition}
+            has:
+              stopBy: end
+              kind: variable_declarator
+              any:
+              - pattern:
+                  context: 'const $D = $S.parse($$$)'
+                  selector: variable_declarator
+              - pattern:
+                  context: 'const $D = await $S.parseAsync($$$)'
+                  selector: variable_declarator
+              - pattern:
+                  context: 'const $D = $S.safeParse($$$)'
+                  selector: variable_declarator
+              - pattern:
+                  context: 'const $D = await $S.safeParseAsync($$$)'
+                  selector: variable_declarator
+              - pattern:
+                  context: 'const $D = parse($SC, $$$)'
+                  selector: variable_declarator
+              - pattern:
+                  context: 'const $D = await parseAsync($SC, $$$)'
+                  selector: variable_declarator
+              not:
+                kind: variable_declarator
+                regex: 'passthrough|z\.any\(|z\.record\(|z\.unknown\(|catchall|strict\(\s*false|=\s*(await\s+)?(JSON|Date|URL|path|qs|querystring|cookie)\.parse'
+        - not:
+            inside:
+              kind: program
+              stopBy: end
+              has:
+                stopBy: end
+                kind: variable_declarator
+                regex: 'passthrough|z\.any\(|z\.record\(|z\.unknown\(|catchall|strict\(\s*false'
+                pattern:
+                  context: 'const $S = $V'
+                  selector: variable_declarator
+      - all:
+        - pattern: '$C.from($T).upsert({ $$$, ...$D.data })'
+        - inside:
+            stopBy: end
+            any:
+            - {kind: function_declaration}
+            - {kind: arrow_function}
+            - {kind: function_expression}
+            - {kind: method_definition}
+            has:
+              stopBy: end
+              kind: variable_declarator
+              any:
+              - pattern:
+                  context: 'const $D = $S.parse($$$)'
+                  selector: variable_declarator
+              - pattern:
+                  context: 'const $D = await $S.parseAsync($$$)'
+                  selector: variable_declarator
+              - pattern:
+                  context: 'const $D = $S.safeParse($$$)'
+                  selector: variable_declarator
+              - pattern:
+                  context: 'const $D = await $S.safeParseAsync($$$)'
+                  selector: variable_declarator
+              - pattern:
+                  context: 'const $D = parse($SC, $$$)'
+                  selector: variable_declarator
+              - pattern:
+                  context: 'const $D = await parseAsync($SC, $$$)'
+                  selector: variable_declarator
+              not:
+                kind: variable_declarator
+                regex: 'passthrough|z\.any\(|z\.record\(|z\.unknown\(|catchall|strict\(\s*false|=\s*(await\s+)?(JSON|Date|URL|path|qs|querystring|cookie)\.parse'
+        - not:
+            inside:
+              kind: program
+              stopBy: end
+              has:
+                stopBy: end
+                kind: variable_declarator
+                regex: 'passthrough|z\.any\(|z\.record\(|z\.unknown\(|catchall|strict\(\s*false'
+                pattern:
+                  context: 'const $S = $V'
+                  selector: variable_declarator
+      - all:
+        - pattern: '$DB.insert($T).values({ $$$, ...$D.data })'
+        - inside:
+            stopBy: end
+            any:
+            - {kind: function_declaration}
+            - {kind: arrow_function}
+            - {kind: function_expression}
+            - {kind: method_definition}
+            has:
+              stopBy: end
+              kind: variable_declarator
+              any:
+              - pattern:
+                  context: 'const $D = $S.parse($$$)'
+                  selector: variable_declarator
+              - pattern:
+                  context: 'const $D = await $S.parseAsync($$$)'
+                  selector: variable_declarator
+              - pattern:
+                  context: 'const $D = $S.safeParse($$$)'
+                  selector: variable_declarator
+              - pattern:
+                  context: 'const $D = await $S.safeParseAsync($$$)'
+                  selector: variable_declarator
+              - pattern:
+                  context: 'const $D = parse($SC, $$$)'
+                  selector: variable_declarator
+              - pattern:
+                  context: 'const $D = await parseAsync($SC, $$$)'
+                  selector: variable_declarator
+              not:
+                kind: variable_declarator
+                regex: 'passthrough|z\.any\(|z\.record\(|z\.unknown\(|catchall|strict\(\s*false|=\s*(await\s+)?(JSON|Date|URL|path|qs|querystring|cookie)\.parse'
+        - not:
+            inside:
+              kind: program
+              stopBy: end
+              has:
+                stopBy: end
+                kind: variable_declarator
+                regex: 'passthrough|z\.any\(|z\.record\(|z\.unknown\(|catchall|strict\(\s*false'
+                pattern:
+                  context: 'const $S = $V'
+                  selector: variable_declarator
+      - all:
+        - pattern: '$DB.update($T).set({ $$$, ...$D.data })'
+        - inside:
+            stopBy: end
+            any:
+            - {kind: function_declaration}
+            - {kind: arrow_function}
+            - {kind: function_expression}
+            - {kind: method_definition}
+            has:
+              stopBy: end
+              kind: variable_declarator
+              any:
+              - pattern:
+                  context: 'const $D = $S.parse($$$)'
+                  selector: variable_declarator
+              - pattern:
+                  context: 'const $D = await $S.parseAsync($$$)'
+                  selector: variable_declarator
+              - pattern:
+                  context: 'const $D = $S.safeParse($$$)'
+                  selector: variable_declarator
+              - pattern:
+                  context: 'const $D = await $S.safeParseAsync($$$)'
+                  selector: variable_declarator
+              - pattern:
+                  context: 'const $D = parse($SC, $$$)'
+                  selector: variable_declarator
+              - pattern:
+                  context: 'const $D = await parseAsync($SC, $$$)'
+                  selector: variable_declarator
+              not:
+                kind: variable_declarator
+                regex: 'passthrough|z\.any\(|z\.record\(|z\.unknown\(|catchall|strict\(\s*false|=\s*(await\s+)?(JSON|Date|URL|path|qs|querystring|cookie)\.parse'
+        - not:
+            inside:
+              kind: program
+              stopBy: end
+              has:
+                stopBy: end
+                kind: variable_declarator
+                regex: 'passthrough|z\.any\(|z\.record\(|z\.unknown\(|catchall|strict\(\s*false'
+                pattern:
+                  context: 'const $S = $V'
+                  selector: variable_declarator
+      - all:
+        - kind: call_expression
+          pattern: '$P.$M.$OP({ $$$, data })'
+          has:
+            field: function
+            kind: member_expression
+            has:
+              field: property
+              kind: property_identifier
+              regex: '^(create|update|upsert|createMany|updateMany)$'
+        - inside:
+            stopBy: end
+            any:
+            - {kind: function_declaration}
+            - {kind: arrow_function}
+            - {kind: function_expression}
+            - {kind: method_definition}
+            has:
+              stopBy: end
+              kind: variable_declarator
+              any:
+              - pattern:
+                  context: 'const data = $S.parse($$$)'
+                  selector: variable_declarator
+              - pattern:
+                  context: 'const data = await $S.parseAsync($$$)'
+                  selector: variable_declarator
+              - pattern:
+                  context: 'const data = $S.safeParse($$$)'
+                  selector: variable_declarator
+              - pattern:
+                  context: 'const data = await $S.safeParseAsync($$$)'
+                  selector: variable_declarator
+              - pattern:
+                  context: 'const data = parse($SC, $$$)'
+                  selector: variable_declarator
+              - pattern:
+                  context: 'const data = await parseAsync($SC, $$$)'
+                  selector: variable_declarator
+              not:
+                kind: variable_declarator
+                regex: 'passthrough|z\.any\(|z\.record\(|z\.unknown\(|catchall|strict\(\s*false'
+        - not:
+            inside:
+              kind: program
+              stopBy: end
+              has:
+                stopBy: end
+                kind: variable_declarator
+                regex: 'passthrough|z\.any\(|z\.record\(|z\.unknown\(|catchall|strict\(\s*false'
+                pattern:
+                  context: 'const $S = $V'
+                  selector: variable_declarator
+      - all:
+        - kind: call_expression
+          pattern: '$P.$M.$OP({ data, $$$ })'
+          has:
+            field: function
+            kind: member_expression
+            has:
+              field: property
+              kind: property_identifier
+              regex: '^(create|update|upsert|createMany|updateMany)$'
+        - inside:
+            stopBy: end
+            any:
+            - {kind: function_declaration}
+            - {kind: arrow_function}
+            - {kind: function_expression}
+            - {kind: method_definition}
+            has:
+              stopBy: end
+              kind: variable_declarator
+              any:
+              - pattern:
+                  context: 'const data = $S.parse($$$)'
+                  selector: variable_declarator
+              - pattern:
+                  context: 'const data = await $S.parseAsync($$$)'
+                  selector: variable_declarator
+              - pattern:
+                  context: 'const data = $S.safeParse($$$)'
+                  selector: variable_declarator
+              - pattern:
+                  context: 'const data = await $S.safeParseAsync($$$)'
+                  selector: variable_declarator
+              - pattern:
+                  context: 'const data = parse($SC, $$$)'
+                  selector: variable_declarator
+              - pattern:
+                  context: 'const data = await parseAsync($SC, $$$)'
+                  selector: variable_declarator
+              not:
+                kind: variable_declarator
+                regex: 'passthrough|z\.any\(|z\.record\(|z\.unknown\(|catchall|strict\(\s*false'
+        - not:
+            inside:
+              kind: program
+              stopBy: end
+              has:
+                stopBy: end
+                kind: variable_declarator
+                regex: 'passthrough|z\.any\(|z\.record\(|z\.unknown\(|catchall|strict\(\s*false'
+                pattern:
+                  context: 'const $S = $V'
+                  selector: variable_declarator
+    - any:
+      - kind: call_expression
+        has:
+          field: function
+          kind: member_expression
+          has:
+            field: property
+            kind: property_identifier
+            regex: '^(create|update|upsert|createMany|updateMany)$'
+        all:
+        - has:
+            stopBy: end
+            kind: pair
+            all:
+            - has:
+                field: key
+                kind: property_identifier
+                regex: '^data$'
+            - has:
+                field: value
+                kind: object
+                has:
+                  stopBy: end
+                  any:
+                  - kind: member_expression
+                    regex: '^(req|request)\.body\.\w'
+                  - kind: call_expression
+                    regex: '^\w*(form|Form|formData|FormData|fd)\w*\.get\('
+                  - all:
+                    - kind: member_expression
+                      pattern: '$B.$F'
+                    - inside:
+                        stopBy: end
+                        any:
+                        - {kind: function_declaration}
+                        - {kind: arrow_function}
+                        - {kind: function_expression}
+                        - {kind: method_definition}
+                        has:
+                          stopBy: end
+                          any:
+                          - pattern: 'const $B = req.body'
+                          - pattern: 'const $B = request.body'
+                          - pattern: 'const $B = await req.json()'
+                          - pattern: 'const $B = await request.json()'
+                          - pattern: 'const $B = JSON.parse($$$)'
+                          - pattern: 'const $B = $S.parse($$$)'
+                          - pattern: 'const $B = await $S.parseAsync($$$)'
+                          - pattern: 'const $B = $S.safeParse($$$)'
+                          - pattern: 'const $B = await $S.safeParseAsync($$$)'
+                  - all:
+                    - {kind: shorthand_property_identifier}
+                    - inside:
+                        stopBy: end
+                        any:
+                        - {kind: function_declaration}
+                        - {kind: arrow_function}
+                        - {kind: function_expression}
+                        - {kind: method_definition}
+                        has:
+                          stopBy: end
+                          kind: variable_declarator
+                          has: {field: name, kind: object_pattern}
+                          any:
+                          - pattern:
+                              context: 'const $OBJ = req.body'
+                              selector: variable_declarator
+                          - pattern:
+                              context: 'const $OBJ = request.body'
+                              selector: variable_declarator
+                          - pattern:
+                              context: 'const $OBJ = await req.json()'
+                              selector: variable_declarator
+                          - pattern:
+                              context: 'const $OBJ = await request.json()'
+                              selector: variable_declarator
+                          - pattern:
+                              context: 'const $OBJ = JSON.parse($$$)'
+                              selector: variable_declarator
+                          - pattern:
+                              context: 'const $OBJ = $S.parse($$$)'
+                              selector: variable_declarator
+                          - pattern:
+                              context: 'const $OBJ = await $S.parseAsync($$$)'
+                              selector: variable_declarator
+                          - pattern:
+                              context: 'const $OBJ = $S.safeParse($$$)'
+                              selector: variable_declarator
+                          - pattern:
+                              context: 'const $OBJ = await $S.safeParseAsync($$$)'
+                              selector: variable_declarator
+        - not:
+            has: {stopBy: end, kind: spread_element}
+      - kind: call_expression
+        all:
+        - any:
+          - pattern: '$C.from($T).insert($X)'
+          - pattern: '$C.from($T).update($X)'
+          - pattern: '$C.from($T).upsert($X)'
+          - pattern: '$DB.insert($T).values($X)'
+          - pattern: '$DB.update($T).set($X)'
+        - has:
+            field: arguments
+            kind: arguments
+            has:
+              kind: object
+              has:
+                stopBy: end
+                any:
+                - kind: member_expression
+                  regex: '^(req|request)\.body\.\w'
+                - kind: call_expression
+                  regex: '^\w*(form|Form|formData|FormData|fd)\w*\.get\('
+                - all:
+                  - kind: member_expression
+                    pattern: '$B.$F'
+                  - inside:
+                      stopBy: end
+                      any:
+                      - {kind: function_declaration}
+                      - {kind: arrow_function}
+                      - {kind: function_expression}
+                      - {kind: method_definition}
+                      has:
+                        stopBy: end
+                        any:
+                        - pattern: 'const $B = req.body'
+                        - pattern: 'const $B = request.body'
+                        - pattern: 'const $B = await req.json()'
+                        - pattern: 'const $B = await request.json()'
+                        - pattern: 'const $B = JSON.parse($$$)'
+                        - pattern: 'const $B = $S.parse($$$)'
+                        - pattern: 'const $B = await $S.parseAsync($$$)'
+                        - pattern: 'const $B = $S.safeParse($$$)'
+                        - pattern: 'const $B = await $S.safeParseAsync($$$)'
+                - all:
+                  - {kind: shorthand_property_identifier}
+                  - inside:
+                      stopBy: end
+                      any:
+                      - {kind: function_declaration}
+                      - {kind: arrow_function}
+                      - {kind: function_expression}
+                      - {kind: method_definition}
+                      has:
+                        stopBy: end
+                        kind: variable_declarator
+                        has: {field: name, kind: object_pattern}
+                        any:
+                        - pattern:
+                            context: 'const $OBJ = req.body'
+                            selector: variable_declarator
+                        - pattern:
+                            context: 'const $OBJ = request.body'
+                            selector: variable_declarator
+                        - pattern:
+                            context: 'const $OBJ = await req.json()'
+                            selector: variable_declarator
+                        - pattern:
+                            context: 'const $OBJ = await request.json()'
+                            selector: variable_declarator
+                        - pattern:
+                            context: 'const $OBJ = JSON.parse($$$)'
+                            selector: variable_declarator
+                        - pattern:
+                            context: 'const $OBJ = $S.parse($$$)'
+                            selector: variable_declarator
+                        - pattern:
+                            context: 'const $OBJ = await $S.parseAsync($$$)'
+                            selector: variable_declarator
+                        - pattern:
+                            context: 'const $OBJ = $S.safeParse($$$)'
+                            selector: variable_declarator
+                        - pattern:
+                            context: 'const $OBJ = await $S.safeParseAsync($$$)'
+                            selector: variable_declarator
+        - not:
+            has:
+              field: arguments
+              kind: arguments
+              has: {stopBy: end, kind: spread_element}
+min_engine: 0.39.0
+---
+id: write-fields-allowlisted.javascript-nextjs.body-spread
+practice_id: write-fields-allowlisted
+language: javascript
+frameworks: [nextjs]
+kind: violation
+rule:
+  any:
+  - kind: call_expression
+    pattern: '$P.$M.$OP({ $$$, data: req.body })'
+    has:
+      field: function
+      kind: member_expression
+      has:
+        field: property
+        kind: property_identifier
+        regex: '^(create|update|upsert|createMany|updateMany)$'
+  - kind: call_expression
+    pattern: '$P.$M.$OP({ data: req.body, $$$ })'
+    has:
+      field: function
+      kind: member_expression
+      has:
+        field: property
+        kind: property_identifier
+        regex: '^(create|update|upsert|createMany|updateMany)$'
+  - pattern: '$C.from($T).insert(req.body)'
+  - pattern: '$C.from($T).update(req.body)'
+  - pattern: '$C.from($T).upsert(req.body)'
+  - pattern: '$DB.insert($T).values(req.body)'
+  - pattern: '$DB.update($T).set(req.body)'
+  - kind: call_expression
+    pattern: '$P.$M.$OP({ $$$, data: request.body })'
+    has:
+      field: function
+      kind: member_expression
+      has:
+        field: property
+        kind: property_identifier
+        regex: '^(create|update|upsert|createMany|updateMany)$'
+  - kind: call_expression
+    pattern: '$P.$M.$OP({ data: request.body, $$$ })'
+    has:
+      field: function
+      kind: member_expression
+      has:
+        field: property
+        kind: property_identifier
+        regex: '^(create|update|upsert|createMany|updateMany)$'
+  - pattern: '$C.from($T).insert(request.body)'
+  - pattern: '$C.from($T).update(request.body)'
+  - pattern: '$C.from($T).upsert(request.body)'
+  - pattern: '$DB.insert($T).values(request.body)'
+  - pattern: '$DB.update($T).set(request.body)'
+  - kind: call_expression
+    pattern: '$P.$M.$OP({ $$$, data: await req.json() })'
+    has:
+      field: function
+      kind: member_expression
+      has:
+        field: property
+        kind: property_identifier
+        regex: '^(create|update|upsert|createMany|updateMany)$'
+  - kind: call_expression
+    pattern: '$P.$M.$OP({ data: await req.json(), $$$ })'
+    has:
+      field: function
+      kind: member_expression
+      has:
+        field: property
+        kind: property_identifier
+        regex: '^(create|update|upsert|createMany|updateMany)$'
+  - pattern: '$C.from($T).insert(await req.json())'
+  - pattern: '$C.from($T).update(await req.json())'
+  - pattern: '$C.from($T).upsert(await req.json())'
+  - pattern: '$DB.insert($T).values(await req.json())'
+  - pattern: '$DB.update($T).set(await req.json())'
+  - kind: call_expression
+    pattern: '$P.$M.$OP({ $$$, data: await request.json() })'
+    has:
+      field: function
+      kind: member_expression
+      has:
+        field: property
+        kind: property_identifier
+        regex: '^(create|update|upsert|createMany|updateMany)$'
+  - kind: call_expression
+    pattern: '$P.$M.$OP({ data: await request.json(), $$$ })'
+    has:
+      field: function
+      kind: member_expression
+      has:
+        field: property
+        kind: property_identifier
+        regex: '^(create|update|upsert|createMany|updateMany)$'
+  - pattern: '$C.from($T).insert(await request.json())'
+  - pattern: '$C.from($T).update(await request.json())'
+  - pattern: '$C.from($T).upsert(await request.json())'
+  - pattern: '$DB.insert($T).values(await request.json())'
+  - pattern: '$DB.update($T).set(await request.json())'
+  - kind: call_expression
+    pattern: '$P.$M.$OP({ $$$, data: Object.fromEntries($$$) })'
+    has:
+      field: function
+      kind: member_expression
+      has:
+        field: property
+        kind: property_identifier
+        regex: '^(create|update|upsert|createMany|updateMany)$'
+  - kind: call_expression
+    pattern: '$P.$M.$OP({ data: Object.fromEntries($$$), $$$ })'
+    has:
+      field: function
+      kind: member_expression
+      has:
+        field: property
+        kind: property_identifier
+        regex: '^(create|update|upsert|createMany|updateMany)$'
+  - pattern: '$C.from($T).insert(Object.fromEntries($$$))'
+  - pattern: '$C.from($T).update(Object.fromEntries($$$))'
+  - pattern: '$C.from($T).upsert(Object.fromEntries($$$))'
+  - pattern: '$DB.insert($T).values(Object.fromEntries($$$))'
+  - pattern: '$DB.update($T).set(Object.fromEntries($$$))'
+  - kind: call_expression
+    pattern: '$P.$M.$OP({ $$$, data: await req.formData() })'
+    has:
+      field: function
+      kind: member_expression
+      has:
+        field: property
+        kind: property_identifier
+        regex: '^(create|update|upsert|createMany|updateMany)$'
+  - kind: call_expression
+    pattern: '$P.$M.$OP({ data: await req.formData(), $$$ })'
+    has:
+      field: function
+      kind: member_expression
+      has:
+        field: property
+        kind: property_identifier
+        regex: '^(create|update|upsert|createMany|updateMany)$'
+  - pattern: '$C.from($T).insert(await req.formData())'
+  - pattern: '$C.from($T).update(await req.formData())'
+  - pattern: '$C.from($T).upsert(await req.formData())'
+  - pattern: '$DB.insert($T).values(await req.formData())'
+  - pattern: '$DB.update($T).set(await req.formData())'
+  - kind: call_expression
+    pattern: '$P.$M.$OP({ $$$, data: await request.formData() })'
+    has:
+      field: function
+      kind: member_expression
+      has:
+        field: property
+        kind: property_identifier
+        regex: '^(create|update|upsert|createMany|updateMany)$'
+  - kind: call_expression
+    pattern: '$P.$M.$OP({ data: await request.formData(), $$$ })'
+    has:
+      field: function
+      kind: member_expression
+      has:
+        field: property
+        kind: property_identifier
+        regex: '^(create|update|upsert|createMany|updateMany)$'
+  - pattern: '$C.from($T).insert(await request.formData())'
+  - pattern: '$C.from($T).update(await request.formData())'
+  - pattern: '$C.from($T).upsert(await request.formData())'
+  - pattern: '$DB.insert($T).values(await request.formData())'
+  - pattern: '$DB.update($T).set(await request.formData())'
+  - kind: call_expression
+    pattern: '$P.$M.$OP({ $$$, data: JSON.parse($$$) })'
+    has:
+      field: function
+      kind: member_expression
+      has:
+        field: property
+        kind: property_identifier
+        regex: '^(create|update|upsert|createMany|updateMany)$'
+  - kind: call_expression
+    pattern: '$P.$M.$OP({ data: JSON.parse($$$), $$$ })'
+    has:
+      field: function
+      kind: member_expression
+      has:
+        field: property
+        kind: property_identifier
+        regex: '^(create|update|upsert|createMany|updateMany)$'
+  - pattern: '$C.from($T).insert(JSON.parse($$$))'
+  - pattern: '$C.from($T).update(JSON.parse($$$))'
+  - pattern: '$C.from($T).upsert(JSON.parse($$$))'
+  - pattern: '$DB.insert($T).values(JSON.parse($$$))'
+  - pattern: '$DB.update($T).set(JSON.parse($$$))'
+  - all:
+    - kind: call_expression
+      pattern: '$P.$M.$OP({ $$$, data: $B })'
+      has:
+        field: function
+        kind: member_expression
+        has:
+          field: property
+          kind: property_identifier
+          regex: '^(create|update|upsert|createMany|updateMany)$'
+    - inside:
+        stopBy: end
+        any:
+        - {kind: function_declaration}
+        - {kind: arrow_function}
+        - {kind: function_expression}
+        - {kind: method_definition}
+        has:
+          stopBy: end
+          any:
+          - pattern: 'const $B = req.body'
+          - pattern: 'const $B = request.body'
+          - pattern: 'const $B = await req.json()'
+          - pattern: 'const $B = await request.json()'
+          - pattern: 'const $B = Object.fromEntries($$$)'
+          - pattern: 'const $B = JSON.parse($$$)'
+          - pattern: 'let $B = req.body'
+          - pattern: 'let $B = request.body'
+          - pattern: 'let $B = await req.json()'
+          - pattern: 'let $B = await request.json()'
+          - pattern: 'let $B = Object.fromEntries($$$)'
+          - pattern: 'let $B = JSON.parse($$$)'
+          - pattern: 'var $B = req.body'
+          - pattern: 'var $B = request.body'
+          - pattern: 'var $B = await req.json()'
+          - pattern: 'var $B = await request.json()'
+          - pattern: 'var $B = Object.fromEntries($$$)'
+          - pattern: 'var $B = JSON.parse($$$)'
+  - all:
+    - kind: call_expression
+      pattern: '$P.$M.$OP({ data: $B, $$$ })'
+      has:
+        field: function
+        kind: member_expression
+        has:
+          field: property
+          kind: property_identifier
+          regex: '^(create|update|upsert|createMany|updateMany)$'
+    - inside:
+        stopBy: end
+        any:
+        - {kind: function_declaration}
+        - {kind: arrow_function}
+        - {kind: function_expression}
+        - {kind: method_definition}
+        has:
+          stopBy: end
+          any:
+          - pattern: 'const $B = req.body'
+          - pattern: 'const $B = request.body'
+          - pattern: 'const $B = await req.json()'
+          - pattern: 'const $B = await request.json()'
+          - pattern: 'const $B = Object.fromEntries($$$)'
+          - pattern: 'const $B = JSON.parse($$$)'
+          - pattern: 'let $B = req.body'
+          - pattern: 'let $B = request.body'
+          - pattern: 'let $B = await req.json()'
+          - pattern: 'let $B = await request.json()'
+          - pattern: 'let $B = Object.fromEntries($$$)'
+          - pattern: 'let $B = JSON.parse($$$)'
+          - pattern: 'var $B = req.body'
+          - pattern: 'var $B = request.body'
+          - pattern: 'var $B = await req.json()'
+          - pattern: 'var $B = await request.json()'
+          - pattern: 'var $B = Object.fromEntries($$$)'
+          - pattern: 'var $B = JSON.parse($$$)'
+  - all:
+    - pattern: '$C.from($T).insert($B)'
+    - inside:
+        stopBy: end
+        any:
+        - {kind: function_declaration}
+        - {kind: arrow_function}
+        - {kind: function_expression}
+        - {kind: method_definition}
+        has:
+          stopBy: end
+          any:
+          - pattern: 'const $B = req.body'
+          - pattern: 'const $B = request.body'
+          - pattern: 'const $B = await req.json()'
+          - pattern: 'const $B = await request.json()'
+          - pattern: 'const $B = Object.fromEntries($$$)'
+          - pattern: 'const $B = JSON.parse($$$)'
+          - pattern: 'let $B = req.body'
+          - pattern: 'let $B = request.body'
+          - pattern: 'let $B = await req.json()'
+          - pattern: 'let $B = await request.json()'
+          - pattern: 'let $B = Object.fromEntries($$$)'
+          - pattern: 'let $B = JSON.parse($$$)'
+          - pattern: 'var $B = req.body'
+          - pattern: 'var $B = request.body'
+          - pattern: 'var $B = await req.json()'
+          - pattern: 'var $B = await request.json()'
+          - pattern: 'var $B = Object.fromEntries($$$)'
+          - pattern: 'var $B = JSON.parse($$$)'
+  - all:
+    - pattern: '$C.from($T).update($B)'
+    - inside:
+        stopBy: end
+        any:
+        - {kind: function_declaration}
+        - {kind: arrow_function}
+        - {kind: function_expression}
+        - {kind: method_definition}
+        has:
+          stopBy: end
+          any:
+          - pattern: 'const $B = req.body'
+          - pattern: 'const $B = request.body'
+          - pattern: 'const $B = await req.json()'
+          - pattern: 'const $B = await request.json()'
+          - pattern: 'const $B = Object.fromEntries($$$)'
+          - pattern: 'const $B = JSON.parse($$$)'
+          - pattern: 'let $B = req.body'
+          - pattern: 'let $B = request.body'
+          - pattern: 'let $B = await req.json()'
+          - pattern: 'let $B = await request.json()'
+          - pattern: 'let $B = Object.fromEntries($$$)'
+          - pattern: 'let $B = JSON.parse($$$)'
+          - pattern: 'var $B = req.body'
+          - pattern: 'var $B = request.body'
+          - pattern: 'var $B = await req.json()'
+          - pattern: 'var $B = await request.json()'
+          - pattern: 'var $B = Object.fromEntries($$$)'
+          - pattern: 'var $B = JSON.parse($$$)'
+  - all:
+    - pattern: '$C.from($T).upsert($B)'
+    - inside:
+        stopBy: end
+        any:
+        - {kind: function_declaration}
+        - {kind: arrow_function}
+        - {kind: function_expression}
+        - {kind: method_definition}
+        has:
+          stopBy: end
+          any:
+          - pattern: 'const $B = req.body'
+          - pattern: 'const $B = request.body'
+          - pattern: 'const $B = await req.json()'
+          - pattern: 'const $B = await request.json()'
+          - pattern: 'const $B = Object.fromEntries($$$)'
+          - pattern: 'const $B = JSON.parse($$$)'
+          - pattern: 'let $B = req.body'
+          - pattern: 'let $B = request.body'
+          - pattern: 'let $B = await req.json()'
+          - pattern: 'let $B = await request.json()'
+          - pattern: 'let $B = Object.fromEntries($$$)'
+          - pattern: 'let $B = JSON.parse($$$)'
+          - pattern: 'var $B = req.body'
+          - pattern: 'var $B = request.body'
+          - pattern: 'var $B = await req.json()'
+          - pattern: 'var $B = await request.json()'
+          - pattern: 'var $B = Object.fromEntries($$$)'
+          - pattern: 'var $B = JSON.parse($$$)'
+  - all:
+    - pattern: '$DB.insert($T).values($B)'
+    - inside:
+        stopBy: end
+        any:
+        - {kind: function_declaration}
+        - {kind: arrow_function}
+        - {kind: function_expression}
+        - {kind: method_definition}
+        has:
+          stopBy: end
+          any:
+          - pattern: 'const $B = req.body'
+          - pattern: 'const $B = request.body'
+          - pattern: 'const $B = await req.json()'
+          - pattern: 'const $B = await request.json()'
+          - pattern: 'const $B = Object.fromEntries($$$)'
+          - pattern: 'const $B = JSON.parse($$$)'
+          - pattern: 'let $B = req.body'
+          - pattern: 'let $B = request.body'
+          - pattern: 'let $B = await req.json()'
+          - pattern: 'let $B = await request.json()'
+          - pattern: 'let $B = Object.fromEntries($$$)'
+          - pattern: 'let $B = JSON.parse($$$)'
+          - pattern: 'var $B = req.body'
+          - pattern: 'var $B = request.body'
+          - pattern: 'var $B = await req.json()'
+          - pattern: 'var $B = await request.json()'
+          - pattern: 'var $B = Object.fromEntries($$$)'
+          - pattern: 'var $B = JSON.parse($$$)'
+  - all:
+    - pattern: '$DB.update($T).set($B)'
+    - inside:
+        stopBy: end
+        any:
+        - {kind: function_declaration}
+        - {kind: arrow_function}
+        - {kind: function_expression}
+        - {kind: method_definition}
+        has:
+          stopBy: end
+          any:
+          - pattern: 'const $B = req.body'
+          - pattern: 'const $B = request.body'
+          - pattern: 'const $B = await req.json()'
+          - pattern: 'const $B = await request.json()'
+          - pattern: 'const $B = Object.fromEntries($$$)'
+          - pattern: 'const $B = JSON.parse($$$)'
+          - pattern: 'let $B = req.body'
+          - pattern: 'let $B = request.body'
+          - pattern: 'let $B = await req.json()'
+          - pattern: 'let $B = await request.json()'
+          - pattern: 'let $B = Object.fromEntries($$$)'
+          - pattern: 'let $B = JSON.parse($$$)'
+          - pattern: 'var $B = req.body'
+          - pattern: 'var $B = request.body'
+          - pattern: 'var $B = await req.json()'
+          - pattern: 'var $B = await request.json()'
+          - pattern: 'var $B = Object.fromEntries($$$)'
+          - pattern: 'var $B = JSON.parse($$$)'
+  - all:
+    - kind: call_expression
+      pattern: '$P.$M.$OP({ $$$, data: $B })'
+      has:
+        field: function
+        kind: member_expression
+        has:
+          field: property
+          kind: property_identifier
+          regex: '^(create|update|upsert|createMany|updateMany)$'
+    - inside:
+        stopBy: end
+        any:
+        - {kind: function_declaration}
+        - {kind: arrow_function}
+        - {kind: function_expression}
+        - {kind: method_definition}
+        all:
+        - has:
+            stopBy: end
+            kind: variable_declarator
+            pattern:
+              context: 'const $B = $A2'
+              selector: variable_declarator
+            has: {field: value, kind: identifier}
+        - has:
+            stopBy: end
+            any:
+            - pattern: 'const $A2 = req.body'
+            - pattern: 'const $A2 = request.body'
+            - pattern: 'const $A2 = await req.json()'
+            - pattern: 'const $A2 = await request.json()'
+            - pattern: 'const $A2 = Object.fromEntries($$$)'
+            - pattern: 'const $A2 = JSON.parse($$$)'
+            - pattern: 'let $A2 = req.body'
+            - pattern: 'let $A2 = request.body'
+            - pattern: 'let $A2 = await req.json()'
+            - pattern: 'let $A2 = await request.json()'
+            - pattern: 'let $A2 = Object.fromEntries($$$)'
+            - pattern: 'let $A2 = JSON.parse($$$)'
+            - pattern: 'var $A2 = req.body'
+            - pattern: 'var $A2 = request.body'
+            - pattern: 'var $A2 = await req.json()'
+            - pattern: 'var $A2 = await request.json()'
+            - pattern: 'var $A2 = Object.fromEntries($$$)'
+            - pattern: 'var $A2 = JSON.parse($$$)'
+  - all:
+    - kind: call_expression
+      pattern: '$P.$M.$OP({ data: $B, $$$ })'
+      has:
+        field: function
+        kind: member_expression
+        has:
+          field: property
+          kind: property_identifier
+          regex: '^(create|update|upsert|createMany|updateMany)$'
+    - inside:
+        stopBy: end
+        any:
+        - {kind: function_declaration}
+        - {kind: arrow_function}
+        - {kind: function_expression}
+        - {kind: method_definition}
+        all:
+        - has:
+            stopBy: end
+            kind: variable_declarator
+            pattern:
+              context: 'const $B = $A2'
+              selector: variable_declarator
+            has: {field: value, kind: identifier}
+        - has:
+            stopBy: end
+            any:
+            - pattern: 'const $A2 = req.body'
+            - pattern: 'const $A2 = request.body'
+            - pattern: 'const $A2 = await req.json()'
+            - pattern: 'const $A2 = await request.json()'
+            - pattern: 'const $A2 = Object.fromEntries($$$)'
+            - pattern: 'const $A2 = JSON.parse($$$)'
+            - pattern: 'let $A2 = req.body'
+            - pattern: 'let $A2 = request.body'
+            - pattern: 'let $A2 = await req.json()'
+            - pattern: 'let $A2 = await request.json()'
+            - pattern: 'let $A2 = Object.fromEntries($$$)'
+            - pattern: 'let $A2 = JSON.parse($$$)'
+            - pattern: 'var $A2 = req.body'
+            - pattern: 'var $A2 = request.body'
+            - pattern: 'var $A2 = await req.json()'
+            - pattern: 'var $A2 = await request.json()'
+            - pattern: 'var $A2 = Object.fromEntries($$$)'
+            - pattern: 'var $A2 = JSON.parse($$$)'
+  - all:
+    - pattern: '$C.from($T).insert($B)'
+    - inside:
+        stopBy: end
+        any:
+        - {kind: function_declaration}
+        - {kind: arrow_function}
+        - {kind: function_expression}
+        - {kind: method_definition}
+        all:
+        - has:
+            stopBy: end
+            kind: variable_declarator
+            pattern:
+              context: 'const $B = $A2'
+              selector: variable_declarator
+            has: {field: value, kind: identifier}
+        - has:
+            stopBy: end
+            any:
+            - pattern: 'const $A2 = req.body'
+            - pattern: 'const $A2 = request.body'
+            - pattern: 'const $A2 = await req.json()'
+            - pattern: 'const $A2 = await request.json()'
+            - pattern: 'const $A2 = Object.fromEntries($$$)'
+            - pattern: 'const $A2 = JSON.parse($$$)'
+            - pattern: 'let $A2 = req.body'
+            - pattern: 'let $A2 = request.body'
+            - pattern: 'let $A2 = await req.json()'
+            - pattern: 'let $A2 = await request.json()'
+            - pattern: 'let $A2 = Object.fromEntries($$$)'
+            - pattern: 'let $A2 = JSON.parse($$$)'
+            - pattern: 'var $A2 = req.body'
+            - pattern: 'var $A2 = request.body'
+            - pattern: 'var $A2 = await req.json()'
+            - pattern: 'var $A2 = await request.json()'
+            - pattern: 'var $A2 = Object.fromEntries($$$)'
+            - pattern: 'var $A2 = JSON.parse($$$)'
+  - all:
+    - pattern: '$C.from($T).update($B)'
+    - inside:
+        stopBy: end
+        any:
+        - {kind: function_declaration}
+        - {kind: arrow_function}
+        - {kind: function_expression}
+        - {kind: method_definition}
+        all:
+        - has:
+            stopBy: end
+            kind: variable_declarator
+            pattern:
+              context: 'const $B = $A2'
+              selector: variable_declarator
+            has: {field: value, kind: identifier}
+        - has:
+            stopBy: end
+            any:
+            - pattern: 'const $A2 = req.body'
+            - pattern: 'const $A2 = request.body'
+            - pattern: 'const $A2 = await req.json()'
+            - pattern: 'const $A2 = await request.json()'
+            - pattern: 'const $A2 = Object.fromEntries($$$)'
+            - pattern: 'const $A2 = JSON.parse($$$)'
+            - pattern: 'let $A2 = req.body'
+            - pattern: 'let $A2 = request.body'
+            - pattern: 'let $A2 = await req.json()'
+            - pattern: 'let $A2 = await request.json()'
+            - pattern: 'let $A2 = Object.fromEntries($$$)'
+            - pattern: 'let $A2 = JSON.parse($$$)'
+            - pattern: 'var $A2 = req.body'
+            - pattern: 'var $A2 = request.body'
+            - pattern: 'var $A2 = await req.json()'
+            - pattern: 'var $A2 = await request.json()'
+            - pattern: 'var $A2 = Object.fromEntries($$$)'
+            - pattern: 'var $A2 = JSON.parse($$$)'
+  - all:
+    - pattern: '$C.from($T).upsert($B)'
+    - inside:
+        stopBy: end
+        any:
+        - {kind: function_declaration}
+        - {kind: arrow_function}
+        - {kind: function_expression}
+        - {kind: method_definition}
+        all:
+        - has:
+            stopBy: end
+            kind: variable_declarator
+            pattern:
+              context: 'const $B = $A2'
+              selector: variable_declarator
+            has: {field: value, kind: identifier}
+        - has:
+            stopBy: end
+            any:
+            - pattern: 'const $A2 = req.body'
+            - pattern: 'const $A2 = request.body'
+            - pattern: 'const $A2 = await req.json()'
+            - pattern: 'const $A2 = await request.json()'
+            - pattern: 'const $A2 = Object.fromEntries($$$)'
+            - pattern: 'const $A2 = JSON.parse($$$)'
+            - pattern: 'let $A2 = req.body'
+            - pattern: 'let $A2 = request.body'
+            - pattern: 'let $A2 = await req.json()'
+            - pattern: 'let $A2 = await request.json()'
+            - pattern: 'let $A2 = Object.fromEntries($$$)'
+            - pattern: 'let $A2 = JSON.parse($$$)'
+            - pattern: 'var $A2 = req.body'
+            - pattern: 'var $A2 = request.body'
+            - pattern: 'var $A2 = await req.json()'
+            - pattern: 'var $A2 = await request.json()'
+            - pattern: 'var $A2 = Object.fromEntries($$$)'
+            - pattern: 'var $A2 = JSON.parse($$$)'
+  - all:
+    - pattern: '$DB.insert($T).values($B)'
+    - inside:
+        stopBy: end
+        any:
+        - {kind: function_declaration}
+        - {kind: arrow_function}
+        - {kind: function_expression}
+        - {kind: method_definition}
+        all:
+        - has:
+            stopBy: end
+            kind: variable_declarator
+            pattern:
+              context: 'const $B = $A2'
+              selector: variable_declarator
+            has: {field: value, kind: identifier}
+        - has:
+            stopBy: end
+            any:
+            - pattern: 'const $A2 = req.body'
+            - pattern: 'const $A2 = request.body'
+            - pattern: 'const $A2 = await req.json()'
+            - pattern: 'const $A2 = await request.json()'
+            - pattern: 'const $A2 = Object.fromEntries($$$)'
+            - pattern: 'const $A2 = JSON.parse($$$)'
+            - pattern: 'let $A2 = req.body'
+            - pattern: 'let $A2 = request.body'
+            - pattern: 'let $A2 = await req.json()'
+            - pattern: 'let $A2 = await request.json()'
+            - pattern: 'let $A2 = Object.fromEntries($$$)'
+            - pattern: 'let $A2 = JSON.parse($$$)'
+            - pattern: 'var $A2 = req.body'
+            - pattern: 'var $A2 = request.body'
+            - pattern: 'var $A2 = await req.json()'
+            - pattern: 'var $A2 = await request.json()'
+            - pattern: 'var $A2 = Object.fromEntries($$$)'
+            - pattern: 'var $A2 = JSON.parse($$$)'
+  - all:
+    - pattern: '$DB.update($T).set($B)'
+    - inside:
+        stopBy: end
+        any:
+        - {kind: function_declaration}
+        - {kind: arrow_function}
+        - {kind: function_expression}
+        - {kind: method_definition}
+        all:
+        - has:
+            stopBy: end
+            kind: variable_declarator
+            pattern:
+              context: 'const $B = $A2'
+              selector: variable_declarator
+            has: {field: value, kind: identifier}
+        - has:
+            stopBy: end
+            any:
+            - pattern: 'const $A2 = req.body'
+            - pattern: 'const $A2 = request.body'
+            - pattern: 'const $A2 = await req.json()'
+            - pattern: 'const $A2 = await request.json()'
+            - pattern: 'const $A2 = Object.fromEntries($$$)'
+            - pattern: 'const $A2 = JSON.parse($$$)'
+            - pattern: 'let $A2 = req.body'
+            - pattern: 'let $A2 = request.body'
+            - pattern: 'let $A2 = await req.json()'
+            - pattern: 'let $A2 = await request.json()'
+            - pattern: 'let $A2 = Object.fromEntries($$$)'
+            - pattern: 'let $A2 = JSON.parse($$$)'
+            - pattern: 'var $A2 = req.body'
+            - pattern: 'var $A2 = request.body'
+            - pattern: 'var $A2 = await req.json()'
+            - pattern: 'var $A2 = await request.json()'
+            - pattern: 'var $A2 = Object.fromEntries($$$)'
+            - pattern: 'var $A2 = JSON.parse($$$)'
+  - all:
+    - any:
+      - kind: call_expression
+        pattern: '$P.$M.$OP({ $$$, data })'
+        has:
+          field: function
+          kind: member_expression
+          has:
+            field: property
+            kind: property_identifier
+            regex: '^(create|update|upsert|createMany|updateMany)$'
+      - kind: call_expression
+        pattern: '$P.$M.$OP({ data, $$$ })'
+        has:
+          field: function
+          kind: member_expression
+          has:
+            field: property
+            kind: property_identifier
+            regex: '^(create|update|upsert|createMany|updateMany)$'
+    - inside:
+        stopBy: end
+        any:
+        - {kind: function_declaration}
+        - {kind: arrow_function}
+        - {kind: function_expression}
+        - {kind: method_definition}
+        has:
+          stopBy: end
+          any:
+          - {pattern: const data = req.body}
+          - {pattern: const data = request.body}
+          - {pattern: const data = await req.json()}
+          - {pattern: const data = await request.json()}
+          - pattern: 'const data = Object.fromEntries($$$)'
+          - pattern: 'const data = JSON.parse($$$)'
+          - {pattern: let data = req.body}
+          - {pattern: let data = request.body}
+          - {pattern: let data = await req.json()}
+          - {pattern: let data = await request.json()}
+          - pattern: 'let data = Object.fromEntries($$$)'
+          - pattern: 'let data = JSON.parse($$$)'
+          - {pattern: var data = req.body}
+          - {pattern: var data = request.body}
+          - {pattern: var data = await req.json()}
+          - {pattern: var data = await request.json()}
+          - pattern: 'var data = Object.fromEntries($$$)'
+          - pattern: 'var data = JSON.parse($$$)'
+  - all:
+    - any:
+      - kind: call_expression
+        pattern: '$P.$M.$OP({ $$$, data: $X })'
+        has:
+          field: function
+          kind: member_expression
+          has:
+            field: property
+            kind: property_identifier
+            regex: '^(create|update|upsert|createMany|updateMany)$'
+      - kind: call_expression
+        pattern: '$P.$M.$OP({ data: $X, $$$ })'
+        has:
+          field: function
+          kind: member_expression
+          has:
+            field: property
+            kind: property_identifier
+            regex: '^(create|update|upsert|createMany|updateMany)$'
+      - pattern: '$C.from($T).insert($X)'
+      - pattern: '$C.from($T).update($X)'
+      - pattern: '$C.from($T).upsert($X)'
+      - pattern: '$DB.insert($T).values($X)'
+      - pattern: '$DB.update($T).set($X)'
+      - kind: call_expression
+        pattern: '$P.$M.$OP({ $$$, data })'
+        has:
+          field: function
+          kind: member_expression
+          has:
+            field: property
+            kind: property_identifier
+            regex: '^(create|update|upsert|createMany|updateMany)$'
+      - kind: call_expression
+        pattern: '$P.$M.$OP({ data, $$$ })'
+        has:
+          field: function
+          kind: member_expression
+          has:
+            field: property
+            kind: property_identifier
+            regex: '^(create|update|upsert|createMany|updateMany)$'
+    - has:
+        stopBy: end
+        any:
+        - pattern:
+            context: '({...req.body})'
+            selector: spread_element
+        - pattern:
+            context: '({...request.body})'
+            selector: spread_element
+        - pattern:
+            context: '({...(await req.json())})'
+            selector: spread_element
+        - pattern:
+            context: '({...(await request.json())})'
+            selector: spread_element
+        - pattern:
+            context: '({...Object.fromEntries($$$)})'
+            selector: spread_element
+  - all:
+    - any:
+      - kind: call_expression
+        pattern: '$P.$M.$OP({ $$$, data: $X })'
+        has:
+          field: function
+          kind: member_expression
+          has:
+            field: property
+            kind: property_identifier
+            regex: '^(create|update|upsert|createMany|updateMany)$'
+      - kind: call_expression
+        pattern: '$P.$M.$OP({ data: $X, $$$ })'
+        has:
+          field: function
+          kind: member_expression
+          has:
+            field: property
+            kind: property_identifier
+            regex: '^(create|update|upsert|createMany|updateMany)$'
+      - pattern: '$C.from($T).insert($X)'
+      - pattern: '$C.from($T).update($X)'
+      - pattern: '$C.from($T).upsert($X)'
+      - pattern: '$DB.insert($T).values($X)'
+      - pattern: '$DB.update($T).set($X)'
+      - kind: call_expression
+        pattern: '$P.$M.$OP({ $$$, data })'
+        has:
+          field: function
+          kind: member_expression
+          has:
+            field: property
+            kind: property_identifier
+            regex: '^(create|update|upsert|createMany|updateMany)$'
+      - kind: call_expression
+        pattern: '$P.$M.$OP({ data, $$$ })'
+        has:
+          field: function
+          kind: member_expression
+          has:
+            field: property
+            kind: property_identifier
+            regex: '^(create|update|upsert|createMany|updateMany)$'
+    - has:
+        stopBy: end
+        pattern:
+          context: '({...$B})'
+          selector: spread_element
+    - inside:
+        stopBy: end
+        any:
+        - {kind: function_declaration}
+        - {kind: arrow_function}
+        - {kind: function_expression}
+        - {kind: method_definition}
+        has:
+          stopBy: end
+          any:
+          - pattern: 'const $B = req.body'
+          - pattern: 'const $B = request.body'
+          - pattern: 'const $B = await req.json()'
+          - pattern: 'const $B = await request.json()'
+          - pattern: 'const $B = Object.fromEntries($$$)'
+          - pattern: 'const $B = JSON.parse($$$)'
+          - pattern: 'let $B = req.body'
+          - pattern: 'let $B = request.body'
+          - pattern: 'let $B = await req.json()'
+          - pattern: 'let $B = await request.json()'
+          - pattern: 'let $B = Object.fromEntries($$$)'
+          - pattern: 'let $B = JSON.parse($$$)'
+          - pattern: 'var $B = req.body'
+          - pattern: 'var $B = request.body'
+          - pattern: 'var $B = await req.json()'
+          - pattern: 'var $B = await request.json()'
+          - pattern: 'var $B = Object.fromEntries($$$)'
+          - pattern: 'var $B = JSON.parse($$$)'
+min_engine: 0.39.0
+---
+# A route handler taking the request body (await request.json(), request.formData()), one item each: the
+# entry point of a write. The control is a strict schema parse in the handler (zod parse, safeParse,
+# parseAsync). Whether the parsed fields alone reach the write, and identity from the session, is dataflow.
+id: write-fields-allowlisted.javascript-nextjs.entry
+practice_id: write-fields-allowlisted
+language: javascript
+frameworks:
+- nextjs
+kind: items
+rule:
+  all:
+  - any:
+    - kind: function_declaration
+      all:
+      - has:
+          field: name
+          kind: identifier
+          regex: '^(GET|POST|PUT|PATCH|DELETE)$'
+      - inside:
+          kind: export_statement
+    - kind: variable_declarator
+      all:
+      - has:
+          field: name
+          kind: identifier
+          regex: '^(GET|POST|PUT|PATCH|DELETE)$'
+      - has:
+          field: value
+          kind: arrow_function
+      - inside:
+          kind: lexical_declaration
+          inside:
+            kind: export_statement
+  - has:
+      stopBy: end
+      kind: call_expression
+      regex: '^(req|request)\.(json|formData)\(\)$'
+  - not:
+      has:
+        stopBy: end
+        any:
+        - kind: call_expression
+          pattern: '$P.$M.$OP({ $$$, data: $X })'
+          has:
+            field: function
+            kind: member_expression
+            has:
+              field: property
+              kind: property_identifier
+              regex: '^(create|update|upsert|createMany|updateMany)$'
+        - kind: call_expression
+          pattern: '$P.$M.$OP({ data: $X, $$$ })'
+          has:
+            field: function
+            kind: member_expression
+            has:
+              field: property
+              kind: property_identifier
+              regex: '^(create|update|upsert|createMany|updateMany)$'
+        - pattern: '$C.from($T).insert($X)'
+        - pattern: '$C.from($T).update($X)'
+        - pattern: '$C.from($T).upsert($X)'
+        - pattern: '$DB.insert($T).values($X)'
+        - pattern: '$DB.update($T).set($X)'
+        - kind: call_expression
+          pattern: '$P.$M.$OP({ $$$, data })'
+          has:
+            field: function
+            kind: member_expression
+            has:
+              field: property
+              kind: property_identifier
+              regex: '^(create|update|upsert|createMany|updateMany)$'
+        - kind: call_expression
+          pattern: '$P.$M.$OP({ data, $$$ })'
+          has:
+            field: function
+            kind: member_expression
+            has:
+              field: property
+              kind: property_identifier
+              regex: '^(create|update|upsert|createMany|updateMany)$'
+control:
+  has:
+    stopBy: end
+    any:
+    - kind: call_expression
+      pattern: '$S.parse($$$)'
+      not:
+        kind: call_expression
+        regex: '^JSON\.'
+    - kind: call_expression
+      pattern: '$S.parseAsync($$$)'
+      not:
+        kind: call_expression
+        regex: '^JSON\.'
+    - kind: call_expression
+      pattern: '$S.safeParse($$$)'
+      not:
+        kind: call_expression
+        regex: '^JSON\.'
+    - kind: call_expression
+      pattern: '$S.safeParseAsync($$$)'
+      not:
+        kind: call_expression
+        regex: '^JSON\.'
+min_engine: 0.39.0
+---
+# The same entry point as evidence: the write its body feeds isn't in view (no write call in the handler; a
+# helper, a service, another file), so this entry item, at the same place, is held for a person
+# (needs_review). A handler with a write in view is no entry: its write items judge it and fail without
+# their control.
+id: write-fields-allowlisted.javascript-nextjs.fields-unobserved-entry
+practice_id: write-fields-allowlisted
+language: javascript
+frameworks:
+- nextjs
+kind: evidence
+rule:
+  all:
+  - any:
+    - kind: function_declaration
+      all:
+      - has:
+          field: name
+          kind: identifier
+          regex: '^(GET|POST|PUT|PATCH|DELETE)$'
+      - inside:
+          kind: export_statement
+    - kind: variable_declarator
+      all:
+      - has:
+          field: name
+          kind: identifier
+          regex: '^(GET|POST|PUT|PATCH|DELETE)$'
+      - has:
+          field: value
+          kind: arrow_function
+      - inside:
+          kind: lexical_declaration
+          inside:
+            kind: export_statement
+  - has:
+      stopBy: end
+      kind: call_expression
+      regex: '^(req|request)\.(json|formData)\(\)$'
+  - not:
+      has:
+        stopBy: end
+        any:
+        - kind: call_expression
+          pattern: '$P.$M.$OP({ $$$, data: $X })'
+          has:
+            field: function
+            kind: member_expression
+            has:
+              field: property
+              kind: property_identifier
+              regex: '^(create|update|upsert|createMany|updateMany)$'
+        - kind: call_expression
+          pattern: '$P.$M.$OP({ data: $X, $$$ })'
+          has:
+            field: function
+            kind: member_expression
+            has:
+              field: property
+              kind: property_identifier
+              regex: '^(create|update|upsert|createMany|updateMany)$'
+        - pattern: '$C.from($T).insert($X)'
+        - pattern: '$C.from($T).update($X)'
+        - pattern: '$C.from($T).upsert($X)'
+        - pattern: '$DB.insert($T).values($X)'
+        - pattern: '$DB.update($T).set($X)'
+        - kind: call_expression
+          pattern: '$P.$M.$OP({ $$$, data })'
+          has:
+            field: function
+            kind: member_expression
+            has:
+              field: property
+              kind: property_identifier
+              regex: '^(create|update|upsert|createMany|updateMany)$'
+        - kind: call_expression
+          pattern: '$P.$M.$OP({ data, $$$ })'
+          has:
+            field: function
+            kind: member_expression
+            has:
+              field: property
+              kind: property_identifier
+              regex: '^(create|update|upsert|createMany|updateMany)$'
+min_engine: 0.39.0

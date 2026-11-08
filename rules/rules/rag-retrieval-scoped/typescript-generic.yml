@@ -1,0 +1,553 @@
+id: rag-retrieval-scoped.typescript-generic.similarity-search
+practice_id: rag-retrieval-scoped
+language: typescript
+frameworks:
+- generic
+kind: items
+rule:
+  all:
+  - kind: call_expression
+  - has:
+      field: function
+      kind: member_expression
+      regex: '\.(similaritySearch|similaritySearchWithScore|similaritySearchVectorWithScore|maxMarginalRelevanceSearch)$'
+control:
+  has:
+    field: arguments
+    kind: arguments
+    has:
+      kind: object
+      all:
+      - has:
+          any:
+          - kind: pair
+            all:
+            - has:
+                field: key
+                any:
+                - kind: property_identifier
+                  regex: '(?-u)^(?i:(p_|filter_|in_|match_)?(tenant|org|organization|clinic|practice|patient|owner|user|account)_?id)$'
+                - kind: string
+                  regex: '(?-u)^[''\x22](?i:(p_|filter_|in_|match_)?(tenant|org|organization|clinic|practice|patient|owner|user|account)_?id)[''\x22]$'
+            - has:
+                field: value
+                any:
+                - &id001
+                  kind: member_expression
+                  regex: '(?-u)^(?:await\s+)?(?:(?:req|request|ctx|c|event|context)(?:\??\.(?:state|locals))?\??\.(?:user|auth|session|tenant)|session|ctx|context|user|currentUser|auth|tenant|org|claims|locals|membership)(?:\??\.\w+)*(?:!)?$'
+                - &id002
+                  kind: identifier
+                  regex: '(?-u)^(?:await\s+)?(?:(?:req|request|ctx|c|event|context)(?:\??\.(?:state|locals))?\??\.(?:user|auth|session|tenant)|session|ctx|context|user|currentUser|auth|tenant|org|claims|locals|membership)(?:\??\.\w+)*(?:!)?$'
+                - &id003
+                  kind: non_null_expression
+                  regex: '(?-u)^(?:await\s+)?(?:(?:req|request|ctx|c|event|context)(?:\??\.(?:state|locals))?\??\.(?:user|auth|session|tenant)|session|ctx|context|user|currentUser|auth|tenant|org|claims|locals|membership)(?:\??\.\w+)*(?:!)?$'
+                - &id004
+                  kind: await_expression
+                  regex: '(?-u)^(?:await\s+)?(?:(?:req|request|ctx|c|event|context)(?:\??\.(?:state|locals))?\??\.(?:user|auth|session|tenant)|session|ctx|context|user|currentUser|auth|tenant|org|claims|locals|membership)(?:\??\.\w+)*(?:!)?$'
+                - kind: object
+                  has:
+                    kind: pair
+                    has:
+                      field: value
+                      any:
+                      - *id001
+                      - *id002
+                      - *id003
+                      - *id004
+      - not:
+          has:
+            kind: spread_element
+min_engine: 0.45.3
+---
+id: rag-retrieval-scoped.typescript-generic.retriever
+practice_id: rag-retrieval-scoped
+language: typescript
+frameworks:
+- generic
+kind: items
+rule:
+  all:
+  - kind: call_expression
+  - has:
+      field: function
+      kind: member_expression
+      regex: '\.asRetriever$'
+control:
+  has:
+    field: arguments
+    kind: arguments
+    has:
+      kind: object
+      has:
+        kind: pair
+        all:
+        - has:
+            field: key
+            kind: property_identifier
+            regex: '^filter$'
+        - has:
+            field: value
+            kind: object
+            all:
+            - has:
+                any:
+                - kind: pair
+                  all:
+                  - has:
+                      field: key
+                      any:
+                      - kind: property_identifier
+                        regex: '(?-u)^(?i:(p_|filter_|in_|match_)?(tenant|org|organization|clinic|practice|patient|owner|user|account)_?id)$'
+                      - kind: string
+                        regex: '(?-u)^[''\x22](?i:(p_|filter_|in_|match_)?(tenant|org|organization|clinic|practice|patient|owner|user|account)_?id)[''\x22]$'
+                  - has:
+                      field: value
+                      any:
+                      - &id001
+                        kind: member_expression
+                        regex: '(?-u)^(?:await\s+)?(?:(?:req|request|ctx|c|event|context)(?:\??\.(?:state|locals))?\??\.(?:user|auth|session|tenant)|session|ctx|context|user|currentUser|auth|tenant|org|claims|locals|membership)(?:\??\.\w+)*(?:!)?$'
+                      - &id002
+                        kind: identifier
+                        regex: '(?-u)^(?:await\s+)?(?:(?:req|request|ctx|c|event|context)(?:\??\.(?:state|locals))?\??\.(?:user|auth|session|tenant)|session|ctx|context|user|currentUser|auth|tenant|org|claims|locals|membership)(?:\??\.\w+)*(?:!)?$'
+                      - &id003
+                        kind: non_null_expression
+                        regex: '(?-u)^(?:await\s+)?(?:(?:req|request|ctx|c|event|context)(?:\??\.(?:state|locals))?\??\.(?:user|auth|session|tenant)|session|ctx|context|user|currentUser|auth|tenant|org|claims|locals|membership)(?:\??\.\w+)*(?:!)?$'
+                      - &id004
+                        kind: await_expression
+                        regex: '(?-u)^(?:await\s+)?(?:(?:req|request|ctx|c|event|context)(?:\??\.(?:state|locals))?\??\.(?:user|auth|session|tenant)|session|ctx|context|user|currentUser|auth|tenant|org|claims|locals|membership)(?:\??\.\w+)*(?:!)?$'
+                      - kind: object
+                        has:
+                          kind: pair
+                          has:
+                            field: value
+                            any:
+                            - *id001
+                            - *id002
+                            - *id003
+                            - *id004
+            - not:
+                has:
+                  kind: spread_element
+min_engine: 0.45.3
+---
+id: rag-retrieval-scoped.typescript-generic.store-query
+practice_id: rag-retrieval-scoped
+language: typescript
+frameworks:
+- generic
+kind: items
+rule:
+  all:
+  - kind: call_expression
+  - has:
+      field: function
+      kind: member_expression
+      regex: '\.(query|search)$'
+  - has:
+      field: arguments
+      kind: arguments
+      has:
+        kind: object
+        has:
+          kind: pair
+          has:
+            field: key
+            kind: property_identifier
+            regex: '^(topK|vector|queryEmbeddings|queryTexts|queryVector)$'
+control:
+  any:
+  - has:
+      field: function
+      kind: member_expression
+      regex: '(?-u)\.namespace\(\s*(?:await\s+)?(?:(?:req|request|ctx|c|event|context)\??\.(?:user|auth|session|tenant)|session|ctx|context|user|currentUser|auth|tenant|org|claims|locals|membership)(?:\??\.\w+)*!?\s*\)\s*\.query$'
+  - has:
+      field: arguments
+      kind: arguments
+      has:
+        kind: object
+        has:
+          kind: pair
+          all:
+          - has:
+              field: key
+              kind: property_identifier
+              regex: '^(filter|where)$'
+          - has:
+              field: value
+              kind: object
+              all:
+              - has:
+                  any:
+                  - kind: pair
+                    all:
+                    - has:
+                        field: key
+                        any:
+                        - kind: property_identifier
+                          regex: '(?-u)^(?i:(p_|filter_|in_|match_)?(tenant|org|organization|clinic|practice|patient|owner|user|account)_?id)$'
+                        - kind: string
+                          regex: '(?-u)^[''\x22](?i:(p_|filter_|in_|match_)?(tenant|org|organization|clinic|practice|patient|owner|user|account)_?id)[''\x22]$'
+                    - has:
+                        field: value
+                        any:
+                        - &id001
+                          kind: member_expression
+                          regex: '(?-u)^(?:await\s+)?(?:(?:req|request|ctx|c|event|context)(?:\??\.(?:state|locals))?\??\.(?:user|auth|session|tenant)|session|ctx|context|user|currentUser|auth|tenant|org|claims|locals|membership)(?:\??\.\w+)*(?:!)?$'
+                        - &id002
+                          kind: identifier
+                          regex: '(?-u)^(?:await\s+)?(?:(?:req|request|ctx|c|event|context)(?:\??\.(?:state|locals))?\??\.(?:user|auth|session|tenant)|session|ctx|context|user|currentUser|auth|tenant|org|claims|locals|membership)(?:\??\.\w+)*(?:!)?$'
+                        - &id003
+                          kind: non_null_expression
+                          regex: '(?-u)^(?:await\s+)?(?:(?:req|request|ctx|c|event|context)(?:\??\.(?:state|locals))?\??\.(?:user|auth|session|tenant)|session|ctx|context|user|currentUser|auth|tenant|org|claims|locals|membership)(?:\??\.\w+)*(?:!)?$'
+                        - &id004
+                          kind: await_expression
+                          regex: '(?-u)^(?:await\s+)?(?:(?:req|request|ctx|c|event|context)(?:\??\.(?:state|locals))?\??\.(?:user|auth|session|tenant)|session|ctx|context|user|currentUser|auth|tenant|org|claims|locals|membership)(?:\??\.\w+)*(?:!)?$'
+                        - kind: object
+                          has:
+                            kind: pair
+                            has:
+                              field: value
+                              any:
+                              - *id001
+                              - *id002
+                              - *id003
+                              - *id004
+              - not:
+                  has:
+                    kind: spread_element
+min_engine: 0.45.3
+---
+id: rag-retrieval-scoped.typescript-generic.match-rpc
+practice_id: rag-retrieval-scoped
+language: typescript
+frameworks:
+- generic
+kind: items
+rule:
+  all:
+  - kind: call_expression
+  - has:
+      field: function
+      kind: member_expression
+      regex: '\.rpc$'
+  - has:
+      field: arguments
+      kind: arguments
+      has:
+        kind: string
+        regex: '(?-u)^[''"](match|search|similar|semantic|hybrid|nearest)_\w*[''"]$'
+control:
+  has:
+    field: arguments
+    kind: arguments
+    has:
+      kind: object
+      all:
+      - has:
+          any:
+          - kind: pair
+            all:
+            - has:
+                field: key
+                any:
+                - kind: property_identifier
+                  regex: '(?-u)^(?i:(p_|filter_|in_|match_)?(tenant|org|organization|clinic|practice|patient|owner|user|account)_?id)$'
+                - kind: string
+                  regex: '(?-u)^[''\x22](?i:(p_|filter_|in_|match_)?(tenant|org|organization|clinic|practice|patient|owner|user|account)_?id)[''\x22]$'
+            - has:
+                field: value
+                any:
+                - &id001
+                  kind: member_expression
+                  regex: '(?-u)^(?:await\s+)?(?:(?:req|request|ctx|c|event|context)(?:\??\.(?:state|locals))?\??\.(?:user|auth|session|tenant)|session|ctx|context|user|currentUser|auth|tenant|org|claims|locals|membership)(?:\??\.\w+)*(?:!)?$'
+                - &id002
+                  kind: identifier
+                  regex: '(?-u)^(?:await\s+)?(?:(?:req|request|ctx|c|event|context)(?:\??\.(?:state|locals))?\??\.(?:user|auth|session|tenant)|session|ctx|context|user|currentUser|auth|tenant|org|claims|locals|membership)(?:\??\.\w+)*(?:!)?$'
+                - &id003
+                  kind: non_null_expression
+                  regex: '(?-u)^(?:await\s+)?(?:(?:req|request|ctx|c|event|context)(?:\??\.(?:state|locals))?\??\.(?:user|auth|session|tenant)|session|ctx|context|user|currentUser|auth|tenant|org|claims|locals|membership)(?:\??\.\w+)*(?:!)?$'
+                - &id004
+                  kind: await_expression
+                  regex: '(?-u)^(?:await\s+)?(?:(?:req|request|ctx|c|event|context)(?:\??\.(?:state|locals))?\??\.(?:user|auth|session|tenant)|session|ctx|context|user|currentUser|auth|tenant|org|claims|locals|membership)(?:\??\.\w+)*(?:!)?$'
+                - kind: object
+                  has:
+                    kind: pair
+                    has:
+                      field: value
+                      any:
+                      - *id001
+                      - *id002
+                      - *id003
+                      - *id004
+      - not:
+          has:
+            kind: spread_element
+min_engine: 0.45.3
+---
+id: rag-retrieval-scoped.typescript-generic.vector-store-host
+practice_id: rag-retrieval-scoped
+language: typescript
+frameworks:
+- generic
+kind: evidence
+rule:
+  any:
+  - all:
+    - kind: string
+      regex: '(?i)(api\.pinecone\.io|controller\.[\w-]+\.pinecone\.io|\.svc\.[\w.${}#%()-]*pinecone\.io|[\w-]+\.[\w.-]+\.weaviate\.cloud|[\w-]+\.weaviate\.network|\.cloud\.qdrant\.io|zillizcloud\.com|api\.trychroma\.com|-vector\.upstash\.io|api\.turbopuffer\.com|[a-z0-9]+-[\w-]+\.turbopuffer\.com|\.apps\.astra\.datastax\.com|\.search\.windows\.net|\.aoss\.amazonaws\.com|\$vectorSearch\b|(localhost|127\.0\.0\.1|qdrant[\w.-]*|milvus[\w.-]*):(6333|6334|19530)\b|(localhost|127\.0\.0\.1):8000/api/v[12]/(collections|tenants|databases)\b|chroma[\w.-]*:8000\b|(localhost|127\.0\.0\.1):8080/v1/(graphql|objects|schema|batch)\b|weaviate[\w.-]*:8080\b)'
+  - all:
+    - kind: template_string
+      regex: '(?i)(api\.pinecone\.io|controller\.[\w-]+\.pinecone\.io|\.svc\.[\w.${}#%()-]*pinecone\.io|[\w-]+\.[\w.-]+\.weaviate\.cloud|[\w-]+\.weaviate\.network|\.cloud\.qdrant\.io|zillizcloud\.com|api\.trychroma\.com|-vector\.upstash\.io|api\.turbopuffer\.com|[a-z0-9]+-[\w-]+\.turbopuffer\.com|\.apps\.astra\.datastax\.com|\.search\.windows\.net|\.aoss\.amazonaws\.com|\$vectorSearch\b|(localhost|127\.0\.0\.1|qdrant[\w.-]*|milvus[\w.-]*):(6333|6334|19530)\b|(localhost|127\.0\.0\.1):8000/api/v[12]/(collections|tenants|databases)\b|chroma[\w.-]*:8000\b|(localhost|127\.0\.0\.1):8080/v1/(graphql|objects|schema|batch)\b|weaviate[\w.-]*:8080\b)'
+  - kind: property_identifier
+    regex: '^\$vectorSearch$'
+min_engine: 0.45.3
+---
+id: rag-retrieval-scoped.typescript-generic.vector-sql
+practice_id: rag-retrieval-scoped
+language: typescript
+frameworks:
+- generic
+kind: evidence
+rule:
+  any:
+  - all:
+    - kind: string
+      regex: '<=>|<->|<#>|<\+>|<~>|<%>'
+    - regex: '(?i)embedding|vector|halfvec|sparsevec'
+  - all:
+    - kind: string
+      regex: '(?is)\bselect\b.*\bfrom\b|\border\s+by\b'
+    - regex: '<#>|<\+>|<~>|<%>'
+  - all:
+    - kind: string
+      regex: '(?is)\bselect\b.*\bfrom\b|\border\s+by\b'
+    - regex: '<->'
+    - not:
+        kind: string
+        regex: '(?i)(ST_\w+\s*\([^<>;]*\)|\b(the_geom|geom\w*|geog\w*|geometry|geography)\b|::\s*geo(metry|graphy))\s*<->\s*(ST_\w+\s*\(|\b(the_geom|geom\w*|geog\w*)\b|''[^'']*''\s*::\s*geo(metry|graphy)|[$:?%]\w*\s*::\s*geo(metry|graphy))'
+  - all:
+    - kind: string
+      regex: '(?is)\bselect\b.*\bfrom\b|\border\s+by\b'
+    - regex: '(?s)<->.*<->'
+  - all:
+    - kind: string
+      regex: '(?is)\bselect\b.*\bfrom\b|\border\s+by\b'
+    - regex: '<=>'
+    - regex: '(?is)\border\s+by\b|<=>[^,;]*\bas\s+\w|<=>\s*[^\s,;()]+(\s*::\s*\w+(\([\d,\s]+\))?)?\s*\)*\s*[<>]=?\s*[-\d.$:?%]|<=>\s*(''|\[|array\b|\w+\s*\(|[^\s,;)]*::)|(\]''|\)|::\s*\w+(\([\d,\s]+\))?)\s*<=>|\bselect\b[^;]*<=>[^;]*\bfrom\b'
+  - all:
+    - kind: string
+      regex: '<#>|<\+>|<~>|<%>'
+    - inside:
+        any:
+        - kind: call_expression
+          has:
+            field: function
+            any:
+            - kind: member_expression
+              regex: '\.(sql|raw|orderByRaw|selectRaw|whereRaw|havingRaw|joinRaw|onRaw|\$queryRaw|\$queryRawUnsafe|\$executeRaw|\$executeRawUnsafe)$'
+            - kind: identifier
+              regex: '^(sql|raw)$'
+        - kind: arguments
+          inside:
+            kind: call_expression
+            has:
+              field: function
+              any:
+              - kind: member_expression
+                regex: '\.(sql|raw|orderByRaw|selectRaw|whereRaw|havingRaw|joinRaw|onRaw|\$queryRaw|\$queryRawUnsafe|\$executeRaw|\$executeRawUnsafe)$'
+              - kind: identifier
+                regex: '^(sql|raw)$'
+  - all:
+    - kind: string
+      regex: '<->'
+    - inside:
+        any:
+        - kind: call_expression
+          has:
+            field: function
+            any:
+            - kind: member_expression
+              regex: '\.(sql|raw|orderByRaw|selectRaw|whereRaw|havingRaw|joinRaw|onRaw|\$queryRaw|\$queryRawUnsafe|\$executeRaw|\$executeRawUnsafe)$'
+            - kind: identifier
+              regex: '^(sql|raw)$'
+        - kind: arguments
+          inside:
+            kind: call_expression
+            has:
+              field: function
+              any:
+              - kind: member_expression
+                regex: '\.(sql|raw|orderByRaw|selectRaw|whereRaw|havingRaw|joinRaw|onRaw|\$queryRaw|\$queryRawUnsafe|\$executeRaw|\$executeRawUnsafe)$'
+              - kind: identifier
+                regex: '^(sql|raw)$'
+    - not:
+        kind: string
+        regex: '(?i)(ST_\w+\s*\([^<>;]*\)|\b(the_geom|geom\w*|geog\w*|geometry|geography)\b|::\s*geo(metry|graphy))\s*<->\s*(ST_\w+\s*\(|\b(the_geom|geom\w*|geog\w*)\b|''[^'']*''\s*::\s*geo(metry|graphy)|[$:?%]\w*\s*::\s*geo(metry|graphy))'
+  - all:
+    - kind: string
+      regex: '<=>'
+    - inside:
+        any:
+        - kind: call_expression
+          has:
+            field: function
+            any:
+            - kind: member_expression
+              regex: '\.(sql|raw|orderByRaw|selectRaw|\$queryRaw|\$queryRawUnsafe|\$executeRaw|\$executeRawUnsafe)$'
+            - kind: identifier
+              regex: '^(sql|raw)$'
+        - kind: arguments
+          inside:
+            kind: call_expression
+            has:
+              field: function
+              any:
+              - kind: member_expression
+                regex: '\.(sql|raw|orderByRaw|selectRaw|\$queryRaw|\$queryRawUnsafe|\$executeRaw|\$executeRawUnsafe)$'
+              - kind: identifier
+                regex: '^(sql|raw)$'
+  - all:
+    - kind: string
+      regex: '<=>'
+    - inside:
+        any:
+        - kind: call_expression
+          has:
+            field: function
+            any:
+            - kind: member_expression
+              regex: '\.(sql|raw|orderByRaw|selectRaw|whereRaw|havingRaw|joinRaw|onRaw|\$queryRaw|\$queryRawUnsafe|\$executeRaw|\$executeRawUnsafe)$'
+            - kind: identifier
+              regex: '^(sql|raw)$'
+        - kind: arguments
+          inside:
+            kind: call_expression
+            has:
+              field: function
+              any:
+              - kind: member_expression
+                regex: '\.(sql|raw|orderByRaw|selectRaw|whereRaw|havingRaw|joinRaw|onRaw|\$queryRaw|\$queryRawUnsafe|\$executeRaw|\$executeRawUnsafe)$'
+              - kind: identifier
+                regex: '^(sql|raw)$'
+    - regex: '(?is)\border\s+by\b|<=>[^,;]*\bas\s+\w|<=>\s*[^\s,;()]+(\s*::\s*\w+(\([\d,\s]+\))?)?\s*\)*\s*[<>]=?\s*[-\d.$:?%]|<=>\s*(''|\[|array\b|\w+\s*\(|[^\s,;)]*::)|(\]''|\)|::\s*\w+(\([\d,\s]+\))?)\s*<=>|\bselect\b[^;]*<=>[^;]*\bfrom\b'
+  - all:
+    - kind: template_string
+      regex: '<=>|<->|<#>|<\+>|<~>|<%>'
+    - regex: '(?i)embedding|vector|halfvec|sparsevec'
+  - all:
+    - kind: template_string
+      regex: '(?is)\bselect\b.*\bfrom\b|\border\s+by\b'
+    - regex: '<#>|<\+>|<~>|<%>'
+  - all:
+    - kind: template_string
+      regex: '(?is)\bselect\b.*\bfrom\b|\border\s+by\b'
+    - regex: '<->'
+    - not:
+        kind: template_string
+        regex: '(?i)(ST_\w+\s*\([^<>;]*\)|\b(the_geom|geom\w*|geog\w*|geometry|geography)\b|::\s*geo(metry|graphy))\s*<->\s*(ST_\w+\s*\(|\b(the_geom|geom\w*|geog\w*)\b|''[^'']*''\s*::\s*geo(metry|graphy)|[$:?%]\w*\s*::\s*geo(metry|graphy))'
+  - all:
+    - kind: template_string
+      regex: '(?is)\bselect\b.*\bfrom\b|\border\s+by\b'
+    - regex: '(?s)<->.*<->'
+  - all:
+    - kind: template_string
+      regex: '(?is)\bselect\b.*\bfrom\b|\border\s+by\b'
+    - regex: '<=>'
+    - regex: '(?is)\border\s+by\b|<=>[^,;]*\bas\s+\w|<=>\s*[^\s,;()]+(\s*::\s*\w+(\([\d,\s]+\))?)?\s*\)*\s*[<>]=?\s*[-\d.$:?%]|<=>\s*(''|\[|array\b|\w+\s*\(|[^\s,;)]*::)|(\]''|\)|::\s*\w+(\([\d,\s]+\))?)\s*<=>|\bselect\b[^;]*<=>[^;]*\bfrom\b'
+  - all:
+    - kind: template_string
+      regex: '<#>|<\+>|<~>|<%>'
+    - inside:
+        any:
+        - kind: call_expression
+          has:
+            field: function
+            any:
+            - kind: member_expression
+              regex: '\.(sql|raw|orderByRaw|selectRaw|whereRaw|havingRaw|joinRaw|onRaw|\$queryRaw|\$queryRawUnsafe|\$executeRaw|\$executeRawUnsafe)$'
+            - kind: identifier
+              regex: '^(sql|raw)$'
+        - kind: arguments
+          inside:
+            kind: call_expression
+            has:
+              field: function
+              any:
+              - kind: member_expression
+                regex: '\.(sql|raw|orderByRaw|selectRaw|whereRaw|havingRaw|joinRaw|onRaw|\$queryRaw|\$queryRawUnsafe|\$executeRaw|\$executeRawUnsafe)$'
+              - kind: identifier
+                regex: '^(sql|raw)$'
+  - all:
+    - kind: template_string
+      regex: '<->'
+    - inside:
+        any:
+        - kind: call_expression
+          has:
+            field: function
+            any:
+            - kind: member_expression
+              regex: '\.(sql|raw|orderByRaw|selectRaw|whereRaw|havingRaw|joinRaw|onRaw|\$queryRaw|\$queryRawUnsafe|\$executeRaw|\$executeRawUnsafe)$'
+            - kind: identifier
+              regex: '^(sql|raw)$'
+        - kind: arguments
+          inside:
+            kind: call_expression
+            has:
+              field: function
+              any:
+              - kind: member_expression
+                regex: '\.(sql|raw|orderByRaw|selectRaw|whereRaw|havingRaw|joinRaw|onRaw|\$queryRaw|\$queryRawUnsafe|\$executeRaw|\$executeRawUnsafe)$'
+              - kind: identifier
+                regex: '^(sql|raw)$'
+    - not:
+        kind: template_string
+        regex: '(?i)(ST_\w+\s*\([^<>;]*\)|\b(the_geom|geom\w*|geog\w*|geometry|geography)\b|::\s*geo(metry|graphy))\s*<->\s*(ST_\w+\s*\(|\b(the_geom|geom\w*|geog\w*)\b|''[^'']*''\s*::\s*geo(metry|graphy)|[$:?%]\w*\s*::\s*geo(metry|graphy))'
+  - all:
+    - kind: template_string
+      regex: '<=>'
+    - inside:
+        any:
+        - kind: call_expression
+          has:
+            field: function
+            any:
+            - kind: member_expression
+              regex: '\.(sql|raw|orderByRaw|selectRaw|\$queryRaw|\$queryRawUnsafe|\$executeRaw|\$executeRawUnsafe)$'
+            - kind: identifier
+              regex: '^(sql|raw)$'
+        - kind: arguments
+          inside:
+            kind: call_expression
+            has:
+              field: function
+              any:
+              - kind: member_expression
+                regex: '\.(sql|raw|orderByRaw|selectRaw|\$queryRaw|\$queryRawUnsafe|\$executeRaw|\$executeRawUnsafe)$'
+              - kind: identifier
+                regex: '^(sql|raw)$'
+  - all:
+    - kind: template_string
+      regex: '<=>'
+    - inside:
+        any:
+        - kind: call_expression
+          has:
+            field: function
+            any:
+            - kind: member_expression
+              regex: '\.(sql|raw|orderByRaw|selectRaw|whereRaw|havingRaw|joinRaw|onRaw|\$queryRaw|\$queryRawUnsafe|\$executeRaw|\$executeRawUnsafe)$'
+            - kind: identifier
+              regex: '^(sql|raw)$'
+        - kind: arguments
+          inside:
+            kind: call_expression
+            has:
+              field: function
+              any:
+              - kind: member_expression
+                regex: '\.(sql|raw|orderByRaw|selectRaw|whereRaw|havingRaw|joinRaw|onRaw|\$queryRaw|\$queryRawUnsafe|\$executeRaw|\$executeRawUnsafe)$'
+              - kind: identifier
+                regex: '^(sql|raw)$'
+    - regex: '(?is)\border\s+by\b|<=>[^,;]*\bas\s+\w|<=>\s*[^\s,;()]+(\s*::\s*\w+(\([\d,\s]+\))?)?\s*\)*\s*[<>]=?\s*[-\d.$:?%]|<=>\s*(''|\[|array\b|\w+\s*\(|[^\s,;)]*::)|(\]''|\)|::\s*\w+(\([\d,\s]+\))?)\s*<=>|\bselect\b[^;]*<=>[^;]*\bfrom\b'
+min_engine: 0.45.3

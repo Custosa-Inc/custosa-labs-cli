@@ -1,0 +1,12 @@
+id: audit-actor-recorded.yaml-spring.pool-context
+practice_id: audit-actor-recorded
+language: yaml
+frameworks:
+- spring
+kind: violation
+rule:
+  all:
+  - kind: block_mapping_pair
+  - regex: '^(spring\.datasource\.hikari\.)?connection-init-sql\s*:'
+  - regex: '(?i)(set_config\s*\(\s*''[a-z_]+\.[a-z_.]+''|\bset\s+(local\s+|session\s+)?[a-z_]+\.[a-z_]+\s*(=|to))'
+min_engine: 0.45.3

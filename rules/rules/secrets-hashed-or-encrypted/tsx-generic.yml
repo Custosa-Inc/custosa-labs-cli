@@ -1,0 +1,31 @@
+id: secrets-hashed-or-encrypted.tsx-generic.secret-write
+practice_id: secrets-hashed-or-encrypted
+language: tsx
+frameworks:
+- generic
+kind: items
+rule:
+  all:
+  - kind: pair
+  - has:
+      field: key
+      any:
+      - kind: property_identifier
+        regex: (?i)^['\"]?(password|passwd|api_?key|secret|client_?secret|secret_?key|token|access_?token|refresh_?token|reset_?token|auth_?token|private_?key)['\"]?$
+      - kind: string
+        regex: (?i)^['\"]?(password|passwd|api_?key|secret|client_?secret|secret_?key|token|access_?token|refresh_?token|reset_?token|auth_?token|private_?key)['\"]?$
+  - inside:
+      stopBy: end
+      kind: call_expression
+      regex: ^(await\s+)?[\w.]+\.(create|createMany|insert|update|upsert|save|updateOne|insertOne)\(
+control:
+  has:
+    field: value
+    any:
+    - kind: call_expression
+      regex: (?i)(hash|bcrypt|argon|scrypt|pbkdf|encrypt|digest|createHmac|seal|kms|make_password|password_hash|Hash::make|cipher)
+    - kind: await_expression
+      regex: (?i)(hash|bcrypt|argon|scrypt|pbkdf|encrypt|digest|createHmac|seal|kms|make_password|password_hash|Hash::make|cipher)
+    - kind: identifier
+      regex: (?i)(hash|digest|encrypted|cipher)
+min_engine: 0.39.0

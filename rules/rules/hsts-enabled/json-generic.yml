@@ -1,0 +1,444 @@
+# hsts-enabled (T23 B56b). Written by scripts/gen_hsts_rules.py: edit that script,
+# never this file. The practice function reads the pieces by name: header-<form> and redirect-<form> (NAMING.md).
+
+# header-vercel: a vercel.json headers entry with source /(.*) or /:path* and no has or missing, setting
+# Strict-Transport-Security of a year or more. A platform piece: it never passes, it holds for "confirm this app is
+# served through Vercel".
+id: hsts-enabled.json-generic.header-vercel
+practice_id: hsts-enabled
+language: json
+frameworks:
+- generic
+kind: evidence
+path_regex: (^|/)vercel\.json$
+rule:
+  kind: object
+  all:
+  - inside:
+      kind: array
+      inside:
+        kind: pair
+        has:
+          field: key
+          kind: string
+          regex: ^"(headers)"$
+        inside:
+          kind: object
+          inside:
+            kind: document
+  - has:
+      kind: pair
+      all:
+      - has:
+          field: key
+          kind: string
+          regex: ^"(source)"$
+      - has:
+          field: value
+          kind: string
+          regex: ^"/(\(\.\*\)|:path\*)"$
+  - not:
+      has:
+        kind: pair
+        has:
+          field: key
+          kind: string
+          regex: ^"(has|missing)"$
+  - has:
+      kind: pair
+      all:
+      - has:
+          field: key
+          kind: string
+          regex: ^"(headers)"$
+      - has:
+          kind: array
+          has:
+            kind: object
+            all:
+            - has:
+                kind: pair
+                all:
+                - has:
+                    field: key
+                    kind: string
+                    regex: ^"(key)"$
+                - has:
+                    field: value
+                    kind: string
+                    regex: (?i)^['\"`]strict-transport-security['\"`]$
+            - has:
+                kind: pair
+                all:
+                - has:
+                    field: key
+                    kind: string
+                    regex: ^"(value)"$
+                - has:
+                    field: value
+                    kind: string
+                    regex: ^['\"`]([^'\"`;]*;\s*)*max-age=(3153[6-9]\d{3}|315[4-9]\d{4}|31[6-9]\d{5}|3[2-9]\d{6}|[4-9]\d{7}|[1-9]\d{8,})\s*(;[^'\"`]*)?['\"`]$
+min_engine: 0.45.3
+---
+# short-max-age: an HSTS age below a year, as a literal: helmet's maxAge, a Strict-Transport-Security value in a
+# next.config entry, a header call or vercel.json; Rails ssl_options hsts: { expires: } in production.rb or
+# application.rb; Django SECURE_HSTS_SECONDS in an allowlisted settings file; a Traefik headers middleware's
+# stsSeconds; an ingress ConfigMap's hsts-max-age. Fail.
+id: hsts-enabled.json-generic.short-max-age
+practice_id: hsts-enabled
+language: json
+frameworks:
+- generic
+kind: violation
+path_regex: (^|/)vercel\.json$
+rule:
+  kind: object
+  all:
+  - has:
+      kind: pair
+      all:
+      - has:
+          field: key
+          kind: string
+          regex: ^"(key)"$
+      - has:
+          field: value
+          kind: string
+          regex: (?i)^['\"`]strict-transport-security['\"`]$
+  - has:
+      kind: pair
+      all:
+      - has:
+          field: key
+          kind: string
+          regex: ^"(value)"$
+      - has:
+          field: value
+          kind: string
+          regex: ^['\"`]([^'\"`;]*;\s*)*max-age=\d+\s*(;[^'\"`]*)?['\"`]$
+  not:
+    kind: object
+    all:
+    - has:
+        kind: pair
+        all:
+        - has:
+            field: key
+            kind: string
+            regex: ^"(key)"$
+        - has:
+            field: value
+            kind: string
+            regex: (?i)^['\"`]strict-transport-security['\"`]$
+    - has:
+        kind: pair
+        all:
+        - has:
+            field: key
+            kind: string
+            regex: ^"(value)"$
+        - has:
+            field: value
+            kind: string
+            regex: ^['\"`]([^'\"`;]*;\s*)*max-age=(3153[6-9]\d{3}|315[4-9]\d{4}|31[6-9]\d{5}|3[2-9]\d{6}|[4-9]\d{7}|[1-9]\d{8,})\s*(;[^'\"`]*)?['\"`]$
+min_engine: 0.45.3
+---
+# app-construction-pkg-next: a package.json depending on next (one match per file). Evidence the function counts as
+# one construction, paired with a next config file in the same directory.
+id: hsts-enabled.json-generic.app-construction-pkg-next
+practice_id: hsts-enabled
+language: json
+frameworks:
+- generic
+kind: evidence
+path_regex: (^|/)package\.json$
+rule:
+  kind: object
+  inside:
+    kind: document
+  has:
+    kind: pair
+    all:
+    - has:
+        field: key
+        kind: string
+        regex: ^"(dependencies|devDependencies)"$
+    - has:
+        kind: object
+        has:
+          kind: pair
+          has:
+            field: key
+            kind: string
+            regex: ^"(next)"$
+min_engine: 0.45.3
+---
+# app-construction-pkg-nuxt: a package.json depending on nuxt (one match per file). Evidence the function counts as
+# one construction, paired with a nuxt config file in the same directory.
+id: hsts-enabled.json-generic.app-construction-pkg-nuxt
+practice_id: hsts-enabled
+language: json
+frameworks:
+- generic
+kind: evidence
+path_regex: (^|/)package\.json$
+rule:
+  kind: object
+  inside:
+    kind: document
+  has:
+    kind: pair
+    all:
+    - has:
+        field: key
+        kind: string
+        regex: ^"(dependencies|devDependencies)"$
+    - has:
+        kind: object
+        has:
+          kind: pair
+          has:
+            field: key
+            kind: string
+            regex: ^"(nuxt)"$
+min_engine: 0.45.3
+---
+# app-construction-pkg-remix: a package.json depending on remix (one match per file). Evidence the function counts as
+# one construction, paired with a remix config file in the same directory.
+id: hsts-enabled.json-generic.app-construction-pkg-remix
+practice_id: hsts-enabled
+language: json
+frameworks:
+- generic
+kind: evidence
+path_regex: (^|/)package\.json$
+rule:
+  kind: object
+  inside:
+    kind: document
+  has:
+    kind: pair
+    all:
+    - has:
+        field: key
+        kind: string
+        regex: ^"(dependencies|devDependencies)"$
+    - has:
+        kind: object
+        has:
+          kind: pair
+          has:
+            field: key
+            kind: string
+            regex: ^"(@remix-run\/[\w.-]+)"$
+min_engine: 0.45.3
+---
+# app-construction-pkg-router: a package.json depending on router (one match per file). Evidence the function counts
+# as one construction, paired with a router config file in the same directory.
+id: hsts-enabled.json-generic.app-construction-pkg-router
+practice_id: hsts-enabled
+language: json
+frameworks:
+- generic
+kind: evidence
+path_regex: (^|/)package\.json$
+rule:
+  kind: object
+  inside:
+    kind: document
+  has:
+    kind: pair
+    all:
+    - has:
+        field: key
+        kind: string
+        regex: ^"(dependencies|devDependencies)"$
+    - has:
+        kind: object
+        has:
+          kind: pair
+          has:
+            field: key
+            kind: string
+            regex: ^"(@react-router\/[\w.-]+)"$
+min_engine: 0.45.3
+---
+# app-construction-pkg-sveltekit: a package.json depending on sveltekit (one match per file). Evidence the function
+# counts as one construction, paired with a sveltekit config file in the same directory.
+id: hsts-enabled.json-generic.app-construction-pkg-sveltekit
+practice_id: hsts-enabled
+language: json
+frameworks:
+- generic
+kind: evidence
+path_regex: (^|/)package\.json$
+rule:
+  kind: object
+  inside:
+    kind: document
+  has:
+    kind: pair
+    all:
+    - has:
+        field: key
+        kind: string
+        regex: ^"(dependencies|devDependencies)"$
+    - has:
+        kind: object
+        has:
+          kind: pair
+          has:
+            field: key
+            kind: string
+            regex: ^"(@sveltejs\/kit)"$
+min_engine: 0.45.3
+---
+# app-construction-pkg-solid: a package.json depending on solid (one match per file). Evidence the function counts as
+# one construction, paired with a solid config file in the same directory.
+id: hsts-enabled.json-generic.app-construction-pkg-solid
+practice_id: hsts-enabled
+language: json
+frameworks:
+- generic
+kind: evidence
+path_regex: (^|/)package\.json$
+rule:
+  kind: object
+  inside:
+    kind: document
+  has:
+    kind: pair
+    all:
+    - has:
+        field: key
+        kind: string
+        regex: ^"(dependencies|devDependencies)"$
+    - has:
+        kind: object
+        has:
+          kind: pair
+          has:
+            field: key
+            kind: string
+            regex: ^"(@solidjs\/start)"$
+min_engine: 0.45.3
+---
+# app-construction-pkg-qwik: a package.json depending on qwik (one match per file). Evidence the function counts as
+# one construction, paired with a qwik config file in the same directory.
+id: hsts-enabled.json-generic.app-construction-pkg-qwik
+practice_id: hsts-enabled
+language: json
+frameworks:
+- generic
+kind: evidence
+path_regex: (^|/)package\.json$
+rule:
+  kind: object
+  inside:
+    kind: document
+  has:
+    kind: pair
+    all:
+    - has:
+        field: key
+        kind: string
+        regex: ^"(dependencies|devDependencies)"$
+    - has:
+        kind: object
+        has:
+          kind: pair
+          has:
+            field: key
+            kind: string
+            regex: ^"(@builder\.io\/qwik-city)"$
+min_engine: 0.45.3
+---
+# app-construction-pkg-tanstack: a package.json depending on tanstack (one match per file). Evidence the function
+# counts as one construction, paired with a tanstack config file in the same directory.
+id: hsts-enabled.json-generic.app-construction-pkg-tanstack
+practice_id: hsts-enabled
+language: json
+frameworks:
+- generic
+kind: evidence
+path_regex: (^|/)package\.json$
+rule:
+  kind: object
+  inside:
+    kind: document
+  has:
+    kind: pair
+    all:
+    - has:
+        field: key
+        kind: string
+        regex: ^"(dependencies|devDependencies)"$
+    - has:
+        kind: object
+        has:
+          kind: pair
+          has:
+            field: key
+            kind: string
+            regex: ^"(@tanstack\/(react-)?start)"$
+min_engine: 0.45.3
+---
+# app-construction-pkg-micro: a package.json depending on micro (one match per file). Evidence the function counts as
+# one construction, paired with a micro config file in the same directory.
+id: hsts-enabled.json-generic.app-construction-pkg-micro
+practice_id: hsts-enabled
+language: json
+frameworks:
+- generic
+kind: evidence
+path_regex: (^|/)package\.json$
+rule:
+  kind: object
+  inside:
+    kind: document
+  has:
+    kind: pair
+    all:
+    - has:
+        field: key
+        kind: string
+        regex: ^"(dependencies|devDependencies)"$
+    - has:
+        kind: object
+        has:
+          kind: pair
+          has:
+            field: key
+            kind: string
+            regex: ^"(micro)"$
+min_engine: 0.45.3
+---
+# next-export-script: a package.json script running next export: it voids the Next.js pieces like output: 'export'.
+# Evidence the function reads.
+id: hsts-enabled.json-generic.next-export-script
+practice_id: hsts-enabled
+language: json
+frameworks:
+- generic
+kind: evidence
+path_regex: (^|/)package\.json$
+rule:
+  kind: pair
+  inside:
+    kind: object
+    inside:
+      kind: pair
+      has:
+        field: key
+        kind: string
+        regex: ^"(scripts)"$
+      inside:
+        kind: object
+        inside:
+          kind: document
+  all:
+  - has:
+      field: value
+      kind: string
+      regex: \bnext\s+export\b
+min_engine: 0.45.3

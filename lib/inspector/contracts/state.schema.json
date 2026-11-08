@@ -1,0 +1,334 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://custosa.com/schemas/state/1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "state_version",
+    "content_key",
+    "decisions",
+    "suppressions",
+    "grants_baseline"
+  ],
+  "properties": {
+    "state_version": {
+      "const": 1
+    },
+    "content_key": {
+      "description": "The project's random content key (\u00a72.4). Kept here, never sent.",
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "decisions": {
+      "type": "array",
+      "maxItems": 1000,
+      "items": {
+        "$ref": "#/$defs/decision"
+      }
+    },
+    "suppressions": {
+      "type": "array",
+      "maxItems": 500,
+      "items": {
+        "$ref": "#/$defs/suppression"
+      }
+    },
+    "grants_baseline": {
+      "type": "array",
+      "maxItems": 1000,
+      "items": {
+        "$ref": "#/$defs/grant"
+      }
+    }
+  },
+  "$defs": {
+    "no_install_ids": {
+      "description": "No per-install hash: a u_ name or a 64-hex handler id, by the core's own _HASHES lookarounds (api.py:926).",
+      "not": {
+        "pattern": "(?<![0-9A-Za-z])(?:[0-9a-f]{64}|u_[0-9a-f]{16})(?![0-9A-Za-z])"
+      }
+    },
+    "subject": {
+      "description": "A core object_id: practice id, or practice id @ a qualified name or a path with no line or line range.",
+      "type": "string",
+      "maxLength": 600,
+      "pattern": "^[a-z0-9][a-z0-9-]{0,63}(?:@[A-Za-z0-9_.@:+$\\[\\]()~/-]{1,512})?$",
+      "allOf": [
+        {
+          "$ref": "#/$defs/no_install_ids"
+        },
+        {
+          "not": {
+            "pattern": ":[0-9]+(?:-[0-9]+)?$"
+          }
+        }
+      ]
+    },
+    "practice_id": {
+      "type": "string",
+      "pattern": "^[a-z0-9][a-z0-9-]{0,63}$"
+    },
+    "code": {
+      "type": "string",
+      "pattern": "^[a-z][a-z0-9_]{0,63}$"
+    },
+    "hex32": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{32}$"
+    },
+    "hex16": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{16}$"
+    },
+    "day": {
+      "type": "string",
+      "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}$"
+    },
+    "ruleset_id": {
+      "type": "string",
+      "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}\\.[0-9a-f]{8}$"
+    },
+    "utc_second": {
+      "type": "string",
+      "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}Z$"
+    },
+    "made": {
+      "description": "What the core issued in report.state.to_commit. account_tag, fact_token, made_on and seal are checked every run; ruleset_id and registry_id are audit only.",
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "account_tag",
+        "made_on",
+        "ruleset_id",
+        "registry_id",
+        "fact_token",
+        "seal"
+      ],
+      "properties": {
+        "account_tag": {
+          "$ref": "#/$defs/hex16"
+        },
+        "made_on": {
+          "$ref": "#/$defs/day"
+        },
+        "ruleset_id": {
+          "$ref": "#/$defs/ruleset_id"
+        },
+        "registry_id": {
+          "$ref": "#/$defs/ruleset_id"
+        },
+        "fact_token": {
+          "$ref": "#/$defs/hex32"
+        },
+        "seal": {
+          "$ref": "#/$defs/hex32"
+        }
+      }
+    },
+    "audit": {
+      "description": "The audit trail, no free text (v3:276). Read by people and the CLI, never by the core. decided_at is the local clock.",
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "decided_by",
+        "relayed_by",
+        "client",
+        "decided_at"
+      ],
+      "properties": {
+        "decided_by": {
+          "const": "person"
+        },
+        "relayed_by": {
+          "const": "assistant"
+        },
+        "client": {
+          "anyOf": [
+            {
+              "type": "string",
+              "pattern": "^[A-Za-z0-9][A-Za-z0-9 ._()/@+-]{0,63}$"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "decided_at": {
+          "$ref": "#/$defs/utc_second"
+        }
+      }
+    },
+    "decision": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "subject",
+        "practice_id",
+        "option",
+        "expires_on",
+        "max_age_on",
+        "reasons",
+        "f4_class",
+        "why_asked",
+        "made",
+        "audit"
+      ],
+      "properties": {
+        "subject": {
+          "$ref": "#/$defs/subject"
+        },
+        "practice_id": {
+          "$ref": "#/$defs/practice_id"
+        },
+        "option": {
+          "$ref": "#/$defs/code"
+        },
+        "expires_on": {
+          "description": "Sealed. made_on plus 365 days when the item has the outside-knowledge flag, else null (\u00a74.3, \u00a74.4).",
+          "anyOf": [
+            {
+              "$ref": "#/$defs/day"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "max_age_on": {
+          "description": "Sealed. made_on plus 90 days when the practice reads matches (a decision settled by a fingerprint match), else null (\u00a74.3; P1 ruling 24).",
+          "anyOf": [
+            {
+              "$ref": "#/$defs/day"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "reasons": {
+          "description": "Audit only: the item's reasons when decided.",
+          "type": "array",
+          "maxItems": 8,
+          "uniqueItems": true,
+          "items": {
+            "$ref": "#/$defs/code"
+          }
+        },
+        "f4_class": {
+          "description": "Audit only.",
+          "$ref": "#/$defs/code"
+        },
+        "why_asked": {
+          "description": "Audit only.",
+          "$ref": "#/$defs/code"
+        },
+        "made": {
+          "$ref": "#/$defs/made"
+        },
+        "audit": {
+          "$ref": "#/$defs/audit"
+        }
+      }
+    },
+    "suppression": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "subject",
+        "practice_id",
+        "reason",
+        "expires_on",
+        "made",
+        "audit"
+      ],
+      "properties": {
+        "subject": {
+          "$ref": "#/$defs/subject"
+        },
+        "practice_id": {
+          "$ref": "#/$defs/practice_id"
+        },
+        "reason": {
+          "enum": [
+            "false_positive",
+            "accepted_risk",
+            "compensating_control"
+          ]
+        },
+        "expires_on": {
+          "$ref": "#/$defs/day"
+        },
+        "made": {
+          "$ref": "#/$defs/made"
+        },
+        "audit": {
+          "$ref": "#/$defs/audit"
+        }
+      }
+    },
+    "grant": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "table",
+        "grantee",
+        "privileges",
+        "expires_on",
+        "made",
+        "audit"
+      ],
+      "properties": {
+        "table": {
+          "allOf": [
+            {
+              "$ref": "https://custosa.com/schemas/fact-document/2#/$defs/qualified_name"
+            },
+            {
+              "$ref": "#/$defs/no_install_ids"
+            }
+          ]
+        },
+        "grantee": {
+          "enum": [
+            "PUBLIC",
+            "anon",
+            "authenticated"
+          ]
+        },
+        "privileges": {
+          "anyOf": [
+            {
+              "type": "null"
+            },
+            {
+              "type": "array",
+              "maxItems": 8,
+              "uniqueItems": true,
+              "items": {
+                "enum": [
+                  "delete",
+                  "insert",
+                  "maintain",
+                  "references",
+                  "select",
+                  "trigger",
+                  "truncate",
+                  "update"
+                ]
+              }
+            }
+          ]
+        },
+        "expires_on": {
+          "$ref": "#/$defs/day"
+        },
+        "made": {
+          "$ref": "#/$defs/made"
+        },
+        "audit": {
+          "$ref": "#/$defs/audit"
+        }
+      }
+    }
+  }
+}

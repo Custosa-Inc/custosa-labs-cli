@@ -1,0 +1,67 @@
+id: write-fields-allowlisted.java-spring.copy-all
+practice_id: write-fields-allowlisted
+language: java
+frameworks:
+- spring
+kind: violation
+rule:
+  any:
+  - pattern: BeanUtils.copyProperties($SRC, $DST)
+  - pattern: BeanUtils.copyProperties($SRC, $DST, $$$IGNORED)
+  - pattern: $MAPPER.readerForUpdating($E)
+  - pattern: $BINDER.setDisallowedFields($$$)
+min_engine: 0.39.0
+---
+id: write-fields-allowlisted.java-spring.allowed-fields
+practice_id: write-fields-allowlisted
+language: java
+frameworks:
+- spring
+kind: evidence
+rule:
+  pattern: $BINDER.setAllowedFields($$$)
+min_engine: 0.39.0
+---
+id: write-fields-allowlisted.java-spring.identity-from-request
+practice_id: write-fields-allowlisted
+language: java
+frameworks:
+- spring
+kind: violation
+rule:
+  all:
+  - kind: method_invocation
+    has:
+      field: name
+      kind: identifier
+      regex: ^set(Owner|User|Tenant|Org|Organization|Account|Clinic|Provider|CreatedBy|UpdatedBy|Author|Role|Roles|Admin|IsAdmin|Staff)\w*$
+  - has:
+      field: arguments
+      has:
+        kind: method_invocation
+        regex: ^(dto|request|req|body|form|input|payload|command|cmd|\w+Dto|\w+Request|\w+Form)\.get\w+\(\)$
+min_engine: 0.39.0
+---
+id: write-fields-allowlisted.java-spring.identity-setter
+practice_id: write-fields-allowlisted
+language: java
+frameworks:
+- spring
+kind: items
+rule:
+  kind: method_invocation
+  has:
+    field: name
+    kind: identifier
+    regex: ^set(Owner|User|Tenant|Org|Organization|Account|Clinic|Provider|CreatedBy|UpdatedBy|Author|Role|Roles|Admin|IsAdmin|Staff)\w*$
+control:
+  has:
+    field: arguments
+    has:
+      stopBy: end
+      any:
+      - kind: method_invocation
+        regex: (SecurityContextHolder|getPrincipal\(\)|principal\.|authentication\.|currentUser|getCurrentUser|jwt\.|auth\.)
+      - kind: identifier
+        regex: ^(principal|authentication|currentUser|jwt)$
+min_engine: 0.39.0

@@ -1,0 +1,209 @@
+id: ai-agent-tools-least-privilege.python-generic.tool-definition
+practice_id: ai-agent-tools-least-privilege
+language: python
+frameworks:
+- generic
+kind: items
+rule:
+  all:
+  - kind: decorated_definition
+  - has:
+      kind: decorator
+      regex: '(?-u)^@(tool|function_tool|mcp\.tool|server\.tool|app\.tool|agent\.tool|agent\.tool_plain)\b'
+control:
+  all:
+  - has:
+      field: definition
+      kind: function_definition
+  - not:
+      has:
+        stopBy: end
+        any:
+        - kind: string
+          regex: '(SUPABASE_SERVICE_ROLE_KEY|SERVICE_ROLE_KEY|SUPABASE_SECRET_KEY)'
+        - kind: identifier
+          regex: '^(supabase_admin|admin_client|service_client|service_role_client)$'
+        - kind: call
+          has:
+            field: function
+            kind: identifier
+            regex: '^(eval|exec)$'
+        - kind: call
+          has:
+            field: function
+            kind: attribute
+            regex: '(?-u)^(subprocess\.\w+|os\.system|os\.popen)$'
+  - any:
+    - not:
+        has:
+          stopBy: end
+          any:
+          - kind: call
+            has:
+              field: function
+              kind: attribute
+              regex: '\.(delete|insert|update|upsert|remove|save|create|bulk_create|destroy|post|put|patch)$'
+          - kind: string
+            regex: '(?-u)^[fr]?[''"]\s*(DELETE|UPDATE|INSERT)\b'
+    - has:
+        stopBy: end
+        kind: call
+        has:
+          field: function
+          kind: identifier
+          regex: '^interrupt$'
+min_engine: 0.45.3
+---
+id: ai-agent-tools-least-privilege.python-generic.elevated-in-tool
+practice_id: ai-agent-tools-least-privilege
+language: python
+frameworks:
+- generic
+kind: violation
+rule:
+  all:
+  - any:
+    - kind: string
+      regex: '^[''"](SUPABASE_SERVICE_ROLE_KEY|SERVICE_ROLE_KEY|SUPABASE_SECRET_KEY)[''"]$'
+    - kind: call
+      has:
+        field: function
+        kind: identifier
+        regex: '^(eval|exec)$'
+    - kind: call
+      has:
+        field: function
+        kind: attribute
+        regex: '^(subprocess\.\w+|os\.system|os\.popen)$'
+  - inside:
+      stopBy: end
+      kind: decorated_definition
+      has:
+        kind: decorator
+        regex: '^@(tool|function_tool|mcp\.tool|server\.tool|app\.tool|agent\.tool|agent\.tool_plain)\b'
+min_engine: 0.45.3
+---
+id: ai-agent-tools-least-privilege.python-generic.ai-provider-host
+practice_id: ai-agent-tools-least-privilege
+language: python
+frameworks:
+- generic
+kind: evidence
+rule:
+  all:
+  - kind: string
+    regex: '(?i)(api\.openai\.com|api\.anthropic\.com|generativelanguage\.googleapis\.com|aiplatform\.googleapis\.com|\.openai\.azure\.com|bedrock-runtime\.[a-z0-9-]+\.amazonaws\.com|api\.mistral\.ai|api\.groq\.com|api\.together\.xyz|api\.cohere\.(com|ai)|api\.deepseek\.com|api\.x\.ai|api\.perplexity\.ai|api\.fireworks\.ai|openrouter\.ai/api|api-inference\.huggingface\.co|api\.replicate\.com|(localhost|127\.0\.0\.1):(11434|1234)\b|ollama[\w.-]*(:\d+)?/api/(chat|generate|embed)|https?://[\w.-]+(:\d+)?(/[\w.-]+)*/v1/(chat/completions|completions|messages|embeddings)\b)'
+  - not:
+      inside:
+        kind: expression_statement
+min_engine: 0.45.3
+---
+id: ai-agent-tools-least-privilege.python-generic.llm-base-url
+practice_id: ai-agent-tools-least-privilege
+language: python
+frameworks:
+- generic
+kind: evidence
+rule:
+  any:
+  - all:
+    - kind: call
+    - has:
+        field: function
+        any:
+        - kind: identifier
+          regex: '^(OpenAI|AsyncOpenAI|AzureOpenAI|AsyncAzureOpenAI|Anthropic|AsyncAnthropic|ChatOpenAI|ChatAnthropic|ChatOllama)$'
+        - kind: attribute
+          regex: '\.(OpenAI|AsyncOpenAI|AzureOpenAI|AsyncAzureOpenAI|Anthropic|AsyncAnthropic|ChatOpenAI|ChatAnthropic|ChatOllama)$'
+    - has:
+        field: arguments
+        kind: argument_list
+        has:
+          kind: keyword_argument
+          all:
+          - has:
+              field: name
+              kind: identifier
+              regex: '^(base_url|api_base|openai_api_base|azure_endpoint)$'
+          - has:
+              field: value
+              not:
+                any:
+                - all:
+                  - kind: string
+                  - not:
+                      has:
+                        kind: interpolation
+                - kind: concatenated_string
+  - all:
+    - kind: assignment
+    - has:
+        field: left
+        kind: attribute
+        regex: '^openai\.(base_url|api_base)$'
+  - all:
+    - kind: call
+    - has:
+        field: function
+        any:
+        - kind: attribute
+          regex: '^(os\.environ\.get|os\.getenv|environ\.get)$'
+        - kind: identifier
+          regex: '^getenv$'
+    - has:
+        field: arguments
+        kind: argument_list
+        has:
+          kind: string
+          regex: &id012 '^["''](OPENAI_BASE_URL|OPENAI_API_BASE|ANTHROPIC_BASE_URL|OLLAMA_HOST|AZURE_OPENAI_ENDPOINT)["'']$'
+  - all:
+    - kind: subscript
+    - has:
+        field: value
+        any:
+        - kind: attribute
+          regex: '^os\.environ$'
+        - kind: identifier
+          regex: '^environ$'
+    - has:
+        field: subscript
+        kind: string
+        regex: *id012
+min_engine: 0.45.3
+---
+id: ai-agent-tools-least-privilege.python-generic.llm-request-shape
+practice_id: ai-agent-tools-least-privilege
+language: python
+frameworks:
+- generic
+kind: evidence
+rule:
+  all:
+  - kind: call
+  - has:
+      field: function
+      any:
+      - kind: attribute
+        regex: '(\.post|^urllib\.request\.Request)$'
+      - kind: identifier
+        regex: '^Request$'
+  - has:
+      field: arguments
+      kind: argument_list
+      has:
+        stopBy: end
+        kind: dictionary
+        all:
+        - has:
+            kind: pair
+            has:
+              field: key
+              kind: string
+              regex: '^["'']messages["'']$'
+        - has:
+            kind: pair
+            has:
+              field: key
+              kind: string
+              regex: '^["''](model|tools)["'']$'
+min_engine: 0.45.3

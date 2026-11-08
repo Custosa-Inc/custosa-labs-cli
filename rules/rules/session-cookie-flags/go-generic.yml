@@ -1,0 +1,33 @@
+id: session-cookie-flags.go-generic.cookie-set
+practice_id: session-cookie-flags
+language: go
+frameworks:
+- generic
+kind: items
+rule:
+  kind: composite_literal
+  regex: ^&?http\.Cookie\{
+control:
+  all:
+  - kind: composite_literal
+    regex: HttpOnly:\s*true
+  - kind: composite_literal
+    regex: Secure:\s*(true|\w*[pP]rod\w*|!\s*\w*[dD]ev\w*)
+  - kind: composite_literal
+    regex: SameSite:\s*http\.SameSite(Lax|Strict)Mode
+min_engine: 0.39.0
+---
+id: session-cookie-flags.go-generic.flag-off
+practice_id: session-cookie-flags
+language: go
+frameworks:
+- generic
+kind: violation
+rule:
+  kind: keyed_element
+  regex: ^(HttpOnly|Secure):\s*false$|^SameSite:\s*http\.SameSiteNoneMode$
+  inside:
+    stopBy: end
+    kind: composite_literal
+    regex: ^http\.Cookie\{
+min_engine: 0.39.0

@@ -1,0 +1,1 @@
+{"selected_addons":[{"type":"compute_instance","variant":{"id":"ci_small","name":"Small","price":{"description":"$15/month","type":"fixed","interval":"monthly","amount":15}}},{"type":"pitr","variant":{"id":"pitr_14","name":"14 days","price":{"description":"$200/month","type":"fixed","interval":"monthly","amount":200}}}],"available_addons":[]}

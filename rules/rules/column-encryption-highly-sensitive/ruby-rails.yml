@@ -1,0 +1,11 @@
+id: column-encryption-highly-sensitive.ruby-rails.encrypted-column
+practice_id: column-encryption-highly-sensitive
+language: ruby
+frameworks:
+- rails
+kind: evidence
+rule:
+  any:
+  - kind: call
+    regex: ^(encrypts|attr_encrypted|has_encrypted|lockbox_encrypts)\s+:\w+
+min_engine: 0.39.0

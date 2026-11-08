@@ -1,0 +1,202 @@
+# Tokens in plain mobile storage (T23 B56e). Written by scripts/gen_mobile_rules.py: don't edit.
+# The practice is capped at needs_review: a violation fails, the rest is for a person.
+id: mobile-keychain-storage.javascript-react_native.auth-storage-async
+practice_id: mobile-keychain-storage
+language: javascript
+frameworks:
+- react_native
+kind: violation
+rule:
+  kind: pair
+  all:
+  - has:
+      field: key
+      any:
+      - kind: property_identifier
+        regex: ^storage$
+      - kind: string
+        regex: ^["'`]storage["'`]$
+  - any:
+    - has:
+        field: value
+        kind: identifier
+        regex: ^AsyncStorage$
+    - all:
+      - has:
+          field: value
+          kind: identifier
+          pattern: &id001
+            context: ($S)
+            selector: identifier
+      - inside:
+          kind: program
+          stopBy: end
+          has:
+            stopBy: end
+            kind: variable_declarator
+            all:
+            - has:
+                field: name
+                kind: identifier
+                pattern: *id001
+            - has:
+                field: value
+                any:
+                - kind: new_expression
+                  has:
+                    field: constructor
+                    kind: identifier
+                    regex: ^MMKV$
+                - kind: call_expression
+                  has:
+                    field: function
+                    kind: identifier
+                    regex: ^createMMKV$
+            - not:
+                has:
+                  stopBy: end
+                  any:
+                  - kind: property_identifier
+                    regex: ^encryptionKey$
+                  - kind: shorthand_property_identifier
+                    regex: ^encryptionKey$
+  - inside:
+      kind: object
+      inside:
+        kind: pair
+        all:
+        - has:
+            field: key
+            any:
+            - kind: property_identifier
+              regex: ^auth$
+            - kind: string
+              regex: ^["'`]auth["'`]$
+        inside:
+          kind: object
+          inside:
+            kind: arguments
+            inside:
+              kind: call_expression
+              has:
+                field: function
+                any:
+                - kind: identifier
+                  regex: ^createClient$
+                - kind: member_expression
+                  regex: \.\s*createClient$
+min_engine: 0.39.0
+---
+id: mobile-keychain-storage.javascript-react_native.token-async
+practice_id: mobile-keychain-storage
+language: javascript
+frameworks:
+- react_native
+kind: violation
+rule:
+  kind: call_expression
+  all:
+  - has:
+      field: arguments
+      kind: arguments
+      regex: ^\(\s*["'`](?i:(access|refresh|id|auth|session)[_-]?token|jwt|credentials?|password)["'`]\s*,
+  - any:
+    - has:
+        field: function
+        kind: member_expression
+        regex: ^AsyncStorage\s*\.\s*setItem$
+    - all:
+      - has:
+          field: function
+          kind: member_expression
+          all:
+          - has:
+              field: object
+              kind: identifier
+              pattern: &id001
+                context: ($S)
+                selector: identifier
+          - has:
+              field: property
+              kind: property_identifier
+              regex: ^set$
+      - inside:
+          kind: program
+          stopBy: end
+          has:
+            stopBy: end
+            kind: variable_declarator
+            all:
+            - has:
+                field: name
+                kind: identifier
+                pattern: *id001
+            - has:
+                field: value
+                any:
+                - kind: new_expression
+                  has:
+                    field: constructor
+                    kind: identifier
+                    regex: ^MMKV$
+                - kind: call_expression
+                  has:
+                    field: function
+                    kind: identifier
+                    regex: ^createMMKV$
+            - not:
+                has:
+                  stopBy: end
+                  any:
+                  - kind: property_identifier
+                    regex: ^encryptionKey$
+                  - kind: shorthand_property_identifier
+                    regex: ^encryptionKey$
+min_engine: 0.39.0
+---
+id: mobile-keychain-storage.javascript-react_native.persist-async
+practice_id: mobile-keychain-storage
+language: javascript
+frameworks:
+- react_native
+kind: evidence
+rule:
+  any:
+  - kind: object
+    all:
+    - has:
+        kind: pair
+        all:
+        - has:
+            field: key
+            any:
+            - kind: property_identifier
+              regex: ^storage$
+            - kind: string
+              regex: ^["'`]storage["'`]$
+        - has:
+            field: value
+            kind: identifier
+            regex: ^AsyncStorage$
+    - has:
+        kind: pair
+        has:
+          field: key
+          any:
+          - kind: property_identifier
+            regex: ^key$
+          - kind: string
+            regex: ^["'`]key["'`]$
+  - kind: call_expression
+    all:
+    - has:
+        field: function
+        kind: identifier
+        regex: ^createJSONStorage$
+    - has:
+        field: arguments
+        has:
+          stopBy: end
+          kind: identifier
+          regex: ^AsyncStorage$
+min_engine: 0.39.0

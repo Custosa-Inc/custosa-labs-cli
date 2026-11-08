@@ -1,0 +1,60 @@
+id: access-audit-log.java-spring.read-handler
+practice_id: access-audit-log
+language: java
+frameworks:
+- spring
+kind: items
+rule:
+  all:
+  - kind: method_declaration
+  - any:
+    - has:
+        kind: modifiers
+        regex: '@GetMapping\b|@RequestMapping\s*\([^)]*RequestMethod\.GET'
+    - all:
+      - has:
+          kind: modifiers
+          regex: '(?-u)@RequestMapping\b'
+      - not:
+          has:
+            kind: modifiers
+            regex: '@RequestMapping\s*\([^)]*method\s*='
+  - not:
+      any:
+      - has:
+          kind: modifiers
+          regex: '@\w*(Audit|AccessLog)\w*\b'
+      - inside:
+          stopBy: end
+          kind: class_declaration
+          has:
+            kind: modifiers
+            regex: '@\w*(Audit|AccessLog)\w*\b'
+  - not:
+      all:
+      - has:
+          field: body
+          has:
+            stopBy: end
+            kind: method_invocation
+            regex: '^[\w.]*([Aa]udit|AUDIT|[Aa]ccess_?[Ll]ogs?|ACCESS_?LOGS?|[Ll]og_?[Aa]ccess|LOG_?ACCESS|[Rr]ecord_?[Aa]ccess|[Aa]ccess_?[Ee]vents?|ACCESS_?EVENTS?|[Pp]hi_?[Aa]ccess|PHI_?ACCESS|[Aa]ctivity_?[Ll]ogs?|ACTIVITY_?LOGS?)'
+            not:
+              kind: method_invocation
+              regex: '^[\w.]*([Ss]kip|SKIP|[Dd]isable|DISABLE|[Ww]ithout|[Bb]ypass|[Nn]o_?[Aa]udit|NO_?AUDIT|[Nn]o_?[Ll]og|NO_?LOG|\.(is|get|set|count|find|clear|reset|invalidate)\w*\s*\()'
+      - not: &id001
+          has:
+            field: body
+            has:
+              stopBy: end
+              kind: method_invocation
+              any:
+              - regex: '^[\w.]*([aA]udit\w*|[aA]ccessLog\w*)(Repository|Repo|Dao)\.(save|saveAll|saveAndFlush|insert|persist)\s*\('
+                kind: method_invocation
+              - regex: '(?-u)\.(update|execute)\s*\('
+                kind: method_invocation
+                has:
+                  stopBy: end
+                  kind: string_literal
+                  regex: '(?i)\binsert\s+into\s+[`\x22]?(?:\w+\.)?[`\x22]?[^\s(`\x22]*(audit|access_log|access_event|phi_access|activity_log|security_event)'
+control: *id001
+min_engine: 0.45.3

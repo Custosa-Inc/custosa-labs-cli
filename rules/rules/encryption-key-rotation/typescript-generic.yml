@@ -1,0 +1,45 @@
+id: encryption-key-rotation.typescript-generic.kms-client
+practice_id: encryption-key-rotation
+language: typescript
+frameworks:
+- generic
+kind: evidence
+rule:
+  any:
+  - kind: new_expression
+    regex: ^new\s+(GenerateDataKeyCommand|EncryptCommand|DecryptCommand|KeyManagementServiceClient|KmsKeyringNode|AwsKmsMrkAwareSymmetricKeyringNode)\(
+  - kind: call_expression
+    regex: ^(\w+\.)*(encryptSymmetric|generateDataKey|buildClient)\(
+min_engine: 0.39.0
+---
+id: encryption-key-rotation.typescript-generic.hardcoded-key
+practice_id: encryption-key-rotation
+language: typescript
+frameworks:
+- generic
+kind: violation
+rule:
+  all:
+  - kind: call_expression
+    regex: ^(crypto\.)?create(De)?[Cc]ipheriv\(
+  - has:
+      field: arguments
+      kind: arguments
+      regex: ^\(\s*[^,]+,\s*(['\"`][^'\"`]{8,}['\"`]|Buffer\.from\(\s*['\"`][^'\"`]{8,}['\"`])
+min_engine: 0.39.0
+---
+id: encryption-key-rotation.typescript-generic.fixed-iv
+practice_id: encryption-key-rotation
+language: typescript
+frameworks:
+- generic
+kind: violation
+rule:
+  all:
+  - kind: call_expression
+    regex: ^(crypto\.)?createCipheriv\(
+  - has:
+      field: arguments
+      kind: arguments
+      regex: ^\(\s*[^,]+,\s*[^,]+,\s*(Buffer\.alloc\(\s*\d+\s*\)|Buffer\.from\(\s*['\"`][^'\"`]*['\"`][^)]*\)|['\"`][^'\"`]*['\"`]|new Uint8Array\(\s*\d+\s*\))\s*(,[^,]*)?\)$
+min_engine: 0.39.0

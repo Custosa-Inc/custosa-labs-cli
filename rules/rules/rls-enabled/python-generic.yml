@@ -1,0 +1,92 @@
+# Candidates for one scoped data-access layer (read only where row-level security is off on a patient table): a Django
+# manager or queryset whose get_queryset filters on a tenant, owner or user key, a django-tenants or django-
+# multitenant model base, SQLAlchemy's with_loader_criteria, and the Tryton and Odoo ORMs, whose record rules
+# (ir.rule) apply to every query. A candidate never passes the practice: whether its rules really scope every patient
+# query is for a person (needs_review); with none, RLS off fails.
+id: rls-enabled.python-generic.scoped-layer
+practice_id: rls-enabled
+language: python
+frameworks: [generic]
+kind: evidence
+rule:
+  any:
+  - kind: function_definition
+    all:
+    - has:
+        field: name
+        kind: identifier
+        regex: '^get_queryset$'
+    - has:
+        stopBy: end
+        kind: call
+        pattern: '$Q.filter($$$)'
+        has:
+          field: arguments
+          kind: argument_list
+          has:
+            kind: keyword_argument
+            all:
+            - has:
+                field: name
+                kind: identifier
+                regex: '(?i)^(tenant|tenant_?id|owner|owner_?id|user|user_?id|account|account_?id|org|org_?id|organization_?id|clinic|clinic_?id|practice_?id)$'
+            - not:
+                has:
+                  field: value
+                  any:
+                  - {kind: none}
+                  - {kind: 'true'}
+                  - {kind: 'false'}
+                  - {kind: integer}
+                  - {kind: float}
+                  - {kind: string}
+    - inside:
+        kind: class_definition
+        stopBy: end
+        has:
+          field: superclasses
+          kind: argument_list
+          regex: 'Manager|QuerySet'
+  - kind: class_definition
+    has:
+      field: superclasses
+      kind: argument_list
+      regex: '\b(TenantMixin|TenantModel|TenantModelMixin|TenantAwareModel)\b'
+  - kind: call
+    pattern: 'with_loader_criteria($$$)'
+    has:
+      field: arguments
+      kind: argument_list
+      has:
+        stopBy: end
+        kind: comparison_operator
+        regex: ==
+        all:
+        - has:
+            kind: attribute
+            regex: '(?i)\.(tenant|tenant_id|owner_id|user_id|account_id|org_id|organization_id|clinic_id)$'
+        - not:
+            has:
+              any:
+              - {kind: none}
+              - {kind: 'true'}
+              - {kind: 'false'}
+              - {kind: integer}
+              - {kind: float}
+              - {kind: string}
+  - kind: class_definition
+    has:
+      field: superclasses
+      kind: argument_list
+      regex: '\b(ModelSQL|models\.Model\b)'
+    inside:
+      kind: module
+      stopBy: end
+      has:
+        stopBy: end
+        any:
+        - kind: import_from_statement
+          regex: '^from\s+(trytond|odoo)\b'
+        - kind: import_statement
+          regex: '^import\s+(trytond|odoo)\b'
+min_engine: 0.39.0

@@ -1,0 +1,57 @@
+id: security-events-logged.php-generic.denial
+practice_id: security-events-logged
+language: php
+frameworks:
+- generic
+kind: items
+rule:
+  all:
+  - any:
+    - kind: expression_statement
+    - kind: return_statement
+  - has:
+      stopBy:
+        any:
+        - kind: compound_statement
+        - kind: anonymous_function
+      any:
+      - kind: object_creation_expression
+        regex: '^new\s+\\?([\w\\]*\\)?(AccessDeniedHttpException|AccessDeniedException|UnauthorizedHttpException|AuthorizationException)\b'
+      - kind: function_call_expression
+        regex: '(?-u)^(http_response_code|abort)\s*\(\s*40[13]\b'
+control:
+  all:
+  - any:
+    - kind: expression_statement
+    - kind: return_statement
+  - any:
+    - follows: &id001
+        kind: expression_statement
+        regex: '(?-u)^(\$this->)?[\w>\\:-]*(?i)(audit|security_?events?|log_?security|record_?security|log_?denied|record_?denied|log_?access_?denied)\w*\s*[(:]'
+        not:
+          any:
+          - kind: expression_statement
+            regex: '^[\w.:@>$-]*(?i)(skip|disable|without|bypass|noaudit|no_audit)'
+          - kind: expression_statement
+            regex: '^(?:await\s+)?[\w.$>:@-]*[.>:](find\w*|count\w*|aggregate|is\w+|set\w*|clear|remove\w*|disable\w*|toString|get\w*|exists\??)\s*[(\s]'
+    - follows:
+        any:
+        - &id002
+          kind: expression_statement
+        - &id003
+          kind: comment
+        - &id004
+          kind: if_statement
+        follows: *id001
+    - follows:
+        any:
+        - *id002
+        - *id003
+        - *id004
+        follows:
+          any:
+          - *id002
+          - *id003
+          - *id004
+          follows: *id001
+min_engine: 0.45.3

@@ -1,0 +1,76 @@
+{
+  "name": "custosa",
+  "version": "0.1.1",
+  "description": "The Custosa Labs CLI. Adds PHI Schema Check, its first product, to Claude Code, Codex, Cursor, VS Code, Antigravity and Gemini CLI with one command.",
+  "type": "module",
+  "bin": {
+    "custosa": "bin/custosa.mjs"
+  },
+  "files": [
+    "bin",
+    "lib",
+    "rules",
+    "README.md",
+    "npm-shrinkwrap.json"
+  ],
+  "engines": {
+    "node": ">=20.3"
+  },
+  "scripts": {
+    "pretest": "node scripts/check-pack.mjs && node scripts/check-ruleset.mjs --self",
+    "test": "node scripts/tmp-guard.mjs --import ./test/tmp-sandbox.mjs --test \"test/*.test.mjs\"",
+    "test:blackbox": "node scripts/test-blackbox.mjs",
+    "sync-rules": "node scripts/sync-rules.mjs",
+    "check-ruleset": "node scripts/check-ruleset.mjs",
+    "check-pack": "node scripts/check-pack.mjs",
+    "check-shipped-sql": "node scripts/check-shipped-sql.mjs",
+    "tools-list-hash": "node scripts/tools-list-hash.mjs",
+    "prepublishOnly": "node scripts/check-ruleset.mjs --self"
+  },
+  "homepage": "https://github.com/Custosa-Inc/custosa-labs-cli#readme",
+  "mcpName": "com.custosa/phi-schema-check",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Custosa-Inc/custosa-labs-cli.git"
+  },
+  "bugs": {
+    "url": "https://github.com/Custosa-Inc/custosa-labs-cli/issues"
+  },
+  "keywords": [
+    "mcp",
+    "hipaa",
+    "phi",
+    "claude-code",
+    "codex",
+    "cursor",
+    "vscode",
+    "gemini-cli",
+    "antigravity"
+  ],
+  "license": "Apache-2.0",
+  "dependencies": {
+    "@ast-grep/lang-go": "0.0.6",
+    "@ast-grep/lang-java": "0.0.7",
+    "@ast-grep/lang-json": "0.0.7",
+    "@ast-grep/lang-kotlin": "0.0.7",
+    "@ast-grep/lang-php": "0.0.7",
+    "@ast-grep/lang-python": "0.0.6",
+    "@ast-grep/lang-ruby": "0.0.7",
+    "@ast-grep/lang-yaml": "0.0.6",
+    "@ast-grep/napi": "0.45.3",
+    "@modelcontextprotocol/server": "2.3.1",
+    "ajv": "8.20.0",
+    "pg": "8.23.1",
+    "yaml": "2.9.1"
+  },
+  "overrides": {
+    "fast-uri": "3.1.9",
+    "jose": "6.2.12",
+    "readable-stream": "4.7.0",
+    "zod": "4.6.6"
+  },
+  "devDependencies": {
+    "@modelcontextprotocol/client": "2.3.1",
+    "isomorphic-git": "1.43.0"
+  }
+}

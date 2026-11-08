@@ -1,0 +1,130 @@
+# Supabase Realtime channels, one item each: .channel(name, ...) in a file that imports a Supabase client (an import
+# path naming supabase). The control is config: { private: true } at that key in the channel's options (Realtime
+# authorization on realtime.messages then decides who may join). A channel used only for postgres_changes also counts
+# as controlled: those rows follow the table's row-level security, which is for a person to check (the practice still
+# ends needs_review); a broadcast or presence use of the same channel, in the chain or on its variable anywhere in the
+# file (on, send with type broadcast, track), cancels that. A channel without private: true carrying broadcast or
+# presence is public. Pusher, Ably, socket.io, Phoenix and Laravel or Rails channels are left out.
+id: realtime-channels-authorized.tsx-generic.channel
+practice_id: realtime-channels-authorized
+language: tsx
+frameworks:
+- generic
+kind: items
+rule:
+  kind: call_expression
+  pattern: '$C.channel($$$)'
+  inside:
+    kind: program
+    stopBy: end
+    has:
+      kind: import_statement
+      regex: 'from\s+[''\"][^''\"]*supabase[^''\"]*[''\"]'
+control:
+  any:
+  - has:
+      field: arguments
+      kind: arguments
+      has:
+        kind: object
+        has:
+          kind: pair
+          all:
+          - has:
+              field: key
+              kind: property_identifier
+              regex: '^config$'
+          - has:
+              field: value
+              kind: object
+              has:
+                kind: pair
+                regex: '^private\s*:\s*true$'
+  - all:
+    - inside:
+        stopBy: end
+        kind: call_expression
+        all:
+        - has:
+            field: function
+            kind: member_expression
+            has:
+              field: property
+              kind: property_identifier
+              regex: '^on$'
+        - has:
+            field: arguments
+            kind: arguments
+            has:
+              kind: string
+              regex: '^[''"]postgres_changes[''"]$'
+    - not:
+        inside:
+          stopBy: end
+          kind: call_expression
+          all:
+          - has:
+              field: function
+              kind: member_expression
+              has:
+                field: property
+                kind: property_identifier
+                regex: '^on$'
+          - has:
+              field: arguments
+              kind: arguments
+              has:
+                kind: string
+                regex: '^[''"]broadcast[''"]$'
+    - not:
+        inside:
+          stopBy: end
+          kind: call_expression
+          all:
+          - has:
+              field: function
+              kind: member_expression
+              has:
+                field: property
+                kind: property_identifier
+                regex: '^on$'
+          - has:
+              field: arguments
+              kind: arguments
+              has:
+                kind: string
+                regex: '^[''"]presence[''"]$'
+    - not:
+        all:
+        - inside:
+            stopBy: end
+            kind: variable_declarator
+            pattern:
+              context: 'const $V = $X'
+              selector: variable_declarator
+        - inside:
+            kind: program
+            stopBy: end
+            has:
+              stopBy: end
+              kind: call_expression
+              any:
+              - all:
+                - pattern: '$V.on($E, $$$)'
+                - has:
+                    field: arguments
+                    kind: arguments
+                    has:
+                      kind: string
+                      regex: '^[''"](broadcast|presence)[''"]$'
+              - all:
+                - pattern: '$V.send($$$)'
+                - has:
+                    field: arguments
+                    kind: arguments
+                    has:
+                      stopBy: end
+                      kind: pair
+                      regex: '^type\s*:\s*[''\"]broadcast[''\"]$'
+              - pattern: '$V.track($$$)'
+min_engine: 0.39.0

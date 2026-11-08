@@ -1,0 +1,92 @@
+id: auth-login-throttling.go-generic.sign-in
+practice_id: auth-login-throttling
+language: go
+frameworks:
+- generic
+kind: items
+rule:
+  all:
+  - any:
+    - kind: function_declaration
+    - kind: method_declaration
+    - kind: func_literal
+  - has:
+      stopBy: end
+      any:
+      - kind: call_expression
+        regex: ^bcrypt\.CompareHashAndPassword\(|\.(VerifyPassword|CheckPassword|ComparePassword)\(
+control:
+  any:
+  - has:
+      field: body
+      has:
+        kind: statement_list
+        has:
+          any:
+          - kind: short_var_declaration
+            regex: (?i)((rate_?limit\w*|limiter|throttl\w*)\.(limit|consume|check|hit|attempt|try\w*)\(|\b(check|enforce|apply)\w*(rate_?limit|throttle|lockout)\w*\(|locked_?(at|until)\b|is_?locked|is_?locked_?out|lockout|\bis\w*blocked\w*\(|too_?many_?(login_?)?attempts|failed_?(login_?)?(attempts?|count|logins?)\s*>=?|max_?(failed_?)?(login_?)?attempts|(re)?captcha\w*\.?verify|verify\w*captcha|turnstile|check\w*failed\w*counter\(|RateLimiter::(tooManyAttempts|attempt)|ratelimit\.Allow|\.Allow\(\))
+          - kind: var_declaration
+            regex: (?i)((rate_?limit\w*|limiter|throttl\w*)\.(limit|consume|check|hit|attempt|try\w*)\(|\b(check|enforce|apply)\w*(rate_?limit|throttle|lockout)\w*\(|locked_?(at|until)\b|is_?locked|is_?locked_?out|lockout|\bis\w*blocked\w*\(|too_?many_?(login_?)?attempts|failed_?(login_?)?(attempts?|count|logins?)\s*>=?|max_?(failed_?)?(login_?)?attempts|(re)?captcha\w*\.?verify|verify\w*captcha|turnstile|check\w*failed\w*counter\(|RateLimiter::(tooManyAttempts|attempt)|ratelimit\.Allow|\.Allow\(\))
+          - kind: expression_statement
+            regex: (?i)((rate_?limit\w*|limiter|throttl\w*)\.(limit|consume|check|hit|attempt|try\w*)\(|\b(check|enforce|apply)\w*(rate_?limit|throttle|lockout)\w*\(|locked_?(at|until)\b|is_?locked|is_?locked_?out|lockout|\bis\w*blocked\w*\(|too_?many_?(login_?)?attempts|failed_?(login_?)?(attempts?|count|logins?)\s*>=?|max_?(failed_?)?(login_?)?attempts|(re)?captcha\w*\.?verify|verify\w*captcha|turnstile|check\w*failed\w*counter\(|RateLimiter::(tooManyAttempts|attempt)|ratelimit\.Allow|\.Allow\(\))
+          - kind: return_statement
+            regex: (?i)((rate_?limit\w*|limiter|throttl\w*)\.(limit|consume|check|hit|attempt|try\w*)\(|\b(check|enforce|apply)\w*(rate_?limit|throttle|lockout)\w*\(|locked_?(at|until)\b|is_?locked|is_?locked_?out|lockout|\bis\w*blocked\w*\(|too_?many_?(login_?)?attempts|failed_?(login_?)?(attempts?|count|logins?)\s*>=?|max_?(failed_?)?(login_?)?attempts|(re)?captcha\w*\.?verify|verify\w*captcha|turnstile|check\w*failed\w*counter\(|RateLimiter::(tooManyAttempts|attempt)|ratelimit\.Allow|\.Allow\(\))
+          - kind: if_statement
+            regex: (?i)((rate_?limit\w*|limiter|throttl\w*)\.(limit|consume|check|hit|attempt|try\w*)\(|\b(check|enforce|apply)\w*(rate_?limit|throttle|lockout)\w*\(|locked_?(at|until)\b|is_?locked|is_?locked_?out|lockout|\bis\w*blocked\w*\(|too_?many_?(login_?)?attempts|failed_?(login_?)?(attempts?|count|logins?)\s*>=?|max_?(failed_?)?(login_?)?attempts|(re)?captcha\w*\.?verify|verify\w*captcha|turnstile|check\w*failed\w*counter\(|RateLimiter::(tooManyAttempts|attempt)|ratelimit\.Allow|\.Allow\(\))
+          - kind: for_statement
+            regex: (?i)((rate_?limit\w*|limiter|throttl\w*)\.(limit|consume|check|hit|attempt|try\w*)\(|\b(check|enforce|apply)\w*(rate_?limit|throttle|lockout)\w*\(|locked_?(at|until)\b|is_?locked|is_?locked_?out|lockout|\bis\w*blocked\w*\(|too_?many_?(login_?)?attempts|failed_?(login_?)?(attempts?|count|logins?)\s*>=?|max_?(failed_?)?(login_?)?attempts|(re)?captcha\w*\.?verify|verify\w*captcha|turnstile|check\w*failed\w*counter\(|RateLimiter::(tooManyAttempts|attempt)|ratelimit\.Allow|\.Allow\(\))
+          - kind: assignment_statement
+            regex: (?i)((rate_?limit\w*|limiter|throttl\w*)\.(limit|consume|check|hit|attempt|try\w*)\(|\b(check|enforce|apply)\w*(rate_?limit|throttle|lockout)\w*\(|locked_?(at|until)\b|is_?locked|is_?locked_?out|lockout|\bis\w*blocked\w*\(|too_?many_?(login_?)?attempts|failed_?(login_?)?(attempts?|count|logins?)\s*>=?|max_?(failed_?)?(login_?)?attempts|(re)?captcha\w*\.?verify|verify\w*captcha|turnstile|check\w*failed\w*counter\(|RateLimiter::(tooManyAttempts|attempt)|ratelimit\.Allow|\.Allow\(\))
+          - kind: defer_statement
+            regex: (?i)((rate_?limit\w*|limiter|throttl\w*)\.(limit|consume|check|hit|attempt|try\w*)\(|\b(check|enforce|apply)\w*(rate_?limit|throttle|lockout)\w*\(|locked_?(at|until)\b|is_?locked|is_?locked_?out|lockout|\bis\w*blocked\w*\(|too_?many_?(login_?)?attempts|failed_?(login_?)?(attempts?|count|logins?)\s*>=?|max_?(failed_?)?(login_?)?attempts|(re)?captcha\w*\.?verify|verify\w*captcha|turnstile|check\w*failed\w*counter\(|RateLimiter::(tooManyAttempts|attempt)|ratelimit\.Allow|\.Allow\(\))
+          - kind: go_statement
+            regex: (?i)((rate_?limit\w*|limiter|throttl\w*)\.(limit|consume|check|hit|attempt|try\w*)\(|\b(check|enforce|apply)\w*(rate_?limit|throttle|lockout)\w*\(|locked_?(at|until)\b|is_?locked|is_?locked_?out|lockout|\bis\w*blocked\w*\(|too_?many_?(login_?)?attempts|failed_?(login_?)?(attempts?|count|logins?)\s*>=?|max_?(failed_?)?(login_?)?attempts|(re)?captcha\w*\.?verify|verify\w*captcha|turnstile|check\w*failed\w*counter\(|RateLimiter::(tooManyAttempts|attempt)|ratelimit\.Allow|\.Allow\(\))
+          - kind: expression_switch_statement
+            regex: (?i)((rate_?limit\w*|limiter|throttl\w*)\.(limit|consume|check|hit|attempt|try\w*)\(|\b(check|enforce|apply)\w*(rate_?limit|throttle|lockout)\w*\(|locked_?(at|until)\b|is_?locked|is_?locked_?out|lockout|\bis\w*blocked\w*\(|too_?many_?(login_?)?attempts|failed_?(login_?)?(attempts?|count|logins?)\s*>=?|max_?(failed_?)?(login_?)?attempts|(re)?captcha\w*\.?verify|verify\w*captcha|turnstile|check\w*failed\w*counter\(|RateLimiter::(tooManyAttempts|attempt)|ratelimit\.Allow|\.Allow\(\))
+min_engine: 0.39.0
+---
+id: auth-login-throttling.go-generic.failure-record
+practice_id: auth-login-throttling
+language: go
+frameworks:
+- generic
+kind: evidence
+rule:
+  all:
+  - all:
+    - any:
+      - kind: function_declaration
+      - kind: method_declaration
+      - kind: func_literal
+    - has:
+        stopBy: end
+        any:
+        - kind: call_expression
+          regex: ^bcrypt\.CompareHashAndPassword\(|\.(VerifyPassword|CheckPassword|ComparePassword)\(
+  - has:
+      field: body
+      has:
+        kind: statement_list
+        has:
+          any:
+          - kind: short_var_declaration
+            regex: (?i)(failed_?login|login_?failed|LoginFailed|loginFailure|auth(entication)?_?fail\w*|failed_?attempts?\s*(\+\+|\+=|=\s*\w+\s*\+\s*1)|increment\w*\(\s*['\"]failed)
+          - kind: var_declaration
+            regex: (?i)(failed_?login|login_?failed|LoginFailed|loginFailure|auth(entication)?_?fail\w*|failed_?attempts?\s*(\+\+|\+=|=\s*\w+\s*\+\s*1)|increment\w*\(\s*['\"]failed)
+          - kind: expression_statement
+            regex: (?i)(failed_?login|login_?failed|LoginFailed|loginFailure|auth(entication)?_?fail\w*|failed_?attempts?\s*(\+\+|\+=|=\s*\w+\s*\+\s*1)|increment\w*\(\s*['\"]failed)
+          - kind: return_statement
+            regex: (?i)(failed_?login|login_?failed|LoginFailed|loginFailure|auth(entication)?_?fail\w*|failed_?attempts?\s*(\+\+|\+=|=\s*\w+\s*\+\s*1)|increment\w*\(\s*['\"]failed)
+          - kind: if_statement
+            regex: (?i)(failed_?login|login_?failed|LoginFailed|loginFailure|auth(entication)?_?fail\w*|failed_?attempts?\s*(\+\+|\+=|=\s*\w+\s*\+\s*1)|increment\w*\(\s*['\"]failed)
+          - kind: for_statement
+            regex: (?i)(failed_?login|login_?failed|LoginFailed|loginFailure|auth(entication)?_?fail\w*|failed_?attempts?\s*(\+\+|\+=|=\s*\w+\s*\+\s*1)|increment\w*\(\s*['\"]failed)
+          - kind: assignment_statement
+            regex: (?i)(failed_?login|login_?failed|LoginFailed|loginFailure|auth(entication)?_?fail\w*|failed_?attempts?\s*(\+\+|\+=|=\s*\w+\s*\+\s*1)|increment\w*\(\s*['\"]failed)
+          - kind: defer_statement
+            regex: (?i)(failed_?login|login_?failed|LoginFailed|loginFailure|auth(entication)?_?fail\w*|failed_?attempts?\s*(\+\+|\+=|=\s*\w+\s*\+\s*1)|increment\w*\(\s*['\"]failed)
+          - kind: go_statement
+            regex: (?i)(failed_?login|login_?failed|LoginFailed|loginFailure|auth(entication)?_?fail\w*|failed_?attempts?\s*(\+\+|\+=|=\s*\w+\s*\+\s*1)|increment\w*\(\s*['\"]failed)
+          - kind: expression_switch_statement
+            regex: (?i)(failed_?login|login_?failed|LoginFailed|loginFailure|auth(entication)?_?fail\w*|failed_?attempts?\s*(\+\+|\+=|=\s*\w+\s*\+\s*1)|increment\w*\(\s*['\"]failed)
+min_engine: 0.39.0

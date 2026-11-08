@@ -1,0 +1,67 @@
+id: security-events-logged.java-generic.denial
+practice_id: security-events-logged
+language: java
+frameworks:
+- generic
+kind: items
+rule:
+  all:
+  - any:
+    - kind: throw_statement
+    - kind: return_statement
+    - kind: expression_statement
+  - has:
+      stopBy:
+        any:
+        - kind: block
+        - kind: lambda_expression
+      any:
+      - kind: object_creation_expression
+        regex: '^new\s+(AccessDeniedException|ForbiddenException|NotAuthorizedException|AuthorizationDeniedException|ResponseStatusException\s*\(\s*HttpStatus\.(FORBIDDEN|UNAUTHORIZED))'
+      - kind: method_invocation
+        regex: '(?-u)(HttpStatus\.(FORBIDDEN|UNAUTHORIZED)|SC_FORBIDDEN|SC_UNAUTHORIZED|sendError\s*\(\s*40[13]\b|status\s*\(\s*40[13]\b)'
+control:
+  all:
+  - any:
+    - kind: throw_statement
+    - kind: return_statement
+    - kind: expression_statement
+  - any:
+    - follows: &id001
+        kind: expression_statement
+        regex: '^(this\.)?[\w.]*(?i)(audit|security_?events?|log_?security|record_?security|log_?denied|record_?denied|log_?access_?denied)\w*\s*[.(]'
+        not:
+          any:
+          - kind: expression_statement
+            regex: '^[\w.:@>$-]*(?i)(skip|disable|without|bypass|noaudit|no_audit)'
+          - kind: expression_statement
+            regex: '^(?:await\s+)?[\w.$>:@-]*[.>:](find\w*|count\w*|aggregate|is\w+|set\w*|clear|remove\w*|disable\w*|toString|get\w*|exists\??)\s*[(\s]'
+    - follows:
+        any:
+        - &id002
+          kind: expression_statement
+        - &id003
+          kind: line_comment
+        - &id004
+          kind: block_comment
+        - &id005
+          kind: local_variable_declaration
+        - &id006
+          kind: if_statement
+        follows: *id001
+    - follows:
+        any:
+        - *id002
+        - *id003
+        - *id004
+        - *id005
+        - *id006
+        follows:
+          any:
+          - *id002
+          - *id003
+          - *id004
+          - *id005
+          - *id006
+          follows: *id001
+min_engine: 0.45.3

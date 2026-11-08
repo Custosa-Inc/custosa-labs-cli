@@ -1,0 +1,121 @@
+id: password-encoder-slow-hash.ruby-rails.slow-hash
+practice_id: password-encoder-slow-hash
+language: ruby
+frameworks: [rails]
+kind: evidence
+rule:
+  any:
+    - all:
+        - kind: identifier
+        - regex: '^has_secure_password$'
+        - inside:
+            kind: class
+            stopBy: end
+    - all:
+        - kind: call
+        - has:
+            field: method
+            kind: identifier
+            regex: '^has_secure_password$'
+    - all:
+        - kind: call
+        - has:
+            field: method
+            kind: identifier
+            regex: '^devise$'
+        - has:
+            field: arguments
+            has:
+              kind: simple_symbol
+              regex: '^:database_authenticatable$'
+    - all:
+        - any:
+            - pattern: BCrypt::Password.create($$$)
+            - pattern: BCrypt::Password.new($$$)
+        - not:
+            has:
+              field: arguments
+              has:
+                kind: pair
+                regex: '^cost:\s*[0-9]$'
+min_engine: 0.39.0
+---
+id: password-encoder-slow-hash.ruby-rails.fast-hash
+practice_id: password-encoder-slow-hash
+language: ruby
+frameworks: [rails]
+kind: violation
+rule:
+  all:
+    - any:
+        - pattern: Digest::MD5.hexdigest($$$)
+        - pattern: Digest::MD5.digest($$$)
+        - pattern: Digest::SHA1.hexdigest($$$)
+        - pattern: Digest::SHA1.digest($$$)
+        - pattern: Digest::SHA256.hexdigest($$$)
+        - pattern: Digest::SHA256.digest($$$)
+        - pattern: Digest::SHA512.hexdigest($$$)
+        - pattern: Digest::SHA512.digest($$$)
+    - has:
+        field: arguments
+        stopBy: end
+        any:
+          - kind: identifier
+            regex: '(?i)^(pass|pwd|passwd|password|passphrase|(new|plain|raw|old|current|user|admin)_?pass(word)?)$'
+          - kind: simple_symbol
+            regex: '(?i)^:(pass|pwd|passwd|password)$'
+min_engine: 0.39.0
+---
+id: password-encoder-slow-hash.ruby-rails.low-cost
+practice_id: password-encoder-slow-hash
+language: ruby
+frameworks: [rails]
+kind: violation
+rule:
+  all:
+    - pattern: BCrypt::Password.create($$$)
+    - has:
+        field: arguments
+        has:
+          kind: pair
+          regex: '^cost:\s*[0-9]$'
+min_engine: 0.39.0
+---
+id: password-encoder-slow-hash.ruby-rails.plain-compare
+practice_id: password-encoder-slow-hash
+language: ruby
+frameworks: [rails]
+kind: violation
+rule:
+  all:
+    - kind: binary
+    - regex: '^\S+\s*(==|!=)\s*\S+$'
+    - has:
+        field: left
+        any:
+          - kind: identifier
+            regex: '(?i)^(pass|pwd|passwd|password|passphrase)$'
+          - kind: call
+            has:
+              field: method
+              kind: identifier
+              regex: '(?i)^(pass|pwd|passwd|password|passphrase)$'
+          - kind: element_reference
+            has:
+              kind: simple_symbol
+              regex: '(?i)^:(pass|pwd|passwd|password)$'
+    - has:
+        field: right
+        any:
+          - kind: identifier
+            regex: '(?i)^(pass|pwd|passwd|password|passphrase)$'
+          - kind: call
+            has:
+              field: method
+              kind: identifier
+              regex: '(?i)^(pass|pwd|passwd|password|passphrase)$'
+          - kind: element_reference
+            has:
+              kind: simple_symbol
+              regex: '(?i)^:(pass|pwd|passwd|password)$'
+min_engine: 0.39.0

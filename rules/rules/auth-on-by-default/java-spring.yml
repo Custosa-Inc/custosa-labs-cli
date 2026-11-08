@@ -1,0 +1,443 @@
+# Auth that a missing setting turns off (T23 B56d). Written by
+# scripts/gen_auth_default_rules.py: don't edit. The practice is capped at needs_review.
+id: auth-on-by-default.java-spring.conditional-open-default
+practice_id: auth-on-by-default
+language: java
+frameworks:
+- spring
+kind: violation
+rule:
+  any:
+  - kind: class_declaration
+    all:
+    - &id005
+      has:
+        kind: modifiers
+        has:
+          kind: annotation
+          regex: (?s)^@ConditionalOnProperty\b.*\bmatchIfMissing\s*=\s*true\b
+    - &id006
+      any:
+      - has:
+          stopBy: end
+          kind: method_invocation
+          regex: anyRequest\s*\(\s*\)\s*\.\s*permitAll\s*\(|authorize\s*\(\s*anyRequest\s*,\s*permitAll\s*\)|anyRequest\s*\(\s*\)\s*\.\s*anonymous\s*\(|requestMatchers\s*\(\s*\"/\*\*\"\s*\)\s*\.\s*permitAll\s*\(|authorize\s*\(\s*\"/\*\*\"\s*,\s*permitAll\s*\)|ignoring\s*\(\s*\)\s*\.\s*anyRequest\s*\(|ignoring\s*\(\s*\)\s*\.\s*(requestMatchers|antMatchers|mvcMatchers)\s*\(\s*\"/\*\*\"\s*\)
+      - any:
+        - kind: method_declaration
+          all:
+          - any:
+            - has:
+                field: type
+                any:
+                - kind: type_identifier
+                  regex: (^|\.)\w*(SecurityFilterChain|HttpSecurity|SecurityWebFilterChain)$
+                - kind: scoped_type_identifier
+                  regex: (^|\.)\w*(SecurityFilterChain|HttpSecurity|SecurityWebFilterChain)$
+            - all:
+              - has:
+                  field: name
+                  kind: identifier
+                  regex: ^configure$
+              - &id001
+                has:
+                  field: parameters
+                  kind: formal_parameters
+                  has:
+                    kind: formal_parameter
+                    all:
+                    - has:
+                        field: type
+                        any:
+                        - kind: type_identifier
+                          regex: (^|\.)(Server)?HttpSecurity$
+                        - kind: scoped_type_identifier
+                          regex: (^|\.)(Server)?HttpSecurity$
+                    - pattern:
+                        context: class A { void f($_T $HTTP) {} }
+                        selector: formal_parameter
+            - all:
+              - *id001
+              - any:
+                - has:
+                    stopBy: end
+                    kind: method_invocation
+                    regex: \.\s*build\s*\(\s*\)$
+                    any:
+                    - pattern: $HTTP.build()
+                    - has:
+                        stopBy: end
+                        kind: method_invocation
+                        pattern: $HTTP.$_M($$$)
+                - all:
+                  - has:
+                      stopBy: end
+                      kind: method_invocation
+                      regex: \.\s*build\s*\(\s*\)$
+                      any:
+                      - pattern: $LOCAL.build()
+                      - has:
+                          stopBy: end
+                          kind: method_invocation
+                          pattern: $LOCAL.$_M($$$)
+                  - has:
+                      stopBy: end
+                      kind: variable_declarator
+                      any:
+                      - pattern:
+                          context: class A { void f() { $_T $LOCAL = $HTTP; } }
+                          selector: variable_declarator
+                      - pattern:
+                          context: class A { void f() { $_T $LOCAL = $V; } }
+                          selector: variable_declarator
+                        has:
+                          field: value
+                          any:
+                          - kind: method_invocation
+                            pattern: $HTTP.$_M($$$)
+                          - has:
+                              stopBy: end
+                              kind: method_invocation
+                              pattern: $HTTP.$_M($$$)
+                - has:
+                    kind: modifiers
+                    has:
+                      any:
+                      - kind: marker_annotation
+                        regex: ^@Bean\b
+                      - kind: annotation
+                        regex: ^@Bean\b
+          - &id004
+            not:
+              has:
+                stopBy: end
+                kind: method_invocation
+                regex: \.\s*authenticated\s*\(|authorize\s*\(\s*anyRequest\s*,\s*authenticated\s*\)|\.\s*(fullyAuthenticated|hasRole|hasAnyRole|hasAuthority|hasAnyAuthority|access)\s*\(|authorize\s*\([^)]*,\s*(authenticated|fullyAuthenticated|hasRole|hasAnyRole|hasAuthority|hasAnyAuthority)\b
+                any:
+                - has: &id002
+                    field: name
+                    kind: identifier
+                    regex: ^authorize\w*$
+                - inside:
+                    stopBy: end
+                    kind: method_invocation
+                    has: *id002
+                - has:
+                    stopBy: end
+                    kind: method_invocation
+                    has: *id002
+        - has:
+            stopBy: end
+            kind: method_declaration
+            all:
+            - any:
+              - has:
+                  field: type
+                  any:
+                  - kind: type_identifier
+                    regex: (^|\.)\w*(SecurityFilterChain|HttpSecurity|SecurityWebFilterChain)$
+                  - kind: scoped_type_identifier
+                    regex: (^|\.)\w*(SecurityFilterChain|HttpSecurity|SecurityWebFilterChain)$
+              - all:
+                - has:
+                    field: name
+                    kind: identifier
+                    regex: ^configure$
+                - &id003
+                  has:
+                    field: parameters
+                    kind: formal_parameters
+                    has:
+                      kind: formal_parameter
+                      all:
+                      - has:
+                          field: type
+                          any:
+                          - kind: type_identifier
+                            regex: (^|\.)(Server)?HttpSecurity$
+                          - kind: scoped_type_identifier
+                            regex: (^|\.)(Server)?HttpSecurity$
+                      - pattern:
+                          context: class A { void f($_T $HTTP) {} }
+                          selector: formal_parameter
+              - all:
+                - *id003
+                - any:
+                  - has:
+                      stopBy: end
+                      kind: method_invocation
+                      regex: \.\s*build\s*\(\s*\)$
+                      any:
+                      - pattern: $HTTP.build()
+                      - has:
+                          stopBy: end
+                          kind: method_invocation
+                          pattern: $HTTP.$_M($$$)
+                  - all:
+                    - has:
+                        stopBy: end
+                        kind: method_invocation
+                        regex: \.\s*build\s*\(\s*\)$
+                        any:
+                        - pattern: $LOCAL.build()
+                        - has:
+                            stopBy: end
+                            kind: method_invocation
+                            pattern: $LOCAL.$_M($$$)
+                    - has:
+                        stopBy: end
+                        kind: variable_declarator
+                        any:
+                        - pattern:
+                            context: class A { void f() { $_T $LOCAL = $HTTP; } }
+                            selector: variable_declarator
+                        - pattern:
+                            context: class A { void f() { $_T $LOCAL = $V; } }
+                            selector: variable_declarator
+                          has:
+                            field: value
+                            any:
+                            - kind: method_invocation
+                              pattern: $HTTP.$_M($$$)
+                            - has:
+                                stopBy: end
+                                kind: method_invocation
+                                pattern: $HTTP.$_M($$$)
+                  - has:
+                      kind: modifiers
+                      has:
+                        any:
+                        - kind: marker_annotation
+                          regex: ^@Bean\b
+                        - kind: annotation
+                          regex: ^@Bean\b
+            - *id004
+  - kind: method_declaration
+    all:
+    - *id005
+    - *id006
+min_engine: 0.39.0
+---
+id: auth-on-by-default.java-spring.conditional-secure-off
+practice_id: auth-on-by-default
+language: java
+frameworks:
+- spring
+kind: violation
+rule:
+  any:
+  - kind: class_declaration
+    all:
+    - &id006
+      any:
+      - has:
+          kind: modifiers
+          has:
+            kind: annotation
+            regex: (?s)^@ConditionalOnProperty\b.*\bhavingValue\s*=\s*\"(?i:true|on|yes|1|enabled)\"
+            not: &id001
+              regex: (?s)^@ConditionalOnProperty\b.*\bmatchIfMissing\s*=\s*true\b
+              kind: annotation
+      - has:
+          kind: modifiers
+          has:
+            kind: annotation
+            regex: ^@ConditionalOnProperty\b
+            all:
+            - not: *id001
+            - not:
+                regex: \bhavingValue\b
+                kind: annotation
+    - &id007
+      any:
+      - kind: method_declaration
+        all:
+        - any:
+          - has:
+              field: type
+              any:
+              - kind: type_identifier
+                regex: (^|\.)\w*(SecurityFilterChain|HttpSecurity|SecurityWebFilterChain)$
+              - kind: scoped_type_identifier
+                regex: (^|\.)\w*(SecurityFilterChain|HttpSecurity|SecurityWebFilterChain)$
+          - all:
+            - has:
+                field: name
+                kind: identifier
+                regex: ^configure$
+            - &id002
+              has:
+                field: parameters
+                kind: formal_parameters
+                has:
+                  kind: formal_parameter
+                  all:
+                  - has:
+                      field: type
+                      any:
+                      - kind: type_identifier
+                        regex: (^|\.)(Server)?HttpSecurity$
+                      - kind: scoped_type_identifier
+                        regex: (^|\.)(Server)?HttpSecurity$
+                  - pattern:
+                      context: class A { void f($_T $HTTP) {} }
+                      selector: formal_parameter
+          - all:
+            - *id002
+            - any:
+              - has:
+                  stopBy: end
+                  kind: method_invocation
+                  regex: \.\s*build\s*\(\s*\)$
+                  any:
+                  - pattern: $HTTP.build()
+                  - has:
+                      stopBy: end
+                      kind: method_invocation
+                      pattern: $HTTP.$_M($$$)
+              - all:
+                - has:
+                    stopBy: end
+                    kind: method_invocation
+                    regex: \.\s*build\s*\(\s*\)$
+                    any:
+                    - pattern: $LOCAL.build()
+                    - has:
+                        stopBy: end
+                        kind: method_invocation
+                        pattern: $LOCAL.$_M($$$)
+                - has:
+                    stopBy: end
+                    kind: variable_declarator
+                    any:
+                    - pattern:
+                        context: class A { void f() { $_T $LOCAL = $HTTP; } }
+                        selector: variable_declarator
+                    - pattern:
+                        context: class A { void f() { $_T $LOCAL = $V; } }
+                        selector: variable_declarator
+                      has:
+                        field: value
+                        any:
+                        - kind: method_invocation
+                          pattern: $HTTP.$_M($$$)
+                        - has:
+                            stopBy: end
+                            kind: method_invocation
+                            pattern: $HTTP.$_M($$$)
+              - has:
+                  kind: modifiers
+                  has:
+                    any:
+                    - kind: marker_annotation
+                      regex: ^@Bean\b
+                    - kind: annotation
+                      regex: ^@Bean\b
+        - &id005
+          has:
+            stopBy: end
+            kind: method_invocation
+            regex: \.\s*authenticated\s*\(|authorize\s*\(\s*anyRequest\s*,\s*authenticated\s*\)|\.\s*(fullyAuthenticated|hasRole|hasAnyRole|hasAuthority|hasAnyAuthority|access)\s*\(|authorize\s*\([^)]*,\s*(authenticated|fullyAuthenticated|hasRole|hasAnyRole|hasAuthority|hasAnyAuthority)\b
+            any:
+            - has: &id003
+                field: name
+                kind: identifier
+                regex: ^authorize\w*$
+            - inside:
+                stopBy: end
+                kind: method_invocation
+                has: *id003
+            - has:
+                stopBy: end
+                kind: method_invocation
+                has: *id003
+      - has:
+          stopBy: end
+          kind: method_declaration
+          all:
+          - any:
+            - has:
+                field: type
+                any:
+                - kind: type_identifier
+                  regex: (^|\.)\w*(SecurityFilterChain|HttpSecurity|SecurityWebFilterChain)$
+                - kind: scoped_type_identifier
+                  regex: (^|\.)\w*(SecurityFilterChain|HttpSecurity|SecurityWebFilterChain)$
+            - all:
+              - has:
+                  field: name
+                  kind: identifier
+                  regex: ^configure$
+              - &id004
+                has:
+                  field: parameters
+                  kind: formal_parameters
+                  has:
+                    kind: formal_parameter
+                    all:
+                    - has:
+                        field: type
+                        any:
+                        - kind: type_identifier
+                          regex: (^|\.)(Server)?HttpSecurity$
+                        - kind: scoped_type_identifier
+                          regex: (^|\.)(Server)?HttpSecurity$
+                    - pattern:
+                        context: class A { void f($_T $HTTP) {} }
+                        selector: formal_parameter
+            - all:
+              - *id004
+              - any:
+                - has:
+                    stopBy: end
+                    kind: method_invocation
+                    regex: \.\s*build\s*\(\s*\)$
+                    any:
+                    - pattern: $HTTP.build()
+                    - has:
+                        stopBy: end
+                        kind: method_invocation
+                        pattern: $HTTP.$_M($$$)
+                - all:
+                  - has:
+                      stopBy: end
+                      kind: method_invocation
+                      regex: \.\s*build\s*\(\s*\)$
+                      any:
+                      - pattern: $LOCAL.build()
+                      - has:
+                          stopBy: end
+                          kind: method_invocation
+                          pattern: $LOCAL.$_M($$$)
+                  - has:
+                      stopBy: end
+                      kind: variable_declarator
+                      any:
+                      - pattern:
+                          context: class A { void f() { $_T $LOCAL = $HTTP; } }
+                          selector: variable_declarator
+                      - pattern:
+                          context: class A { void f() { $_T $LOCAL = $V; } }
+                          selector: variable_declarator
+                        has:
+                          field: value
+                          any:
+                          - kind: method_invocation
+                            pattern: $HTTP.$_M($$$)
+                          - has:
+                              stopBy: end
+                              kind: method_invocation
+                              pattern: $HTTP.$_M($$$)
+                - has:
+                    kind: modifiers
+                    has:
+                      any:
+                      - kind: marker_annotation
+                        regex: ^@Bean\b
+                      - kind: annotation
+                        regex: ^@Bean\b
+          - *id005
+  - kind: method_declaration
+    all:
+    - *id006
+    - *id007
+min_engine: 0.39.0

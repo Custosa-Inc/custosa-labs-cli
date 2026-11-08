@@ -1,0 +1,105 @@
+# phi-responses-not-cached (T23 B34, design v3 2.2.6, docs/b34-plan.md). Written by scripts/gen_nocache_rules.py:
+# edit that script, never this file. The rule id's last part is the form (items-handler, unobserved-header,
+# violation-shared, static-page). unobserved-header matches the items-handler node itself, so judge holds that item
+# at its own path and line.
+
+# items-handler: a route handler whose body makes a data call. The control is a literal Cache-Control value holding
+# no-store (also no_store or cache_control[:no_store] = true; expires_in or fresh_when with public: true,
+# http_cache_forever or cache_control[:public] = true are shared). No control: fail, unless unobserved-header holds
+# it.
+id: phi-responses-not-cached.ruby-rails.items-handler
+practice_id: phi-responses-not-cached
+language: ruby
+frameworks:
+- rails
+kind: items
+rule:
+  all:
+  - kind: method
+    inside:
+      kind: class
+      stopBy: end
+      has:
+        field: name
+        kind: constant
+        regex: Controller$
+  - any:
+    - kind: method
+      regex: \b[A-Z]\w*\.(create|find|find_by|find_or_create_by|where|update|update_all|insert|insert_all|upsert|upsert_all|destroy|destroy_all|delete|delete_all)\b
+control:
+  any:
+  - any:
+    - kind: method
+      regex: (?is)(['"]cache-control['"]\s*\]\s*=|\bset_header\(\s*['"]cache-control['"]\s*,|\bheaders\s*\.\s*merge!\s*\(\s*\{?\s*['"]cache-control['"]\s*=>)\s*['"][^'"]*no-store
+  - any:
+    - kind: method
+      regex: (?m)^\s*no_store\b|\bcache_control\s*\[\s*:no_store\s*\]\s*=\s*true
+min_engine: 0.39.0
+---
+# unobserved-header: the same handler when it writes no literal Cache-Control (also no_store or
+# cache_control[:no_store] = true; expires_in or fresh_when with public: true, http_cache_forever or
+# cache_control[:public] = true are shared). The header may be set by middleware, a framework default or a CDN rule
+# elsewhere, so the item is held for a person.
+id: phi-responses-not-cached.ruby-rails.unobserved-header
+practice_id: phi-responses-not-cached
+language: ruby
+frameworks:
+- rails
+kind: evidence
+rule:
+  all:
+  - kind: method
+    inside:
+      kind: class
+      stopBy: end
+      has:
+        field: name
+        kind: constant
+        regex: Controller$
+  - any:
+    - kind: method
+      regex: \b[A-Z]\w*\.(create|find|find_by|find_or_create_by|where|update|update_all|insert|insert_all|upsert|upsert_all|destroy|destroy_all|delete|delete_all)\b
+  - all:
+    - not:
+        any:
+        - kind: method
+          regex: (?is)(['"]cache-control['"]\s*\]\s*=|\bset_header\(\s*['"]cache-control['"]\s*,|\bheaders\s*\.\s*merge!\s*\(\s*\{?\s*['"]cache-control['"]\s*=>)\s*['"]
+    - not:
+        any:
+        - kind: method
+          regex: \b(no_store|expires_in|expires_now|http_cache_forever|fresh_when|stale\?)|\bcache_control\s*\[
+min_engine: 0.39.0
+---
+# violation-shared: a data handler in a file that holds, anywhere, a literal Cache-Control with public, s-maxage or
+# stale-while-revalidate, or the framework's shared-cache form (also no_store or cache_control[:no_store] = true;
+# expires_in or fresh_when with public: true, http_cache_forever or cache_control[:public] = true are shared): a
+# shared cache may keep it, whatever middleware sends (T23-P1-C142). Fail.
+id: phi-responses-not-cached.ruby-rails.violation-shared
+practice_id: phi-responses-not-cached
+language: ruby
+frameworks:
+- rails
+kind: violation
+rule:
+  all:
+  - kind: method
+    inside:
+      kind: class
+      stopBy: end
+      has:
+        field: name
+        kind: constant
+        regex: Controller$
+  - any:
+    - kind: method
+      regex: \b[A-Z]\w*\.(create|find|find_by|find_or_create_by|where|update|update_all|insert|insert_all|upsert|upsert_all|destroy|destroy_all|delete|delete_all)\b
+  - any:
+    - inside:
+        stopBy: end
+        kind: program
+        regex: (?is)(['"]cache-control['"]\s*\]\s*=|\bset_header\(\s*['"]cache-control['"]\s*,|\bheaders\s*\.\s*merge!\s*\(\s*\{?\s*['"]cache-control['"]\s*=>)\s*['"][^'"]*(public|s-maxage|stale-while-revalidate)
+    - inside:
+        stopBy: end
+        kind: program
+        regex: \bhttp_cache_forever\b|\b(expires_in|fresh_when|stale\?)\b[^\n]*\bpublic:\s*true|\bcache_control\s*\[\s*:public\s*\]\s*=\s*true
+min_engine: 0.39.0

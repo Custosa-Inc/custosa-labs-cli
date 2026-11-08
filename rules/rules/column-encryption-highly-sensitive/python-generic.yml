@@ -1,0 +1,31 @@
+id: column-encryption-highly-sensitive.python-generic.app-encryption
+practice_id: column-encryption-highly-sensitive
+language: python
+frameworks:
+- generic
+kind: evidence
+rule:
+  any:
+  - kind: call
+    regex: ^(AESGCM|ChaCha20Poly1305|AESSIV|Fernet|MultiFernet)\(
+  - kind: call
+    regex: ^AES\.new\([^)]*AES\.MODE_(GCM|SIV|EAX|OCB)
+  - kind: call
+    regex: ^(Encrypted(Char|Text|Email|Integer|Date)Field|EncryptedType|StringEncryptedType)\(
+min_engine: 0.39.0
+---
+id: column-encryption-highly-sensitive.python-generic.weak-cipher
+practice_id: column-encryption-highly-sensitive
+language: python
+frameworks:
+- generic
+kind: violation
+rule:
+  any:
+  - kind: call
+    regex: ^AES\.new\([^)]*AES\.MODE_ECB
+  - kind: call
+    regex: ^(DES|DES3|ARC4|Blowfish)\.new\(
+  - kind: call
+    regex: modes\.ECB\(
+min_engine: 0.39.0

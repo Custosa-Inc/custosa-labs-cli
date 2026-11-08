@@ -1,0 +1,39 @@
+id: password-encoder-slow-hash.python-django.django-hasher
+practice_id: password-encoder-slow-hash
+language: python
+frameworks: [django]
+kind: evidence
+rule:
+  all:
+    - any:
+        - pattern: make_password($PW)
+        - pattern: check_password($PW, $HASH)
+        - pattern: $USER.set_password($PW)
+        - pattern: $USER.check_password($PW)
+min_engine: 0.39.0
+---
+id: password-encoder-slow-hash.python-django.weak-hasher
+practice_id: password-encoder-slow-hash
+language: python
+frameworks: [django]
+kind: violation
+rule:
+  any:
+    - all:
+        - kind: assignment
+        - has:
+            field: left
+            kind: identifier
+            regex: '^PASSWORD_HASHERS$'
+        - has:
+            field: right
+            kind: list
+            regex: '^\[\s*[''"]django\.contrib\.auth\.hashers\.(MD5|SHA1|UnsaltedMD5|UnsaltedSHA1|Crypt)PasswordHasher'
+    - all:
+        - pattern: make_password($$$)
+        - has:
+            field: arguments
+            has:
+              kind: keyword_argument
+              regex: '^hasher\s*=\s*[''"](md5|sha1|unsalted_md5|unsalted_sha1|crypt)[''"]$'
+min_engine: 0.39.0

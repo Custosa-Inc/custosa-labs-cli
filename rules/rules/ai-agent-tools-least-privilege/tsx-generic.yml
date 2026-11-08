@@ -1,0 +1,329 @@
+id: ai-agent-tools-least-privilege.tsx-generic.tool-definition
+practice_id: ai-agent-tools-least-privilege
+language: tsx
+frameworks:
+- generic
+kind: items
+rule:
+  any:
+  - all:
+    - kind: call_expression
+    - has:
+        field: function
+        kind: identifier
+        regex: '^(tool|createTool|dynamicTool)$'
+    - has:
+        field: arguments
+        kind: arguments
+        has:
+          kind: object
+          has:
+            any:
+            - kind: pair
+              all:
+              - has:
+                  field: key
+                  kind: property_identifier
+                  regex: '^execute$'
+              - has:
+                  field: value
+                  any:
+                  - &id001
+                    kind: arrow_function
+                  - &id002
+                    kind: function_expression
+            - kind: method_definition
+              has:
+                field: name
+                kind: property_identifier
+                regex: '^execute$'
+  - all:
+    - kind: call_expression
+    - has:
+        field: function
+        kind: member_expression
+        regex: '^(server|mcp|mcpServer|this\.server)\.(tool|registerTool)$'
+    - has:
+        field: arguments
+        kind: arguments
+        has:
+          any:
+          - *id001
+          - *id002
+  - all:
+    - kind: new_expression
+    - has:
+        field: constructor
+        kind: identifier
+        regex: '^(DynamicStructuredTool|DynamicTool)$'
+control:
+  all:
+  - any:
+    - kind: call_expression
+    - kind: new_expression
+  - not:
+      has:
+        stopBy: end
+        any:
+        - kind: member_expression
+          regex: '(SUPABASE_SERVICE_ROLE_KEY|SERVICE_ROLE_KEY|SUPABASE_SECRET_KEY)$'
+        - kind: identifier
+          regex: '^(supabaseAdmin|adminClient|serviceClient|serviceRoleClient|adminDb|supabaseService)$'
+        - kind: call_expression
+          has:
+            field: function
+            kind: identifier
+            regex: '^(createAdminClient|createServiceClient|createServiceRoleClient|getAdminClient|eval|exec|execSync|spawn)$'
+        - kind: call_expression
+          has:
+            field: function
+            kind: member_expression
+            regex: '\.(\$queryRawUnsafe|\$executeRawUnsafe|exec|execSync)$'
+  - not:
+      all:
+      - inside:
+          stopBy: end
+          any:
+          - kind: program
+          - kind: statement_block
+          has:
+            any:
+            - kind: lexical_declaration
+            - kind: variable_declaration
+            has:
+              kind: variable_declarator
+              all:
+              - pattern:
+                  context: 'const $ADMIN = $ADMINVALUE'
+                  selector: variable_declarator
+              - has:
+                  field: value
+                  any:
+                  - kind: identifier
+                    regex: '^(supabaseAdmin|adminClient|serviceClient|serviceRoleClient|adminDb|supabaseService)$'
+                  - kind: call_expression
+                    regex: '(SUPABASE_SERVICE_ROLE_KEY|SERVICE_ROLE_KEY|SUPABASE_SECRET_KEY)|^(createAdminClient|createServiceClient|createServiceRoleClient|getAdminClient)\('
+                  - kind: member_expression
+                    regex: '(SUPABASE_SERVICE_ROLE_KEY|SERVICE_ROLE_KEY|SUPABASE_SECRET_KEY)$'
+      - has:
+          stopBy: end
+          pattern: '$ADMIN.$OP($$$OPARGS)'
+  - any:
+    - not:
+        has:
+          stopBy: end
+          kind: call_expression
+          has:
+            field: function
+            kind: member_expression
+            regex: '\.(delete|insert|update|upsert|remove|destroy|post|put|patch|create|createMany|deleteMany|updateMany|executeRaw|\$executeRaw)$'
+    - has:
+        stopBy: end
+        kind: pair
+        all:
+        - has:
+            field: key
+            kind: property_identifier
+            regex: '^needsApproval$'
+        - has:
+            field: value
+            kind: 'true'
+min_engine: 0.45.3
+---
+id: ai-agent-tools-least-privilege.tsx-generic.elevated-in-tool
+practice_id: ai-agent-tools-least-privilege
+language: tsx
+frameworks:
+- generic
+kind: violation
+rule:
+  all:
+  - any:
+    - kind: member_expression
+      regex: '(SUPABASE_SERVICE_ROLE_KEY|SERVICE_ROLE_KEY|SUPABASE_SECRET_KEY)$'
+    - kind: identifier
+      regex: '^(supabaseAdmin|adminClient|serviceClient|serviceRoleClient|adminDb|supabaseService)$'
+    - kind: call_expression
+      has:
+        field: function
+        kind: identifier
+        regex: '^(createAdminClient|createServiceClient|createServiceRoleClient|getAdminClient|eval|exec|execSync|spawn)$'
+    - kind: call_expression
+      has:
+        field: function
+        kind: member_expression
+        regex: '\.(\$queryRawUnsafe|\$executeRawUnsafe)$'
+  - not:
+      inside:
+        kind: member_expression
+  - inside:
+      stopBy: end
+      any:
+      - all:
+        - kind: call_expression
+        - has:
+            field: function
+            kind: identifier
+            regex: '^(tool|createTool|dynamicTool)$'
+      - all:
+        - kind: call_expression
+        - has:
+            field: function
+            kind: member_expression
+            regex: '^(server|mcp|mcpServer|this\.server)\.(tool|registerTool)$'
+      - all:
+        - kind: new_expression
+        - has:
+            field: constructor
+            kind: identifier
+            regex: '^(DynamicStructuredTool|DynamicTool)$'
+min_engine: 0.45.3
+---
+id: ai-agent-tools-least-privilege.tsx-generic.ai-provider-host
+practice_id: ai-agent-tools-least-privilege
+language: tsx
+frameworks:
+- generic
+kind: evidence
+rule:
+  any:
+  - kind: string
+    regex: &id011 '(?i)(api\.openai\.com|api\.anthropic\.com|generativelanguage\.googleapis\.com|aiplatform\.googleapis\.com|\.openai\.azure\.com|bedrock-runtime\.[a-z0-9-]+\.amazonaws\.com|api\.mistral\.ai|api\.groq\.com|api\.together\.xyz|api\.cohere\.(com|ai)|api\.deepseek\.com|api\.x\.ai|api\.perplexity\.ai|api\.fireworks\.ai|openrouter\.ai/api|api-inference\.huggingface\.co|api\.replicate\.com|(localhost|127\.0\.0\.1):(11434|1234)\b|ollama[\w.-]*(:\d+)?/api/(chat|generate|embed)|https?://[\w.-]+(:\d+)?(/[\w.-]+)*/v1/(chat/completions|completions|messages|embeddings)\b)'
+  - kind: template_string
+    regex: *id011
+min_engine: 0.45.3
+---
+id: ai-agent-tools-least-privilege.tsx-generic.llm-base-url
+practice_id: ai-agent-tools-least-privilege
+language: tsx
+frameworks:
+- generic
+kind: evidence
+rule:
+  any:
+  - all:
+    - any:
+      - kind: new_expression
+        has:
+          field: constructor
+          kind: identifier
+          regex: &id010 '^(OpenAI|AzureOpenAI|Anthropic|ChatOpenAI|ChatAnthropic|createOpenAI|createAnthropic|createOpenAICompatible|Groq|Mistral|Ollama)$'
+      - kind: call_expression
+        has:
+          field: function
+          kind: identifier
+          regex: *id010
+    - has:
+        field: arguments
+        kind: arguments
+        has:
+          stopBy: end
+          any:
+          - kind: shorthand_property_identifier
+            regex: '^(baseURL|baseUrl|basePath)$'
+          - kind: pair
+            all:
+            - has:
+                field: key
+                any:
+                - kind: property_identifier
+                  regex: '^(baseURL|baseUrl|basePath)$'
+                - kind: string
+                  regex: '^["''](baseURL|baseUrl|basePath)["'']$'
+            - has:
+                field: value
+                not:
+                  any:
+                  - kind: string
+                  - all:
+                    - kind: template_string
+                    - not:
+                        has:
+                          kind: template_substitution
+  - all:
+    - kind: new_expression
+    - has:
+        field: constructor
+        kind: identifier
+        regex: '^AzureOpenAI$'
+    - has:
+        field: arguments
+        kind: arguments
+        has:
+          stopBy: end
+          any:
+          - kind: shorthand_property_identifier
+            regex: '^endpoint$'
+          - kind: pair
+            all:
+            - has:
+                field: key
+                any:
+                - kind: property_identifier
+                  regex: '^(endpoint)$'
+                - kind: string
+                  regex: '^["''](endpoint)["'']$'
+            - has:
+                field: value
+                not:
+                  any:
+                  - kind: string
+                  - all:
+                    - kind: template_string
+                    - not:
+                        has:
+                          kind: template_substitution
+  - kind: member_expression
+    regex: '(^|\.)env\.(OPENAI_BASE_URL|OPENAI_API_BASE|ANTHROPIC_BASE_URL|OLLAMA_HOST|AZURE_OPENAI_ENDPOINT)$'
+  - kind: subscript_expression
+    regex: '(^|\.)env\[\s*["''](OPENAI_BASE_URL|OPENAI_API_BASE|ANTHROPIC_BASE_URL|OLLAMA_HOST|AZURE_OPENAI_ENDPOINT)["'']\s*\]$'
+min_engine: 0.45.3
+---
+id: ai-agent-tools-least-privilege.tsx-generic.llm-request-shape
+practice_id: ai-agent-tools-least-privilege
+language: tsx
+frameworks:
+- generic
+kind: evidence
+rule:
+  all:
+  - kind: call_expression
+  - has:
+      field: function
+      any:
+      - kind: identifier
+        regex: '^(fetch|axios|\$fetch|ofetch)$'
+      - kind: member_expression
+        regex: '(\.post|^axios\.request)$'
+  - has:
+      field: arguments
+      kind: arguments
+      has:
+        stopBy: end
+        kind: object
+        all:
+        - has:
+            any:
+            - kind: shorthand_property_identifier
+              regex: '^messages$'
+            - kind: pair
+              has:
+                field: key
+                any:
+                - kind: property_identifier
+                  regex: '^(messages)$'
+                - kind: string
+                  regex: '^["''](messages)["'']$'
+        - has:
+            any:
+            - kind: shorthand_property_identifier
+              regex: '^(model|tools)$'
+            - kind: pair
+              has:
+                field: key
+                any:
+                - kind: property_identifier
+                  regex: '^(model|tools)$'
+                - kind: string
+                  regex: '^["''](model|tools)["'']$'
+min_engine: 0.45.3

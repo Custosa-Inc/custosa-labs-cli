@@ -1,0 +1,169 @@
+# Rails controller methods that lift the default scope or the policy checks, one item each: unscoped,
+# ActsAsTenant.without_tenant, skip_authorization or skip_policy_scope. The control is every unscoped query in the
+# method narrowed again to the caller (where(user: current_user) or a finder with such a pair on the same chain), at
+# least one; or a direct statement of the method comparing the record's owner (never a params value) with
+# current_user, with no && or ||, that answers 403/404 or raises. An audit row naming current_user, or another
+# association of current_user next to the unscoped read, is never the control.
+id: elevated-routes-check-ownership.ruby-rails.elevated-handler
+practice_id: elevated-routes-check-ownership
+language: ruby
+frameworks: [rails]
+kind: items
+rule:
+  kind: method
+  all:
+  - inside:
+      kind: class
+      stopBy: end
+      has:
+        field: name
+        kind: constant
+        regex: 'Controller$'
+  - has:
+      stopBy: end
+      any:
+      - kind: identifier
+        regex: '^(unscoped|skip_authorization|skip_policy_scope)$'
+      - kind: call
+        regex: '^ActsAsTenant\.without_tenant\b'
+control:
+  any:
+  - has:
+      field: body
+      kind: body_statement
+      has:
+        any:
+        - kind: if
+          regex: '(:forbidden|:not_found|\b40[34]\b|\braise\b)'
+          all:
+          - has:
+              kind: binary
+              regex: '!='
+              not:
+                kind: binary
+                regex: '&&|\|\||\band\b|\bor\b'
+              all:
+              - has:
+                  kind: call
+                  regex: '\.(user_id|owner_id|account_id|tenant_id|patient_id|user|owner)$'
+                  not:
+                    kind: call
+                    regex: '^(params|request|@params)\b'
+              - has:
+                  any:
+                  - kind: call
+                    regex: '^(current_user|current_account|Current\.user)(\.(id|account_id|tenant_id|organization_id))?$'
+                  - kind: identifier
+                    regex: '^(current_user|current_account|Current\.user)(\.(id|account_id|tenant_id|organization_id))?$'
+        - kind: if_modifier
+          regex: '(:forbidden|:not_found|\b40[34]\b|\braise\b)'
+          all:
+          - has:
+              kind: binary
+              regex: '!='
+              not:
+                kind: binary
+                regex: '&&|\|\||\band\b|\bor\b'
+              all:
+              - has:
+                  kind: call
+                  regex: '\.(user_id|owner_id|account_id|tenant_id|patient_id|user|owner)$'
+                  not:
+                    kind: call
+                    regex: '^(params|request|@params)\b'
+              - has:
+                  any:
+                  - kind: call
+                    regex: '^(current_user|current_account|Current\.user)(\.(id|account_id|tenant_id|organization_id))?$'
+                  - kind: identifier
+                    regex: '^(current_user|current_account|Current\.user)(\.(id|account_id|tenant_id|organization_id))?$'
+        - kind: unless
+          regex: '(:forbidden|:not_found|\b40[34]\b|\braise\b)'
+          all:
+          - has:
+              kind: binary
+              regex: ==
+              not:
+                kind: binary
+                regex: '&&|\|\||\band\b|\bor\b'
+              all:
+              - has:
+                  kind: call
+                  regex: '\.(user_id|owner_id|account_id|tenant_id|patient_id|user|owner)$'
+                  not:
+                    kind: call
+                    regex: '^(params|request|@params)\b'
+              - has:
+                  any:
+                  - kind: call
+                    regex: '^(current_user|current_account|Current\.user)(\.(id|account_id|tenant_id|organization_id))?$'
+                  - kind: identifier
+                    regex: '^(current_user|current_account|Current\.user)(\.(id|account_id|tenant_id|organization_id))?$'
+        - kind: unless_modifier
+          regex: '(:forbidden|:not_found|\b40[34]\b|\braise\b)'
+          all:
+          - has:
+              kind: binary
+              regex: ==
+              not:
+                kind: binary
+                regex: '&&|\|\||\band\b|\bor\b'
+              all:
+              - has:
+                  kind: call
+                  regex: '\.(user_id|owner_id|account_id|tenant_id|patient_id|user|owner)$'
+                  not:
+                    kind: call
+                    regex: '^(params|request|@params)\b'
+              - has:
+                  any:
+                  - kind: call
+                    regex: '^(current_user|current_account|Current\.user)(\.(id|account_id|tenant_id|organization_id))?$'
+                  - kind: identifier
+                    regex: '^(current_user|current_account|Current\.user)(\.(id|account_id|tenant_id|organization_id))?$'
+  - all:
+    - has:
+        stopBy: end
+        all:
+        - kind: call
+          has:
+            field: method
+            kind: identifier
+            regex: '^unscoped$'
+        - inside:
+            stopBy: end
+            kind: call
+            has:
+              field: arguments
+              kind: argument_list
+              has:
+                kind: pair
+                regex: '^(user|owner|account|tenant|user_id|owner_id|account_id|tenant_id):\s*current_user\b'
+    - not:
+        has:
+          stopBy: end
+          all:
+          - kind: call
+            has:
+              field: method
+              kind: identifier
+              regex: '^unscoped$'
+          - not:
+              inside:
+                stopBy: end
+                kind: call
+                has:
+                  field: arguments
+                  kind: argument_list
+                  has:
+                    kind: pair
+                    regex: '^(user|owner|account|tenant|user_id|owner_id|account_id|tenant_id):\s*current_user\b'
+    - not:
+        has:
+          stopBy: end
+          any:
+          - kind: identifier
+            regex: '^(skip_authorization|skip_policy_scope)$'
+          - kind: call
+            regex: '^ActsAsTenant\.without_tenant\b'
+min_engine: 0.39.0

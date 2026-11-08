@@ -1,0 +1,21 @@
+id: session-cookie-flags.ruby-rails.force-ssl
+practice_id: session-cookie-flags
+language: ruby
+frameworks:
+- rails
+kind: evidence
+rule:
+  kind: assignment
+  regex: ^config\.force_ssl\s*=\s*true$
+min_engine: 0.39.0
+---
+id: session-cookie-flags.ruby-rails.flag-off
+practice_id: session-cookie-flags
+language: ruby
+frameworks:
+- rails
+kind: violation
+rule:
+  kind: pair
+  regex: ^(httponly|secure):\s*false$|^same_site:\s*:none$
+min_engine: 0.39.0

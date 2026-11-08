@@ -1,0 +1,478 @@
+# Patient values in push, email and SMS content (T23 B56d). Written by
+# scripts/gen_notification_rules.py: don't edit. The practice is capped at needs_review.
+id: notification-content-minimal.typescript-generic.send
+practice_id: notification-content-minimal
+language: typescript
+frameworks:
+- generic
+kind: evidence
+rule:
+  kind: call_expression
+  any:
+  - has:
+      field: function
+      any:
+      - kind: identifier
+        regex: ^(Notifications\s*\.\s*)?scheduleNotificationAsync$|(^|\.)\s*messaging\s*\(\s*\)\s*\.\s*(send|sendEach|sendMulticast|sendEachForMulticast)$|^[\w$]+\s*\.\s*emails\s*\.\s*send$|^(sgMail|sendgrid|mail)\s*\.\s*(send|sendMultiple)$|^[\w$]*(postmark|Postmark)[\w$]*\s*\.\s*sendEmail(WithTemplate)?$|^[\w$]*[tT]wilio[\w$]*\s*\.\s*messages\s*\.\s*create$|^[\w$]*(transport|transporter|mailer|Transport|Transporter|Mailer)\s*\.\s*sendMail$|(^|\.)\s*getMessaging\s*\([^)]*\)\s*\.\s*(send|sendEach|sendMulticast|sendEachForMulticast)$
+      - kind: member_expression
+        regex: ^(Notifications\s*\.\s*)?scheduleNotificationAsync$|(^|\.)\s*messaging\s*\(\s*\)\s*\.\s*(send|sendEach|sendMulticast|sendEachForMulticast)$|^[\w$]+\s*\.\s*emails\s*\.\s*send$|^(sgMail|sendgrid|mail)\s*\.\s*(send|sendMultiple)$|^[\w$]*(postmark|Postmark)[\w$]*\s*\.\s*sendEmail(WithTemplate)?$|^[\w$]*[tT]wilio[\w$]*\s*\.\s*messages\s*\.\s*create$|^[\w$]*(transport|transporter|mailer|Transport|Transporter|Mailer)\s*\.\s*sendMail$|(^|\.)\s*getMessaging\s*\([^)]*\)\s*\.\s*(send|sendEach|sendMulticast|sendEachForMulticast)$
+  - all:
+    - has:
+        field: function
+        kind: member_expression
+        regex: \.\s*messages\s*\.\s*create$
+    - inside:
+        stopBy: end
+        kind: program
+        has:
+          stopBy: end
+          any:
+          - kind: import_statement
+            has:
+              field: source
+              kind: string
+              regex: ^[\"']twilio(/[\w./-]+)?[\"']$
+          - kind: call_expression
+            regex: ^require\s*\(\s*[\"']twilio(/[\w./-]+)?[\"']\s*\)$
+  - all:
+    - has:
+        field: function
+        kind: member_expression
+        regex: ^[\w$]*[mM]essaging[\w$]*\s*\.\s*(send|sendEach|sendMulticast|sendEachForMulticast)$
+    - inside:
+        stopBy: end
+        kind: program
+        has:
+          stopBy: end
+          any:
+          - kind: import_statement
+            has:
+              field: source
+              kind: string
+              regex: ^[\"']firebase-admin(/[\w./-]+)?[\"']$
+          - kind: call_expression
+            regex: ^require\s*\(\s*[\"']firebase-admin(/[\w./-]+)?[\"']\s*\)$
+  - all:
+    - has:
+        field: function
+        kind: member_expression
+        regex: \.\s*sendMail$
+    - inside:
+        stopBy: end
+        kind: program
+        has:
+          stopBy: end
+          any:
+          - kind: import_statement
+            has:
+              field: source
+              kind: string
+              regex: ^[\"']nodemailer(/[\w./-]+)?[\"']$
+          - kind: call_expression
+            regex: ^require\s*\(\s*[\"']nodemailer(/[\w./-]+)?[\"']\s*\)$
+  - all:
+    - has:
+        field: function
+        kind: member_expression
+        pattern: $M.$SEND
+        regex: ^[\w$]+\s*\.\s*(send|sendEach|sendMulticast|sendEachForMulticast)$
+    - inside:
+        stopBy: end
+        kind: program
+        has:
+          stopBy: end
+          any:
+          - pattern: const $M = getMessaging($$$)
+          - pattern: const $M = admin.messaging($$$)
+          - pattern: const $M = firebase.messaging($$$)
+          - pattern: let $M = getMessaging($$$)
+          - pattern: let $M = admin.messaging($$$)
+          - pattern: let $M = firebase.messaging($$$)
+          - pattern: var $M = getMessaging($$$)
+          - pattern: var $M = admin.messaging($$$)
+          - pattern: var $M = firebase.messaging($$$)
+min_engine: 0.39.0
+---
+id: notification-content-minimal.typescript-generic.clinical-interpolated
+practice_id: notification-content-minimal
+language: typescript
+frameworks:
+- generic
+kind: violation
+rule:
+  kind: pair
+  all:
+  - has:
+      field: key
+      any:
+      - kind: property_identifier
+        regex: ^[\"'`]?(?i:title|body|subject|text|html|message|data|textbody|htmlbody|dynamictemplatedata)[\"'`]?$
+      - kind: string
+        regex: ^[\"'`]?(?i:title|body|subject|text|html|message|data|textbody|htmlbody|dynamictemplatedata)[\"'`]?$
+  - has:
+      field: value
+      any:
+      - any:
+        - any: &id002
+          - kind: template_substitution
+            has:
+              stopBy: end
+              any: &id001
+              - kind: identifier
+                regex: ^(?i:\w*(diagnos|condition|medication|prescription|dosage|lab_?results?|test_?results?|results?_?value|reason_?for_?visit|appointment_?reason|visit_?reason|procedure|medical_?record_?number|date_?of_?birth)\w*|(get_?)?(mrn|dob|ssn))$
+              - kind: property_identifier
+                regex: ^(?i:\w*(diagnos|condition|medication|prescription|dosage|lab_?results?|test_?results?|results?_?value|reason_?for_?visit|appointment_?reason|visit_?reason|procedure|medical_?record_?number|date_?of_?birth)\w*|(get_?)?(mrn|dob|ssn))$
+              - kind: shorthand_property_identifier
+                regex: ^(?i:\w*(diagnos|condition|medication|prescription|dosage|lab_?results?|test_?results?|results?_?value|reason_?for_?visit|appointment_?reason|visit_?reason|procedure|medical_?record_?number|date_?of_?birth)\w*|(get_?)?(mrn|dob|ssn))$
+              - kind: string
+                regex: ^["'`](?i:\w*(diagnos|condition|medication|prescription|dosage|lab_?results?|test_?results?|results?_?value|reason_?for_?visit|appointment_?reason|visit_?reason|procedure|medical_?record_?number|date_?of_?birth)\w*|(get_?)?(mrn|dob|ssn))["'`]$
+                inside:
+                  kind: subscript_expression
+                  field: index
+          - kind: binary_expression
+            regex: \+
+            all:
+            - has:
+                any:
+                - kind: string
+                - kind: template_string
+                - kind: binary_expression
+            - has:
+                stopBy: end
+                any: *id001
+          - kind: call_expression
+            all:
+            - has:
+                field: function
+                kind: member_expression
+                regex: \.\s*(concat|join)$
+            - has:
+                stopBy: end
+                any: *id001
+        - has:
+            stopBy: end
+            any: *id002
+      - any: &id005
+        - kind: member_expression
+          has: &id003
+            field: property
+            kind: property_identifier
+            regex: ^(?i:\w*(diagnos|condition|medication|prescription|dosage|lab_?results?|test_?results?|results?_?value|reason_?for_?visit|appointment_?reason|visit_?reason|procedure|medical_?record_?number|date_?of_?birth)\w*|(get_?)?(mrn|dob|ssn))$
+        - kind: subscript_expression
+          has: &id004
+            field: index
+            kind: string
+            regex: ^["'`](?i:\w*(diagnos|condition|medication|prescription|dosage|lab_?results?|test_?results?|results?_?value|reason_?for_?visit|appointment_?reason|visit_?reason|procedure|medical_?record_?number|date_?of_?birth)\w*|(get_?)?(mrn|dob|ssn))["'`]$
+        - kind: identifier
+          regex: ^(?i:\w*(diagnos|condition|medication|prescription|dosage|lab_?results?|test_?results?|results?_?value|reason_?for_?visit|appointment_?reason|visit_?reason|procedure|medical_?record_?number|date_?of_?birth)\w*|(get_?)?(mrn|dob|ssn))$
+        - kind: call_expression
+          all:
+          - has:
+              field: function
+              kind: identifier
+              regex: ^String$
+          - has:
+              field: arguments
+              kind: arguments
+              has:
+                any:
+                - kind: member_expression
+                  has: *id003
+                - kind: subscript_expression
+                  has: *id004
+                - kind: identifier
+                  regex: ^(?i:\w*(diagnos|condition|medication|prescription|dosage|lab_?results?|test_?results?|results?_?value|reason_?for_?visit|appointment_?reason|visit_?reason|procedure|medical_?record_?number|date_?of_?birth)\w*|(get_?)?(mrn|dob|ssn))$
+      - kind: object
+        has:
+          stopBy: end
+          any:
+          - kind: pair
+            has:
+              field: value
+              any: *id005
+          - kind: shorthand_property_identifier
+            regex: ^(?i:\w*(diagnos|condition|medication|prescription|dosage|lab_?results?|test_?results?|results?_?value|reason_?for_?visit|appointment_?reason|visit_?reason|procedure|medical_?record_?number|date_?of_?birth)\w*|(get_?)?(mrn|dob|ssn))$
+  - inside:
+      stopBy: end
+      kind: arguments
+      inside:
+        kind: call_expression
+        any:
+        - has:
+            field: function
+            any:
+            - kind: identifier
+              regex: ^(Notifications\s*\.\s*)?scheduleNotificationAsync$|(^|\.)\s*messaging\s*\(\s*\)\s*\.\s*(send|sendEach|sendMulticast|sendEachForMulticast)$|^[\w$]+\s*\.\s*emails\s*\.\s*send$|^(sgMail|sendgrid|mail)\s*\.\s*(send|sendMultiple)$|^[\w$]*(postmark|Postmark)[\w$]*\s*\.\s*sendEmail(WithTemplate)?$|^[\w$]*[tT]wilio[\w$]*\s*\.\s*messages\s*\.\s*create$|^[\w$]*(transport|transporter|mailer|Transport|Transporter|Mailer)\s*\.\s*sendMail$|(^|\.)\s*getMessaging\s*\([^)]*\)\s*\.\s*(send|sendEach|sendMulticast|sendEachForMulticast)$
+            - kind: member_expression
+              regex: ^(Notifications\s*\.\s*)?scheduleNotificationAsync$|(^|\.)\s*messaging\s*\(\s*\)\s*\.\s*(send|sendEach|sendMulticast|sendEachForMulticast)$|^[\w$]+\s*\.\s*emails\s*\.\s*send$|^(sgMail|sendgrid|mail)\s*\.\s*(send|sendMultiple)$|^[\w$]*(postmark|Postmark)[\w$]*\s*\.\s*sendEmail(WithTemplate)?$|^[\w$]*[tT]wilio[\w$]*\s*\.\s*messages\s*\.\s*create$|^[\w$]*(transport|transporter|mailer|Transport|Transporter|Mailer)\s*\.\s*sendMail$|(^|\.)\s*getMessaging\s*\([^)]*\)\s*\.\s*(send|sendEach|sendMulticast|sendEachForMulticast)$
+        - all:
+          - has:
+              field: function
+              kind: member_expression
+              regex: \.\s*messages\s*\.\s*create$
+          - inside:
+              stopBy: end
+              kind: program
+              has:
+                stopBy: end
+                any:
+                - kind: import_statement
+                  has:
+                    field: source
+                    kind: string
+                    regex: ^[\"']twilio(/[\w./-]+)?[\"']$
+                - kind: call_expression
+                  regex: ^require\s*\(\s*[\"']twilio(/[\w./-]+)?[\"']\s*\)$
+        - all:
+          - has:
+              field: function
+              kind: member_expression
+              regex: ^[\w$]*[mM]essaging[\w$]*\s*\.\s*(send|sendEach|sendMulticast|sendEachForMulticast)$
+          - inside:
+              stopBy: end
+              kind: program
+              has:
+                stopBy: end
+                any:
+                - kind: import_statement
+                  has:
+                    field: source
+                    kind: string
+                    regex: ^[\"']firebase-admin(/[\w./-]+)?[\"']$
+                - kind: call_expression
+                  regex: ^require\s*\(\s*[\"']firebase-admin(/[\w./-]+)?[\"']\s*\)$
+        - all:
+          - has:
+              field: function
+              kind: member_expression
+              regex: \.\s*sendMail$
+          - inside:
+              stopBy: end
+              kind: program
+              has:
+                stopBy: end
+                any:
+                - kind: import_statement
+                  has:
+                    field: source
+                    kind: string
+                    regex: ^[\"']nodemailer(/[\w./-]+)?[\"']$
+                - kind: call_expression
+                  regex: ^require\s*\(\s*[\"']nodemailer(/[\w./-]+)?[\"']\s*\)$
+        - all:
+          - has:
+              field: function
+              kind: member_expression
+              pattern: $M.$SEND
+              regex: ^[\w$]+\s*\.\s*(send|sendEach|sendMulticast|sendEachForMulticast)$
+          - inside:
+              stopBy: end
+              kind: program
+              has:
+                stopBy: end
+                any:
+                - pattern: const $M = getMessaging($$$)
+                - pattern: const $M = admin.messaging($$$)
+                - pattern: const $M = firebase.messaging($$$)
+                - pattern: let $M = getMessaging($$$)
+                - pattern: let $M = admin.messaging($$$)
+                - pattern: let $M = firebase.messaging($$$)
+                - pattern: var $M = getMessaging($$$)
+                - pattern: var $M = admin.messaging($$$)
+                - pattern: var $M = firebase.messaging($$$)
+min_engine: 0.39.0
+---
+id: notification-content-minimal.typescript-generic.identifying-interpolated
+practice_id: notification-content-minimal
+language: typescript
+frameworks:
+- generic
+kind: evidence
+rule:
+  kind: pair
+  all:
+  - has:
+      field: key
+      any:
+      - kind: property_identifier
+        regex: ^[\"'`]?(?i:title|body|subject|text|html|message|data|textbody|htmlbody|dynamictemplatedata)[\"'`]?$
+      - kind: string
+        regex: ^[\"'`]?(?i:title|body|subject|text|html|message|data|textbody|htmlbody|dynamictemplatedata)[\"'`]?$
+  - has:
+      field: value
+      any:
+      - any:
+        - any: &id002
+          - kind: template_substitution
+            has:
+              stopBy: end
+              any: &id001
+              - kind: identifier
+                regex: ^(?i:(first|last|full|given|family|middle|display|preferred)_?name)$
+              - kind: property_identifier
+                regex: ^(?i:(first|last|full|given|family|middle|display|preferred)_?name)$
+              - kind: shorthand_property_identifier
+                regex: ^(?i:(first|last|full|given|family|middle|display|preferred)_?name)$
+              - kind: string
+                regex: ^["'`](?i:(first|last|full|given|family|middle|display|preferred)_?name)["'`]$
+                inside:
+                  kind: subscript_expression
+                  field: index
+              - kind: member_expression
+                regex: ^(?i:([\w$]+\s*\.\s*)*(patient|user|member|recipient|person|client|customer)\s*\.\s*name)$
+          - kind: binary_expression
+            regex: \+
+            all:
+            - has:
+                any:
+                - kind: string
+                - kind: template_string
+                - kind: binary_expression
+            - has:
+                stopBy: end
+                any: *id001
+          - kind: call_expression
+            all:
+            - has:
+                field: function
+                kind: member_expression
+                regex: \.\s*(concat|join)$
+            - has:
+                stopBy: end
+                any: *id001
+        - has:
+            stopBy: end
+            any: *id002
+      - any: &id005
+        - kind: member_expression
+          has: &id003
+            field: property
+            kind: property_identifier
+            regex: ^(?i:(first|last|full|given|family|middle|display|preferred)_?name)$
+        - kind: subscript_expression
+          has: &id004
+            field: index
+            kind: string
+            regex: ^["'`](?i:(first|last|full|given|family|middle|display|preferred)_?name)["'`]$
+        - kind: identifier
+          regex: ^(?i:(first|last|full|given|family|middle|display|preferred)_?name)$
+        - kind: member_expression
+          regex: ^(?i:([\w$]+\s*\.\s*)*(patient|user|member|recipient|person|client|customer)\s*\.\s*name)$
+        - kind: call_expression
+          all:
+          - has:
+              field: function
+              kind: identifier
+              regex: ^String$
+          - has:
+              field: arguments
+              kind: arguments
+              has:
+                any:
+                - kind: member_expression
+                  has: *id003
+                - kind: subscript_expression
+                  has: *id004
+                - kind: identifier
+                  regex: ^(?i:(first|last|full|given|family|middle|display|preferred)_?name)$
+                - kind: member_expression
+                  regex: ^(?i:([\w$]+\s*\.\s*)*(patient|user|member|recipient|person|client|customer)\s*\.\s*name)$
+      - kind: object
+        has:
+          stopBy: end
+          any:
+          - kind: pair
+            has:
+              field: value
+              any: *id005
+          - kind: shorthand_property_identifier
+            regex: ^(?i:(first|last|full|given|family|middle|display|preferred)_?name)$
+  - inside:
+      stopBy: end
+      kind: arguments
+      inside:
+        kind: call_expression
+        any:
+        - has:
+            field: function
+            any:
+            - kind: identifier
+              regex: ^(Notifications\s*\.\s*)?scheduleNotificationAsync$|(^|\.)\s*messaging\s*\(\s*\)\s*\.\s*(send|sendEach|sendMulticast|sendEachForMulticast)$|^[\w$]+\s*\.\s*emails\s*\.\s*send$|^(sgMail|sendgrid|mail)\s*\.\s*(send|sendMultiple)$|^[\w$]*(postmark|Postmark)[\w$]*\s*\.\s*sendEmail(WithTemplate)?$|^[\w$]*[tT]wilio[\w$]*\s*\.\s*messages\s*\.\s*create$|^[\w$]*(transport|transporter|mailer|Transport|Transporter|Mailer)\s*\.\s*sendMail$|(^|\.)\s*getMessaging\s*\([^)]*\)\s*\.\s*(send|sendEach|sendMulticast|sendEachForMulticast)$
+            - kind: member_expression
+              regex: ^(Notifications\s*\.\s*)?scheduleNotificationAsync$|(^|\.)\s*messaging\s*\(\s*\)\s*\.\s*(send|sendEach|sendMulticast|sendEachForMulticast)$|^[\w$]+\s*\.\s*emails\s*\.\s*send$|^(sgMail|sendgrid|mail)\s*\.\s*(send|sendMultiple)$|^[\w$]*(postmark|Postmark)[\w$]*\s*\.\s*sendEmail(WithTemplate)?$|^[\w$]*[tT]wilio[\w$]*\s*\.\s*messages\s*\.\s*create$|^[\w$]*(transport|transporter|mailer|Transport|Transporter|Mailer)\s*\.\s*sendMail$|(^|\.)\s*getMessaging\s*\([^)]*\)\s*\.\s*(send|sendEach|sendMulticast|sendEachForMulticast)$
+        - all:
+          - has:
+              field: function
+              kind: member_expression
+              regex: \.\s*messages\s*\.\s*create$
+          - inside:
+              stopBy: end
+              kind: program
+              has:
+                stopBy: end
+                any:
+                - kind: import_statement
+                  has:
+                    field: source
+                    kind: string
+                    regex: ^[\"']twilio(/[\w./-]+)?[\"']$
+                - kind: call_expression
+                  regex: ^require\s*\(\s*[\"']twilio(/[\w./-]+)?[\"']\s*\)$
+        - all:
+          - has:
+              field: function
+              kind: member_expression
+              regex: ^[\w$]*[mM]essaging[\w$]*\s*\.\s*(send|sendEach|sendMulticast|sendEachForMulticast)$
+          - inside:
+              stopBy: end
+              kind: program
+              has:
+                stopBy: end
+                any:
+                - kind: import_statement
+                  has:
+                    field: source
+                    kind: string
+                    regex: ^[\"']firebase-admin(/[\w./-]+)?[\"']$
+                - kind: call_expression
+                  regex: ^require\s*\(\s*[\"']firebase-admin(/[\w./-]+)?[\"']\s*\)$
+        - all:
+          - has:
+              field: function
+              kind: member_expression
+              regex: \.\s*sendMail$
+          - inside:
+              stopBy: end
+              kind: program
+              has:
+                stopBy: end
+                any:
+                - kind: import_statement
+                  has:
+                    field: source
+                    kind: string
+                    regex: ^[\"']nodemailer(/[\w./-]+)?[\"']$
+                - kind: call_expression
+                  regex: ^require\s*\(\s*[\"']nodemailer(/[\w./-]+)?[\"']\s*\)$
+        - all:
+          - has:
+              field: function
+              kind: member_expression
+              pattern: $M.$SEND
+              regex: ^[\w$]+\s*\.\s*(send|sendEach|sendMulticast|sendEachForMulticast)$
+          - inside:
+              stopBy: end
+              kind: program
+              has:
+                stopBy: end
+                any:
+                - pattern: const $M = getMessaging($$$)
+                - pattern: const $M = admin.messaging($$$)
+                - pattern: const $M = firebase.messaging($$$)
+                - pattern: let $M = getMessaging($$$)
+                - pattern: let $M = admin.messaging($$$)
+                - pattern: let $M = firebase.messaging($$$)
+                - pattern: var $M = getMessaging($$$)
+                - pattern: var $M = admin.messaging($$$)
+                - pattern: var $M = firebase.messaging($$$)
+min_engine: 0.39.0

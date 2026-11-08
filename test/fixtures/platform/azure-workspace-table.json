@@ -1,0 +1,9 @@
+{
+ "name": "AzureDiagnostics",
+ "properties": {
+  "retentionInDays": 90,
+  "totalRetentionInDays": 400,
+  "archiveRetentionInDays": 310,
+  "plan": "Analytics"
+ }
+}

@@ -1,0 +1,84 @@
+id: session-cookie-flags.python-django.cookie-set
+practice_id: session-cookie-flags
+language: python
+frameworks:
+- django
+kind: items
+rule:
+  all:
+  - kind: call
+    regex: \.set_cookie\(
+  - not:
+      has:
+        field: arguments
+        kind: argument_list
+        regex: ^\(\s*['\"`](theme|locale|lang|language|i18n\w*|consent|cookie_?consent\w*|tz|timezone|currency|sidebar\w*|ui[-_]\w*|pref\w*|_ga\w*|NEXT_LOCALE|color[-_]?scheme)['\"`]
+control:
+  all:
+  - has:
+      field: arguments
+      kind: argument_list
+      regex: httponly\s*=\s*True
+  - has:
+      field: arguments
+      kind: argument_list
+      regex: secure\s*=\s*(True|not\s+\w*[dD]ebug\w*|\w*[pP]roduction\w*)
+  - has:
+      field: arguments
+      kind: argument_list
+      regex: samesite\s*=\s*['\"](Lax|Strict|lax|strict)['\"]
+min_engine: 0.39.0
+---
+id: session-cookie-flags.python-django.secure-setting
+practice_id: session-cookie-flags
+language: python
+frameworks:
+- django
+kind: evidence
+rule:
+  any:
+  - kind: assignment
+    regex: ^SESSION_COOKIE_SECURE\s*=\s*(True)$
+  - kind: assignment
+    regex: \[['\"]SESSION_COOKIE_SECURE['\"]\]\s*=\s*(True)$
+  - kind: keyword_argument
+    regex: ^SESSION_COOKIE_SECURE\s*=\s*(True)$
+min_engine: 0.39.0
+---
+id: session-cookie-flags.python-django.samesite-setting
+practice_id: session-cookie-flags
+language: python
+frameworks:
+- django
+kind: evidence
+rule:
+  any:
+  - kind: assignment
+    regex: ^SESSION_COOKIE_SAMESITE\s*=\s*(['\"](Lax|Strict)['\"])$
+  - kind: assignment
+    regex: \[['\"]SESSION_COOKIE_SAMESITE['\"]\]\s*=\s*(['\"](Lax|Strict)['\"])$
+  - kind: keyword_argument
+    regex: ^SESSION_COOKIE_SAMESITE\s*=\s*(['\"](Lax|Strict)['\"])$
+min_engine: 0.39.0
+---
+id: session-cookie-flags.python-django.flag-off
+practice_id: session-cookie-flags
+language: python
+frameworks:
+- django
+kind: violation
+rule:
+  any:
+  - kind: assignment
+    regex: ^(SESSION|CSRF)_COOKIE_(HTTPONLY|SECURE)\s*=\s*(False)$
+  - kind: assignment
+    regex: \[['\"](SESSION|CSRF)_COOKIE_(HTTPONLY|SECURE)['\"]\]\s*=\s*(False)$
+  - kind: keyword_argument
+    regex: ^(SESSION|CSRF)_COOKIE_(HTTPONLY|SECURE)\s*=\s*(False)$
+  - kind: assignment
+    regex: ^SESSION_COOKIE_SAMESITE\s*=\s*(None|['\"]None['\"])$
+  - kind: assignment
+    regex: \[['\"]SESSION_COOKIE_SAMESITE['\"]\]\s*=\s*(None|['\"]None['\"])$
+  - kind: keyword_argument
+    regex: ^(httponly|secure)\s*=\s*False$|^samesite\s*=\s*['\"]?[Nn]one['\"]?$
+min_engine: 0.39.0

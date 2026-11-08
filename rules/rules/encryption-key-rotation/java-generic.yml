@@ -1,0 +1,35 @@
+id: encryption-key-rotation.java-generic.kms-client
+practice_id: encryption-key-rotation
+language: java
+frameworks:
+- generic
+kind: evidence
+rule:
+  any:
+  - kind: method_invocation
+    regex: \.(generateDataKey|encrypt)\(\s*GenerateDataKeyRequest|KeyManagementServiceClient\.create\(|KeysetHandle\.generateNew\(
+  - kind: object_creation_expression
+    regex: ^new\s+(GenerateDataKeyRequest|KmsMasterKeyProvider)\b
+min_engine: 0.39.0
+---
+id: encryption-key-rotation.java-generic.hardcoded-key
+practice_id: encryption-key-rotation
+language: java
+frameworks:
+- generic
+kind: violation
+rule:
+  kind: object_creation_expression
+  regex: ^new\s+SecretKeySpec\(\s*\"[^\"]{8,}\"\.getBytes
+min_engine: 0.39.0
+---
+id: encryption-key-rotation.java-generic.fixed-iv
+practice_id: encryption-key-rotation
+language: java
+frameworks:
+- generic
+kind: violation
+rule:
+  kind: object_creation_expression
+  regex: ^new\s+(IvParameterSpec|GCMParameterSpec)\((\s*\d+\s*,)?\s*(new\s+byte\[\s*\d+\s*\]|\"[^\"]*\"\.getBytes)
+min_engine: 0.39.0

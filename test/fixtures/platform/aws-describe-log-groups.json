@@ -1,0 +1,13 @@
+{
+ "logGroups": [
+  {
+   "logGroupName": "/aws/rds/instance/clinic-prod/postgresql",
+   "creationTime": 1760000000000,
+   "retentionInDays": 400,
+   "metricFilterCount": 0,
+   "arn": "arn:aws:logs:us-east-1:123456789012:log-group:/aws/rds/instance/clinic-prod/postgresql:*",
+   "storedBytes": 1048576,
+   "logGroupClass": "STANDARD"
+  }
+ ]
+}

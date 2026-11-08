@@ -1,0 +1,11 @@
+{
+ "databases": [
+  {
+   "name": "projects/clinic-project/databases/(default)",
+   "uid": "00000000-0000-0000-0000-000000000003",
+   "locationId": "nam5",
+   "type": "FIRESTORE_NATIVE",
+   "concurrencyMode": "PESSIMISTIC"
+  }
+ ]
+}

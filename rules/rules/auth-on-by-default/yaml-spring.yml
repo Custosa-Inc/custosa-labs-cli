@@ -1,0 +1,90 @@
+# Auth that a missing setting turns off (T23 B56d). Written by
+# scripts/gen_auth_default_rules.py: don't edit. The practice is capped at needs_review.
+id: auth-on-by-default.yaml-spring.off-in-config
+practice_id: auth-on-by-default
+language: yaml
+frameworks:
+- spring
+kind: violation
+rule:
+  any:
+  - all:
+    - kind: block_mapping_pair
+      regex: ^([\w-]+\.)*(?i:security|auth)\.enabled\s*:\s*["']?(?i:false|0|no|off|disabled)["']?$
+    - not:
+        kind: block_mapping_pair
+        regex: ^([\w-]+\.)*(?i:(?:redis|valkey|mongo|postgres|mysql|mariadb|kafka|rabbitmq|elasticsearch|opensearch|memcached|etcd|zookeeper|cassandra)(?:ql|db)?(?:[-_](?:cache|db|ha|cluster|primary|replica|server|master|sentinel|main|\d+))*)\.
+    - not:
+        inside:
+          stopBy: end
+          kind: block_mapping_pair
+          has:
+            field: key
+            kind: flow_node
+            regex: ^["']?([\w-]+\.)*(?i:(?:redis|valkey|mongo|postgres|mysql|mariadb|kafka|rabbitmq|elasticsearch|opensearch|memcached|etcd|zookeeper|cassandra)(?:ql|db)?(?:[-_](?:cache|db|ha|cluster|primary|replica|server|master|sentinel|main|\d+))*)(\.[\w-]+)*["']?$
+  - all:
+    - kind: block_mapping_pair
+      regex: ^([\w-]+\.)*(?i:auth\.(type|mode)|auth[-_]?(type|mode))\s*:\s*["']?(?i:none|noauth|no-auth|anonymous|public)["']?$
+    - not:
+        kind: block_mapping_pair
+        regex: ^([\w-]+\.)*(?i:(?:redis|valkey|mongo|postgres|mysql|mariadb|kafka|rabbitmq|elasticsearch|opensearch|memcached|etcd|zookeeper|cassandra)(?:ql|db)?(?:[-_](?:cache|db|ha|cluster|primary|replica|server|master|sentinel|main|\d+))*)\.
+    - not:
+        inside:
+          stopBy: end
+          kind: block_mapping_pair
+          has:
+            field: key
+            kind: flow_node
+            regex: ^["']?([\w-]+\.)*(?i:(?:redis|valkey|mongo|postgres|mysql|mariadb|kafka|rabbitmq|elasticsearch|opensearch|memcached|etcd|zookeeper|cassandra)(?:ql|db)?(?:[-_](?:cache|db|ha|cluster|primary|replica|server|master|sentinel|main|\d+))*)(\.[\w-]+)*["']?$
+  - all:
+    - all:
+      - kind: block_mapping_pair
+        regex: ^enabled\s*:\s*["']?(?i:false|0|no|off|disabled)["']?$
+      - inside:
+          kind: block_mapping
+          inside:
+            kind: block_node
+            inside:
+              kind: block_mapping_pair
+              has:
+                field: key
+                kind: flow_node
+                regex: ^(([\w-]+\.)*)?(?i:security|auth)$
+    - not:
+        kind: block_mapping_pair
+        regex: ^([\w-]+\.)*(?i:(?:redis|valkey|mongo|postgres|mysql|mariadb|kafka|rabbitmq|elasticsearch|opensearch|memcached|etcd|zookeeper|cassandra)(?:ql|db)?(?:[-_](?:cache|db|ha|cluster|primary|replica|server|master|sentinel|main|\d+))*)\.
+    - not:
+        inside:
+          stopBy: end
+          kind: block_mapping_pair
+          has:
+            field: key
+            kind: flow_node
+            regex: ^["']?([\w-]+\.)*(?i:(?:redis|valkey|mongo|postgres|mysql|mariadb|kafka|rabbitmq|elasticsearch|opensearch|memcached|etcd|zookeeper|cassandra)(?:ql|db)?(?:[-_](?:cache|db|ha|cluster|primary|replica|server|master|sentinel|main|\d+))*)(\.[\w-]+)*["']?$
+  - all:
+    - all:
+      - kind: block_mapping_pair
+        regex: ^(type|mode)\s*:\s*["']?(?i:none|noauth|no-auth|anonymous|public)["']?$
+      - inside:
+          kind: block_mapping
+          inside:
+            kind: block_node
+            inside:
+              kind: block_mapping_pair
+              has:
+                field: key
+                kind: flow_node
+                regex: ^(([\w-]+\.)*)?(?i:auth)$
+    - not:
+        kind: block_mapping_pair
+        regex: ^([\w-]+\.)*(?i:(?:redis|valkey|mongo|postgres|mysql|mariadb|kafka|rabbitmq|elasticsearch|opensearch|memcached|etcd|zookeeper|cassandra)(?:ql|db)?(?:[-_](?:cache|db|ha|cluster|primary|replica|server|master|sentinel|main|\d+))*)\.
+    - not:
+        inside:
+          stopBy: end
+          kind: block_mapping_pair
+          has:
+            field: key
+            kind: flow_node
+            regex: ^["']?([\w-]+\.)*(?i:(?:redis|valkey|mongo|postgres|mysql|mariadb|kafka|rabbitmq|elasticsearch|opensearch|memcached|etcd|zookeeper|cassandra)(?:ql|db)?(?:[-_](?:cache|db|ha|cluster|primary|replica|server|master|sentinel|main|\d+))*)(\.[\w-]+)*["']?$
+min_engine: 0.39.0
+path_regex: ^(([^/]+/)*src/main/resources/(config/)?|(config/)?)application(-[A-Za-z0-9]+)?\.ya?ml$

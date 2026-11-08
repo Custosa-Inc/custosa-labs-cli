@@ -1,0 +1,29 @@
+# App-wide screen capture blocking and the app-switcher overlay (T23 B56e). Written by
+# scripts/gen_mobile_rules.py: don't edit. Only the root component's capture and overlay are pieces (P1 ruling 3).
+id: mobile-screen-privacy.json-generic.mobile-package
+practice_id: mobile-screen-privacy
+language: json
+frameworks:
+- generic
+kind: evidence
+rule:
+  kind: pair
+  all:
+  - has:
+      field: key
+      kind: string
+      regex: ^"(expo|react-native)"$
+  - inside:
+      kind: object
+      inside:
+        kind: pair
+        all:
+        - has:
+            field: key
+            kind: string
+            regex: ^"dependencies"$
+        - inside:
+            kind: object
+            inside:
+              kind: document
+min_engine: 0.39.0

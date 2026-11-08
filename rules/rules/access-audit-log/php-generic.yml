@@ -1,0 +1,39 @@
+id: access-audit-log.php-generic.no-log-query
+practice_id: access-audit-log
+language: php
+frameworks:
+- generic
+kind: violation
+rule:
+  all:
+  - kind: function_call_expression
+  - regex: '^\\?sql(Statement|Query|Insert|StatementCdr|QueryCdr)NoLog\s*\('
+  - has:
+      field: arguments
+      kind: arguments
+      has:
+        kind: argument
+        has:
+          any:
+          - kind: string
+            regex: '(?i)\b(from|into|update|join)\s+`?(patient_data|patient_\w+|form_\w+|forms|lists|pnotes|prescriptions|documents|immunizations|form_encounter|encounter\w*|billing|history_data|insurance_data|procedure_\w+|transactions|onotes|amendments)\b'
+          - kind: encapsed_string
+            regex: '(?i)\b(from|into|update|join)\s+`?(patient_data|patient_\w+|form_\w+|forms|lists|pnotes|prescriptions|documents|immunizations|form_encounter|encounter\w*|billing|history_data|insurance_data|procedure_\w+|transactions|onotes|amendments)\b'
+min_engine: 0.45.3
+---
+id: access-audit-log.php-generic.log-flag-off
+practice_id: access-audit-log
+language: php
+frameworks:
+- generic
+kind: violation
+rule:
+  all:
+  - kind: array_element_initializer
+  - has:
+      kind: string
+      regex: '^[''"](log|audit|audit_log)[''"]$'
+  - has:
+      kind: boolean
+      regex: '^(?i:false)$'
+min_engine: 0.45.3

@@ -1,0 +1,113 @@
+# Values built into SQL text, which pgAudit logs (T23 B56d). Written by
+# scripts/gen_pgaudit_rules.py: don't edit. The practice is capped at needs_review.
+id: pgaudit-no-literals.php-generic.string-built-sql
+practice_id: pgaudit-no-literals
+language: php
+frameworks:
+- generic
+kind: violation
+rule:
+  any:
+  - kind: member_call_expression
+    all:
+    - has:
+        field: name
+        kind: name
+        regex: ^(query|exec|prepare|select|statement|raw)$|^(selectRaw|whereRaw|orWhereRaw|havingRaw|orHavingRaw|orderByRaw|groupByRaw|fromRaw)$
+    - has: &id001
+        field: arguments
+        kind: arguments
+        has:
+          kind: argument
+          has: &id002
+            any:
+            - kind: encapsed_string
+              regex: (?is)((((=|<|>|\bI?LIKE\b|\bIN\b|\bANY\b|\bALL\b|\bBETWEEN\b|\bBETWEEN\s+\S+\s+AND\b|\bIS\b|\bTHEN\b|\bELSE\b|\bVALUES\b|\|\||&&|@>|<@|@@|~\*?|\bSIMILAR\s+TO\b|\bDISTINCT\s+FROM\b|\$\w*\$|\b(btrim|ltrim|rtrim|nullif|greatest|least|cast|concat|concat_ws|md5|digest|hmac|crypt|encode|decode|to_char|to_date|to_timestamp|to_number|date_trunc|date_part|extract|position|substr|substring|replace|strpos|left|right|lpad|rpad|format|similarity|word_similarity|strict_word_similarity|levenshtein|soundex|metaphone|pgp_sym_encrypt|pgp_sym_decrypt|to_tsquery|plainto_tsquery|phraseto_tsquery|websearch_to_tsquery|json_build_object|jsonb_build_object)\s*\(|\b(lower|upper|trim|coalesce)\s*\(([^(),]|\([^()]*\))*,)|\b(WHERE|AND|OR|NOT|ON|HAVING|WHEN|SET)\s*(\(|\[|\bARRAY\s*\[|\bROW\s*\(|[\w.]*\w\s*\(|E?'))(\s|\(|\[|,|::\w+|\bARRAY\s*\[|\bROW\s*\(|[\w.]*\w\s*\(|[\w.]+\s*,|'[^']*'\s*,|\b(year|month|day|hour|minute|second|epoch|dow|doy|week|quarter|isodow|isoyear|century|decade|millennium|milliseconds|microseconds|timezone)\s+FROM\s+)*(E'[^']*)?|\bVALUES\s*\([^)]*|\bINSERT\s+INTO\b[^;]*\bSELECT\s+([^;]*,)?|(=|<|>|\(|,|\|\||\w\s)\s*'[^']*|')\s*'?\s*\{?\$|(\b(lower|upper|trim|coalesce)\s*\(\s*)+\{?\$(\b(\w*[^\WlLnNdD]|d|\w*[^\WlL]d|ld|\w*[^\WeE]ld|eld|\w*[^\WiI]eld|ield|\w*[^\WfF]ield|\w+field|l|\w*[^\WoO]l|ol|\w*[^\WcC]ol|\w*[^\W_]col|n|\w*[^\WmM]n|mn|\w*[^\WuU]mn|umn|\w*[^\WlL]umn|lumn|\w*[^\WoO]lumn|olumn|\w*[^\WcC]olumn|\w*[^\W_]column)\b|\w+\s*(->|\[|::)))
+              has:
+                stopBy: end
+                kind: variable_name
+              not:
+                kind: encapsed_string
+                regex: (?is)^[\w.$]*\(?\s*[fFrRbBuU]*[\"'`]{1,3}\s*(CREATE|ALTER|DROP|COMMENT|GRANT|REVOKE|REINDEX|VACUUM|ANALYZE|TRUNCATE|REFRESH|CLUSTER)\b
+                not:
+                  kind: encapsed_string
+                  regex: (?is)\bAS\s*\(?\s*(SELECT|WITH|VALUES)\b|;\s*(INSERT|UPDATE|DELETE|SELECT|WITH|MERGE)\b|\bINSERT\s+INTO\b|\bDELETE\s+FROM\b|\bUPDATE\s+\S+\s+SET\b
+            - kind: binary_expression
+              regex: (?is)((((=|<|>|\bI?LIKE\b|\bIN\b|\bANY\b|\bALL\b|\bBETWEEN\b|\bBETWEEN\s+\S+\s+AND\b|\bIS\b|\bTHEN\b|\bELSE\b|\bVALUES\b|\|\||&&|@>|<@|@@|~\*?|\bSIMILAR\s+TO\b|\bDISTINCT\s+FROM\b|\$\w*\$|\b(btrim|ltrim|rtrim|nullif|greatest|least|cast|concat|concat_ws|md5|digest|hmac|crypt|encode|decode|to_char|to_date|to_timestamp|to_number|date_trunc|date_part|extract|position|substr|substring|replace|strpos|left|right|lpad|rpad|format|similarity|word_similarity|strict_word_similarity|levenshtein|soundex|metaphone|pgp_sym_encrypt|pgp_sym_decrypt|to_tsquery|plainto_tsquery|phraseto_tsquery|websearch_to_tsquery|json_build_object|jsonb_build_object)\s*\(|\b(lower|upper|trim|coalesce)\s*\(([^(),]|\([^()]*\))*,)|\b(WHERE|AND|OR|NOT|ON|HAVING|WHEN|SET)\s*(\(|\[|\bARRAY\s*\[|\bROW\s*\(|[\w.]*\w\s*\(|E?'))(\s|\(|\[|,|::\w+|\bARRAY\s*\[|\bROW\s*\(|[\w.]*\w\s*\(|[\w.]+\s*,|'[^']*'\s*,|\b(year|month|day|hour|minute|second|epoch|dow|doy|week|quarter|isodow|isoyear|century|decade|millennium|milliseconds|microseconds|timezone)\s+FROM\s+)*(E'[^']*)?|\bVALUES\s*\([^)]*|\bINSERT\s+INTO\b[^;]*\bSELECT\s+([^;]*,)?|(=|<|>|\(|,|\|\||\w\s)\s*'[^']*|')\s*'?\s*[\"']\s*\.|(\b(lower|upper|trim|coalesce)\s*\(\s*)+[\"']\s*\.\s*([^\s$]|\$(\b(\w*[^\WlLnNdD]|d|\w*[^\WlL]d|ld|\w*[^\WeE]ld|eld|\w*[^\WiI]eld|ield|\w*[^\WfF]ield|\w+field|l|\w*[^\WoO]l|ol|\w*[^\WcC]ol|\w*[^\W_]col|n|\w*[^\WmM]n|mn|\w*[^\WuU]mn|umn|\w*[^\WlL]umn|lumn|\w*[^\WoO]lumn|olumn|\w*[^\WcC]olumn|\w*[^\W_]column)\b|\w+\s*(->|\[|::))))
+              all:
+              - has:
+                  any:
+                  - kind: encapsed_string
+                  - kind: string
+              - has:
+                  stopBy: end
+                  kind: variable_name
+              not:
+                kind: binary_expression
+                regex: (?is)^[\w.$]*\(?\s*[fFrRbBuU]*[\"'`]{1,3}\s*(CREATE|ALTER|DROP|COMMENT|GRANT|REVOKE|REINDEX|VACUUM|ANALYZE|TRUNCATE|REFRESH|CLUSTER)\b
+                not:
+                  kind: binary_expression
+                  regex: (?is)\bAS\s*\(?\s*(SELECT|WITH|VALUES)\b|;\s*(INSERT|UPDATE|DELETE|SELECT|WITH|MERGE)\b|\bINSERT\s+INTO\b|\bDELETE\s+FROM\b|\bUPDATE\s+\S+\s+SET\b
+            - kind: function_call_expression
+              regex: (?is)((((=|<|>|\bI?LIKE\b|\bIN\b|\bANY\b|\bALL\b|\bBETWEEN\b|\bBETWEEN\s+\S+\s+AND\b|\bIS\b|\bTHEN\b|\bELSE\b|\bVALUES\b|\|\||&&|@>|<@|@@|~\*?|\bSIMILAR\s+TO\b|\bDISTINCT\s+FROM\b|\$\w*\$|\b(btrim|ltrim|rtrim|nullif|greatest|least|cast|concat|concat_ws|md5|digest|hmac|crypt|encode|decode|to_char|to_date|to_timestamp|to_number|date_trunc|date_part|extract|position|substr|substring|replace|strpos|left|right|lpad|rpad|format|similarity|word_similarity|strict_word_similarity|levenshtein|soundex|metaphone|pgp_sym_encrypt|pgp_sym_decrypt|to_tsquery|plainto_tsquery|phraseto_tsquery|websearch_to_tsquery|json_build_object|jsonb_build_object)\s*\(|\b(lower|upper|trim|coalesce)\s*\(([^(),]|\([^()]*\))*,)|\b(WHERE|AND|OR|NOT|ON|HAVING|WHEN|SET)\s*(\(|\[|\bARRAY\s*\[|\bROW\s*\(|[\w.]*\w\s*\(|E?'))(\s|\(|\[|,|::\w+|\bARRAY\s*\[|\bROW\s*\(|[\w.]*\w\s*\(|[\w.]+\s*,|'[^']*'\s*,|\b(year|month|day|hour|minute|second|epoch|dow|doy|week|quarter|isodow|isoyear|century|decade|millennium|milliseconds|microseconds|timezone)\s+FROM\s+)*(E'[^']*)?|\bVALUES\s*\([^)]*|\bINSERT\s+INTO\b[^;]*\bSELECT\s+([^;]*,)?|(=|<|>|\(|,|\|\||\w\s)\s*'[^']*|')\s*'?\s*%[sd]|(\b(lower|upper|trim|coalesce)\s*\(\s*)+%[sd])
+              all:
+              - has:
+                  field: function
+                  kind: name
+                  regex: ^v?sprintf$
+              - has:
+                  field: arguments
+                  has:
+                    stopBy: end
+                    kind: variable_name
+              not:
+                kind: function_call_expression
+                regex: (?is)^[\w.$]*\(?\s*[fFrRbBuU]*[\"'`]{1,3}\s*(CREATE|ALTER|DROP|COMMENT|GRANT|REVOKE|REINDEX|VACUUM|ANALYZE|TRUNCATE|REFRESH|CLUSTER)\b
+                not:
+                  kind: function_call_expression
+                  regex: (?is)\bAS\s*\(?\s*(SELECT|WITH|VALUES)\b|;\s*(INSERT|UPDATE|DELETE|SELECT|WITH|MERGE)\b|\bINSERT\s+INTO\b|\bDELETE\s+FROM\b|\bUPDATE\s+\S+\s+SET\b
+  - kind: scoped_call_expression
+    all:
+    - has:
+        field: name
+        kind: name
+        regex: ^(selectRaw|whereRaw|orWhereRaw|havingRaw|orHavingRaw|orderByRaw|groupByRaw|fromRaw)$
+    - has: *id001
+  - kind: scoped_call_expression
+    all:
+    - has:
+        field: scope
+        kind: name
+        regex: ^DB$
+    - has:
+        field: name
+        kind: name
+        regex: ^(select|statement|raw|unprepared|insert|update|delete)$
+    - has: *id001
+  - kind: function_call_expression
+    all:
+    - has:
+        field: function
+        kind: name
+        regex: ^(pg_query|pg_send_query|mysqli_query)$
+    - has:
+        field: arguments
+        kind: arguments
+        has:
+          kind: argument
+          has: *id002
+min_engine: 0.39.0
+---
+id: pgaudit-no-literals.php-generic.alter-role-password
+practice_id: pgaudit-no-literals
+language: php
+frameworks:
+- generic
+kind: violation
+rule:
+  any:
+  - kind: string
+    regex: (?is)\bALTER\s+(ROLE|USER)\s+\S+\s+(WITH\s+)?(ENCRYPTED\s+)?PASSWORD\s+'[^']+'
+  - kind: encapsed_string
+    regex: (?is)\bALTER\s+(ROLE|USER)\s+\S+\s+(WITH\s+)?(ENCRYPTED\s+)?PASSWORD\s+'[^']+'
+min_engine: 0.39.0

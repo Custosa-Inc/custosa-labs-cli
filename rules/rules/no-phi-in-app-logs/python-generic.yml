@@ -1,0 +1,256 @@
+id: no-phi-in-app-logs.python-generic.request-body
+practice_id: no-phi-in-app-logs
+language: python
+frameworks:
+- generic
+kind: violation
+rule:
+  all:
+  - kind: call
+  - has:
+      field: function
+      any:
+      - kind: attribute
+        regex: '^(logger|logging|log|_logger|_log|LOGGER|LOG|self\.logger|self\.log|self\._logger|current_app\.logger|app\.logger|logging\.getLogger\([^)]*\)|structlog\.(?:get_logger|getLogger)\([^)]*\))\.(debug|info|warning|warn|error|exception|critical|log|msg)$'
+      - kind: identifier
+        regex: '^print$'
+  - has:
+      field: arguments
+      kind: argument_list
+      has:
+        stopBy: end
+        all:
+        - any:
+          - kind: attribute
+            regex: '^(request|req|self\.request)\.(body|data|POST|GET|json|form|args|values|query_params|FILES)$'
+          - kind: call
+            regex: '^(await\s+)?(request|req)\.(get_json|json|get_data|body)\('
+          - kind: await
+            regex: '^await\s+(request|req)\.(json|body|form)\('
+        - not:
+            any:
+            - inside:
+                kind: attribute
+                field: object
+            - inside:
+                kind: subscript
+                field: value
+            - inside:
+                kind: call
+                field: function
+        - not:
+            inside:
+              kind: argument_list
+              inside:
+                kind: call
+                not:
+                  has:
+                    field: function
+                    any:
+                    - kind: attribute
+                      regex: '^(logger|logging|log|_logger|_log|LOGGER|LOG|self\.logger|self\.log|self\._logger|current_app\.logger|app\.logger|logging\.getLogger\([^)]*\)|structlog\.(?:get_logger|getLogger)\([^)]*\))\.(debug|info|warning|warn|error|exception|critical|log|msg)$|^json\.dumps$|^pprint\.pformat$'
+                    - kind: identifier
+                      regex: '^(print|str|repr|dict)$'
+min_engine: 0.45.3
+---
+id: no-phi-in-app-logs.python-generic.patient-fields
+practice_id: no-phi-in-app-logs
+language: python
+frameworks:
+- generic
+kind: violation
+rule:
+  all:
+  - kind: call
+  - has:
+      field: function
+      any:
+      - kind: attribute
+        regex: '^(logger|logging|log|_logger|_log|LOGGER|LOG|self\.logger|self\.log|self\._logger|current_app\.logger|app\.logger|logging\.getLogger\([^)]*\)|structlog\.(?:get_logger|getLogger)\([^)]*\))\.(debug|info|warning|warn|error|exception|critical|log|msg)$'
+      - kind: identifier
+        regex: '^print$'
+  - has:
+      field: arguments
+      kind: argument_list
+      has:
+        stopBy: end
+        all:
+        - any:
+          - kind: attribute
+            regex: '\.(ssn|SSN|dob|date_of_birth|birth_date|birthdate|diagnosis|diagnoses|mrn|medical_record_number|insurance_number|clinical_notes)$'
+          - kind: attribute
+            regex: '^(patient|patient_data|patient_record|patient_row|current_patient|self\.patient)\.(name|first_name|last_name|full_name|email|phone|phone_number|address|notes)$'
+          - kind: subscript
+            regex: '\[\s*[''"](ssn|dob|date_of_birth|birth_date|diagnosis|mrn|medical_record_number)[''"]\s*\]$'
+          - kind: subscript
+            regex: '^(patient|patient_data|patient_record|patient_row|current_patient)\[\s*[''"](name|first_name|last_name|full_name|email|phone|address|notes)[''"]\s*\]$'
+          - all:
+            - kind: identifier
+            - regex: '^(patient|patients|patient_data|patient_record|patient_row|patient_rows|current_patient)$'
+            - not:
+                any:
+                - inside:
+                    kind: attribute
+                - inside:
+                    kind: subscript
+                    field: value
+                - inside:
+                    kind: keyword_argument
+                    field: name
+        - not:
+            any:
+            - inside:
+                kind: attribute
+                field: object
+            - inside:
+                kind: call
+                field: function
+        - not:
+            inside:
+              kind: argument_list
+              inside:
+                kind: call
+                not:
+                  has:
+                    field: function
+                    any:
+                    - kind: attribute
+                      regex: '^(logger|logging|log|_logger|_log|LOGGER|LOG|self\.logger|self\.log|self\._logger|current_app\.logger|app\.logger|logging\.getLogger\([^)]*\)|structlog\.(?:get_logger|getLogger)\([^)]*\))\.(debug|info|warning|warn|error|exception|critical|log|msg)$|^json\.dumps$|^pprint\.pformat$'
+                    - kind: identifier
+                      regex: '^(print|str|repr|dict|vars)$'
+min_engine: 0.45.3
+---
+id: no-phi-in-app-logs.python-generic.credential
+practice_id: no-phi-in-app-logs
+language: python
+frameworks:
+- generic
+kind: violation
+rule:
+  all:
+  - kind: call
+  - has:
+      field: function
+      any:
+      - kind: attribute
+        regex: '^(logger|logging|log|_logger|_log|LOGGER|LOG|self\.logger|self\.log|self\._logger|current_app\.logger|app\.logger|logging\.getLogger\([^)]*\)|structlog\.(?:get_logger|getLogger)\([^)]*\))\.(debug|info|warning|warn|error|exception|critical|log|msg)$'
+      - kind: identifier
+        regex: '^print$'
+  - has:
+      field: arguments
+      kind: argument_list
+      has:
+        stopBy: end
+        all:
+        - any:
+          - all:
+            - kind: identifier
+            - regex: '^(?i:password|passwd|secret|client_secret|token|access_token|refresh_token|id_token|api_key|apikey|private_key|encryption_key|dsn|connection_string|database_url|db_url)$'
+            - not:
+                any:
+                - inside:
+                    kind: attribute
+                - inside:
+                    kind: keyword_argument
+                    field: name
+          - kind: attribute
+            regex: '\.(?i:password|passwd|secret|client_secret|token|access_token|refresh_token|id_token|api_key|apikey|private_key|encryption_key|dsn|connection_string|database_url|db_url)$'
+        - not:
+            any:
+            - inside:
+                kind: attribute
+                field: object
+            - inside:
+                kind: call
+                field: function
+        - not:
+            inside:
+              kind: argument_list
+              inside:
+                kind: call
+                not:
+                  has:
+                    field: function
+                    any:
+                    - kind: attribute
+                      regex: '^(logger|logging|log|_logger|_log|LOGGER|LOG|self\.logger|self\.log|self\._logger|current_app\.logger|app\.logger|logging\.getLogger\([^)]*\)|structlog\.(?:get_logger|getLogger)\([^)]*\))\.(debug|info|warning|warn|error|exception|critical|log|msg)$|^json\.dumps$'
+                    - kind: identifier
+                      regex: '^(print|str|repr)$'
+min_engine: 0.45.3
+---
+id: no-phi-in-app-logs.python-generic.orm-query-log
+practice_id: no-phi-in-app-logs
+language: python
+frameworks:
+- generic
+kind: violation
+rule:
+  all:
+  - kind: call
+  - has:
+      field: function
+      kind: identifier
+      regex: '^(create_engine|create_async_engine)$'
+  - has:
+      field: arguments
+      kind: argument_list
+      has:
+        kind: keyword_argument
+        all:
+        - has:
+            field: name
+            kind: identifier
+            regex: '^echo$'
+        - has:
+            field: value
+            any:
+            - kind: 'true'
+            - kind: string
+              regex: '^[''"]debug[''"]$'
+min_engine: 0.45.3
+---
+id: no-phi-in-app-logs.python-generic.debug-level
+practice_id: no-phi-in-app-logs
+language: python
+frameworks:
+- generic
+kind: violation
+rule:
+  any:
+  - all:
+    - kind: pair
+    - has:
+        field: key
+        kind: string
+        regex: '^[''"]level[''"]$'
+    - has:
+        field: value
+        any:
+        - kind: string
+          regex: '^[''"](DEBUG|debug|NOTSET)[''"]$'
+        - kind: call
+          regex: '^os\.(getenv|environ\.get)\(.*,\s*[''"](DEBUG|debug)[''"]\s*\)$'
+    - inside:
+        stopBy: end
+        kind: assignment
+        has:
+          field: left
+          kind: identifier
+          regex: '^LOGGING$'
+  - all:
+    - kind: call
+    - has:
+        field: function
+        kind: attribute
+        regex: '^(logging\.basicConfig|logging\.getLogger\(\)\.setLevel|logger\.setLevel|LOGGER\.setLevel|root\.setLevel)$'
+    - has:
+        field: arguments
+        kind: argument_list
+        has:
+          stopBy: end
+          any:
+          - kind: attribute
+            regex: '^logging\.(DEBUG|NOTSET)$'
+          - kind: string
+            regex: '^[''"]DEBUG[''"]$'
+min_engine: 0.45.3

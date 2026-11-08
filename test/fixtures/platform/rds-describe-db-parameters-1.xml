@@ -1,0 +1,25 @@
+<DescribeDBParametersResponse xmlns="http://rds.amazonaws.com/doc/2014-10-31/">
+  <DescribeDBParametersResult>
+    <Marker>page-two-marker</Marker>
+    <Parameters>
+      <Parameter>
+        <ParameterName>log_connections</ParameterName>
+        <ParameterValue>1</ParameterValue>
+        <Source>user</Source>
+        <ApplyType>dynamic</ApplyType>
+        <DataType>boolean</DataType>
+        <IsModifiable>true</IsModifiable>
+      </Parameter>
+      <Parameter>
+        <ParameterName>log_disconnections</ParameterName>
+        <Source>engine-default</Source>
+        <ApplyType>dynamic</ApplyType>
+        <DataType>boolean</DataType>
+        <IsModifiable>true</IsModifiable>
+      </Parameter>
+    </Parameters>
+  </DescribeDBParametersResult>
+  <ResponseMetadata>
+    <RequestId>00000000-0000-0000-0000-000000000002</RequestId>
+  </ResponseMetadata>
+</DescribeDBParametersResponse>

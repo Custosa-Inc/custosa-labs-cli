@@ -1,0 +1,116 @@
+# App-wide screen capture blocking and the app-switcher overlay (T23 B56e). Written by
+# scripts/gen_mobile_rules.py: don't edit. Only the root component's capture and overlay are pieces (P1 ruling 3).
+id: mobile-screen-privacy.javascript-react_native.overlay-appstate
+practice_id: mobile-screen-privacy
+language: javascript
+frameworks:
+- react_native
+kind: evidence
+rule:
+  kind: call_expression
+  all:
+  - has:
+      field: function
+      kind: member_expression
+      regex: ^AppState\s*\.\s*addEventListener$
+  - has:
+      field: arguments
+      has:
+        all:
+        - any:
+          - kind: arrow_function
+            has:
+              field: parameter
+              kind: identifier
+              pattern: &id001
+                context: ($P)
+                selector: identifier
+          - any:
+            - kind: arrow_function
+            - kind: function_expression
+            has:
+              field: parameters
+              has:
+                stopBy: end
+                kind: identifier
+                pattern: *id001
+        - has:
+            stopBy: end
+            kind: call_expression
+            all:
+            - has:
+                field: function
+                kind: identifier
+                regex: ^set(Is|Show)?(Privacy|Blur|Blurred|Cover|Covered|Overlay|Shield|Shielded|Secure|Secured)(Cover|Overlay|Screen|View)?(Visible|Shown|Active|On|Enabled)?$
+            - any:
+              - all:
+                - has:
+                    field: arguments
+                    kind: arguments
+                    regex: ^\(\s*(true|[1-9][0-9]*|\"[^\"]+\"|'[^']+')\s*\)$
+                - inside:
+                    kind: expression_statement
+                    any:
+                    - inside: &id003
+                        field: consequence
+                        kind: if_statement
+                        has:
+                          field: condition
+                          kind: parenthesized_expression
+                          has: &id004
+                            any:
+                            - kind: binary_expression
+                              regex: ^[A-Za-z_$][\w$]*\s*(===?\s*["'`](inactive|background)["'`]|!==?\s*["'`]active["'`])$
+                              has: &id002
+                                field: left
+                                kind: identifier
+                                pattern: *id001
+                            - kind: binary_expression
+                              regex: \|\|
+                              all:
+                              - has:
+                                  field: left
+                                  kind: binary_expression
+                                  regex: ^[A-Za-z_$][\w$]*\s*(===?\s*["'`](inactive|background)["'`]|!==?\s*["'`]active["'`])$
+                                  has: *id002
+                              - has:
+                                  field: right
+                                  kind: binary_expression
+                                  regex: ^[A-Za-z_$][\w$]*\s*(===?\s*["'`](inactive|background)["'`]|!==?\s*["'`]active["'`])$
+                                  has: *id002
+                    - inside:
+                        kind: statement_block
+                        inside: *id003
+              - has:
+                  field: arguments
+                  kind: arguments
+                  regex: ^\([^,]*\)$
+                  has: *id004
+  - inside:
+      stopBy: end
+      any:
+      - kind: function_declaration
+        has:
+          field: name
+          kind: identifier
+          regex: ^(App|RootLayout|RootLayoutNav)$
+      - kind: variable_declarator
+        has:
+          field: name
+          kind: identifier
+          regex: ^(App|RootLayout|RootLayoutNav)$
+min_engine: 0.39.0
+---
+id: mobile-screen-privacy.javascript-react_native.privacy-overlay-candidate
+practice_id: mobile-screen-privacy
+language: javascript
+frameworks:
+- react_native
+kind: evidence
+rule:
+  kind: call_expression
+  has:
+    field: function
+    kind: member_expression
+    regex: ^AppState\s*\.\s*addEventListener$
+min_engine: 0.39.0

@@ -1,0 +1,86 @@
+id: auth-login-throttling.php-laravel.sign-in
+practice_id: auth-login-throttling
+language: php
+frameworks:
+- laravel
+kind: items
+rule:
+  all:
+  - any:
+    - kind: method_declaration
+    - kind: function_definition
+  - has:
+      stopBy: end
+      any:
+      - kind: function_call_expression
+        regex: ^(password_verify|\$\w+->(passwordVerify|checkPassword|verifyPassword)|AuthHash::passwordVerify|Auth::attempt|auth\(\)->attempt|Hash::check)
+      - kind: member_call_expression
+        regex: ^(password_verify|\$\w+->(passwordVerify|checkPassword|verifyPassword)|AuthHash::passwordVerify|Auth::attempt|auth\(\)->attempt|Hash::check)
+      - kind: scoped_call_expression
+        regex: ^(password_verify|\$\w+->(passwordVerify|checkPassword|verifyPassword)|AuthHash::passwordVerify|Auth::attempt|auth\(\)->attempt|Hash::check)
+control:
+  any:
+  - has:
+      field: body
+      has:
+        any:
+        - kind: expression_statement
+          regex: (?i)((rate_?limit\w*|limiter|throttl\w*)\.(limit|consume|check|hit|attempt|try\w*)\(|\b(check|enforce|apply)\w*(rate_?limit|throttle|lockout)\w*\(|locked_?(at|until)\b|is_?locked|is_?locked_?out|lockout|\bis\w*blocked\w*\(|too_?many_?(login_?)?attempts|failed_?(login_?)?(attempts?|count|logins?)\s*>=?|max_?(failed_?)?(login_?)?attempts|(re)?captcha\w*\.?verify|verify\w*captcha|turnstile|check\w*failed\w*counter\(|RateLimiter::(tooManyAttempts|attempt)|ratelimit\.Allow|\.Allow\(\))
+        - kind: return_statement
+          regex: (?i)((rate_?limit\w*|limiter|throttl\w*)\.(limit|consume|check|hit|attempt|try\w*)\(|\b(check|enforce|apply)\w*(rate_?limit|throttle|lockout)\w*\(|locked_?(at|until)\b|is_?locked|is_?locked_?out|lockout|\bis\w*blocked\w*\(|too_?many_?(login_?)?attempts|failed_?(login_?)?(attempts?|count|logins?)\s*>=?|max_?(failed_?)?(login_?)?attempts|(re)?captcha\w*\.?verify|verify\w*captcha|turnstile|check\w*failed\w*counter\(|RateLimiter::(tooManyAttempts|attempt)|ratelimit\.Allow|\.Allow\(\))
+        - kind: if_statement
+          regex: (?i)((rate_?limit\w*|limiter|throttl\w*)\.(limit|consume|check|hit|attempt|try\w*)\(|\b(check|enforce|apply)\w*(rate_?limit|throttle|lockout)\w*\(|locked_?(at|until)\b|is_?locked|is_?locked_?out|lockout|\bis\w*blocked\w*\(|too_?many_?(login_?)?attempts|failed_?(login_?)?(attempts?|count|logins?)\s*>=?|max_?(failed_?)?(login_?)?attempts|(re)?captcha\w*\.?verify|verify\w*captcha|turnstile|check\w*failed\w*counter\(|RateLimiter::(tooManyAttempts|attempt)|ratelimit\.Allow|\.Allow\(\))
+        - kind: try_statement
+          regex: (?i)((rate_?limit\w*|limiter|throttl\w*)\.(limit|consume|check|hit|attempt|try\w*)\(|\b(check|enforce|apply)\w*(rate_?limit|throttle|lockout)\w*\(|locked_?(at|until)\b|is_?locked|is_?locked_?out|lockout|\bis\w*blocked\w*\(|too_?many_?(login_?)?attempts|failed_?(login_?)?(attempts?|count|logins?)\s*>=?|max_?(failed_?)?(login_?)?attempts|(re)?captcha\w*\.?verify|verify\w*captcha|turnstile|check\w*failed\w*counter\(|RateLimiter::(tooManyAttempts|attempt)|ratelimit\.Allow|\.Allow\(\))
+        - kind: foreach_statement
+          regex: (?i)((rate_?limit\w*|limiter|throttl\w*)\.(limit|consume|check|hit|attempt|try\w*)\(|\b(check|enforce|apply)\w*(rate_?limit|throttle|lockout)\w*\(|locked_?(at|until)\b|is_?locked|is_?locked_?out|lockout|\bis\w*blocked\w*\(|too_?many_?(login_?)?attempts|failed_?(login_?)?(attempts?|count|logins?)\s*>=?|max_?(failed_?)?(login_?)?attempts|(re)?captcha\w*\.?verify|verify\w*captcha|turnstile|check\w*failed\w*counter\(|RateLimiter::(tooManyAttempts|attempt)|ratelimit\.Allow|\.Allow\(\))
+        - kind: for_statement
+          regex: (?i)((rate_?limit\w*|limiter|throttl\w*)\.(limit|consume|check|hit|attempt|try\w*)\(|\b(check|enforce|apply)\w*(rate_?limit|throttle|lockout)\w*\(|locked_?(at|until)\b|is_?locked|is_?locked_?out|lockout|\bis\w*blocked\w*\(|too_?many_?(login_?)?attempts|failed_?(login_?)?(attempts?|count|logins?)\s*>=?|max_?(failed_?)?(login_?)?attempts|(re)?captcha\w*\.?verify|verify\w*captcha|turnstile|check\w*failed\w*counter\(|RateLimiter::(tooManyAttempts|attempt)|ratelimit\.Allow|\.Allow\(\))
+        - kind: while_statement
+          regex: (?i)((rate_?limit\w*|limiter|throttl\w*)\.(limit|consume|check|hit|attempt|try\w*)\(|\b(check|enforce|apply)\w*(rate_?limit|throttle|lockout)\w*\(|locked_?(at|until)\b|is_?locked|is_?locked_?out|lockout|\bis\w*blocked\w*\(|too_?many_?(login_?)?attempts|failed_?(login_?)?(attempts?|count|logins?)\s*>=?|max_?(failed_?)?(login_?)?attempts|(re)?captcha\w*\.?verify|verify\w*captcha|turnstile|check\w*failed\w*counter\(|RateLimiter::(tooManyAttempts|attempt)|ratelimit\.Allow|\.Allow\(\))
+        - kind: echo_statement
+          regex: (?i)((rate_?limit\w*|limiter|throttl\w*)\.(limit|consume|check|hit|attempt|try\w*)\(|\b(check|enforce|apply)\w*(rate_?limit|throttle|lockout)\w*\(|locked_?(at|until)\b|is_?locked|is_?locked_?out|lockout|\bis\w*blocked\w*\(|too_?many_?(login_?)?attempts|failed_?(login_?)?(attempts?|count|logins?)\s*>=?|max_?(failed_?)?(login_?)?attempts|(re)?captcha\w*\.?verify|verify\w*captcha|turnstile|check\w*failed\w*counter\(|RateLimiter::(tooManyAttempts|attempt)|ratelimit\.Allow|\.Allow\(\))
+min_engine: 0.39.0
+---
+id: auth-login-throttling.php-laravel.failure-record
+practice_id: auth-login-throttling
+language: php
+frameworks:
+- laravel
+kind: evidence
+rule:
+  all:
+  - all:
+    - any:
+      - kind: method_declaration
+      - kind: function_definition
+    - has:
+        stopBy: end
+        any:
+        - kind: function_call_expression
+          regex: ^(password_verify|\$\w+->(passwordVerify|checkPassword|verifyPassword)|AuthHash::passwordVerify|Auth::attempt|auth\(\)->attempt|Hash::check)
+        - kind: member_call_expression
+          regex: ^(password_verify|\$\w+->(passwordVerify|checkPassword|verifyPassword)|AuthHash::passwordVerify|Auth::attempt|auth\(\)->attempt|Hash::check)
+        - kind: scoped_call_expression
+          regex: ^(password_verify|\$\w+->(passwordVerify|checkPassword|verifyPassword)|AuthHash::passwordVerify|Auth::attempt|auth\(\)->attempt|Hash::check)
+  - has:
+      field: body
+      has:
+        any:
+        - kind: expression_statement
+          regex: (?i)(failed_?login|login_?failed|LoginFailed|loginFailure|auth(entication)?_?fail\w*|failed_?attempts?\s*(\+\+|\+=|=\s*\w+\s*\+\s*1)|increment\w*\(\s*['\"]failed)
+        - kind: return_statement
+          regex: (?i)(failed_?login|login_?failed|LoginFailed|loginFailure|auth(entication)?_?fail\w*|failed_?attempts?\s*(\+\+|\+=|=\s*\w+\s*\+\s*1)|increment\w*\(\s*['\"]failed)
+        - kind: if_statement
+          regex: (?i)(failed_?login|login_?failed|LoginFailed|loginFailure|auth(entication)?_?fail\w*|failed_?attempts?\s*(\+\+|\+=|=\s*\w+\s*\+\s*1)|increment\w*\(\s*['\"]failed)
+        - kind: try_statement
+          regex: (?i)(failed_?login|login_?failed|LoginFailed|loginFailure|auth(entication)?_?fail\w*|failed_?attempts?\s*(\+\+|\+=|=\s*\w+\s*\+\s*1)|increment\w*\(\s*['\"]failed)
+        - kind: foreach_statement
+          regex: (?i)(failed_?login|login_?failed|LoginFailed|loginFailure|auth(entication)?_?fail\w*|failed_?attempts?\s*(\+\+|\+=|=\s*\w+\s*\+\s*1)|increment\w*\(\s*['\"]failed)
+        - kind: for_statement
+          regex: (?i)(failed_?login|login_?failed|LoginFailed|loginFailure|auth(entication)?_?fail\w*|failed_?attempts?\s*(\+\+|\+=|=\s*\w+\s*\+\s*1)|increment\w*\(\s*['\"]failed)
+        - kind: while_statement
+          regex: (?i)(failed_?login|login_?failed|LoginFailed|loginFailure|auth(entication)?_?fail\w*|failed_?attempts?\s*(\+\+|\+=|=\s*\w+\s*\+\s*1)|increment\w*\(\s*['\"]failed)
+        - kind: echo_statement
+          regex: (?i)(failed_?login|login_?failed|LoginFailed|loginFailure|auth(entication)?_?fail\w*|failed_?attempts?\s*(\+\+|\+=|=\s*\w+\s*\+\s*1)|increment\w*\(\s*['\"]failed)
+min_engine: 0.39.0

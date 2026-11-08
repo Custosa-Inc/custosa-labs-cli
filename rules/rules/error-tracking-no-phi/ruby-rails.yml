@@ -1,0 +1,54 @@
+id: error-tracking-no-phi.ruby-rails.sentry-init
+practice_id: error-tracking-no-phi
+language: ruby
+frameworks:
+- rails
+kind: items
+rule:
+  all:
+  - kind: call
+  - regex: '(?-u)^Sentry\s*\.\s*init\b'
+control:
+  all:
+  - has:
+      stopBy: end
+      kind: assignment
+      has:
+        field: left
+        kind: call
+        regex: '(?-u)^\w+\s*\.\s*before_send$'
+  - not:
+      has:
+        stopBy: end
+        kind: assignment
+        all:
+        - has:
+            field: left
+            kind: call
+            regex: '(?-u)^\w+\s*\.\s*(send_default_pii|include_local_variables)$'
+        - has:
+            field: right
+            kind: 'true'
+min_engine: 0.45.3
+---
+id: error-tracking-no-phi.ruby-rails.pii-on
+practice_id: error-tracking-no-phi
+language: ruby
+frameworks:
+- rails
+kind: violation
+rule:
+  all:
+  - kind: assignment
+  - has:
+      field: left
+      kind: call
+      regex: '^\w+\s*\.\s*(send_default_pii|include_local_variables)$'
+  - has:
+      field: right
+      kind: 'true'
+  - inside:
+      stopBy: end
+      kind: call
+      regex: '^Sentry\s*\.\s*init\b'
+min_engine: 0.45.3

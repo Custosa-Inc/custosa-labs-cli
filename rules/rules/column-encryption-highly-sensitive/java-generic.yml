@@ -1,0 +1,21 @@
+id: column-encryption-highly-sensitive.java-generic.app-encryption
+practice_id: column-encryption-highly-sensitive
+language: java
+frameworks:
+- generic
+kind: evidence
+rule:
+  kind: method_invocation
+  regex: ^Cipher\.getInstance\(\s*\"(AES/GCM/NoPadding|ChaCha20-Poly1305)\"
+min_engine: 0.39.0
+---
+id: column-encryption-highly-sensitive.java-generic.weak-cipher
+practice_id: column-encryption-highly-sensitive
+language: java
+frameworks:
+- generic
+kind: violation
+rule:
+  kind: method_invocation
+  regex: ^Cipher\.getInstance\(\s*\"(AES|DES|DESede|RC4|Blowfish|AES/ECB/\w+|DES/\w+/\w+)\"\s*\)$
+min_engine: 0.39.0

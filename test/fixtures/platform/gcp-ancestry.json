@@ -1,0 +1,22 @@
+{
+ "ancestor": [
+  {
+   "resourceId": {
+    "type": "project",
+    "id": "clinic-project"
+   }
+  },
+  {
+   "resourceId": {
+    "type": "folder",
+    "id": "111111111111"
+   }
+  },
+  {
+   "resourceId": {
+    "type": "organization",
+    "id": "222222222222"
+   }
+  }
+ ]
+}

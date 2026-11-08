@@ -1,0 +1,1271 @@
+id: upload-validation.go-gin.handler
+practice_id: upload-validation
+language: go
+frameworks:
+- gin
+kind: items
+rule:
+  all:
+  - any:
+    - kind: function_declaration
+    - kind: method_declaration
+    - kind: func_literal
+  - has:
+      stopBy:
+        kind: func_literal
+      any:
+      - kind: call_expression
+        regex: ^[A-Za-z0-9_.()]*\.(FormFile|MultipartForm|SaveUploadedFile)\(
+control:
+  any:
+  - has:
+      stopBy:
+        any:
+        - kind: function_declaration
+        - kind: method_declaration
+        - kind: func_literal
+      kind: if_statement
+      all:
+      - has:
+          field: condition
+          any:
+          - &id002
+            all:
+            - kind: selector_expression
+            - has:
+                field: field
+                kind: field_identifier
+                regex: ^(Infected|IsInfected|VirusFound|Malicious)$
+            - has:
+                field: operand
+                any:
+                - all: &id001
+                  - kind: call_expression
+                    regex: ^([A-Za-z0-9_$.>:-]*[0-9_$.>:-])?(?i:(clam|clamav|clamd|clamscan|virus|viruses|virustotal|antivirus|malware|antimalware|quahog|cloudmersive|scanii|metadefender|opswat))(\(|[A-Z0-9_$.>:-][A-Za-z0-9_$.>:-]*\()|^[A-Za-z0-9_$.>:-]*(Clam|ClamAV|Clamav|Clamd|Clamscan|CLAMAV|CLAMD|Virus|Viruses|VirusTotal|Antivirus|AntiVirus|Malware|AntiMalware|Quahog|Cloudmersive|Scanii|MetaDefender|Opswat|OPSWAT)(\(|[A-Z0-9_$.>:-][A-Za-z0-9_$.>:-]*\()|^([A-Za-z0-9_$.>:-]*[.>:])?(is_?[iI]nfected|instream|scan_stream)\(
+                  - not:
+                      kind: call_expression
+                      regex: (?i)(queue|job|task|enqueue|delay|apply_async|publish|dispatch|schedule|enabled|configured|available|definition|signature|update|fresh|version|health|ping)
+                - has:
+                    stopBy: end
+                    all: *id001
+            - not:
+                inside:
+                  kind: unary_expression
+          - has:
+              stopBy: end
+              any:
+              - *id002
+      - has:
+          field: consequence
+          any:
+          - &id003
+            kind: return_statement
+          - has:
+              stopBy: end
+              any:
+              - *id003
+  - all:
+    - has:
+        stopBy:
+          any:
+          - kind: function_declaration
+          - kind: method_declaration
+          - kind: func_literal
+        all:
+        - kind: short_var_declaration
+          any:
+          - pattern:
+              context: func f() { $V, $W := $E }
+              selector: short_var_declaration
+          - pattern:
+              context: func f() { $V := $E }
+              selector: short_var_declaration
+        - has:
+            stopBy: end
+            any:
+            - kind: call_expression
+              regex: ^([A-Za-z0-9_$.>:-]*[0-9_$.>:-])?(?i:(clam|clamav|clamd|clamscan|virus|viruses|virustotal|antivirus|malware|antimalware|quahog|cloudmersive|scanii|metadefender|opswat))(\(|[A-Z0-9_$.>:-][A-Za-z0-9_$.>:-]*\()|^[A-Za-z0-9_$.>:-]*(Clam|ClamAV|Clamav|Clamd|Clamscan|CLAMAV|CLAMD|Virus|Viruses|VirusTotal|Antivirus|AntiVirus|Malware|AntiMalware|Quahog|Cloudmersive|Scanii|MetaDefender|Opswat|OPSWAT)(\(|[A-Z0-9_$.>:-][A-Za-z0-9_$.>:-]*\()|^([A-Za-z0-9_$.>:-]*[.>:])?(is_?[iI]nfected|instream|scan_stream)\(
+        - not:
+            has:
+              stopBy: end
+              any:
+              - kind: call_expression
+                regex: (?i)(queue|job|task|enqueue|delay|apply_async|publish|dispatch|schedule|enabled|configured|available|definition|signature|update|fresh|version|health|ping)
+    - has:
+        stopBy:
+          any:
+          - kind: function_declaration
+          - kind: method_declaration
+          - kind: func_literal
+        kind: if_statement
+        all:
+        - has:
+            field: condition
+            any:
+            - &id004
+              all:
+              - pattern:
+                  context: func f() { if $V.$P {} }
+                  selector: selector_expression
+              - regex: ^[A-Za-z0-9_]+\.(Infected|IsInfected|VirusFound|Malicious)$
+              - not:
+                  inside:
+                    kind: unary_expression
+            - &id005
+              all:
+              - kind: binary_expression
+              - regex: (?i)^[A-Za-z0-9_]+\.(status|verdict|result)\s*(!=\s*"(clean|ok|passed)"|==\s*"(infected|found|malicious|virus)")$
+              - has:
+                  field: left
+                  has:
+                    field: operand
+                    kind: identifier
+                    pattern:
+                      context: func ($V T) f() {}
+                      selector: identifier
+            - has:
+                stopBy: end
+                any:
+                - *id004
+                - *id005
+        - has:
+            field: consequence
+            any:
+            - *id003
+            - has:
+                stopBy: end
+                any:
+                - *id003
+  - has:
+      stopBy:
+        any:
+        - kind: function_declaration
+        - kind: method_declaration
+        - kind: func_literal
+      kind: if_statement
+      all:
+      - any:
+        - pattern:
+            context: func f() { if $V, $W := $E; $V { $$$B } }
+            selector: if_statement
+        - pattern:
+            context: func f() { if $V := $E; $V { $$$B } }
+            selector: if_statement
+      - has:
+          field: condition
+          kind: identifier
+          regex: ^(infected|isInfected|virusFound|found|malicious)$
+      - has:
+          field: initializer
+          has:
+            stopBy: end
+            all:
+            - kind: call_expression
+              regex: ^([A-Za-z0-9_$.>:-]*[0-9_$.>:-])?(?i:(clam|clamav|clamd|clamscan|virus|viruses|virustotal|antivirus|malware|antimalware|quahog|cloudmersive|scanii|metadefender|opswat))(\(|[A-Z0-9_$.>:-][A-Za-z0-9_$.>:-]*\()|^[A-Za-z0-9_$.>:-]*(Clam|ClamAV|Clamav|Clamd|Clamscan|CLAMAV|CLAMD|Virus|Viruses|VirusTotal|Antivirus|AntiVirus|Malware|AntiMalware|Quahog|Cloudmersive|Scanii|MetaDefender|Opswat|OPSWAT)(\(|[A-Z0-9_$.>:-][A-Za-z0-9_$.>:-]*\()|^([A-Za-z0-9_$.>:-]*[.>:])?(is_?[iI]nfected|instream|scan_stream)\(
+            - not:
+                kind: call_expression
+                regex: (?i)(queue|job|task|enqueue|delay|apply_async|publish|dispatch|schedule|enabled|configured|available|definition|signature|update|fresh|version|health|ping)
+      - has:
+          field: consequence
+          any:
+          - *id003
+          - has:
+              stopBy: end
+              any:
+              - *id003
+min_engine: 0.39.0
+---
+id: upload-validation.go-gin.scan-candidate
+practice_id: upload-validation
+language: go
+frameworks:
+- gin
+kind: evidence
+rule:
+  any:
+  - all:
+    - any:
+      - kind: call_expression
+        regex: (?i)^[A-Za-z0-9_$.>:-]*(scan|clamav|clamd|clamscan|virus|malware)[A-Za-z0-9_$.>:-]*\(
+      - kind: call_expression
+        regex: ^([A-Za-z0-9_$.>:-]*[0-9_$.>:-])?(?i:(clam|clamav|clamd|clamscan|virus|viruses|virustotal|antivirus|malware|antimalware|quahog|cloudmersive|scanii|metadefender|opswat))(\(|[A-Z0-9_$.>:-][A-Za-z0-9_$.>:-]*\()|^[A-Za-z0-9_$.>:-]*(Clam|ClamAV|Clamav|Clamd|Clamscan|CLAMAV|CLAMD|Virus|Viruses|VirusTotal|Antivirus|AntiVirus|Malware|AntiMalware|Quahog|Cloudmersive|Scanii|MetaDefender|Opswat|OPSWAT)(\(|[A-Z0-9_$.>:-][A-Za-z0-9_$.>:-]*\()|^([A-Za-z0-9_$.>:-]*[.>:])?(is_?[iI]nfected|instream|scan_stream)\(
+    - not:
+        kind: call_expression
+        regex: (?i)^[A-Za-z0-9_$.>:-]*(queue|enabled|configured|available)[A-Za-z0-9_$.>:-]*\(
+min_engine: 0.39.0
+---
+id: upload-validation.go-gin.scan-unchecked
+practice_id: upload-validation
+language: go
+frameworks:
+- gin
+kind: evidence
+rule:
+  all:
+  - all:
+    - any:
+      - kind: function_declaration
+      - kind: method_declaration
+      - kind: func_literal
+    - has:
+        stopBy:
+          kind: func_literal
+        any:
+        - kind: call_expression
+          regex: ^[A-Za-z0-9_.()]*\.(FormFile|MultipartForm|SaveUploadedFile)\(
+  - not:
+      any:
+      - has:
+          stopBy:
+            any:
+            - kind: function_declaration
+            - kind: method_declaration
+            - kind: func_literal
+          kind: if_statement
+          all:
+          - has:
+              field: condition
+              any:
+              - &id002
+                all:
+                - kind: selector_expression
+                - has:
+                    field: field
+                    kind: field_identifier
+                    regex: ^(Infected|IsInfected|VirusFound|Malicious)$
+                - has:
+                    field: operand
+                    any:
+                    - all: &id001
+                      - kind: call_expression
+                        regex: ^([A-Za-z0-9_$.>:-]*[0-9_$.>:-])?(?i:(clam|clamav|clamd|clamscan|virus|viruses|virustotal|antivirus|malware|antimalware|quahog|cloudmersive|scanii|metadefender|opswat))(\(|[A-Z0-9_$.>:-][A-Za-z0-9_$.>:-]*\()|^[A-Za-z0-9_$.>:-]*(Clam|ClamAV|Clamav|Clamd|Clamscan|CLAMAV|CLAMD|Virus|Viruses|VirusTotal|Antivirus|AntiVirus|Malware|AntiMalware|Quahog|Cloudmersive|Scanii|MetaDefender|Opswat|OPSWAT)(\(|[A-Z0-9_$.>:-][A-Za-z0-9_$.>:-]*\()|^([A-Za-z0-9_$.>:-]*[.>:])?(is_?[iI]nfected|instream|scan_stream)\(
+                      - not:
+                          kind: call_expression
+                          regex: (?i)(queue|job|task|enqueue|delay|apply_async|publish|dispatch|schedule|enabled|configured|available|definition|signature|update|fresh|version|health|ping)
+                    - has:
+                        stopBy: end
+                        all: *id001
+                - not:
+                    inside:
+                      kind: unary_expression
+              - has:
+                  stopBy: end
+                  any:
+                  - *id002
+          - has:
+              field: consequence
+              any:
+              - &id003
+                kind: return_statement
+              - has:
+                  stopBy: end
+                  any:
+                  - *id003
+      - all:
+        - has:
+            stopBy:
+              any:
+              - kind: function_declaration
+              - kind: method_declaration
+              - kind: func_literal
+            all:
+            - kind: short_var_declaration
+              any:
+              - pattern:
+                  context: func f() { $V, $W := $E }
+                  selector: short_var_declaration
+              - pattern:
+                  context: func f() { $V := $E }
+                  selector: short_var_declaration
+            - has:
+                stopBy: end
+                any:
+                - kind: call_expression
+                  regex: ^([A-Za-z0-9_$.>:-]*[0-9_$.>:-])?(?i:(clam|clamav|clamd|clamscan|virus|viruses|virustotal|antivirus|malware|antimalware|quahog|cloudmersive|scanii|metadefender|opswat))(\(|[A-Z0-9_$.>:-][A-Za-z0-9_$.>:-]*\()|^[A-Za-z0-9_$.>:-]*(Clam|ClamAV|Clamav|Clamd|Clamscan|CLAMAV|CLAMD|Virus|Viruses|VirusTotal|Antivirus|AntiVirus|Malware|AntiMalware|Quahog|Cloudmersive|Scanii|MetaDefender|Opswat|OPSWAT)(\(|[A-Z0-9_$.>:-][A-Za-z0-9_$.>:-]*\()|^([A-Za-z0-9_$.>:-]*[.>:])?(is_?[iI]nfected|instream|scan_stream)\(
+            - not:
+                has:
+                  stopBy: end
+                  any:
+                  - kind: call_expression
+                    regex: (?i)(queue|job|task|enqueue|delay|apply_async|publish|dispatch|schedule|enabled|configured|available|definition|signature|update|fresh|version|health|ping)
+        - has:
+            stopBy:
+              any:
+              - kind: function_declaration
+              - kind: method_declaration
+              - kind: func_literal
+            kind: if_statement
+            all:
+            - has:
+                field: condition
+                any:
+                - &id004
+                  all:
+                  - pattern:
+                      context: func f() { if $V.$P {} }
+                      selector: selector_expression
+                  - regex: ^[A-Za-z0-9_]+\.(Infected|IsInfected|VirusFound|Malicious)$
+                  - not:
+                      inside:
+                        kind: unary_expression
+                - &id005
+                  all:
+                  - kind: binary_expression
+                  - regex: (?i)^[A-Za-z0-9_]+\.(status|verdict|result)\s*(!=\s*"(clean|ok|passed)"|==\s*"(infected|found|malicious|virus)")$
+                  - has:
+                      field: left
+                      has:
+                        field: operand
+                        kind: identifier
+                        pattern:
+                          context: func ($V T) f() {}
+                          selector: identifier
+                - has:
+                    stopBy: end
+                    any:
+                    - *id004
+                    - *id005
+            - has:
+                field: consequence
+                any:
+                - *id003
+                - has:
+                    stopBy: end
+                    any:
+                    - *id003
+      - has:
+          stopBy:
+            any:
+            - kind: function_declaration
+            - kind: method_declaration
+            - kind: func_literal
+          kind: if_statement
+          all:
+          - any:
+            - pattern:
+                context: func f() { if $V, $W := $E; $V { $$$B } }
+                selector: if_statement
+            - pattern:
+                context: func f() { if $V := $E; $V { $$$B } }
+                selector: if_statement
+          - has:
+              field: condition
+              kind: identifier
+              regex: ^(infected|isInfected|virusFound|found|malicious)$
+          - has:
+              field: initializer
+              has:
+                stopBy: end
+                all:
+                - kind: call_expression
+                  regex: ^([A-Za-z0-9_$.>:-]*[0-9_$.>:-])?(?i:(clam|clamav|clamd|clamscan|virus|viruses|virustotal|antivirus|malware|antimalware|quahog|cloudmersive|scanii|metadefender|opswat))(\(|[A-Z0-9_$.>:-][A-Za-z0-9_$.>:-]*\()|^[A-Za-z0-9_$.>:-]*(Clam|ClamAV|Clamav|Clamd|Clamscan|CLAMAV|CLAMD|Virus|Viruses|VirusTotal|Antivirus|AntiVirus|Malware|AntiMalware|Quahog|Cloudmersive|Scanii|MetaDefender|Opswat|OPSWAT)(\(|[A-Z0-9_$.>:-][A-Za-z0-9_$.>:-]*\()|^([A-Za-z0-9_$.>:-]*[.>:])?(is_?[iI]nfected|instream|scan_stream)\(
+                - not:
+                    kind: call_expression
+                    regex: (?i)(queue|job|task|enqueue|delay|apply_async|publish|dispatch|schedule|enabled|configured|available|definition|signature|update|fresh|version|health|ping)
+          - has:
+              field: consequence
+              any:
+              - *id003
+              - has:
+                  stopBy: end
+                  any:
+                  - *id003
+  - has:
+      stopBy:
+        any:
+        - kind: function_declaration
+        - kind: method_declaration
+        - kind: func_literal
+      any:
+      - all:
+        - any:
+          - kind: call_expression
+            regex: (?i)^[A-Za-z0-9_$.>:-]*(scan|clamav|clamd|clamscan|virus|malware)[A-Za-z0-9_$.>:-]*\(
+          - kind: call_expression
+            regex: ^([A-Za-z0-9_$.>:-]*[0-9_$.>:-])?(?i:(clam|clamav|clamd|clamscan|virus|viruses|virustotal|antivirus|malware|antimalware|quahog|cloudmersive|scanii|metadefender|opswat))(\(|[A-Z0-9_$.>:-][A-Za-z0-9_$.>:-]*\()|^[A-Za-z0-9_$.>:-]*(Clam|ClamAV|Clamav|Clamd|Clamscan|CLAMAV|CLAMD|Virus|Viruses|VirusTotal|Antivirus|AntiVirus|Malware|AntiMalware|Quahog|Cloudmersive|Scanii|MetaDefender|Opswat|OPSWAT)(\(|[A-Z0-9_$.>:-][A-Za-z0-9_$.>:-]*\()|^([A-Za-z0-9_$.>:-]*[.>:])?(is_?[iI]nfected|instream|scan_stream)\(
+        - not:
+            kind: call_expression
+            regex: (?i)^[A-Za-z0-9_$.>:-]*(queue|enabled|configured|available)[A-Za-z0-9_$.>:-]*\(
+min_engine: 0.39.0
+---
+id: upload-validation.go-gin.no-content-type-check
+practice_id: upload-validation
+language: go
+frameworks:
+- gin
+kind: violation
+rule:
+  all:
+  - all:
+    - any:
+      - kind: function_declaration
+      - kind: method_declaration
+      - kind: func_literal
+    - has:
+        stopBy:
+          kind: func_literal
+        any:
+        - kind: call_expression
+          regex: ^[A-Za-z0-9_.()]*\.(FormFile|MultipartForm|SaveUploadedFile)\(
+  - not:
+      any:
+      - all:
+        - has:
+            stopBy:
+              any:
+              - kind: function_declaration
+              - kind: method_declaration
+              - kind: func_literal
+            all:
+            - kind: short_var_declaration
+              any:
+              - pattern:
+                  context: func f() { $V, $W := $E }
+                  selector: short_var_declaration
+              - pattern:
+                  context: func f() { $V := $E }
+                  selector: short_var_declaration
+            - has:
+                stopBy: end
+                any:
+                - kind: call_expression
+                  regex: (http\.DetectContentType|filetype\.(Match|Is|Image|Get)|mimetype\.Detect\w*)\(
+        - has:
+            stopBy:
+              any:
+              - kind: function_declaration
+              - kind: method_declaration
+              - kind: func_literal
+            kind: if_statement
+            all:
+            - has:
+                field: condition
+                any:
+                - &id001
+                  pattern:
+                    context: func f() { if !$X[$V] {} }
+                    selector: unary_expression
+                - &id002
+                  pattern:
+                    context: func f() { if $V != $X {} }
+                    selector: binary_expression
+                - has:
+                    stopBy: end
+                    any:
+                    - *id001
+                    - *id002
+            - has:
+                field: consequence
+                any:
+                - &id003
+                  kind: return_statement
+                - has:
+                    stopBy: end
+                    any:
+                    - *id003
+  - not:
+      any:
+      - all:
+        - has:
+            stopBy: end
+            any:
+            - kind: call_expression
+              regex: (http\.DetectContentType|filetype\.(Match|Is|Image|Get)|mimetype\.Detect\w*)\(
+        - not:
+            all:
+            - has:
+                stopBy: end
+                all:
+                - kind: short_var_declaration
+                  any:
+                  - pattern:
+                      context: func f() { $V, $W := $E }
+                      selector: short_var_declaration
+                  - pattern:
+                      context: func f() { $V := $E }
+                      selector: short_var_declaration
+                - has:
+                    stopBy: end
+                    any:
+                    - kind: call_expression
+                      regex: (http\.DetectContentType|filetype\.(Match|Is|Image|Get)|mimetype\.Detect\w*)\(
+            - not:
+                has:
+                  stopBy: end
+                  all:
+                  - kind: identifier
+                    pattern:
+                      context: func ($V T) f() {}
+                      selector: identifier
+                  - not:
+                      inside:
+                        kind: expression_list
+                        inside:
+                          kind: short_var_declaration
+                          field: left
+      - has:
+          stopBy: end
+          any:
+          - kind: call_expression
+            regex: (?i)^[A-Za-z0-9_$.>:-]*(check|assert|validate|ensure|verify|is|allowed|sniff)[A-Za-z0-9_]*(type|mime|magic|filetype|allowed|content)[A-Za-z0-9_]*\(
+min_engine: 0.39.0
+---
+id: upload-validation.go-gin.type-candidate
+practice_id: upload-validation
+language: go
+frameworks:
+- gin
+kind: evidence
+rule:
+  all:
+  - all:
+    - any:
+      - kind: function_declaration
+      - kind: method_declaration
+      - kind: func_literal
+    - has:
+        stopBy:
+          kind: func_literal
+        any:
+        - kind: call_expression
+          regex: ^[A-Za-z0-9_.()]*\.(FormFile|MultipartForm|SaveUploadedFile)\(
+  - not:
+      any:
+      - all:
+        - has:
+            stopBy:
+              any:
+              - kind: function_declaration
+              - kind: method_declaration
+              - kind: func_literal
+            all:
+            - kind: short_var_declaration
+              any:
+              - pattern:
+                  context: func f() { $V, $W := $E }
+                  selector: short_var_declaration
+              - pattern:
+                  context: func f() { $V := $E }
+                  selector: short_var_declaration
+            - has:
+                stopBy: end
+                any:
+                - kind: call_expression
+                  regex: (http\.DetectContentType|filetype\.(Match|Is|Image|Get)|mimetype\.Detect\w*)\(
+        - has:
+            stopBy:
+              any:
+              - kind: function_declaration
+              - kind: method_declaration
+              - kind: func_literal
+            kind: if_statement
+            all:
+            - has:
+                field: condition
+                any:
+                - &id001
+                  pattern:
+                    context: func f() { if !$X[$V] {} }
+                    selector: unary_expression
+                - &id002
+                  pattern:
+                    context: func f() { if $V != $X {} }
+                    selector: binary_expression
+                - has:
+                    stopBy: end
+                    any:
+                    - *id001
+                    - *id002
+            - has:
+                field: consequence
+                any:
+                - &id003
+                  kind: return_statement
+                - has:
+                    stopBy: end
+                    any:
+                    - *id003
+  - any:
+    - all:
+      - has:
+          stopBy: end
+          any:
+          - kind: call_expression
+            regex: (http\.DetectContentType|filetype\.(Match|Is|Image|Get)|mimetype\.Detect\w*)\(
+      - not:
+          all:
+          - has:
+              stopBy: end
+              all:
+              - kind: short_var_declaration
+                any:
+                - pattern:
+                    context: func f() { $V, $W := $E }
+                    selector: short_var_declaration
+                - pattern:
+                    context: func f() { $V := $E }
+                    selector: short_var_declaration
+              - has:
+                  stopBy: end
+                  any:
+                  - kind: call_expression
+                    regex: (http\.DetectContentType|filetype\.(Match|Is|Image|Get)|mimetype\.Detect\w*)\(
+          - not:
+              has:
+                stopBy: end
+                all:
+                - kind: identifier
+                  pattern:
+                    context: func ($V T) f() {}
+                    selector: identifier
+                - not:
+                    inside:
+                      kind: expression_list
+                      inside:
+                        kind: short_var_declaration
+                        field: left
+    - has:
+        stopBy: end
+        any:
+        - kind: call_expression
+          regex: (?i)^[A-Za-z0-9_$.>:-]*(check|assert|validate|ensure|verify|is|allowed|sniff)[A-Za-z0-9_]*(type|mime|magic|filetype|allowed|content)[A-Za-z0-9_]*\(
+min_engine: 0.39.0
+---
+id: upload-validation.go-gin.no-size-limit
+practice_id: upload-validation
+language: go
+frameworks:
+- gin
+kind: violation
+rule:
+  all:
+  - all:
+    - any:
+      - kind: function_declaration
+      - kind: method_declaration
+      - kind: func_literal
+    - has:
+        stopBy:
+          kind: func_literal
+        any:
+        - kind: call_expression
+          regex: ^[A-Za-z0-9_.()]*\.(FormFile|MultipartForm|SaveUploadedFile)\(
+  - not:
+      any:
+      - has:
+          stopBy:
+            any:
+            - kind: function_declaration
+            - kind: method_declaration
+            - kind: func_literal
+          kind: if_statement
+          all:
+          - has:
+              field: condition
+              any:
+              - &id001
+                kind: binary_expression
+                regex: ^[A-Za-z0-9_.]+\.(Size|ContentLength)\s*>=?\s*(self::|static::|this\.|\$this->|self\.|cls\.)?([A-Z][A-Z0-9_]*(MAX|LIMIT)[A-Z0-9_]*|(MAX|LIMIT)[A-Z0-9_]*|[a-z][A-Za-z0-9]*(Max|Limit)[A-Za-z0-9]*|(Max|Limit)[A-Za-z0-9]*|max[A-Z][A-Za-z0-9]*|limit[A-Z][A-Za-z0-9]*|[1-9][0-9_]{3,}|[0-9]+\s*\*\s*1024(\s*\*\s*1024)?)$
+              - has:
+                  stopBy: end
+                  any:
+                  - *id001
+          - has:
+              field: consequence
+              any:
+              - &id002
+                kind: return_statement
+              - has:
+                  stopBy: end
+                  any:
+                  - *id002
+      - has:
+          stopBy:
+            any:
+            - kind: function_declaration
+            - kind: method_declaration
+            - kind: func_literal
+          kind: call_expression
+          regex: ^http\.MaxBytesReader\(
+  - not:
+      any:
+      - has:
+          stopBy: end
+          kind: if_statement
+          all:
+          - has:
+              field: condition
+              any:
+              - &id003
+                kind: binary_expression
+                regex: (?i)(^([^<>]|->)*(size|length|bytes|len\()([^<>]|->)*\s>=?\s|\s<=?\s([^<>]|->)*(size|length|bytes|len\()([^<>]|->)*$)
+              - has:
+                  stopBy: end
+                  any:
+                  - *id003
+          - has:
+              field: consequence
+              any:
+              - *id002
+              - has:
+                  stopBy: end
+                  any:
+                  - *id002
+      - has:
+          stopBy: end
+          any:
+          - kind: call_expression
+            regex: (?i)^[A-Za-z0-9_$.>:-]*(check|assert|validate|ensure|enforce|limit|verify)[A-Za-z0-9_]*(size|bytes|length)[A-Za-z0-9_]*\(
+      - has:
+          stopBy: end
+          kind: call_expression
+          regex: (MaxBytesReader|ParseMultipartForm)\(
+      - has:
+          stopBy: end
+          kind: selector_expression
+          regex: \.MaxMultipartMemory$
+min_engine: 0.39.0
+---
+id: upload-validation.go-gin.size-candidate
+practice_id: upload-validation
+language: go
+frameworks:
+- gin
+kind: evidence
+rule:
+  all:
+  - all:
+    - any:
+      - kind: function_declaration
+      - kind: method_declaration
+      - kind: func_literal
+    - has:
+        stopBy:
+          kind: func_literal
+        any:
+        - kind: call_expression
+          regex: ^[A-Za-z0-9_.()]*\.(FormFile|MultipartForm|SaveUploadedFile)\(
+  - not:
+      any:
+      - has:
+          stopBy:
+            any:
+            - kind: function_declaration
+            - kind: method_declaration
+            - kind: func_literal
+          kind: if_statement
+          all:
+          - has:
+              field: condition
+              any:
+              - &id001
+                kind: binary_expression
+                regex: ^[A-Za-z0-9_.]+\.(Size|ContentLength)\s*>=?\s*(self::|static::|this\.|\$this->|self\.|cls\.)?([A-Z][A-Z0-9_]*(MAX|LIMIT)[A-Z0-9_]*|(MAX|LIMIT)[A-Z0-9_]*|[a-z][A-Za-z0-9]*(Max|Limit)[A-Za-z0-9]*|(Max|Limit)[A-Za-z0-9]*|max[A-Z][A-Za-z0-9]*|limit[A-Z][A-Za-z0-9]*|[1-9][0-9_]{3,}|[0-9]+\s*\*\s*1024(\s*\*\s*1024)?)$
+              - has:
+                  stopBy: end
+                  any:
+                  - *id001
+          - has:
+              field: consequence
+              any:
+              - &id002
+                kind: return_statement
+              - has:
+                  stopBy: end
+                  any:
+                  - *id002
+      - has:
+          stopBy:
+            any:
+            - kind: function_declaration
+            - kind: method_declaration
+            - kind: func_literal
+          kind: call_expression
+          regex: ^http\.MaxBytesReader\(
+  - any:
+    - has:
+        stopBy: end
+        kind: if_statement
+        all:
+        - has:
+            field: condition
+            any:
+            - &id003
+              kind: binary_expression
+              regex: (?i)(^([^<>]|->)*(size|length|bytes|len\()([^<>]|->)*\s>=?\s|\s<=?\s([^<>]|->)*(size|length|bytes|len\()([^<>]|->)*$)
+            - has:
+                stopBy: end
+                any:
+                - *id003
+        - has:
+            field: consequence
+            any:
+            - *id002
+            - has:
+                stopBy: end
+                any:
+                - *id002
+    - has:
+        stopBy: end
+        any:
+        - kind: call_expression
+          regex: (?i)^[A-Za-z0-9_$.>:-]*(check|assert|validate|ensure|enforce|limit|verify)[A-Za-z0-9_]*(size|bytes|length)[A-Za-z0-9_]*\(
+    - has:
+        stopBy: end
+        kind: call_expression
+        regex: (MaxBytesReader|ParseMultipartForm)\(
+    - has:
+        stopBy: end
+        kind: selector_expression
+        regex: \.MaxMultipartMemory$
+min_engine: 0.39.0
+---
+id: upload-validation.go-gin.no-authorization
+practice_id: upload-validation
+language: go
+frameworks:
+- gin
+kind: violation
+rule:
+  all:
+  - all:
+    - any:
+      - kind: function_declaration
+      - kind: method_declaration
+      - kind: func_literal
+    - has:
+        stopBy:
+          kind: func_literal
+        any:
+        - kind: call_expression
+          regex: ^[A-Za-z0-9_.()]*\.(FormFile|MultipartForm|SaveUploadedFile)\(
+  - not:
+      any:
+      - has:
+          stopBy:
+            any:
+            - kind: function_declaration
+            - kind: method_declaration
+            - kind: func_literal
+          kind: call_expression
+          regex: ^(c|ctx|gc)\.MustGet\(\s*"(user|userID|userId|user_id|claims|currentUser|identity|auth[A-Za-z_]*)"\s*\)
+      - inside:
+          kind: argument_list
+          has:
+            kind: call_expression
+            regex: ^([A-Za-z0-9_]+\.)?(Auth[A-Za-z]*|RequireAuth|JWTAuth|AuthMiddleware|Authenticate|RequireUser|BasicAuth)\(
+      - all:
+        - has:
+            stopBy:
+              any:
+              - kind: function_declaration
+              - kind: method_declaration
+              - kind: func_literal
+            kind: short_var_declaration
+            all:
+            - pattern:
+                context: func f() { $V, $OK := $E }
+                selector: short_var_declaration
+            - &id004
+              has:
+                stopBy: end
+                kind: call_expression
+                regex: ^(c|ctx|gc)\.Get\(\s*"(user|userID|userId|user_id|claims|currentUser|identity|auth[A-Za-z_]*)"\s*\)|^[A-Za-z0-9_.]*(GetCurrentUser|CurrentUser|UserFromContext|ClaimsFromContext)\(
+        - has:
+            stopBy:
+              any:
+              - kind: function_declaration
+              - kind: method_declaration
+              - kind: func_literal
+            kind: if_statement
+            all:
+            - has:
+                field: condition
+                any:
+                - &id001
+                  pattern:
+                    context: func f() { if !$OK {} }
+                    selector: unary_expression
+                - &id002
+                  pattern:
+                    context: func f() { if $V == nil {} }
+                    selector: binary_expression
+                - has:
+                    stopBy: end
+                    any:
+                    - *id001
+                    - *id002
+            - has:
+                field: consequence
+                any:
+                - &id003
+                  kind: return_statement
+                - has:
+                    stopBy: end
+                    any:
+                    - *id003
+      - all:
+        - has:
+            stopBy:
+              any:
+              - kind: function_declaration
+              - kind: method_declaration
+              - kind: func_literal
+            kind: short_var_declaration
+            all:
+            - pattern:
+                context: func f() { $V := $E }
+                selector: short_var_declaration
+            - *id004
+        - has:
+            stopBy:
+              any:
+              - kind: function_declaration
+              - kind: method_declaration
+              - kind: func_literal
+            kind: if_statement
+            all:
+            - has:
+                field: condition
+                any:
+                - &id005
+                  pattern:
+                    context: func f() { if $V == nil {} }
+                    selector: binary_expression
+                - has:
+                    stopBy: end
+                    any:
+                    - *id005
+            - has:
+                field: consequence
+                any:
+                - *id003
+                - has:
+                    stopBy: end
+                    any:
+                    - *id003
+  - all:
+    - kind: func_literal
+    - inside:
+        kind: argument_list
+        all:
+        - inside:
+            kind: call_expression
+            pattern:
+              context: func f() { $R.$M($$$A) }
+              selector: call_expression
+            regex: ^[A-Za-z_][A-Za-z0-9_]*\.(POST|PUT|PATCH|GET|DELETE|Any|Handle)\(
+        - not:
+            has:
+              any:
+              - kind: identifier
+              - kind: selector_expression
+              - kind: call_expression
+              - kind: index_expression
+              - kind: variadic_argument
+              - kind: unary_expression
+              - kind: parenthesized_expression
+    - inside:
+        stopBy: end
+        kind: source_file
+        has:
+          stopBy: end
+          kind: short_var_declaration
+          any:
+          - pattern:
+              context: func f() { $R := gin.Default() }
+              selector: short_var_declaration
+          - pattern:
+              context: func f() { $R := gin.New() }
+              selector: short_var_declaration
+    - not:
+        inside:
+          stopBy: end
+          kind: source_file
+          has:
+            stopBy: end
+            any:
+            - kind: call_expression
+              all:
+              - pattern:
+                  context: func f() { $R.Use($$$U) }
+                  selector: call_expression
+              - has:
+                  field: arguments
+                  has:
+                    all:
+                    - any:
+                      - kind: identifier
+                      - kind: selector_expression
+                      - kind: call_expression
+                      - kind: func_literal
+                      - kind: index_expression
+                      - kind: variadic_argument
+                      - kind: unary_expression
+                      - kind: parenthesized_expression
+                    - not:
+                        any:
+                        - kind: call_expression
+                          regex: ^(gin\.(Logger|Recovery|LoggerWithConfig|LoggerWithFormatter|LoggerWithWriter|CustomRecovery|RecoveryWithWriter)|(cors|gzip|requestid|static|ginzap|otelgin|pprof)\.[A-Za-z]+)\(
+                        - kind: selector_expression
+                          regex: ^(gin\.(Logger|Recovery|LoggerWithConfig|LoggerWithFormatter|LoggerWithWriter|CustomRecovery|RecoveryWithWriter)|(cors|gzip|requestid|static|ginzap|otelgin|pprof)\.[A-Za-z]+)\(
+                        - kind: identifier
+                          regex: ^(gin\.(Logger|Recovery|LoggerWithConfig|LoggerWithFormatter|LoggerWithWriter|CustomRecovery|RecoveryWithWriter)|(cors|gzip|requestid|static|ginzap|otelgin|pprof)\.[A-Za-z]+)\(
+            - kind: call_expression
+              all:
+              - any:
+                - pattern:
+                    context: func f() { $F($R) }
+                    selector: call_expression
+                - pattern:
+                    context: func f() { $F($R, $$$X) }
+                    selector: call_expression
+                - pattern:
+                    context: func f() { $F($$$X, $R) }
+                    selector: call_expression
+              - not:
+                  kind: call_expression
+                  regex: ^(http\.(ListenAndServe|ListenAndServeTLS|Serve|ServeTLS)|endless\.ListenAndServe|pprof\.Register)\(
+    - not:
+        has:
+          stopBy: end
+          any:
+          - kind: call_expression
+            regex: (?i)^[A-Za-z0-9_.()]*\.(Get|MustGet|GetString|GetInt|GetUint|Value)\(\s*"?[A-Za-z0-9_]*(user|claim|auth|session|identity|token|principal|account)
+          - kind: call_expression
+            regex: (?i)(GetCurrentUser|CurrentUser|UserFromContext|ClaimsFromContext|VerifyToken|ParseToken|jwt\.Parse|Authorize|CheckPermission)\(
+min_engine: 0.39.0
+---
+id: upload-validation.go-gin.auth-unobserved
+practice_id: upload-validation
+language: go
+frameworks:
+- gin
+kind: evidence
+rule:
+  all:
+  - all:
+    - any:
+      - kind: function_declaration
+      - kind: method_declaration
+      - kind: func_literal
+    - has:
+        stopBy:
+          kind: func_literal
+        any:
+        - kind: call_expression
+          regex: ^[A-Za-z0-9_.()]*\.(FormFile|MultipartForm|SaveUploadedFile)\(
+  - not:
+      any:
+      - has:
+          stopBy:
+            any:
+            - kind: function_declaration
+            - kind: method_declaration
+            - kind: func_literal
+          kind: call_expression
+          regex: ^(c|ctx|gc)\.MustGet\(\s*"(user|userID|userId|user_id|claims|currentUser|identity|auth[A-Za-z_]*)"\s*\)
+      - inside:
+          kind: argument_list
+          has:
+            kind: call_expression
+            regex: ^([A-Za-z0-9_]+\.)?(Auth[A-Za-z]*|RequireAuth|JWTAuth|AuthMiddleware|Authenticate|RequireUser|BasicAuth)\(
+      - all:
+        - has:
+            stopBy:
+              any:
+              - kind: function_declaration
+              - kind: method_declaration
+              - kind: func_literal
+            kind: short_var_declaration
+            all:
+            - pattern:
+                context: func f() { $V, $OK := $E }
+                selector: short_var_declaration
+            - &id004
+              has:
+                stopBy: end
+                kind: call_expression
+                regex: ^(c|ctx|gc)\.Get\(\s*"(user|userID|userId|user_id|claims|currentUser|identity|auth[A-Za-z_]*)"\s*\)|^[A-Za-z0-9_.]*(GetCurrentUser|CurrentUser|UserFromContext|ClaimsFromContext)\(
+        - has:
+            stopBy:
+              any:
+              - kind: function_declaration
+              - kind: method_declaration
+              - kind: func_literal
+            kind: if_statement
+            all:
+            - has:
+                field: condition
+                any:
+                - &id001
+                  pattern:
+                    context: func f() { if !$OK {} }
+                    selector: unary_expression
+                - &id002
+                  pattern:
+                    context: func f() { if $V == nil {} }
+                    selector: binary_expression
+                - has:
+                    stopBy: end
+                    any:
+                    - *id001
+                    - *id002
+            - has:
+                field: consequence
+                any:
+                - &id003
+                  kind: return_statement
+                - has:
+                    stopBy: end
+                    any:
+                    - *id003
+      - all:
+        - has:
+            stopBy:
+              any:
+              - kind: function_declaration
+              - kind: method_declaration
+              - kind: func_literal
+            kind: short_var_declaration
+            all:
+            - pattern:
+                context: func f() { $V := $E }
+                selector: short_var_declaration
+            - *id004
+        - has:
+            stopBy:
+              any:
+              - kind: function_declaration
+              - kind: method_declaration
+              - kind: func_literal
+            kind: if_statement
+            all:
+            - has:
+                field: condition
+                any:
+                - &id005
+                  pattern:
+                    context: func f() { if $V == nil {} }
+                    selector: binary_expression
+                - has:
+                    stopBy: end
+                    any:
+                    - *id005
+            - has:
+                field: consequence
+                any:
+                - *id003
+                - has:
+                    stopBy: end
+                    any:
+                    - *id003
+  - not:
+      all:
+      - kind: func_literal
+      - inside:
+          kind: argument_list
+          all:
+          - inside:
+              kind: call_expression
+              pattern:
+                context: func f() { $R.$M($$$A) }
+                selector: call_expression
+              regex: ^[A-Za-z_][A-Za-z0-9_]*\.(POST|PUT|PATCH|GET|DELETE|Any|Handle)\(
+          - not:
+              has:
+                any:
+                - kind: identifier
+                - kind: selector_expression
+                - kind: call_expression
+                - kind: index_expression
+                - kind: variadic_argument
+                - kind: unary_expression
+                - kind: parenthesized_expression
+      - inside:
+          stopBy: end
+          kind: source_file
+          has:
+            stopBy: end
+            kind: short_var_declaration
+            any:
+            - pattern:
+                context: func f() { $R := gin.Default() }
+                selector: short_var_declaration
+            - pattern:
+                context: func f() { $R := gin.New() }
+                selector: short_var_declaration
+      - not:
+          inside:
+            stopBy: end
+            kind: source_file
+            has:
+              stopBy: end
+              any:
+              - kind: call_expression
+                all:
+                - pattern:
+                    context: func f() { $R.Use($$$U) }
+                    selector: call_expression
+                - has:
+                    field: arguments
+                    has:
+                      all:
+                      - any:
+                        - kind: identifier
+                        - kind: selector_expression
+                        - kind: call_expression
+                        - kind: func_literal
+                        - kind: index_expression
+                        - kind: variadic_argument
+                        - kind: unary_expression
+                        - kind: parenthesized_expression
+                      - not:
+                          any:
+                          - kind: call_expression
+                            regex: ^(gin\.(Logger|Recovery|LoggerWithConfig|LoggerWithFormatter|LoggerWithWriter|CustomRecovery|RecoveryWithWriter)|(cors|gzip|requestid|static|ginzap|otelgin|pprof)\.[A-Za-z]+)\(
+                          - kind: selector_expression
+                            regex: ^(gin\.(Logger|Recovery|LoggerWithConfig|LoggerWithFormatter|LoggerWithWriter|CustomRecovery|RecoveryWithWriter)|(cors|gzip|requestid|static|ginzap|otelgin|pprof)\.[A-Za-z]+)\(
+                          - kind: identifier
+                            regex: ^(gin\.(Logger|Recovery|LoggerWithConfig|LoggerWithFormatter|LoggerWithWriter|CustomRecovery|RecoveryWithWriter)|(cors|gzip|requestid|static|ginzap|otelgin|pprof)\.[A-Za-z]+)\(
+              - kind: call_expression
+                all:
+                - any:
+                  - pattern:
+                      context: func f() { $F($R) }
+                      selector: call_expression
+                  - pattern:
+                      context: func f() { $F($R, $$$X) }
+                      selector: call_expression
+                  - pattern:
+                      context: func f() { $F($$$X, $R) }
+                      selector: call_expression
+                - not:
+                    kind: call_expression
+                    regex: ^(http\.(ListenAndServe|ListenAndServeTLS|Serve|ServeTLS)|endless\.ListenAndServe|pprof\.Register)\(
+      - not:
+          has:
+            stopBy: end
+            any:
+            - kind: call_expression
+              regex: (?i)^[A-Za-z0-9_.()]*\.(Get|MustGet|GetString|GetInt|GetUint|Value)\(\s*"?[A-Za-z0-9_]*(user|claim|auth|session|identity|token|principal|account)
+            - kind: call_expression
+              regex: (?i)(GetCurrentUser|CurrentUser|UserFromContext|ClaimsFromContext|VerifyToken|ParseToken|jwt\.Parse|Authorize|CheckPermission)\(
+min_engine: 0.39.0
+---
+id: upload-validation.go-gin.original-name-key
+practice_id: upload-validation
+language: go
+frameworks:
+- gin
+kind: violation
+rule:
+  any:
+  - kind: selector_expression
+    regex: ^[0-9A-Za-z_]+\.Filename$
+    any:
+    - inside:
+        stopBy: end
+        kind: call_expression
+        regex: ^[0-9A-Za-z_.]*(filepath\.Join|path\.Join|SaveUploadedFile|os\.Create|PutObject)\(
+min_engine: 0.39.0

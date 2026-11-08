@@ -1,0 +1,220 @@
+id: ai-trace-redaction.python-generic.langfuse-client
+practice_id: ai-trace-redaction
+language: python
+frameworks:
+- generic
+kind: items
+rule:
+  all:
+  - kind: call
+  - has:
+      field: function
+      any:
+      - kind: identifier
+        regex: '^(Langfuse|CallbackHandler)$'
+      - kind: attribute
+        regex: '\.(Langfuse|CallbackHandler)$'
+control:
+  has:
+    field: arguments
+    kind: argument_list
+    has:
+      kind: keyword_argument
+      all:
+      - has:
+          field: name
+          kind: identifier
+          regex: '^mask$'
+      - has:
+          field: value
+          any:
+          - kind: identifier
+          - kind: attribute
+          - kind: lambda
+          - kind: call
+          not:
+            any:
+            - pattern: 'lambda $Y1, **$K1: $Y1'
+            - pattern: 'lambda $Y2: $Y2'
+            - pattern: 'lambda $Y3, $Z3: $Y3'
+min_engine: 0.45.3
+---
+id: ai-trace-redaction.python-generic.observe-decorator
+practice_id: ai-trace-redaction
+language: python
+frameworks:
+- generic
+kind: items
+rule:
+  all:
+  - kind: decorator
+  - regex: '(?-u)^@(langfuse\.)?observe\b'
+control:
+  has:
+    kind: call
+    all:
+    - has:
+        field: arguments
+        kind: argument_list
+        has:
+          kind: keyword_argument
+          all:
+          - has:
+              field: name
+              kind: identifier
+              regex: '^capture_input$'
+          - has:
+              field: value
+              kind: 'false'
+    - has:
+        field: arguments
+        kind: argument_list
+        has:
+          kind: keyword_argument
+          all:
+          - has:
+              field: name
+              kind: identifier
+              regex: '^capture_output$'
+          - has:
+              field: value
+              kind: 'false'
+min_engine: 0.45.3
+---
+id: ai-trace-redaction.python-generic.observe-alias
+practice_id: ai-trace-redaction
+language: python
+frameworks:
+- generic
+kind: items
+rule:
+  all:
+  - pattern:
+      context: "@$ALIAS($$$ARGS)\ndef f():\n    pass"
+      selector: decorator
+  - inside:
+      stopBy: end
+      kind: module
+      has:
+        kind: import_from_statement
+        has:
+          pattern:
+            context: 'from m import observe as $ALIAS'
+            selector: aliased_import
+control:
+  has:
+    kind: call
+    all:
+    - has:
+        field: arguments
+        kind: argument_list
+        has:
+          kind: keyword_argument
+          all:
+          - has:
+              field: name
+              kind: identifier
+              regex: '^capture_input$'
+          - has:
+              field: value
+              kind: 'false'
+    - has:
+        field: arguments
+        kind: argument_list
+        has:
+          kind: keyword_argument
+          all:
+          - has:
+              field: name
+              kind: identifier
+              regex: '^capture_output$'
+          - has:
+              field: value
+              kind: 'false'
+min_engine: 0.45.3
+---
+id: ai-trace-redaction.python-generic.langsmith-client
+practice_id: ai-trace-redaction
+language: python
+frameworks:
+- generic
+kind: items
+rule:
+  all:
+  - kind: call
+  - has:
+      field: function
+      any:
+      - kind: identifier
+        regex: '^Client$'
+      - kind: attribute
+        regex: '^langsmith\.Client$'
+  - has:
+      field: arguments
+      kind: argument_list
+      has:
+        kind: keyword_argument
+        has:
+          field: name
+          kind: identifier
+          regex: '^hide_(inputs|outputs)$'
+control:
+  has:
+    field: arguments
+    kind: argument_list
+    all:
+    - has:
+        kind: keyword_argument
+        all:
+        - has:
+            field: name
+            kind: identifier
+            regex: '^hide_inputs$'
+        - has:
+            field: value
+            any:
+            - kind: identifier
+            - kind: attribute
+            - kind: lambda
+            - kind: call
+            - kind: 'true'
+            not:
+              any:
+              - &id001
+                pattern: 'lambda $Y1, **$K1: $Y1'
+              - &id002
+                pattern: 'lambda $Y2: $Y2'
+              - &id003
+                pattern: 'lambda $Y3, $Z3: $Y3'
+    - has:
+        kind: keyword_argument
+        all:
+        - has:
+            field: name
+            kind: identifier
+            regex: '^hide_outputs$'
+        - has:
+            field: value
+            any:
+            - kind: identifier
+            - kind: attribute
+            - kind: lambda
+            - kind: call
+            - kind: 'true'
+            not:
+              any:
+              - *id001
+              - *id002
+              - *id003
+min_engine: 0.45.3
+---
+id: ai-trace-redaction.python-generic.helicone-proxy
+practice_id: ai-trace-redaction
+language: python
+frameworks:
+- generic
+kind: violation
+rule:
+  kind: string
+  regex: '^f?[''"]https://([a-z0-9-]+\.)?helicone\.ai(/|[''"])'
+min_engine: 0.45.3

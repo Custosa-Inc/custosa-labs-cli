@@ -1,0 +1,2443 @@
+# Next.js entry points that act on a record named by the caller, one item each: a route handler (GET, POST, PUT,
+# PATCH, DELETE) taking the route's params, a Server Action that reads or writes the database, and a pages/api handler
+# reading req.query. The control is the signed-in user loaded inside it (auth(), getServerSession, getUser, a verified
+# token, Clerk's getAuth(req) but never a bare getAuth() or firebase-admin's) or a Supabase client running as the
+# caller, outside any branch. Whether the record check follows is dataflow (needs_review). Wrapped exports (export
+# const GET = withAuth(...)) and handlers defined in another file are left out.
+id: authz-every-handler.javascript-nextjs.route
+practice_id: authz-every-handler
+language: javascript
+frameworks:
+- nextjs
+kind: items
+rule:
+  any:
+  - kind: function_declaration
+    all:
+    - has:
+        field: name
+        kind: identifier
+        regex: '^(GET|POST|PUT|PATCH|DELETE)$'
+    - has:
+        field: parameters
+        kind: formal_parameters
+        regex: ','
+    - inside:
+        kind: export_statement
+  - kind: variable_declarator
+    all:
+    - has:
+        field: name
+        kind: identifier
+        regex: '^(GET|POST|PUT|PATCH|DELETE)$'
+    - has:
+        field: value
+        kind: arrow_function
+        has:
+          field: parameters
+          kind: formal_parameters
+          regex: ','
+    - inside:
+        kind: lexical_declaration
+        inside:
+          kind: export_statement
+control:
+  has:
+    stopBy:
+      any:
+      - kind: function_declaration
+        inside:
+          kind: statement_block
+      - any:
+        - kind: arrow_function
+        - kind: function_expression
+        inside:
+          kind: variable_declarator
+          inside:
+            any:
+            - kind: lexical_declaration
+            - kind: variable_declaration
+            inside:
+              kind: statement_block
+    any:
+    - any:
+      - pattern: auth()
+      - pattern: 'getServerSession($$$)'
+      - pattern: 'getToken($$$)'
+      - pattern: currentUser()
+      - pattern: '$C.auth.getUser($$$)'
+      - pattern: '$C.auth.getClaims($$$)'
+      - pattern: 'validateRequest($$$)'
+      - pattern: 'getIronSession($$$)'
+      - pattern: 'getKindeServerSession($$$)'
+      - pattern: '$A.api.getSession($$$)'
+      - pattern: '$A.verifyIdToken($$$)'
+      - pattern: '$A.verifySessionCookie($$$)'
+      - pattern: 'jwtVerify($$$)'
+      - pattern: 'jwt.verify($$$)'
+      - kind: call_expression
+        pattern: 'getAuth($$$)'
+        has:
+          field: arguments
+          kind: arguments
+          regex: '^\(\s*[^)\s]'
+        not:
+          inside:
+            kind: program
+            stopBy: end
+            has:
+              kind: import_statement
+              regex: '[''"]firebase-admin(/[a-z-]+)?[''"]'
+    - any:
+      - pattern: 'createServerClient($$$)'
+      - pattern: 'createRouteHandlerClient($$$)'
+      - pattern: 'createServerActionClient($$$)'
+      - pattern: 'createServerComponentClient($$$)'
+      - pattern: 'createPagesServerClient($$$)'
+      - pattern: createClient()
+    not:
+      inside:
+        stopBy:
+          any:
+          - kind: arrow_function
+          - kind: function_expression
+          - kind: function_declaration
+          - kind: method_definition
+        any:
+        - kind: else_clause
+        - kind: switch_case
+        - kind: catch_clause
+        - kind: for_statement
+        - kind: for_in_statement
+        - kind: while_statement
+        - kind: do_statement
+        - any:
+          - kind: statement_block
+          - kind: expression_statement
+          - kind: return_statement
+          inside:
+            kind: if_statement
+            field: consequence
+        - kind: ternary_expression
+min_engine: 0.39.0
+---
+# A route handler taking only the request (GET(request), POST(req)), one item each, when it touches stored
+# data (a database or storage call, as for a Server Action) or loads the signed-in user: the record comes
+# from the body, the query string or a header instead of the path. Same control as the two-parameter route.
+# A handler with neither (a health check, a CSP report sink) is not an item.
+id: authz-every-handler.javascript-nextjs.route-request
+practice_id: authz-every-handler
+language: javascript
+frameworks:
+- nextjs
+kind: items
+rule:
+  all:
+  - any:
+    - kind: function_declaration
+      all:
+      - has:
+          field: name
+          kind: identifier
+          regex: '^(GET|POST|PUT|PATCH|DELETE)$'
+      - has:
+          field: parameters
+          kind: formal_parameters
+          regex: '^\(\s*[A-Za-z_$][^,]*\)$'
+      - inside:
+          kind: export_statement
+    - kind: variable_declarator
+      all:
+      - has:
+          field: name
+          kind: identifier
+          regex: '^(GET|POST|PUT|PATCH|DELETE)$'
+      - has:
+          field: value
+          kind: arrow_function
+          has:
+            field: parameters
+            kind: formal_parameters
+            regex: '^\(\s*[A-Za-z_$][^,]*\)$'
+      - inside:
+          kind: lexical_declaration
+          inside:
+            kind: export_statement
+  - has:
+      stopBy: end
+      any:
+      - kind: call_expression
+        has:
+          field: function
+          kind: member_expression
+          all:
+          - has:
+              field: property
+              kind: property_identifier
+              regex: '^(from|query|rpc|findMany|findUnique|findUniqueOrThrow|findFirst|findFirstOrThrow|upsert|createMany|updateMany|deleteMany|aggregate|groupBy|\$queryRaw|\$executeRaw|\$queryRawUnsafe|\$executeRawUnsafe)$'
+          - not:
+              has:
+                field: object
+                kind: identifier
+                regex: '^(Array|Buffer|Uint8Array|Object|String|Promise|Set|Map|Date|JSON|Math|Reflect|document|window|URLSearchParams)$'
+      - pattern: '$P.$M.create($$$)'
+      - pattern: '$P.$M.update($$$)'
+      - pattern: '$P.$M.delete($$$)'
+      - pattern: '$DB.insert($T)'
+      - pattern: '$DB.select($$$).from($T)'
+      - pattern: '$DB.update($T)'
+      - pattern: '$DB.delete($T)'
+      - any:
+        - pattern: auth()
+        - pattern: 'getServerSession($$$)'
+        - pattern: 'getToken($$$)'
+        - pattern: currentUser()
+        - pattern: '$C.auth.getUser($$$)'
+        - pattern: '$C.auth.getClaims($$$)'
+        - pattern: 'validateRequest($$$)'
+        - pattern: 'getIronSession($$$)'
+        - pattern: 'getKindeServerSession($$$)'
+        - pattern: '$A.api.getSession($$$)'
+        - pattern: '$A.verifyIdToken($$$)'
+        - pattern: '$A.verifySessionCookie($$$)'
+        - pattern: 'jwtVerify($$$)'
+        - pattern: 'jwt.verify($$$)'
+        - kind: call_expression
+          pattern: 'getAuth($$$)'
+          has:
+            field: arguments
+            kind: arguments
+            regex: '^\(\s*[^)\s]'
+          not:
+            inside:
+              kind: program
+              stopBy: end
+              has:
+                kind: import_statement
+                regex: '[''"]firebase-admin(/[a-z-]+)?[''"]'
+control:
+  has:
+    stopBy:
+      any:
+      - kind: function_declaration
+        inside:
+          kind: statement_block
+      - any:
+        - kind: arrow_function
+        - kind: function_expression
+        inside:
+          kind: variable_declarator
+          inside:
+            any:
+            - kind: lexical_declaration
+            - kind: variable_declaration
+            inside:
+              kind: statement_block
+    any:
+    - any:
+      - pattern: auth()
+      - pattern: 'getServerSession($$$)'
+      - pattern: 'getToken($$$)'
+      - pattern: currentUser()
+      - pattern: '$C.auth.getUser($$$)'
+      - pattern: '$C.auth.getClaims($$$)'
+      - pattern: 'validateRequest($$$)'
+      - pattern: 'getIronSession($$$)'
+      - pattern: 'getKindeServerSession($$$)'
+      - pattern: '$A.api.getSession($$$)'
+      - pattern: '$A.verifyIdToken($$$)'
+      - pattern: '$A.verifySessionCookie($$$)'
+      - pattern: 'jwtVerify($$$)'
+      - pattern: 'jwt.verify($$$)'
+      - kind: call_expression
+        pattern: 'getAuth($$$)'
+        has:
+          field: arguments
+          kind: arguments
+          regex: '^\(\s*[^)\s]'
+        not:
+          inside:
+            kind: program
+            stopBy: end
+            has:
+              kind: import_statement
+              regex: '[''"]firebase-admin(/[a-z-]+)?[''"]'
+    - any:
+      - pattern: 'createServerClient($$$)'
+      - pattern: 'createRouteHandlerClient($$$)'
+      - pattern: 'createServerActionClient($$$)'
+      - pattern: 'createServerComponentClient($$$)'
+      - pattern: 'createPagesServerClient($$$)'
+      - pattern: createClient()
+    not:
+      inside:
+        stopBy:
+          any:
+          - kind: arrow_function
+          - kind: function_expression
+          - kind: function_declaration
+          - kind: method_definition
+        any:
+        - kind: else_clause
+        - kind: switch_case
+        - kind: catch_clause
+        - kind: for_statement
+        - kind: for_in_statement
+        - kind: while_statement
+        - kind: do_statement
+        - any:
+          - kind: statement_block
+          - kind: expression_statement
+          - kind: return_statement
+          inside:
+            kind: if_statement
+            field: consequence
+        - kind: ternary_expression
+min_engine: 0.39.0
+---
+# A server page (an async default export taking the route's params or searchParams) that reads stored
+# data: the record comes from the URL as for a route handler, and the page renders on the server for any
+# caller. One item each, with the same control.
+# The same page written as an async arrow or function at the top level and default-exported by name later
+# (const Page = async ({ params }) => ...; export default Page) is an item too, the declaration bounding it.
+id: authz-every-handler.javascript-nextjs.page
+practice_id: authz-every-handler
+language: javascript
+frameworks:
+- nextjs
+kind: items
+rule:
+  any:
+  - kind: function_declaration
+    regex: ^async\b
+    all:
+    - inside:
+        kind: export_statement
+        regex: ^export\s+default\b
+    - has:
+        field: parameters
+        kind: formal_parameters
+        regex: \b(params|searchParams)\b
+    - has:
+        stopBy: end
+        any:
+        - kind: call_expression
+          has:
+            field: function
+            kind: member_expression
+            all:
+            - has:
+                field: property
+                kind: property_identifier
+                regex: ^(from|query|rpc|findMany|findUnique|findUniqueOrThrow|findFirst|findFirstOrThrow|upsert|createMany|updateMany|deleteMany|aggregate|groupBy|\$queryRaw|\$executeRaw|\$queryRawUnsafe|\$executeRawUnsafe)$
+            - not:
+                has:
+                  field: object
+                  kind: identifier
+                  regex: ^(Array|Buffer|Uint8Array|Object|String|Promise|Set|Map|Date|JSON|Math|Reflect|document|window|URLSearchParams)$
+        - pattern: $P.$M.create($$$)
+        - pattern: $P.$M.update($$$)
+        - pattern: $P.$M.delete($$$)
+        - pattern: $DB.insert($T)
+        - pattern: $DB.select($$$).from($T)
+        - pattern: $DB.update($T)
+        - pattern: $DB.delete($T)
+  - kind: variable_declarator
+    all:
+    - has:
+        field: name
+        kind: identifier
+        pattern:
+          context: $N()
+          selector: identifier
+    - has:
+        field: value
+        kind: arrow_function
+        regex: ^async\b
+        all:
+        - has:
+            field: parameters
+            kind: formal_parameters
+            regex: \b(params|searchParams)\b
+        - has:
+            stopBy: end
+            any:
+            - kind: call_expression
+              has:
+                field: function
+                kind: member_expression
+                all:
+                - has:
+                    field: property
+                    kind: property_identifier
+                    regex: ^(from|query|rpc|findMany|findUnique|findUniqueOrThrow|findFirst|findFirstOrThrow|upsert|createMany|updateMany|deleteMany|aggregate|groupBy|\$queryRaw|\$executeRaw|\$queryRawUnsafe|\$executeRawUnsafe)$
+                - not:
+                    has:
+                      field: object
+                      kind: identifier
+                      regex: ^(Array|Buffer|Uint8Array|Object|String|Promise|Set|Map|Date|JSON|Math|Reflect|document|window|URLSearchParams)$
+            - pattern: $P.$M.create($$$)
+            - pattern: $P.$M.update($$$)
+            - pattern: $P.$M.delete($$$)
+            - pattern: $DB.insert($T)
+            - pattern: $DB.select($$$).from($T)
+            - pattern: $DB.update($T)
+            - pattern: $DB.delete($T)
+    - inside:
+        kind: lexical_declaration
+        inside:
+          kind: program
+    - inside:
+        stopBy: end
+        kind: program
+        has:
+          kind: export_statement
+          regex: ^export\s+default\s+\w+\s*;?$
+          has:
+            kind: identifier
+            pattern:
+              context: $N()
+              selector: identifier
+  - kind: function_declaration
+    regex: ^async\b
+    all:
+    - has:
+        field: name
+        kind: identifier
+        pattern:
+          context: $N()
+          selector: identifier
+    - inside:
+        kind: program
+    - has:
+        field: parameters
+        kind: formal_parameters
+        regex: \b(params|searchParams)\b
+    - has:
+        stopBy: end
+        any:
+        - kind: call_expression
+          has:
+            field: function
+            kind: member_expression
+            all:
+            - has:
+                field: property
+                kind: property_identifier
+                regex: ^(from|query|rpc|findMany|findUnique|findUniqueOrThrow|findFirst|findFirstOrThrow|upsert|createMany|updateMany|deleteMany|aggregate|groupBy|\$queryRaw|\$executeRaw|\$queryRawUnsafe|\$executeRawUnsafe)$
+            - not:
+                has:
+                  field: object
+                  kind: identifier
+                  regex: ^(Array|Buffer|Uint8Array|Object|String|Promise|Set|Map|Date|JSON|Math|Reflect|document|window|URLSearchParams)$
+        - pattern: $P.$M.create($$$)
+        - pattern: $P.$M.update($$$)
+        - pattern: $P.$M.delete($$$)
+        - pattern: $DB.insert($T)
+        - pattern: $DB.select($$$).from($T)
+        - pattern: $DB.update($T)
+        - pattern: $DB.delete($T)
+    - inside:
+        stopBy: end
+        kind: program
+        has:
+          kind: export_statement
+          regex: ^export\s+default\s+\w+\s*;?$
+          has:
+            kind: identifier
+            pattern:
+              context: $N()
+              selector: identifier
+control:
+  has:
+    stopBy:
+      any:
+      - kind: function_declaration
+        inside:
+          kind: statement_block
+      - any:
+        - kind: arrow_function
+        - kind: function_expression
+        inside:
+          kind: variable_declarator
+          inside:
+            any:
+            - kind: lexical_declaration
+            - kind: variable_declaration
+            inside:
+              kind: statement_block
+    any:
+    - any:
+      - pattern: auth()
+      - pattern: getServerSession($$$)
+      - pattern: getToken($$$)
+      - pattern: currentUser()
+      - pattern: $C.auth.getUser($$$)
+      - pattern: $C.auth.getClaims($$$)
+      - pattern: validateRequest($$$)
+      - pattern: getIronSession($$$)
+      - pattern: getKindeServerSession($$$)
+      - pattern: $A.api.getSession($$$)
+      - pattern: $A.verifyIdToken($$$)
+      - pattern: $A.verifySessionCookie($$$)
+      - pattern: jwtVerify($$$)
+      - pattern: jwt.verify($$$)
+      - kind: call_expression
+        pattern: getAuth($$$)
+        has:
+          field: arguments
+          kind: arguments
+          regex: ^\(\s*[^)\s]
+        not:
+          inside:
+            kind: program
+            stopBy: end
+            has:
+              kind: import_statement
+              regex: '[''"]firebase-admin(/[a-z-]+)?[''"]'
+    - any:
+      - pattern: createServerClient($$$)
+      - pattern: createRouteHandlerClient($$$)
+      - pattern: createServerActionClient($$$)
+      - pattern: createServerComponentClient($$$)
+      - pattern: createPagesServerClient($$$)
+      - pattern: createClient()
+    not:
+      inside:
+        stopBy:
+          any:
+          - kind: arrow_function
+          - kind: function_expression
+          - kind: function_declaration
+          - kind: method_definition
+        any:
+        - kind: else_clause
+        - kind: switch_case
+        - kind: catch_clause
+        - kind: for_statement
+        - kind: for_in_statement
+        - kind: while_statement
+        - kind: do_statement
+        - any:
+          - kind: statement_block
+          - kind: expression_statement
+          - kind: return_statement
+          inside:
+            kind: if_statement
+            field: consequence
+        - kind: ternary_expression
+min_engine: 0.39.0
+---
+id: authz-every-handler.javascript-nextjs.action
+practice_id: authz-every-handler
+language: javascript
+frameworks:
+- nextjs
+kind: items
+rule:
+  any:
+  - kind: function_declaration
+    regex: '^async\b'
+    all:
+    - inside:
+        kind: export_statement
+        inside:
+          kind: program
+          has:
+            kind: expression_statement
+            regex: '^[''"]use server[''"]'
+    - has:
+        stopBy: end
+        any:
+        - kind: call_expression
+          has:
+            field: function
+            kind: member_expression
+            all:
+            - has:
+                field: property
+                kind: property_identifier
+                regex: '^(from|query|rpc|findMany|findUnique|findUniqueOrThrow|findFirst|findFirstOrThrow|upsert|createMany|updateMany|deleteMany|aggregate|groupBy|\$queryRaw|\$executeRaw|\$queryRawUnsafe|\$executeRawUnsafe)$'
+            - not:
+                has:
+                  field: object
+                  kind: identifier
+                  regex: '^(Array|Buffer|Uint8Array|Object|String|Promise|Set|Map|Date|JSON|Math|Reflect|document|window|URLSearchParams)$'
+        - pattern: '$P.$M.create($$$)'
+        - pattern: '$P.$M.update($$$)'
+        - pattern: '$P.$M.delete($$$)'
+        - pattern: '$DB.insert($T)'
+        - pattern: '$DB.select($$$).from($T)'
+        - pattern: '$DB.update($T)'
+        - pattern: '$DB.delete($T)'
+  - kind: function_declaration
+    regex: '^async\b'
+    all:
+    - has:
+        field: body
+        kind: statement_block
+        has:
+          kind: expression_statement
+          regex: '^[''"]use server[''"]'
+    - has:
+        stopBy: end
+        any:
+        - kind: call_expression
+          has:
+            field: function
+            kind: member_expression
+            all:
+            - has:
+                field: property
+                kind: property_identifier
+                regex: '^(from|query|rpc|findMany|findUnique|findUniqueOrThrow|findFirst|findFirstOrThrow|upsert|createMany|updateMany|deleteMany|aggregate|groupBy|\$queryRaw|\$executeRaw|\$queryRawUnsafe|\$executeRawUnsafe)$'
+            - not:
+                has:
+                  field: object
+                  kind: identifier
+                  regex: '^(Array|Buffer|Uint8Array|Object|String|Promise|Set|Map|Date|JSON|Math|Reflect|document|window|URLSearchParams)$'
+        - pattern: '$P.$M.create($$$)'
+        - pattern: '$P.$M.update($$$)'
+        - pattern: '$P.$M.delete($$$)'
+        - pattern: '$DB.insert($T)'
+        - pattern: '$DB.select($$$).from($T)'
+        - pattern: '$DB.update($T)'
+        - pattern: '$DB.delete($T)'
+  # The same as an exported async arrow (export const save = async (...) => ...) (T27-P1-C60 F3.4).
+  - kind: arrow_function
+    regex: '^async\b'
+    all:
+    - inside:
+        kind: variable_declarator
+        inside:
+          kind: lexical_declaration
+          inside:
+            kind: export_statement
+            inside:
+              kind: program
+              has:
+                kind: expression_statement
+                regex: '^[''"]use server[''"]'
+    - has:
+        stopBy: end
+        any:
+        - kind: call_expression
+          has:
+            field: function
+            kind: member_expression
+            all:
+            - has:
+                field: property
+                kind: property_identifier
+                regex: '^(from|query|rpc|findMany|findUnique|findUniqueOrThrow|findFirst|findFirstOrThrow|upsert|createMany|updateMany|deleteMany|aggregate|groupBy|\$queryRaw|\$executeRaw|\$queryRawUnsafe|\$executeRawUnsafe)$'
+            - not:
+                has:
+                  field: object
+                  kind: identifier
+                  regex: '^(Array|Buffer|Uint8Array|Object|String|Promise|Set|Map|Date|JSON|Math|Reflect|document|window|URLSearchParams)$'
+        - pattern: '$P.$M.create($$$)'
+        - pattern: '$P.$M.update($$$)'
+        - pattern: '$P.$M.delete($$$)'
+        - pattern: '$DB.insert($T)'
+        - pattern: '$DB.select($$$).from($T)'
+        - pattern: '$DB.update($T)'
+        - pattern: '$DB.delete($T)'
+  - kind: arrow_function
+    regex: '^async\b'
+    all:
+    - has:
+        field: body
+        kind: statement_block
+        has:
+          kind: expression_statement
+          regex: '^[''"]use server[''"]'
+    - has:
+        stopBy: end
+        any:
+        - kind: call_expression
+          has:
+            field: function
+            kind: member_expression
+            all:
+            - has:
+                field: property
+                kind: property_identifier
+                regex: '^(from|query|rpc|findMany|findUnique|findUniqueOrThrow|findFirst|findFirstOrThrow|upsert|createMany|updateMany|deleteMany|aggregate|groupBy|\$queryRaw|\$executeRaw|\$queryRawUnsafe|\$executeRawUnsafe)$'
+            - not:
+                has:
+                  field: object
+                  kind: identifier
+                  regex: '^(Array|Buffer|Uint8Array|Object|String|Promise|Set|Map|Date|JSON|Math|Reflect|document|window|URLSearchParams)$'
+        - pattern: '$P.$M.create($$$)'
+        - pattern: '$P.$M.update($$$)'
+        - pattern: '$P.$M.delete($$$)'
+        - pattern: '$DB.insert($T)'
+        - pattern: '$DB.select($$$).from($T)'
+        - pattern: '$DB.update($T)'
+        - pattern: '$DB.delete($T)'
+control:
+  has:
+    stopBy:
+      any:
+      - kind: function_declaration
+        inside:
+          kind: statement_block
+      - any:
+        - kind: arrow_function
+        - kind: function_expression
+        inside:
+          kind: variable_declarator
+          inside:
+            any:
+            - kind: lexical_declaration
+            - kind: variable_declaration
+            inside:
+              kind: statement_block
+    any:
+    - any:
+      - pattern: auth()
+      - pattern: 'getServerSession($$$)'
+      - pattern: 'getToken($$$)'
+      - pattern: currentUser()
+      - pattern: '$C.auth.getUser($$$)'
+      - pattern: '$C.auth.getClaims($$$)'
+      - pattern: 'validateRequest($$$)'
+      - pattern: 'getIronSession($$$)'
+      - pattern: 'getKindeServerSession($$$)'
+      - pattern: '$A.api.getSession($$$)'
+      - pattern: '$A.verifyIdToken($$$)'
+      - pattern: '$A.verifySessionCookie($$$)'
+      - pattern: 'jwtVerify($$$)'
+      - pattern: 'jwt.verify($$$)'
+      - kind: call_expression
+        pattern: 'getAuth($$$)'
+        has:
+          field: arguments
+          kind: arguments
+          regex: '^\(\s*[^)\s]'
+        not:
+          inside:
+            kind: program
+            stopBy: end
+            has:
+              kind: import_statement
+              regex: '[''"]firebase-admin(/[a-z-]+)?[''"]'
+    - any:
+      - pattern: 'createServerClient($$$)'
+      - pattern: 'createRouteHandlerClient($$$)'
+      - pattern: 'createServerActionClient($$$)'
+      - pattern: 'createServerComponentClient($$$)'
+      - pattern: 'createPagesServerClient($$$)'
+      - pattern: createClient()
+    not:
+      inside:
+        stopBy:
+          any:
+          - kind: arrow_function
+          - kind: function_expression
+          - kind: function_declaration
+          - kind: method_definition
+        any:
+        - kind: else_clause
+        - kind: switch_case
+        - kind: catch_clause
+        - kind: for_statement
+        - kind: for_in_statement
+        - kind: while_statement
+        - kind: do_statement
+        - any:
+          - kind: statement_block
+          - kind: expression_statement
+          - kind: return_statement
+          inside:
+            kind: if_statement
+            field: consequence
+        - kind: ternary_expression
+min_engine: 0.39.0
+---
+id: authz-every-handler.javascript-nextjs.api
+practice_id: authz-every-handler
+language: javascript
+frameworks:
+- nextjs
+kind: items
+rule:
+  kind: function_declaration
+  all:
+  - inside:
+      kind: export_statement
+      regex: '^export\s+default\b'
+  - has:
+      field: parameters
+      kind: formal_parameters
+      regex: '^\(\s*req\b[^,]*,\s*res\b'
+  - has:
+      stopBy: end
+      kind: member_expression
+      regex: '^req\.query\b'
+control:
+  has:
+    stopBy:
+      any:
+      - kind: function_declaration
+        inside:
+          kind: statement_block
+      - any:
+        - kind: arrow_function
+        - kind: function_expression
+        inside:
+          kind: variable_declarator
+          inside:
+            any:
+            - kind: lexical_declaration
+            - kind: variable_declaration
+            inside:
+              kind: statement_block
+    any:
+    - any:
+      - pattern: auth()
+      - pattern: 'getServerSession($$$)'
+      - pattern: 'getToken($$$)'
+      - pattern: currentUser()
+      - pattern: '$C.auth.getUser($$$)'
+      - pattern: '$C.auth.getClaims($$$)'
+      - pattern: 'validateRequest($$$)'
+      - pattern: 'getIronSession($$$)'
+      - pattern: 'getKindeServerSession($$$)'
+      - pattern: '$A.api.getSession($$$)'
+      - pattern: '$A.verifyIdToken($$$)'
+      - pattern: '$A.verifySessionCookie($$$)'
+      - pattern: 'jwtVerify($$$)'
+      - pattern: 'jwt.verify($$$)'
+      - kind: call_expression
+        pattern: 'getAuth($$$)'
+        has:
+          field: arguments
+          kind: arguments
+          regex: '^\(\s*[^)\s]'
+        not:
+          inside:
+            kind: program
+            stopBy: end
+            has:
+              kind: import_statement
+              regex: '[''"]firebase-admin(/[a-z-]+)?[''"]'
+    - any:
+      - pattern: 'createServerClient($$$)'
+      - pattern: 'createRouteHandlerClient($$$)'
+      - pattern: 'createServerActionClient($$$)'
+      - pattern: 'createServerComponentClient($$$)'
+      - pattern: 'createPagesServerClient($$$)'
+      - pattern: createClient()
+    not:
+      inside:
+        stopBy:
+          any:
+          - kind: arrow_function
+          - kind: function_expression
+          - kind: function_declaration
+          - kind: method_definition
+        any:
+        - kind: else_clause
+        - kind: switch_case
+        - kind: catch_clause
+        - kind: for_statement
+        - kind: for_in_statement
+        - kind: while_statement
+        - kind: do_statement
+        - any:
+          - kind: statement_block
+          - kind: expression_statement
+          - kind: return_statement
+          inside:
+            kind: if_statement
+            field: consequence
+        - kind: ternary_expression
+min_engine: 0.39.0
+---
+# A caller read through a project helper taking nothing or only the request or context
+# (getAuthenticatedContext(), requireUser(req), getCurrentUser()): a resemblance of the control, never the
+# control (getAuth and currentUser are judged by the control). On the handler it holds that handler's item
+# for a person (needs_review). A member call (supabase.auth.getSession()) or a lookup taking an id is never one.
+id: authz-every-handler.javascript-nextjs.auth-unobserved-context
+practice_id: authz-every-handler
+language: javascript
+frameworks:
+- nextjs
+kind: evidence
+rule:
+  kind: call_expression
+  all:
+  - not:
+      inside:
+        stopBy: end
+        any:
+        - kind: function_declaration
+          inside:
+            kind: statement_block
+        - any:
+          - kind: arrow_function
+          - kind: function_expression
+          inside:
+            kind: variable_declarator
+            inside:
+              any:
+              - kind: lexical_declaration
+              - kind: variable_declaration
+              inside:
+                kind: statement_block
+  - has:
+      field: function
+      kind: identifier
+      regex: '^(get|require|load|ensure|assert|verify)((Authenticated|Auth|Current|Session|Request|SignedIn|LoggedIn)(User|Session|Context|Ctx|Caller|Principal|Claims|Identity|Account)|(User|Session|Caller|Principal|Claims|Identity|Account))(Context|Info|Id|OrThrow)?$'
+  - has:
+      field: arguments
+      kind: arguments
+      regex: '^\(\s*(req|request|ctx|c)?\s*\)$'
+min_engine: 0.39.0
+---
+# A guard at the handler's top level checking that a request header differs from a secret from the
+# environment (!== or !=, a name with SECRET, TOKEN or KEY) and returning or throwing when it does: a machine
+# holding the secret called, not which user. It holds that handler's item for a person (needs_review). An
+# equality test (=== or ==) with data returned inside is no guard: it holds nothing.
+id: authz-every-handler.javascript-nextjs.auth-unobserved-secret
+practice_id: authz-every-handler
+language: javascript
+frameworks:
+- nextjs
+kind: evidence
+rule:
+  kind: if_statement
+  all:
+  - not:
+      inside:
+        stopBy: end
+        any:
+        - kind: function_declaration
+          inside:
+            kind: statement_block
+        - any:
+          - kind: arrow_function
+          - kind: function_expression
+          inside:
+            kind: variable_declarator
+            inside:
+              any:
+              - kind: lexical_declaration
+              - kind: variable_declaration
+              inside:
+                kind: statement_block
+  - has:
+      field: condition
+      has:
+        stopBy: end
+        all:
+        - any:
+          - pattern: '$A !== $B'
+          - pattern: '$A != $B'
+        - has:
+            stopBy: end
+            any:
+            - kind: member_expression
+              regex: '\.headers\b'
+            - kind: call_expression
+              regex: '^(req|request)\.(get|header)\('
+        - has:
+            stopBy: end
+            kind: member_expression
+            regex: '^process\.env\.[A-Z0-9_]*(SECRET|TOKEN|KEY)[A-Z0-9_]*$'
+  - has:
+      field: consequence
+      any:
+      - kind: return_statement
+      - kind: throw_statement
+      - kind: statement_block
+        has:
+          any:
+          - kind: return_statement
+          - kind: throw_statement
+  - inside:
+      kind: statement_block
+      inside:
+        any:
+        - kind: function_declaration
+        - kind: arrow_function
+        - kind: function_expression
+        - kind: method_definition
+min_engine: 0.39.0
+---
+# The handler hands the request itself to a delegate or to project code: a function called by name that no
+# package import or require binds (handleSubscription(req, res), handler(req, ctx)), a method of this
+# (this.service.run(req)), or a method of an object a relative or project-path import or require binds, or an
+# instance of such a class (controller.show(req, res), topicService.follow(req)). The caller check may live
+# there, so its absence isn't visible here: it holds that handler's item for a person (needs_review). Not it,
+# so the absence stays visible and the item fails: a library helper (a name a package import or require binds:
+# express-validator, request-ip, express-rate-limit, multer), a known non-auth consumer by name (validationResult,
+# matchedData, getClientIp, rateLimit, a limiter), a logger or console (any receiver ending in logger or log), a
+# response, a method of an object nothing in the file binds (audit.record(req)), or the request's fields.
+id: authz-every-handler.javascript-nextjs.auth-unobserved-passes
+practice_id: authz-every-handler
+language: javascript
+frameworks:
+- nextjs
+kind: evidence
+rule:
+  kind: call_expression
+  all:
+  - has:
+      field: arguments
+      kind: arguments
+      has:
+        kind: identifier
+        regex: ^(req|request)$
+  - not:
+      has:
+        field: function
+        kind: member_expression
+        regex: (^|\.)(console|\w*[lL]ogger|log|Log|res|response|reply)\.\w+$
+  - not:
+      has:
+        field: function
+        kind: identifier
+        regex: ^(getServerSession|getAuth|getToken|getIronSession|validateRequest|getKindeServerSession)$
+  - not:
+      has:
+        field: function
+        any:
+        - kind: identifier
+          regex: ^(validationResult|matchedData|checkSchema|checkExact|getClientIp|clientIp|getIp|requestIp|ipKeyGenerator|rateLimit|rateLimiter|limiter|slowDown|throttle|cors|helmet|multer|formidable|busboy|structuredClone|setTimeout|setInterval|setImmediate|queueMicrotask|Boolean|String|Number|Array|Object|Promise|Symbol|JSON|encodeURIComponent|decodeURIComponent|require|parseInt|parseFloat)$
+        - kind: member_expression
+          has:
+            field: property
+            kind: property_identifier
+            regex: ^(validationResult|matchedData|checkSchema|checkExact|getClientIp|clientIp|getIp|ipKeyGenerator|rateLimit|rateLimiter|limiter|consume|slowDown|throttle)$
+  - not:
+      inside:
+        stopBy: end
+        any:
+        - kind: function_declaration
+          inside:
+            kind: statement_block
+        - any:
+          - kind: arrow_function
+          - kind: function_expression
+          inside:
+            kind: variable_declarator
+            inside:
+              any:
+              - kind: lexical_declaration
+              - kind: variable_declaration
+              inside:
+                kind: statement_block
+  - any:
+    - all:
+      - has:
+          field: function
+          kind: identifier
+          pattern:
+            context: $F()
+            selector: identifier
+      - not:
+          inside:
+            stopBy: end
+            kind: program
+            has:
+              stopBy: end
+              any:
+              - kind: import_statement
+                all:
+                - not:
+                    has:
+                      field: source
+                      kind: string
+                      regex: ^['"](\.{1,2}/|@/|~/|#|src/)
+                - has:
+                    stopBy: end
+                    kind: identifier
+                    pattern:
+                      context: $F()
+                      selector: identifier
+              - kind: variable_declarator
+                all:
+                - has:
+                    field: value
+                    any:
+                    - kind: call_expression
+                      regex: ^require\(
+                    - kind: member_expression
+                      regex: ^require\(
+                - not:
+                    has:
+                      field: value
+                      any:
+                      - kind: call_expression
+                        regex: ^require\(['"](\.{1,2}/|@/|~/|#|src/)
+                      - kind: member_expression
+                        regex: ^require\(['"](\.{1,2}/|@/|~/|#|src/)
+                - has:
+                    field: name
+                    any:
+                    - kind: identifier
+                      pattern:
+                        context: $F()
+                        selector: identifier
+                    - kind: object_pattern
+                      any:
+                      - pattern:
+                          context: const { $F } = x
+                          selector: object_pattern
+                      - pattern:
+                          context: const { $$$A, $F } = x
+                          selector: object_pattern
+                      - pattern:
+                          context: const { $F, $$$B } = x
+                          selector: object_pattern
+                      - pattern:
+                          context: const { $$$A, $F, $$$B } = x
+                          selector: object_pattern
+                      - has:
+                          kind: pair_pattern
+                          has:
+                            field: value
+                            kind: identifier
+                            pattern:
+                              context: $F()
+                              selector: identifier
+      - any:
+        - not:
+            inside:
+              stopBy: end
+              kind: program
+              has:
+                stopBy: end
+                any:
+                - kind: function_declaration
+                  has:
+                    field: name
+                    kind: identifier
+                    pattern:
+                      context: $F()
+                      selector: identifier
+                - kind: variable_declarator
+                  all:
+                  - has:
+                      field: name
+                      kind: identifier
+                      pattern:
+                        context: $F()
+                        selector: identifier
+                  - has:
+                      field: value
+                      any:
+                      - kind: arrow_function
+                      - kind: function_expression
+        - inside:
+            stopBy: end
+            kind: program
+            has:
+              stopBy: end
+              any:
+              - kind: function_declaration
+                all:
+                - has:
+                    field: name
+                    kind: identifier
+                    pattern:
+                      context: $F()
+                      selector: identifier
+                - has:
+                    stopBy: end
+                    any:
+                    - kind: member_expression
+                      regex: ^(req|request)\.(user|auth|session)$
+                    - kind: call_expression
+                      has:
+                        field: function
+                        kind: identifier
+                        regex: ^(getUser|getCurrentUser|getServerSession|auth|requireUser|requireAuth|currentUser|getSession|getAuth|getToken|getIronSession)$|^verify\w*Token$
+                    - kind: call_expression
+                      has:
+                        field: function
+                        kind: member_expression
+                        regex: \.(getUser|getSession|verifyIdToken|verifySessionCookie|getClaims)$|^jwt\.verify$
+                    - kind: call_expression
+                      any:
+                      - pattern: $R.status(401)
+                      - pattern: $R.status(403)
+                      - pattern: $R.sendStatus(401)
+                      - pattern: $R.sendStatus(403)
+                    - kind: throw_statement
+                      has:
+                        stopBy: end
+                        kind: new_expression
+                        any:
+                        - has:
+                            field: constructor
+                            kind: identifier
+                            regex: ^(Unauthori[sz]ed|Forbidden)\w*$
+                        - has:
+                            field: arguments
+                            kind: arguments
+                            has:
+                              kind: number
+                              regex: ^40[13]$
+                    - kind: call_expression
+                      has:
+                        field: function
+                        kind: identifier
+                        regex: ^(validate|verify|check)\w*(Link|Token|Signature|Passcode|Access|Secret)\w*$
+                      inside:
+                        stopBy: end
+                        kind: statement_block
+                        has:
+                          stopBy: end
+                          kind: if_statement
+                          has:
+                            field: consequence
+                            any:
+                            - kind: return_statement
+                            - has:
+                                stopBy: end
+                                kind: return_statement
+              - kind: variable_declarator
+                all:
+                - has:
+                    field: name
+                    kind: identifier
+                    pattern:
+                      context: $F()
+                      selector: identifier
+                - has:
+                    field: value
+                    any:
+                    - kind: arrow_function
+                    - kind: function_expression
+                - has:
+                    stopBy: end
+                    any:
+                    - kind: member_expression
+                      regex: ^(req|request)\.(user|auth|session)$
+                    - kind: call_expression
+                      has:
+                        field: function
+                        kind: identifier
+                        regex: ^(getUser|getCurrentUser|getServerSession|auth|requireUser|requireAuth|currentUser|getSession|getAuth|getToken|getIronSession)$|^verify\w*Token$
+                    - kind: call_expression
+                      has:
+                        field: function
+                        kind: member_expression
+                        regex: \.(getUser|getSession|verifyIdToken|verifySessionCookie|getClaims)$|^jwt\.verify$
+                    - kind: call_expression
+                      any:
+                      - pattern: $R.status(401)
+                      - pattern: $R.status(403)
+                      - pattern: $R.sendStatus(401)
+                      - pattern: $R.sendStatus(403)
+                    - kind: throw_statement
+                      has:
+                        stopBy: end
+                        kind: new_expression
+                        any:
+                        - has:
+                            field: constructor
+                            kind: identifier
+                            regex: ^(Unauthori[sz]ed|Forbidden)\w*$
+                        - has:
+                            field: arguments
+                            kind: arguments
+                            has:
+                              kind: number
+                              regex: ^40[13]$
+                    - kind: call_expression
+                      has:
+                        field: function
+                        kind: identifier
+                        regex: ^(validate|verify|check)\w*(Link|Token|Signature|Passcode|Access|Secret)\w*$
+                      inside:
+                        stopBy: end
+                        kind: statement_block
+                        has:
+                          stopBy: end
+                          kind: if_statement
+                          has:
+                            field: consequence
+                            any:
+                            - kind: return_statement
+                            - has:
+                                stopBy: end
+                                kind: return_statement
+    - has:
+        field: function
+        kind: member_expression
+        regex: ^this\.
+    - all:
+      - has:
+          field: function
+          kind: member_expression
+          has:
+            field: object
+            any:
+            - kind: identifier
+              pattern:
+                context: $O()
+                selector: identifier
+            - kind: member_expression
+              has:
+                field: object
+                kind: identifier
+                pattern:
+                  context: $O()
+                  selector: identifier
+      - inside:
+          stopBy: end
+          kind: program
+          has:
+            stopBy: end
+            any:
+            - kind: import_statement
+              all:
+              - has:
+                  field: source
+                  kind: string
+                  regex: ^['"](\.{1,2}/|@/|~/|#|src/)
+              - has:
+                  stopBy: end
+                  kind: identifier
+                  pattern:
+                    context: $O()
+                    selector: identifier
+            - kind: variable_declarator
+              all:
+              - has:
+                  field: value
+                  any:
+                  - kind: call_expression
+                    regex: ^require\(['"](\.{1,2}/|@/|~/|#|src/)
+                  - kind: member_expression
+                    regex: ^require\(['"](\.{1,2}/|@/|~/|#|src/)
+              - has:
+                  field: name
+                  any:
+                  - kind: identifier
+                    pattern:
+                      context: $O()
+                      selector: identifier
+                  - kind: object_pattern
+                    any:
+                    - pattern:
+                        context: const { $O } = x
+                        selector: object_pattern
+                    - pattern:
+                        context: const { $$$A, $O } = x
+                        selector: object_pattern
+                    - pattern:
+                        context: const { $O, $$$B } = x
+                        selector: object_pattern
+                    - pattern:
+                        context: const { $$$A, $O, $$$B } = x
+                        selector: object_pattern
+            - kind: variable_declarator
+              all:
+              - has:
+                  field: name
+                  kind: identifier
+                  pattern:
+                    context: $O()
+                    selector: identifier
+              - has:
+                  field: value
+                  kind: new_expression
+                  has:
+                    field: constructor
+                    kind: identifier
+                    pattern:
+                      context: new $C()
+                      selector: identifier
+              - inside:
+                  stopBy: end
+                  kind: program
+                  has:
+                    stopBy: end
+                    any:
+                    - kind: import_statement
+                      all:
+                      - has:
+                          field: source
+                          kind: string
+                          regex: ^['"](\.{1,2}/|@/|~/|#|src/)
+                      - has:
+                          stopBy: end
+                          kind: identifier
+                          pattern:
+                            context: new $C()
+                            selector: identifier
+                    - kind: variable_declarator
+                      all:
+                      - has:
+                          field: value
+                          any:
+                          - kind: call_expression
+                            regex: ^require\(['"](\.{1,2}/|@/|~/|#|src/)
+                          - kind: member_expression
+                            regex: ^require\(['"](\.{1,2}/|@/|~/|#|src/)
+                      - has:
+                          field: name
+                          any:
+                          - kind: identifier
+                            pattern:
+                              context: new $C()
+                              selector: identifier
+                          - kind: object_pattern
+                            any:
+                            - pattern:
+                                context: const { $C } = x
+                                selector: object_pattern
+                            - pattern:
+                                context: const { $$$A, $C } = x
+                                selector: object_pattern
+                            - pattern:
+                                context: const { $C, $$$B } = x
+                                selector: object_pattern
+                            - pattern:
+                                context: const { $$$A, $C, $$$B } = x
+                                selector: object_pattern
+min_engine: 0.39.0
+---
+# A route handler taking no parameters at all (export async function GET()) that loads the signed-in user and
+# touches stored data: one item each, with the same control (the user load plus a user-scoped query ends it
+# controlled). One that loads no user is no item here.
+# The control: at the handler's top level, before any data access, a const declaration whose value is the user load
+# itself, optionally awaited (auth(), getServerSession(), supabase.auth.getUser(); never a bare createClient()),
+# and then either an if testing its absence (!s, !s.user, s == null, !s || ...) whose consequence returns, throws,
+# redirects or calls notFound as a direct statement, or the binding in a filter argument of a data call (a where:
+# in its arguments, or .eq/.match/.filter/.where on a chain starting at a data call), with every data read in the
+# handler scoped by it. That use must be a plain dereference (s.user.id, user.id, or the bare destructured name):
+# never through an optional chain or optional index (also behind parentheses, as, satisfies or !), nor inside a
+# ternary, &&, ||, ?? or an array such as OR: [...], nor as an argument to a call or new inside the filter value.
+# The load must be among the first four statements, with no data access before it. The same may sit in a
+# whole-body try, the handler's first statement, whose catch returns or throws and makes no data access.
+id: authz-every-handler.javascript-nextjs.route-noargs
+practice_id: authz-every-handler
+language: javascript
+frameworks:
+- nextjs
+kind: items
+rule:
+  all:
+  - any:
+    - kind: function_declaration
+      all:
+      - has:
+          field: name
+          kind: identifier
+          regex: ^(GET|POST|PUT|PATCH|DELETE)$
+      - has:
+          field: parameters
+          kind: formal_parameters
+          regex: ^\([ \t\r\n]*\)$
+      - inside:
+          kind: export_statement
+    - kind: variable_declarator
+      all:
+      - has:
+          field: name
+          kind: identifier
+          regex: ^(GET|POST|PUT|PATCH|DELETE)$
+      - has:
+          field: value
+          kind: arrow_function
+          has:
+            field: parameters
+            kind: formal_parameters
+            regex: ^\([ \t\r\n]*\)$
+      - inside:
+          kind: lexical_declaration
+          inside:
+            kind: export_statement
+  - has:
+      stopBy: end
+      any:
+      - kind: call_expression
+        has:
+          field: function
+          kind: member_expression
+          all:
+          - has:
+              field: property
+              kind: property_identifier
+              regex: ^(from|query|rpc|findMany|findUnique|findUniqueOrThrow|findFirst|findFirstOrThrow|upsert|createMany|updateMany|deleteMany|aggregate|groupBy|\$queryRaw|\$executeRaw|\$queryRawUnsafe|\$executeRawUnsafe)$
+          - not:
+              has:
+                field: object
+                kind: identifier
+                regex: ^(Array|Buffer|Uint8Array|Object|String|Promise|Set|Map|Date|JSON|Math|Reflect|document|window|URLSearchParams)$
+      - kind: call_expression
+        has:
+          field: function
+          kind: member_expression
+          all:
+          - has:
+              field: property
+              kind: property_identifier
+              regex: ^(create|update|delete)$
+          - has:
+              field: object
+              kind: member_expression
+      - kind: call_expression
+        has:
+          field: function
+          kind: member_expression
+          has:
+            field: property
+            kind: property_identifier
+            regex: ^(insert)$
+  - has:
+      stopBy: end
+      any:
+      - pattern: auth()
+      - pattern: getServerSession($$$)
+      - pattern: getToken($$$)
+      - pattern: currentUser()
+      - pattern: $C.auth.getUser($$$)
+      - pattern: $C.auth.getClaims($$$)
+      - pattern: validateRequest($$$)
+      - pattern: getIronSession($$$)
+      - pattern: getKindeServerSession($$$)
+      - pattern: $A.api.getSession($$$)
+      - pattern: $A.verifyIdToken($$$)
+      - pattern: $A.verifySessionCookie($$$)
+      - pattern: jwtVerify($$$)
+      - pattern: jwt.verify($$$)
+      - kind: call_expression
+        pattern: getAuth($$$)
+        has:
+          field: arguments
+          kind: arguments
+          regex: ^\([ \t\r\n]*[^) \t\r\n]
+        not:
+          inside:
+            kind: program
+            stopBy: end
+            has:
+              kind: import_statement
+              regex: '[''"]firebase-admin(/[a-z-]+)?[''"]'
+control:
+  has:
+    stopBy: end
+    kind: statement_block
+    inside:
+      any:
+      - kind: function_declaration
+        inside:
+          kind: export_statement
+      - kind: arrow_function
+        inside:
+          kind: variable_declarator
+          inside:
+            kind: lexical_declaration
+            inside:
+              kind: export_statement
+      - kind: try_statement
+        all:
+        - not:
+            follows:
+              any:
+              - kind: lexical_declaration
+              - kind: variable_declaration
+              - kind: expression_statement
+              - kind: if_statement
+              - kind: try_statement
+              - kind: return_statement
+              - kind: for_statement
+              - kind: for_in_statement
+              - kind: while_statement
+              - kind: switch_statement
+              - kind: throw_statement
+              - kind: comment
+              - kind: empty_statement
+        - any:
+          - not:
+              has:
+                field: handler
+                kind: catch_clause
+          - has:
+              field: handler
+              kind: catch_clause
+              all:
+              - has:
+                  stopBy: end
+                  any:
+                  - kind: return_statement
+                  - kind: throw_statement
+              - not:
+                  has:
+                    stopBy: end
+                    any:
+                    - kind: call_expression
+                      has:
+                        field: function
+                        kind: member_expression
+                        all:
+                        - has:
+                            field: property
+                            kind: property_identifier
+                            regex: ^(from|query|rpc|findMany|findUnique|findUniqueOrThrow|findFirst|findFirstOrThrow|upsert|createMany|updateMany|deleteMany|aggregate|groupBy|\$queryRaw|\$executeRaw|\$queryRawUnsafe|\$executeRawUnsafe)$
+                        - not:
+                            has:
+                              field: object
+                              kind: identifier
+                              regex: ^(Array|Buffer|Uint8Array|Object|String|Promise|Set|Map|Date|JSON|Math|Reflect|document|window|URLSearchParams)$
+                    - kind: call_expression
+                      has:
+                        field: function
+                        kind: member_expression
+                        all:
+                        - has:
+                            field: property
+                            kind: property_identifier
+                            regex: ^(create|update|delete)$
+                        - has:
+                            field: object
+                            kind: member_expression
+                    - kind: call_expression
+                      has:
+                        field: function
+                        kind: member_expression
+                        has:
+                          field: property
+                          kind: property_identifier
+                          regex: ^(insert)$
+        inside:
+          kind: statement_block
+          inside:
+            any:
+            - kind: function_declaration
+              inside:
+                kind: export_statement
+            - kind: arrow_function
+              inside:
+                kind: variable_declarator
+                inside:
+                  kind: lexical_declaration
+                  inside:
+                    kind: export_statement
+    all:
+    - has:
+        all:
+        - has:
+            kind: variable_declarator
+            all:
+            - has:
+                field: name
+                any:
+                - kind: identifier
+                  pattern:
+                    context: $S()
+                    selector: identifier
+                - kind: object_pattern
+                  has:
+                    stopBy: end
+                    any:
+                    - kind: pair_pattern
+                      has:
+                        field: value
+                        kind: identifier
+                        pattern:
+                          context: $S()
+                          selector: identifier
+                    - kind: object_pattern
+                      any:
+                      - pattern:
+                          context: const { $S } = x
+                          selector: object_pattern
+                      - pattern:
+                          context: const { $$$A, $S } = x
+                          selector: object_pattern
+                      - pattern:
+                          context: const { $S, $$$B } = x
+                          selector: object_pattern
+                      - pattern:
+                          context: const { $$$A, $S, $$$B } = x
+                          selector: object_pattern
+                - kind: object_pattern
+                  any:
+                  - pattern:
+                      context: const { $S } = x
+                      selector: object_pattern
+                  - pattern:
+                      context: const { $$$A, $S } = x
+                      selector: object_pattern
+                  - pattern:
+                      context: const { $S, $$$B } = x
+                      selector: object_pattern
+                  - pattern:
+                      context: const { $$$A, $S, $$$B } = x
+                      selector: object_pattern
+            - has:
+                field: value
+                any:
+                - pattern: auth()
+                - pattern: getServerSession($$$)
+                - pattern: getToken($$$)
+                - pattern: currentUser()
+                - pattern: $C.auth.getUser($$$)
+                - pattern: $C.auth.getClaims($$$)
+                - pattern: validateRequest($$$)
+                - pattern: getIronSession($$$)
+                - pattern: getKindeServerSession($$$)
+                - pattern: $A.api.getSession($$$)
+                - pattern: $A.verifyIdToken($$$)
+                - pattern: $A.verifySessionCookie($$$)
+                - pattern: jwtVerify($$$)
+                - pattern: jwt.verify($$$)
+                - kind: call_expression
+                  pattern: getAuth($$$)
+                  has:
+                    field: arguments
+                    kind: arguments
+                    regex: ^\([ \t\r\n]*[^) \t\r\n]
+                  not:
+                    inside:
+                      kind: program
+                      stopBy: end
+                      has:
+                        kind: import_statement
+                        regex: '[''"]firebase-admin(/[a-z-]+)?[''"]'
+                - kind: await_expression
+                  has:
+                    any:
+                    - pattern: auth()
+                    - pattern: getServerSession($$$)
+                    - pattern: getToken($$$)
+                    - pattern: currentUser()
+                    - pattern: $C.auth.getUser($$$)
+                    - pattern: $C.auth.getClaims($$$)
+                    - pattern: validateRequest($$$)
+                    - pattern: getIronSession($$$)
+                    - pattern: getKindeServerSession($$$)
+                    - pattern: $A.api.getSession($$$)
+                    - pattern: $A.verifyIdToken($$$)
+                    - pattern: $A.verifySessionCookie($$$)
+                    - pattern: jwtVerify($$$)
+                    - pattern: jwt.verify($$$)
+                    - kind: call_expression
+                      pattern: getAuth($$$)
+                      has:
+                        field: arguments
+                        kind: arguments
+                        regex: ^\([ \t\r\n]*[^) \t\r\n]
+                      not:
+                        inside:
+                          kind: program
+                          stopBy: end
+                          has:
+                            kind: import_statement
+                            regex: '[''"]firebase-admin(/[a-z-]+)?[''"]'
+        - not:
+            follows:
+              any:
+              - has:
+                  stopBy: end
+                  kind: call_expression
+                  any:
+                  - kind: call_expression
+                    has:
+                      field: function
+                      kind: member_expression
+                      all:
+                      - has:
+                          field: property
+                          kind: property_identifier
+                          regex: ^(from|query|rpc|findMany|findUnique|findUniqueOrThrow|findFirst|findFirstOrThrow|upsert|createMany|updateMany|deleteMany|aggregate|groupBy|\$queryRaw|\$executeRaw|\$queryRawUnsafe|\$executeRawUnsafe)$
+                      - not:
+                          has:
+                            field: object
+                            kind: identifier
+                            regex: ^(Array|Buffer|Uint8Array|Object|String|Promise|Set|Map|Date|JSON|Math|Reflect|document|window|URLSearchParams)$
+                  - kind: call_expression
+                    has:
+                      field: function
+                      kind: member_expression
+                      all:
+                      - has:
+                          field: property
+                          kind: property_identifier
+                          regex: ^(create|update|delete)$
+                      - has:
+                          field: object
+                          kind: member_expression
+                  - kind: call_expression
+                    has:
+                      field: function
+                      kind: member_expression
+                      has:
+                        field: property
+                        kind: property_identifier
+                        regex: ^(insert)$
+              - follows:
+                  any:
+                  - has:
+                      stopBy: end
+                      kind: call_expression
+                      any:
+                      - kind: call_expression
+                        has:
+                          field: function
+                          kind: member_expression
+                          all:
+                          - has:
+                              field: property
+                              kind: property_identifier
+                              regex: ^(from|query|rpc|findMany|findUnique|findUniqueOrThrow|findFirst|findFirstOrThrow|upsert|createMany|updateMany|deleteMany|aggregate|groupBy|\$queryRaw|\$executeRaw|\$queryRawUnsafe|\$executeRawUnsafe)$
+                          - not:
+                              has:
+                                field: object
+                                kind: identifier
+                                regex: ^(Array|Buffer|Uint8Array|Object|String|Promise|Set|Map|Date|JSON|Math|Reflect|document|window|URLSearchParams)$
+                      - kind: call_expression
+                        has:
+                          field: function
+                          kind: member_expression
+                          all:
+                          - has:
+                              field: property
+                              kind: property_identifier
+                              regex: ^(create|update|delete)$
+                          - has:
+                              field: object
+                              kind: member_expression
+                      - kind: call_expression
+                        has:
+                          field: function
+                          kind: member_expression
+                          has:
+                            field: property
+                            kind: property_identifier
+                            regex: ^(insert)$
+                  - follows:
+                      any:
+                      - has:
+                          stopBy: end
+                          kind: call_expression
+                          any:
+                          - kind: call_expression
+                            has:
+                              field: function
+                              kind: member_expression
+                              all:
+                              - has:
+                                  field: property
+                                  kind: property_identifier
+                                  regex: ^(from|query|rpc|findMany|findUnique|findUniqueOrThrow|findFirst|findFirstOrThrow|upsert|createMany|updateMany|deleteMany|aggregate|groupBy|\$queryRaw|\$executeRaw|\$queryRawUnsafe|\$executeRawUnsafe)$
+                              - not:
+                                  has:
+                                    field: object
+                                    kind: identifier
+                                    regex: ^(Array|Buffer|Uint8Array|Object|String|Promise|Set|Map|Date|JSON|Math|Reflect|document|window|URLSearchParams)$
+                          - kind: call_expression
+                            has:
+                              field: function
+                              kind: member_expression
+                              all:
+                              - has:
+                                  field: property
+                                  kind: property_identifier
+                                  regex: ^(create|update|delete)$
+                              - has:
+                                  field: object
+                                  kind: member_expression
+                          - kind: call_expression
+                            has:
+                              field: function
+                              kind: member_expression
+                              has:
+                                field: property
+                                kind: property_identifier
+                                regex: ^(insert)$
+                      - follows:
+                          any:
+                          - has:
+                              stopBy: end
+                              kind: call_expression
+                              any:
+                              - kind: call_expression
+                                has:
+                                  field: function
+                                  kind: member_expression
+                                  all:
+                                  - has:
+                                      field: property
+                                      kind: property_identifier
+                                      regex: ^(from|query|rpc|findMany|findUnique|findUniqueOrThrow|findFirst|findFirstOrThrow|upsert|createMany|updateMany|deleteMany|aggregate|groupBy|\$queryRaw|\$executeRaw|\$queryRawUnsafe|\$executeRawUnsafe)$
+                                  - not:
+                                      has:
+                                        field: object
+                                        kind: identifier
+                                        regex: ^(Array|Buffer|Uint8Array|Object|String|Promise|Set|Map|Date|JSON|Math|Reflect|document|window|URLSearchParams)$
+                              - kind: call_expression
+                                has:
+                                  field: function
+                                  kind: member_expression
+                                  all:
+                                  - has:
+                                      field: property
+                                      kind: property_identifier
+                                      regex: ^(create|update|delete)$
+                                  - has:
+                                      field: object
+                                      kind: member_expression
+                              - kind: call_expression
+                                has:
+                                  field: function
+                                  kind: member_expression
+                                  has:
+                                    field: property
+                                    kind: property_identifier
+                                    regex: ^(insert)$
+                          - follows:
+                              any:
+                              - kind: lexical_declaration
+                              - kind: variable_declaration
+                              - kind: expression_statement
+                              - kind: if_statement
+                              - kind: try_statement
+                              - kind: return_statement
+                              - kind: for_statement
+                              - kind: for_in_statement
+                              - kind: while_statement
+                              - kind: switch_statement
+                              - kind: throw_statement
+                              - kind: comment
+                              - kind: empty_statement
+        kind: lexical_declaration
+        regex: ^const(?-u:\b)
+    - any:
+      - has:
+          kind: if_statement
+          all:
+          - has:
+              field: condition
+              has:
+                any:
+                - all:
+                  - pattern: '!$S'
+                  - not:
+                      inside:
+                        stopBy: end
+                        kind: statement_block
+                        has:
+                          any: &supabase_auth_result
+                          - pattern: 'const $S = await $C.auth.getUser($$$)'
+                          - pattern: 'const $S = $C.auth.getUser($$$)'
+                          - pattern: 'const $S = await $C.auth.getClaims($$$)'
+                          - pattern: 'const $S = $C.auth.getClaims($$$)'
+                          - pattern: 'const { $S } = await $C.auth.getUser($$$)'
+                          - pattern: 'const { $S, $$$B } = await $C.auth.getUser($$$)'
+                          - pattern: 'const { $$$A, $S } = await $C.auth.getUser($$$)'
+                          - pattern: 'const { $$$A, $S, $$$B } = await $C.auth.getUser($$$)'
+                          - pattern: 'const { data: $S } = await $C.auth.getUser($$$)'
+                          - pattern: 'const { data: $S, $$$B } = await $C.auth.getUser($$$)'
+                          - pattern: 'const { $$$A, data: $S } = await $C.auth.getUser($$$)'
+                          - pattern: 'const { $$$A, data: $S, $$$B } = await $C.auth.getUser($$$)'
+                          - pattern: 'const { $S } = await $C.auth.getClaims($$$)'
+                          - pattern: 'const { $S, $$$B } = await $C.auth.getClaims($$$)'
+                          - pattern: 'const { $$$A, $S } = await $C.auth.getClaims($$$)'
+                          - pattern: 'const { $$$A, $S, $$$B } = await $C.auth.getClaims($$$)'
+                          - pattern: 'const { data: $S } = await $C.auth.getClaims($$$)'
+                          - pattern: 'const { data: $S, $$$B } = await $C.auth.getClaims($$$)'
+                          - pattern: 'const { $$$A, data: $S } = await $C.auth.getClaims($$$)'
+                          - pattern: 'const { $$$A, data: $S, $$$B } = await $C.auth.getClaims($$$)'
+                - all:
+                  - pattern: '!$S.$X'
+                  - not:
+                      inside:
+                        stopBy: end
+                        kind: statement_block
+                        has:
+                          any: &supabase_auth_whole
+                          - pattern: 'const $S = await $C.auth.getUser($$$)'
+                          - pattern: 'const $S = $C.auth.getUser($$$)'
+                          - pattern: 'const $S = await $C.auth.getClaims($$$)'
+                          - pattern: 'const $S = $C.auth.getClaims($$$)'
+                - all:
+                  - pattern: '!$S?.$X'
+                  - not:
+                      inside:
+                        stopBy: end
+                        kind: statement_block
+                        has:
+                          any: *supabase_auth_whole
+                - pattern: '!$S.$X.$Y'
+                - pattern: '!$S?.$X?.$Y'
+                - pattern: '!$S?.$X.$Y'
+                - all:
+                  - pattern: $S == null
+                  - not:
+                      inside:
+                        stopBy: end
+                        kind: statement_block
+                        has:
+                          any: *supabase_auth_result
+                - all:
+                  - pattern: $S === null
+                  - not:
+                      inside:
+                        stopBy: end
+                        kind: statement_block
+                        has:
+                          any: *supabase_auth_result
+                - all:
+                  - pattern: $S === undefined
+                  - not:
+                      inside:
+                        stopBy: end
+                        kind: statement_block
+                        has:
+                          any: *supabase_auth_result
+                - all:
+                  - pattern: $S == undefined
+                  - not:
+                      inside:
+                        stopBy: end
+                        kind: statement_block
+                        has:
+                          any: *supabase_auth_result
+                - kind: binary_expression
+                  regex: \|\|
+                  has:
+                    field: left
+                    any:
+                    - all:
+                      - pattern: '!$S'
+                      - not:
+                          inside:
+                            stopBy: end
+                            kind: statement_block
+                            has:
+                              any: *supabase_auth_result
+                    - all:
+                      - pattern: '!$S.$X'
+                      - not:
+                          inside:
+                            stopBy: end
+                            kind: statement_block
+                            has:
+                              any: *supabase_auth_whole
+                    - all:
+                      - pattern: '!$S?.$X'
+                      - not:
+                          inside:
+                            stopBy: end
+                            kind: statement_block
+                            has:
+                              any: *supabase_auth_whole
+                    - pattern: '!$S.$X.$Y'
+                    - pattern: '!$S?.$X?.$Y'
+                    - pattern: '!$S?.$X.$Y'
+                    - all:
+                      - pattern: $S == null
+                      - not:
+                          inside:
+                            stopBy: end
+                            kind: statement_block
+                            has:
+                              any: *supabase_auth_result
+                    - all:
+                      - pattern: $S === null
+                      - not:
+                          inside:
+                            stopBy: end
+                            kind: statement_block
+                            has:
+                              any: *supabase_auth_result
+                    - all:
+                      - pattern: $S === undefined
+                      - not:
+                          inside:
+                            stopBy: end
+                            kind: statement_block
+                            has:
+                              any: *supabase_auth_result
+                    - all:
+                      - pattern: $S == undefined
+                      - not:
+                          inside:
+                            stopBy: end
+                            kind: statement_block
+                            has:
+                              any: *supabase_auth_result
+          - has:
+              field: consequence
+              any:
+              - kind: return_statement
+              - kind: throw_statement
+              - kind: expression_statement
+                has:
+                  kind: call_expression
+                  regex: ^(redirect|permanentRedirect|notFound|unauthorized|forbidden)\(
+              - kind: expression_statement
+                has:
+                  kind: await_expression
+                  has:
+                    kind: call_expression
+                    regex: ^(redirect|permanentRedirect|notFound|unauthorized|forbidden)\(
+              - kind: statement_block
+                has:
+                  any:
+                  - kind: return_statement
+                  - kind: throw_statement
+                  - kind: expression_statement
+                    has:
+                      kind: call_expression
+                      regex: ^(redirect|permanentRedirect|notFound|unauthorized|forbidden)\(
+                  - kind: expression_statement
+                    has:
+                      kind: await_expression
+                      has:
+                        kind: call_expression
+                        regex: ^(redirect|permanentRedirect|notFound|unauthorized|forbidden)\(
+      - all:
+        - has:
+            stopBy: end
+            any:
+            - kind: pair
+              all:
+              - has:
+                  field: key
+                  kind: property_identifier
+                  regex: ^where$
+              - has:
+                  field: value
+                  has:
+                    stopBy: end
+                    kind: identifier
+                    pattern:
+                      context: $S()
+                      selector: identifier
+                    not:
+                      any:
+                      - inside:
+                          stopBy:
+                            not:
+                              any:
+                              - kind: member_expression
+                              - kind: subscript_expression
+                              - kind: parenthesized_expression
+                          any:
+                          - kind: member_expression
+                            regex: \?\.
+                          - kind: subscript_expression
+                            regex: \?\.
+                      - inside:
+                          stopBy:
+                            any:
+                            - kind: pair
+                              has:
+                                field: key
+                                kind: property_identifier
+                                regex: ^where$
+                            - kind: arguments
+                              inside:
+                                kind: call_expression
+                                has:
+                                  field: function
+                                  kind: member_expression
+                                  has:
+                                    field: property
+                                    kind: property_identifier
+                                    regex: ^(eq|neq|match|filter|where|in|contains|is|gte|lte|gt|lt)$
+                          any:
+                          - kind: ternary_expression
+                          - kind: binary_expression
+                            regex: '&&|\|\||\?\?'
+                          - kind: array
+                      - inside:
+                          stopBy:
+                            any:
+                            - kind: pair
+                              has:
+                                field: key
+                                kind: property_identifier
+                                regex: ^where$
+                            - kind: arguments
+                              inside:
+                                kind: call_expression
+                                has:
+                                  field: function
+                                  kind: member_expression
+                                  has:
+                                    field: property
+                                    kind: property_identifier
+                                    regex: ^(eq|neq|match|filter|where|in|contains|is|gte|lte|gt|lt)$
+                          any:
+                          - kind: call_expression
+                          - kind: new_expression
+              - &id001
+                not:
+                  inside:
+                    stopBy: end
+                    kind: call_expression
+                    has:
+                      field: function
+                      kind: member_expression
+                      has:
+                        field: property
+                        kind: property_identifier
+                        regex: ^(create[A-Za-z0-9_]*|insert[A-Za-z0-9_]*|update[A-Za-z0-9_]*|upsert[A-Za-z0-9_]*|delete[A-Za-z0-9_]*|remove[A-Za-z0-9_]*|save|log|audit[A-Za-z0-9_]*|record[A-Za-z0-9_]*|track[A-Za-z0-9_]*)$
+              - inside:
+                  stopBy: end
+                  kind: arguments
+                  inside:
+                    kind: call_expression
+                    any:
+                    - kind: call_expression
+                      has:
+                        field: function
+                        kind: member_expression
+                        all:
+                        - has:
+                            field: property
+                            kind: property_identifier
+                            regex: ^(from|query|rpc|findMany|findUnique|findUniqueOrThrow|findFirst|findFirstOrThrow|upsert|createMany|updateMany|deleteMany|aggregate|groupBy|\$queryRaw|\$executeRaw|\$queryRawUnsafe|\$executeRawUnsafe)$
+                        - not:
+                            has:
+                              field: object
+                              kind: identifier
+                              regex: ^(Array|Buffer|Uint8Array|Object|String|Promise|Set|Map|Date|JSON|Math|Reflect|document|window|URLSearchParams)$
+                    - kind: call_expression
+                      has:
+                        field: function
+                        kind: member_expression
+                        all:
+                        - has:
+                            field: property
+                            kind: property_identifier
+                            regex: ^(create|update|delete)$
+                        - has:
+                            field: object
+                            kind: member_expression
+                    - kind: call_expression
+                      has:
+                        field: function
+                        kind: member_expression
+                        has:
+                          field: property
+                          kind: property_identifier
+                          regex: ^(insert)$
+            - kind: call_expression
+              all:
+              - has:
+                  field: function
+                  kind: member_expression
+                  has:
+                    field: property
+                    kind: property_identifier
+                    regex: ^(eq|neq|match|filter|where|in|contains|is|gte|lte|gt|lt)$
+              - has:
+                  field: arguments
+                  has:
+                    stopBy: end
+                    kind: identifier
+                    pattern:
+                      context: $S()
+                      selector: identifier
+                    not:
+                      any:
+                      - inside:
+                          stopBy:
+                            not:
+                              any:
+                              - kind: member_expression
+                              - kind: subscript_expression
+                              - kind: parenthesized_expression
+                          any:
+                          - kind: member_expression
+                            regex: \?\.
+                          - kind: subscript_expression
+                            regex: \?\.
+                      - inside:
+                          stopBy:
+                            any:
+                            - kind: pair
+                              has:
+                                field: key
+                                kind: property_identifier
+                                regex: ^where$
+                            - kind: arguments
+                              inside:
+                                kind: call_expression
+                                has:
+                                  field: function
+                                  kind: member_expression
+                                  has:
+                                    field: property
+                                    kind: property_identifier
+                                    regex: ^(eq|neq|match|filter|where|in|contains|is|gte|lte|gt|lt)$
+                          any:
+                          - kind: ternary_expression
+                          - kind: binary_expression
+                            regex: '&&|\|\||\?\?'
+                          - kind: array
+                      - inside:
+                          stopBy:
+                            any:
+                            - kind: pair
+                              has:
+                                field: key
+                                kind: property_identifier
+                                regex: ^where$
+                            - kind: arguments
+                              inside:
+                                kind: call_expression
+                                has:
+                                  field: function
+                                  kind: member_expression
+                                  has:
+                                    field: property
+                                    kind: property_identifier
+                                    regex: ^(eq|neq|match|filter|where|in|contains|is|gte|lte|gt|lt)$
+                          any:
+                          - kind: call_expression
+                          - kind: new_expression
+              - has:
+                  field: function
+                  kind: member_expression
+                  has:
+                    field: object
+                    has:
+                      stopBy: end
+                      any:
+                      - kind: call_expression
+                        has:
+                          field: function
+                          kind: member_expression
+                          all:
+                          - has:
+                              field: property
+                              kind: property_identifier
+                              regex: ^(from|query|rpc|findMany|findUnique|findUniqueOrThrow|findFirst|findFirstOrThrow|upsert|createMany|updateMany|deleteMany|aggregate|groupBy|\$queryRaw|\$executeRaw|\$queryRawUnsafe|\$executeRawUnsafe)$
+                          - not:
+                              has:
+                                field: object
+                                kind: identifier
+                                regex: ^(Array|Buffer|Uint8Array|Object|String|Promise|Set|Map|Date|JSON|Math|Reflect|document|window|URLSearchParams)$
+                      - kind: call_expression
+                        has:
+                          field: function
+                          kind: member_expression
+                          all:
+                          - has:
+                              field: property
+                              kind: property_identifier
+                              regex: ^(create|update|delete)$
+                          - has:
+                              field: object
+                              kind: member_expression
+                      - kind: call_expression
+                        has:
+                          field: function
+                          kind: member_expression
+                          has:
+                            field: property
+                            kind: property_identifier
+                            regex: ^(insert)$
+              - *id001
+        - not:
+            has:
+              stopBy: end
+              any:
+              - kind: call_expression
+                has:
+                  field: function
+                  kind: member_expression
+                  all:
+                  - has:
+                      field: property
+                      kind: property_identifier
+                      regex: ^(from|query|rpc|findMany|findUnique|findUniqueOrThrow|findFirst|findFirstOrThrow|upsert|createMany|updateMany|deleteMany|aggregate|groupBy|\$queryRaw|\$executeRaw|\$queryRawUnsafe|\$executeRawUnsafe)$
+                  - not:
+                      has:
+                        field: object
+                        kind: identifier
+                        regex: ^(Array|Buffer|Uint8Array|Object|String|Promise|Set|Map|Date|JSON|Math|Reflect|document|window|URLSearchParams)$
+              - kind: call_expression
+                has:
+                  field: function
+                  kind: member_expression
+                  all:
+                  - has:
+                      field: property
+                      kind: property_identifier
+                      regex: ^(create|update|delete)$
+                  - has:
+                      field: object
+                      kind: member_expression
+              - kind: call_expression
+                has:
+                  field: function
+                  kind: member_expression
+                  has:
+                    field: property
+                    kind: property_identifier
+                    regex: ^(insert)$
+              all:
+              - not:
+                  has:
+                    stopBy: end
+                    kind: identifier
+                    pattern:
+                      context: $S()
+                      selector: identifier
+              - not:
+                  inside:
+                    stopBy: end
+                    kind: call_expression
+                    all:
+                    - has:
+                        field: arguments
+                        has:
+                          stopBy: end
+                          kind: identifier
+                          pattern:
+                            context: $S()
+                            selector: identifier
+                    - has:
+                        field: function
+                        has:
+                          stopBy: end
+                          any:
+                          - kind: call_expression
+                            has:
+                              field: function
+                              kind: member_expression
+                              all:
+                              - has:
+                                  field: property
+                                  kind: property_identifier
+                                  regex: ^(from|query|rpc|findMany|findUnique|findUniqueOrThrow|findFirst|findFirstOrThrow|upsert|createMany|updateMany|deleteMany|aggregate|groupBy|\$queryRaw|\$executeRaw|\$queryRawUnsafe|\$executeRawUnsafe)$
+                              - not:
+                                  has:
+                                    field: object
+                                    kind: identifier
+                                    regex: ^(Array|Buffer|Uint8Array|Object|String|Promise|Set|Map|Date|JSON|Math|Reflect|document|window|URLSearchParams)$
+                          - kind: call_expression
+                            has:
+                              field: function
+                              kind: member_expression
+                              all:
+                              - has:
+                                  field: property
+                                  kind: property_identifier
+                                  regex: ^(create|update|delete)$
+                              - has:
+                                  field: object
+                                  kind: member_expression
+                          - kind: call_expression
+                            has:
+                              field: function
+                              kind: member_expression
+                              has:
+                                field: property
+                                kind: property_identifier
+                                regex: ^(insert)$
+min_engine: 0.39.0

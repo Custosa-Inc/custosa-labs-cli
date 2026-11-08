@@ -1,0 +1,87 @@
+id: password-encoder-slow-hash.java-spring.slow-encoder
+practice_id: password-encoder-slow-hash
+language: java
+frameworks: [spring]
+kind: evidence
+rule:
+  all:
+    - any:
+        - pattern: new BCryptPasswordEncoder($$$)
+        - pattern: new Argon2PasswordEncoder($$$)
+        - pattern: new SCryptPasswordEncoder($$$)
+        - pattern: new Pbkdf2PasswordEncoder($$$)
+        - pattern: Argon2PasswordEncoder.defaultsForSpringSecurity_v5_8()
+        - pattern: SCryptPasswordEncoder.defaultsForSpringSecurity_v5_8()
+        - pattern: Pbkdf2PasswordEncoder.defaultsForSpringSecurity_v5_8()
+        - pattern: PasswordEncoderFactories.createDelegatingPasswordEncoder()
+    - not:
+        has:
+          field: arguments
+          has:
+            kind: decimal_integer_literal
+            regex: '^[0-9]$'
+min_engine: 0.39.0
+---
+id: password-encoder-slow-hash.java-spring.noop-or-fast-encoder
+practice_id: password-encoder-slow-hash
+language: java
+frameworks: [spring]
+kind: violation
+rule:
+  any:
+    - pattern: NoOpPasswordEncoder.getInstance()
+    - pattern: new StandardPasswordEncoder($$$)
+    - pattern: new MessageDigestPasswordEncoder($$$)
+    - pattern: new LdapShaPasswordEncoder($$$)
+    - pattern: new Md4PasswordEncoder($$$)
+    - pattern: $USERS.withDefaultPasswordEncoder()
+    - pattern: User.withDefaultPasswordEncoder()
+    - all:
+        - pattern: $BUILDER.password($PW)
+        - has:
+            field: arguments
+            has:
+              kind: string_literal
+              not:
+                kind: string_literal
+                regex: '^"\{(bcrypt|argon2|argon2@SpringSecurity_v5_8|scrypt|scrypt@SpringSecurity_v5_8|pbkdf2|pbkdf2@SpringSecurity_v5_8)\}'
+min_engine: 0.39.0
+---
+id: password-encoder-slow-hash.java-spring.low-cost
+practice_id: password-encoder-slow-hash
+language: java
+frameworks: [spring]
+kind: violation
+rule:
+  all:
+    - pattern: new BCryptPasswordEncoder($$$)
+    - has:
+        field: arguments
+        has:
+          kind: decimal_integer_literal
+          regex: '^[0-9]$'
+min_engine: 0.39.0
+---
+id: password-encoder-slow-hash.java-spring.fast-digest
+practice_id: password-encoder-slow-hash
+language: java
+frameworks: [spring]
+kind: violation
+rule:
+  all:
+    - pattern: MessageDigest.getInstance($ALG)
+    - inside:
+        kind: method_declaration
+        stopBy: end
+        has:
+          stopBy: end
+          kind: identifier
+          regex: '(?i)^(pass|pwd|passwd|password|passphrase|(new|plain|raw|old|current|user|admin)_?pass(word)?)$'
+    - not:
+        inside:
+          kind: method_declaration
+          stopBy: end
+          has:
+            stopBy: end
+            pattern: Cipher.getInstance($$$)
+min_engine: 0.39.0

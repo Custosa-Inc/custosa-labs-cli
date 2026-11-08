@@ -1,0 +1,37 @@
+id: no-phi-in-app-logs.json-generic.debug-level
+practice_id: no-phi-in-app-logs
+language: json
+frameworks:
+- generic
+kind: violation
+rule:
+  any:
+  - all:
+    - kind: pair
+    - has:
+        field: key
+        kind: string
+        regex: '^"(Default|default)"$'
+    - has:
+        field: value
+        kind: string
+        regex: '^"(Debug|Trace|debug|trace)"$'
+    - inside:
+        kind: object
+        inside:
+          kind: pair
+          has:
+            field: key
+            kind: string
+            regex: '^"(LogLevel|MinimumLevel)"$'
+  - all:
+    - kind: pair
+    - has:
+        field: key
+        kind: string
+        regex: '^"MinimumLevel"$'
+    - has:
+        field: value
+        kind: string
+        regex: '^"(Debug|Verbose|debug|verbose)"$'
+min_engine: 0.45.3

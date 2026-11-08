@@ -1,0 +1,37 @@
+id: error-tracking-no-phi.go-generic.sentry-init
+practice_id: error-tracking-no-phi
+language: go
+frameworks:
+- generic
+kind: items
+rule:
+  all:
+  - kind: call_expression
+  - has:
+      field: function
+      kind: selector_expression
+      regex: '^sentry\.Init$'
+control:
+  all:
+  - has:
+      stopBy: end
+      kind: keyed_element
+      regex: '(?-u)^BeforeSend\s*:'
+  - not:
+      has:
+        stopBy: end
+        kind: keyed_element
+        regex: '(?-u)^SendDefaultPII\s*:\s*true$'
+min_engine: 0.45.3
+---
+id: error-tracking-no-phi.go-generic.pii-on
+practice_id: error-tracking-no-phi
+language: go
+frameworks:
+- generic
+kind: violation
+rule:
+  all:
+  - kind: keyed_element
+  - regex: '^SendDefaultPII\s*:\s*true$'
+min_engine: 0.45.3

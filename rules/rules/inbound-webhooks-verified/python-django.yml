@@ -1,0 +1,1416 @@
+# inbound-webhooks-verified (T23 B32, design v3 2.2.2). Written by scripts/gen_webhook_rules.py: edit that script,
+# never this file. The rule id's last part is the form (items-sdk, items-hmac, violation, webhook-route,
+# replay-dedupe), which the practice function reads, since a match carries only one has_control. replay-dedupe matches
+# the items-sdk handler itself, so the function joins the two on path and line.
+
+# items-sdk: a view that reads a provider signature header (by name or through request.META) or calls a provider SDK's
+# verifying parse by name (construct_event), and computes no HMAC itself. The control is the SDK's verify call with
+# the raw body read (request.body, request.data, get_data()), or a call the provider signs without it (Twilio's form
+# check). No control: fail. The control holds only when no data call (a data-layer receiver or ORM model) comes before
+# the verify call in the handler's text.
+id: inbound-webhooks-verified.python-django.items-sdk
+practice_id: inbound-webhooks-verified
+language: python
+frameworks:
+- django
+kind: items
+rule:
+  all:
+  - kind: function_definition
+    all:
+    - has:
+        field: parameters
+        kind: parameters
+        regex: ^\(\s*request\b
+    - not:
+        inside:
+          kind: class_definition
+          stopBy: end
+  - any:
+    - has:
+        stopBy: end
+        kind: string
+        regex: (?i)^[rbu]*['"](stripe-signature|x-twilio-signature|svix-signature|x-hub-signature-256|x-hub-signature|webhook-signature|HTTP_STRIPE_SIGNATURE|HTTP_X_TWILIO_SIGNATURE|HTTP_SVIX_SIGNATURE|HTTP_X_HUB_SIGNATURE_256|HTTP_X_HUB_SIGNATURE|HTTP_WEBHOOK_SIGNATURE)['"]$
+    - has:
+        stopBy: end
+        any:
+        - kind: call
+          has:
+            field: function
+            any:
+            - kind: identifier
+              regex: (^|\.)(construct_event)$
+            - kind: attribute
+              regex: (^|\.)(construct_event)$
+  - not:
+      has:
+        stopBy: end
+        kind: call
+        has:
+          field: function
+          kind: attribute
+          regex: ^hmac\.(new|digest)$
+control:
+  all:
+  - any:
+    - all:
+      - has:
+          stopBy:
+            kind: decorated_definition
+            has:
+              kind: decorator
+              regex: (?i)^@((app|api|server|routes?|bp|blueprint|\w*router|\w*app|\w*_bp)\.(route|get|post|put|patch|delete|api_route)\(|\w+\.(route|get|post|put|patch|delete|api_route)\(\s*[rbuf]*['\"]/)
+          any:
+          - all:
+            - all:
+              - any:
+                - any:
+                  - kind: call
+                    has:
+                      field: function
+                      any:
+                      - kind: identifier
+                        regex: (^|\.)(construct_event)$
+                      - kind: attribute
+                        regex: (^|\.)(construct_event)$
+                - all:
+                  - any:
+                    - kind: call
+                      has:
+                        field: function
+                        kind: attribute
+                        regex: (?i)^[A-Za-z_]?\w*(wh|webhooks?|svix|hook|validator)\w*\.(verify)$
+                  - inside:
+                      stopBy: end
+                      kind: module
+                      has:
+                        stopBy: end
+                        any:
+                        - kind: import_statement
+                          regex: ^import\s+(svix|svix)(\.|\s|,|$)
+                        - kind: import_from_statement
+                          regex: ^from\s+(svix|svix)(\.|\s)
+              - not:
+                  any:
+                  - inside:
+                      stopBy: end
+                      kind: block
+                      inside:
+                        kind: try_statement
+                        has:
+                          kind: except_clause
+                          not:
+                            has:
+                              kind: block
+                              has:
+                                any:
+                                - kind: return_statement
+                                - kind: raise_statement
+                                - kind: expression_statement
+                                  regex: ^abort\s*\(
+                  - inside:
+                      stopBy: end
+                      kind: with_statement
+                      has:
+                        kind: with_clause
+                        has:
+                          stopBy: end
+                          kind: call
+                          regex: ^(contextlib\s*\.\s*)?suppress\s*\(
+            - not:
+                inside:
+                  stopBy: end
+                  any:
+                  - kind: lambda
+                  - kind: function_definition
+                    not:
+                      inside:
+                        kind: decorated_definition
+                        has:
+                          kind: decorator
+                          regex: (?i)^@((app|api|server|routes?|bp|blueprint|\w*router|\w*app|\w*_bp)\.(route|get|post|put|patch|delete|api_route)\(|\w+\.(route|get|post|put|patch|delete|api_route)\(\s*[rbuf]*['\"]/)
+                    inside:
+                      stopBy: end
+                      kind: function_definition
+      - has:
+          stopBy:
+            kind: decorated_definition
+            has:
+              kind: decorator
+              regex: (?i)^@((app|api|server|routes?|bp|blueprint|\w*router|\w*app|\w*_bp)\.(route|get|post|put|patch|delete|api_route)\(|\w+\.(route|get|post|put|patch|delete|api_route)\(\s*[rbuf]*['\"]/)
+          kind: attribute
+          regex: ^\w+\.(data|body|get_data)$
+    - has:
+        stopBy:
+          kind: decorated_definition
+          has:
+            kind: decorator
+            regex: (?i)^@((app|api|server|routes?|bp|blueprint|\w*router|\w*app|\w*_bp)\.(route|get|post|put|patch|delete|api_route)\(|\w+\.(route|get|post|put|patch|delete|api_route)\(\s*[rbuf]*['\"]/)
+        any:
+        - all:
+          - all:
+            - any:
+              - all:
+                - any:
+                  - kind: call
+                    has:
+                      field: function
+                      kind: attribute
+                      regex: (?i)^[A-Za-z_]?\w*(wh|webhooks?|svix|hook|validator)\w*\.(validate)$
+                - inside:
+                    stopBy: end
+                    kind: module
+                    has:
+                      stopBy: end
+                      any:
+                      - kind: import_statement
+                        regex: ^import\s+(twilio|twilio)(\.|\s|,|$)
+                      - kind: import_from_statement
+                        regex: ^from\s+(twilio|twilio)(\.|\s)
+            - any:
+              - inside:
+                  stopBy: end
+                  kind: not_operator
+                  inside:
+                    kind: if_statement
+                    has:
+                      field: consequence
+                      kind: block
+                      has:
+                        any:
+                        - kind: return_statement
+                        - kind: raise_statement
+                        - kind: expression_statement
+                          regex: ^abort\s*\(
+              - all:
+                - inside:
+                    any:
+                    - kind: assignment
+                    - kind: await
+                      inside:
+                        kind: assignment
+                - any:
+                  - inside:
+                      stopBy: end
+                      kind: expression_statement
+                      has:
+                        kind: assignment
+                        pattern: $OK = $V
+                      precedes:
+                        kind: if_statement
+                        has:
+                          field: consequence
+                          kind: block
+                          has:
+                            any:
+                            - kind: return_statement
+                            - kind: raise_statement
+                            - kind: expression_statement
+                              regex: ^abort\s*\(
+                        all:
+                        - has:
+                            field: condition
+                            kind: not_operator
+                            pattern: not $OK
+          - not:
+              inside:
+                stopBy: end
+                any:
+                - kind: lambda
+                - kind: function_definition
+                  not:
+                    inside:
+                      kind: decorated_definition
+                      has:
+                        kind: decorator
+                        regex: (?i)^@((app|api|server|routes?|bp|blueprint|\w*router|\w*app|\w*_bp)\.(route|get|post|put|patch|delete|api_route)\(|\w+\.(route|get|post|put|patch|delete|api_route)\(\s*[rbuf]*['\"]/)
+                  inside:
+                    stopBy: end
+                    kind: function_definition
+  - not:
+      any:
+      - kind: function_definition
+        regex: (?s)(\b(db|session|cursor|cur|conn|connection|engine)(\s*\.\s*\w+)*\s*\.\s*(execute|executemany|add|add_all|query|merge|delete|insert\w*|update\w*|scalars?)\s*\(|\b[A-Z]\w*\.objects\b).*\b(construct_event|validate|verify)\b
+min_engine: 0.39.0
+---
+# items-hmac: a view that reads a provider signature header and computes an HMAC itself (hmac.new, hmac.digest). The
+# control is a constant-time compare (compare_digest). With it, needs_review; without, fail.
+id: inbound-webhooks-verified.python-django.items-hmac
+practice_id: inbound-webhooks-verified
+language: python
+frameworks:
+- django
+kind: items
+rule:
+  all:
+  - kind: function_definition
+    all:
+    - has:
+        field: parameters
+        kind: parameters
+        regex: ^\(\s*request\b
+    - not:
+        inside:
+          kind: class_definition
+          stopBy: end
+  - has:
+      stopBy: end
+      kind: string
+      regex: (?i)^[rbu]*['"](stripe-signature|x-twilio-signature|svix-signature|x-hub-signature-256|x-hub-signature|webhook-signature|HTTP_STRIPE_SIGNATURE|HTTP_X_TWILIO_SIGNATURE|HTTP_SVIX_SIGNATURE|HTTP_X_HUB_SIGNATURE_256|HTTP_X_HUB_SIGNATURE|HTTP_WEBHOOK_SIGNATURE)['"]$
+  - has:
+      stopBy: end
+      kind: call
+      has:
+        field: function
+        kind: attribute
+        regex: ^hmac\.(new|digest)$
+control:
+  has:
+    stopBy:
+      kind: decorated_definition
+      has:
+        kind: decorator
+        regex: (?i)^@((app|api|server|routes?|bp|blueprint|\w*router|\w*app|\w*_bp)\.(route|get|post|put|patch|delete|api_route)\(|\w+\.(route|get|post|put|patch|delete|api_route)\(\s*[rbuf]*['\"]/)
+    kind: call
+    has:
+      field: function
+      any:
+      - kind: identifier
+        regex: (^|\.)compare_digest$
+      - kind: attribute
+        regex: (^|\.)compare_digest$
+min_engine: 0.39.0
+---
+# violation: in a signature-reading view: a signature compared with == or !=, construct_event given a tolerance, or
+# the body parsed as JSON (request.json, get_json()) in a view that verifies with an SDK. Fail.
+id: inbound-webhooks-verified.python-django.violation
+practice_id: inbound-webhooks-verified
+language: python
+frameworks:
+- django
+kind: violation
+rule:
+  any:
+  - all:
+    - kind: comparison_operator
+      regex: (?i)sig
+    - kind: comparison_operator
+      regex: '[!=]='
+    inside:
+      stopBy: end
+      all:
+      - kind: function_definition
+        all:
+        - has:
+            field: parameters
+            kind: parameters
+            regex: ^\(\s*request\b
+        - not:
+            inside:
+              kind: class_definition
+              stopBy: end
+      - any:
+        - has:
+            stopBy: end
+            kind: string
+            regex: (?i)^[rbu]*['"](stripe-signature|x-twilio-signature|svix-signature|x-hub-signature-256|x-hub-signature|webhook-signature|HTTP_STRIPE_SIGNATURE|HTTP_X_TWILIO_SIGNATURE|HTTP_SVIX_SIGNATURE|HTTP_X_HUB_SIGNATURE_256|HTTP_X_HUB_SIGNATURE|HTTP_WEBHOOK_SIGNATURE)['"]$
+        - has:
+            stopBy: end
+            any:
+            - kind: call
+              has:
+                field: function
+                any:
+                - kind: identifier
+                  regex: (^|\.)(construct_event)$
+                - kind: attribute
+                  regex: (^|\.)(construct_event)$
+  - kind: call
+    has:
+      field: function
+      any:
+      - kind: identifier
+        regex: (^|\.)(construct_event)$
+      - kind: attribute
+        regex: (^|\.)(construct_event)$
+    inside:
+      stopBy: end
+      all:
+      - kind: function_definition
+        all:
+        - has:
+            field: parameters
+            kind: parameters
+            regex: ^\(\s*request\b
+        - not:
+            inside:
+              kind: class_definition
+              stopBy: end
+      - any:
+        - has:
+            stopBy: end
+            kind: string
+            regex: (?i)^[rbu]*['"](stripe-signature|x-twilio-signature|svix-signature|x-hub-signature-256|x-hub-signature|webhook-signature|HTTP_STRIPE_SIGNATURE|HTTP_X_TWILIO_SIGNATURE|HTTP_SVIX_SIGNATURE|HTTP_X_HUB_SIGNATURE_256|HTTP_X_HUB_SIGNATURE|HTTP_WEBHOOK_SIGNATURE)['"]$
+        - has:
+            stopBy: end
+            any:
+            - kind: call
+              has:
+                field: function
+                any:
+                - kind: identifier
+                  regex: (^|\.)(construct_event)$
+                - kind: attribute
+                  regex: (^|\.)(construct_event)$
+    all:
+    - has:
+        field: arguments
+        kind: argument_list
+        any:
+        - kind: argument_list
+          regex: \btolerance\s*=
+        - kind: argument_list
+          regex: ^\((?:[^,()]|\((?:[^()]|\([^()]*\))*\))*,(?:[^,()]|\((?:[^()]|\([^()]*\))*\))*,(?:[^,()]|\((?:[^()]|\([^()]*\))*\))*,
+  - kind: attribute
+    regex: ^request\.(json|get_json)$
+    inside:
+      stopBy: end
+      all:
+      - kind: function_definition
+        all:
+        - has:
+            field: parameters
+            kind: parameters
+            regex: ^\(\s*request\b
+        - not:
+            inside:
+              kind: class_definition
+              stopBy: end
+      - any:
+        - has:
+            stopBy: end
+            kind: string
+            regex: (?i)^[rbu]*['"](stripe-signature|x-twilio-signature|svix-signature|x-hub-signature-256|x-hub-signature|webhook-signature|HTTP_STRIPE_SIGNATURE|HTTP_X_TWILIO_SIGNATURE|HTTP_SVIX_SIGNATURE|HTTP_X_HUB_SIGNATURE_256|HTTP_X_HUB_SIGNATURE|HTTP_WEBHOOK_SIGNATURE)['"]$
+        - has:
+            stopBy: end
+            any:
+            - kind: call
+              has:
+                field: function
+                any:
+                - kind: identifier
+                  regex: (^|\.)(construct_event)$
+                - kind: attribute
+                  regex: (^|\.)(construct_event)$
+      - has:
+          stopBy: end
+          any:
+          - kind: call
+            has:
+              field: function
+              any:
+              - kind: identifier
+                regex: (^|\.)(construct_event)$
+              - kind: attribute
+                regex: (^|\.)(construct_event)$
+          - kind: call
+            has:
+              field: function
+              kind: attribute
+              regex: (?i)^[A-Za-z_]?\w*(wh|webhooks?|svix|hook|validator)\w*\.(validate|verify)$
+min_engine: 0.39.0
+---
+# webhook-route: a route whose path names a webhook, hook, callback or notify endpoint, or a handler (or its class,
+# controller or module) named for one, that reads no provider signature. Evidence: needs_review naming it.
+id: inbound-webhooks-verified.python-django.webhook-route
+practice_id: inbound-webhooks-verified
+language: python
+frameworks:
+- django
+kind: evidence
+rule:
+  all:
+  - all:
+    - kind: function_definition
+      all:
+      - has:
+          field: parameters
+          kind: parameters
+          regex: ^\(\s*request\b
+      - not:
+          inside:
+            kind: class_definition
+            stopBy: end
+    - has:
+        field: name
+        kind: identifier
+        regex: (?i)(webhooks?|hooks?|callbacks?|notify)
+  - not:
+      any:
+      - has:
+          stopBy: end
+          kind: string
+          regex: (?i)^[rbu]*['"](stripe-signature|x-twilio-signature|svix-signature|x-hub-signature-256|x-hub-signature|webhook-signature|HTTP_STRIPE_SIGNATURE|HTTP_X_TWILIO_SIGNATURE|HTTP_SVIX_SIGNATURE|HTTP_X_HUB_SIGNATURE_256|HTTP_X_HUB_SIGNATURE|HTTP_WEBHOOK_SIGNATURE)['"]$
+      - has:
+          stopBy: end
+          any:
+          - kind: call
+            has:
+              field: function
+              any:
+              - kind: identifier
+                regex: (^|\.)(construct_event)$
+              - kind: attribute
+                regex: (^|\.)(construct_event)$
+min_engine: 0.39.0
+---
+# webhook-folder: a handler that reads no provider signature, in a file whose path has a webhook or webhooks folder,
+# or is named webhook (path_regex). Evidence: needs_review naming it.
+id: inbound-webhooks-verified.python-django.webhook-folder
+practice_id: inbound-webhooks-verified
+language: python
+frameworks:
+- django
+kind: evidence
+rule:
+  all:
+  - kind: function_definition
+    all:
+    - has:
+        field: parameters
+        kind: parameters
+        regex: ^\(\s*request\b
+    - not:
+        inside:
+          kind: class_definition
+          stopBy: end
+  - not:
+      any:
+      - has:
+          stopBy: end
+          kind: string
+          regex: (?i)^[rbu]*['"](stripe-signature|x-twilio-signature|svix-signature|x-hub-signature-256|x-hub-signature|webhook-signature|HTTP_STRIPE_SIGNATURE|HTTP_X_TWILIO_SIGNATURE|HTTP_SVIX_SIGNATURE|HTTP_X_HUB_SIGNATURE_256|HTTP_X_HUB_SIGNATURE|HTTP_WEBHOOK_SIGNATURE)['"]$
+      - has:
+          stopBy: end
+          any:
+          - kind: call
+            has:
+              field: function
+              any:
+              - kind: identifier
+                regex: (^|\.)(construct_event)$
+              - kind: attribute
+                regex: (^|\.)(construct_event)$
+path_regex: (^|/)(([Ww]eb)?[Hh]ooks?|[Cc]allbacks?)(/|\.[a-z]+$)
+min_engine: 0.39.0
+---
+# entry: an entry point that can take a request body (B32p E): a post, put, patch or all route's handler, a get or
+# head handler that reads the query or params, a function given to use, or such a route with its handler passed by
+# name. Evidence for the pass, which needs every entry verified or user-gated; never an object of its own.
+id: inbound-webhooks-verified.python-django.entry
+practice_id: inbound-webhooks-verified
+language: python
+frameworks:
+- django
+kind: evidence
+rule:
+  any:
+  - kind: function_definition
+    all:
+    - has:
+        field: parameters
+        kind: parameters
+        regex: ^\(\s*request\b
+    - not:
+        inside:
+          kind: class_definition
+          stopBy: end
+    - any:
+      - not:
+          inside:
+            kind: decorated_definition
+            has:
+              kind: decorator
+              regex: ^@(\w+\.)*(require_GET|require_safe|require_http_methods\(\s*\[\s*['\"](GET|HEAD)['\"](\s*,\s*['\"](GET|HEAD)['\"])*\s*,?\s*\]\s*\))
+      - any:
+        - kind: function_definition
+          regex: \brequest\s*\.\s*(args|values|query_params|path_params|view_args|GET)\b
+        - has:
+            field: parameters
+            kind: parameters
+            not:
+              kind: parameters
+              regex: ^\(\s*request\s*(:\s*\w+)?\s*,?\s*\)$
+  - kind: function_definition
+    all:
+    - inside:
+        kind: block
+        inside:
+          kind: class_definition
+    - has:
+        field: parameters
+        kind: parameters
+        regex: ^\(\s*self\s*,\s*request\b
+    - any:
+      - has:
+          field: name
+          kind: identifier
+          regex: ^(post|put|patch)$
+      - all:
+        - has:
+            field: name
+            kind: identifier
+            regex: ^(get|head)$
+        - any:
+          - kind: function_definition
+            regex: \brequest\s*\.\s*(args|values|query_params|path_params|view_args|GET)\b
+          - has:
+              field: parameters
+              kind: parameters
+              not:
+                kind: parameters
+                regex: ^\(\s*self\s*,\s*request\s*(:\s*\w+)?\s*,?\s*\)$
+min_engine: 0.39.0
+---
+# route-unread: a route registration the inventory can't place (B32p C2): a path that is no literal, a mount, or a
+# .route() chain. Evidence: no pass while it is seen; never an object of its own.
+id: inbound-webhooks-verified.python-django.route-unread
+practice_id: inbound-webhooks-verified
+language: python
+frameworks:
+- django
+kind: evidence
+rule:
+  any:
+  - kind: decorator
+    regex: (?s)^@\w+\.(route|get|post|put|patch|delete|head|api_route)\(\s*([A-Za-z_][\w.]*\s*[,)+]|[fF][rR]?['\"]|['\"][^'\"]*['\"]\s*\+)
+  - kind: call
+    all:
+    - has:
+        field: function
+        any:
+        - kind: identifier
+          regex: ^(include_router|register_blueprint|mount|add_api_route|add_route|add_url_rule|include)$
+        - kind: attribute
+          regex: \.(include_router|register_blueprint|mount|add_api_route|add_route|add_url_rule|include)$
+    - has:
+        field: arguments
+        kind: argument_list
+        regex: ^\(
+  - kind: call
+    all:
+    - has:
+        field: function
+        any:
+        - kind: identifier
+          regex: ^(path|re_path|url)$
+        - kind: attribute
+          regex: \.(path|re_path|url)$
+    - has:
+        field: arguments
+        kind: argument_list
+        regex: (?s)^\(\s*([A-Za-z_][\w.]*\s*[,)+]|[fF][rR]?['\"]|['\"][^'\"]*['\"]\s*\+)
+min_engine: 0.39.0
+---
+# replay-dedupe: an items-sdk handler (the same match, so the same path and line) that rejects a repeated event: a
+# data call inserting the event id with ON CONFLICT, INSERT IGNORE, ON DUPLICATE KEY, upsert, onConflict or the like,
+# whose result is tested right after (or in the condition) by an if that returns or throws; or a try around an insert
+# of the event id whose catch names a unique violation (23505, 1062, P2002, IntegrityError, RecordNotUnique,
+# DuplicateKey) and returns. No data call may come before it. A table name or a log line alone never counts. Evidence:
+# with the SDK control, it allows the pass once Q6 is ruled.
+id: inbound-webhooks-verified.python-django.replay-dedupe
+practice_id: inbound-webhooks-verified
+language: python
+frameworks:
+- django
+kind: evidence
+rule:
+  all:
+  - kind: function_definition
+    all:
+    - has:
+        field: parameters
+        kind: parameters
+        regex: ^\(\s*request\b
+    - not:
+        inside:
+          kind: class_definition
+          stopBy: end
+  - any:
+    - has:
+        stopBy: end
+        kind: string
+        regex: (?i)^[rbu]*['"](stripe-signature|x-twilio-signature|svix-signature|x-hub-signature-256|x-hub-signature|webhook-signature|HTTP_STRIPE_SIGNATURE|HTTP_X_TWILIO_SIGNATURE|HTTP_SVIX_SIGNATURE|HTTP_X_HUB_SIGNATURE_256|HTTP_X_HUB_SIGNATURE|HTTP_WEBHOOK_SIGNATURE)['"]$
+    - has:
+        stopBy: end
+        any:
+        - kind: call
+          has:
+            field: function
+            any:
+            - kind: identifier
+              regex: (^|\.)(construct_event)$
+            - kind: attribute
+              regex: (^|\.)(construct_event)$
+  - not:
+      has:
+        stopBy: end
+        kind: call
+        has:
+          field: function
+          kind: attribute
+          regex: ^hmac\.(new|digest)$
+  - has:
+      stopBy: end
+      any:
+      - all:
+        - any:
+          - all:
+            - kind: call
+              regex: (?i)(\bON\s+CONFLICT\b|\bINSERT\s+IGNORE\b|\bON\s+DUPLICATE\s+KEY\b|\bon_?conflict|\bupsert|\binsert_?or_?ignore|\bignore_?duplicates|\bskip_?duplicates|\bunique_by\b)
+            - kind: call
+              regex: (?i)(\b(event|evt)\s*(\?\.|\.|->)\s*(id\b|getId\(\))|\b(event|evt)\s*\[\s*:?['\"]?id['\"]?\s*\]|\bevent_?id\b)
+            - kind: call
+              has:
+                field: function
+                any:
+                - kind: identifier
+                  regex: (?i)(^|\.)(insert|create|save|add|put|persist|exec|execute|query|update|upsert|run|raw|sql|on_?conflict|ignore|merge)\w*[!?]?$
+                - kind: attribute
+                  regex: (?i)(^|\.)(insert|create|save|add|put|persist|exec|execute|query|update|upsert|run|raw|sql|on_?conflict|ignore|merge)\w*[!?]?$
+        - any:
+          - inside:
+              stopBy: end
+              any:
+              - kind: expression_statement
+              precedes:
+                kind: if_statement
+                has:
+                  field: consequence
+                  kind: block
+                  has:
+                    any:
+                    - kind: return_statement
+                    - kind: raise_statement
+                    - kind: expression_statement
+                      regex: ^abort\s*\(
+          - inside:
+              stopBy: end
+              any:
+              - kind: comparison_operator
+              - kind: not_operator
+              - kind: boolean_operator
+              inside:
+                kind: if_statement
+                has:
+                  field: consequence
+                  kind: block
+                  has:
+                    any:
+                    - kind: return_statement
+                    - kind: raise_statement
+                    - kind: expression_statement
+                      regex: ^abort\s*\(
+      - kind: try_statement
+        all:
+        - has:
+            kind: except_clause
+            regex: (?is)(\b23505\b|\b1062\b|ER_DUP_ENTRY|\bP2002\b|unique_?violation|UniqueConstraintViolation|IntegrityError|RecordNotUnique|DuplicateKey|SQLIntegrityConstraintViolation|duplicate key).{0,160}?\breturn\b
+        - has:
+            stopBy: end
+            any:
+            - all:
+              - kind: call
+                regex: (?i)\b(insert|create|save|add|put|persist|exec|execute|query|update)\w*\s*[!?]?\s*\(
+              - kind: call
+                regex: (?i)(\b(event|evt)\s*(\?\.|\.|->)\s*(id\b|getId\(\))|\b(event|evt)\s*\[\s*:?['\"]?id['\"]?\s*\]|\bevent_?id\b)
+            not:
+              inside:
+                stopBy: end
+                kind: except_clause
+  - not:
+      any:
+      - kind: function_definition
+        regex: (?s)(\b(db|session|cursor|cur|conn|connection|engine)(\s*\.\s*\w+)*\s*\.\s*(execute|executemany|add|add_all|query|merge|delete|insert\w*|update\w*|scalars?)\s*\(|\b[A-Z]\w*\.objects\b).*(\b(db|session|cursor|cur|conn|connection|engine)(\s*\.\s*\w+)*\s*\.\s*(execute|executemany|add|add_all|query|merge|delete|insert\w*|update\w*|scalars?)\s*\(|\b[A-Z]\w*\.objects\b).{0,400}?((\bON\s+CONFLICT\b|\bINSERT\s+IGNORE\b|\bON\s+DUPLICATE\s+KEY\b|\bon_?conflict|\bupsert|\binsert_?or_?ignore|\bignore_?duplicates|\bskip_?duplicates|\bunique_by\b))
+min_engine: 0.39.0
+---
+# payload-before-verify: an items-sdk handler (the same match, so the same path and line) whose text has a helper (a
+# bare call, or one on self, this or $this) given the body, event or payload, then later a verify call (B32p 5.2).
+# Evidence: no pass while it is seen, until the stem reads what the helper does; never an object of its own.
+id: inbound-webhooks-verified.python-django.payload-before-verify
+practice_id: inbound-webhooks-verified
+language: python
+frameworks:
+- django
+kind: evidence
+rule:
+  all:
+  - all:
+    - kind: function_definition
+      all:
+      - has:
+          field: parameters
+          kind: parameters
+          regex: ^\(\s*request\b
+      - not:
+          inside:
+            kind: class_definition
+            stopBy: end
+    - any:
+      - has:
+          stopBy: end
+          kind: string
+          regex: (?i)^[rbu]*['"](stripe-signature|x-twilio-signature|svix-signature|x-hub-signature-256|x-hub-signature|webhook-signature|HTTP_STRIPE_SIGNATURE|HTTP_X_TWILIO_SIGNATURE|HTTP_SVIX_SIGNATURE|HTTP_X_HUB_SIGNATURE_256|HTTP_X_HUB_SIGNATURE|HTTP_WEBHOOK_SIGNATURE)['"]$
+      - has:
+          stopBy: end
+          any:
+          - kind: call
+            has:
+              field: function
+              any:
+              - kind: identifier
+                regex: (^|\.)(construct_event)$
+              - kind: attribute
+                regex: (^|\.)(construct_event)$
+    - not:
+        has:
+          stopBy: end
+          kind: call
+          has:
+            field: function
+            kind: attribute
+            regex: ^hmac\.(new|digest)$
+  - any:
+    - kind: function_definition
+      regex: (?s)(\n[ \t]*|=\s*|[(,]\s*|\b(return|await|yield|go|defer)\s+)(self\s*\.\s*)?[A-Za-z_]\w*\s*\(\s*((body|event|evt|payload|data|request\s*\.\s*(body|data|form|POST|json|get_json\s*\(\s*\)))\b).*\b(construct_event|validate|verify)\b
+min_engine: 0.39.0
+---
+# header-unread: a request header read by a name that is no literal: a variable, a member or a constant (B32p C6), so
+# it can't be checked against the providers' signature headers. Evidence: no pass while it is seen; never an object of
+# its own.
+id: inbound-webhooks-verified.python-django.header-unread
+practice_id: inbound-webhooks-verified
+language: python
+frameworks:
+- django
+kind: evidence
+rule:
+  any:
+  - kind: call
+    regex: ^\w+\s*\.\s*(headers|META)\s*\.\s*get\s*\(\s*[A-Za-z_]
+  - kind: subscript
+    regex: ^\w+\s*\.\s*(headers|META)\s*\[\s*[A-Za-z_]
+min_engine: 0.39.0
+---
+# session-gate: an entry handler whose first statement (or the one right after a first declaration of the lookup) is
+# an if that negates a user-session lookup from a known auth library alone and returns or throws (B32p 9.2). Evidence:
+# the entry is user-gated for the pass; never an object of its own.
+id: inbound-webhooks-verified.python-django.session-gate
+practice_id: inbound-webhooks-verified
+language: python
+frameworks:
+- django
+kind: evidence
+rule:
+  kind: if_statement
+  has:
+    field: consequence
+    kind: block
+    has:
+      any:
+      - kind: return_statement
+      - kind: raise_statement
+      - kind: expression_statement
+        regex: ^abort\s*\(
+  all:
+  - has:
+      field: condition
+      kind: not_operator
+      regex: ^not\s+(request\s*\.\s*user\s*\.\s*is_authenticated|current_user\s*\.\s*is_authenticated)$
+  - inside:
+      kind: block
+      inside:
+        kind: function_definition
+        not:
+          inside:
+            stopBy: end
+            kind: function_definition
+  - any:
+    - not:
+        follows:
+          stopBy: neighbor
+          any:
+          - any:
+            - kind: comment
+          - not:
+              any:
+              - kind: comment
+    - follows:
+        stopBy: neighbor
+        all:
+        - any:
+          - kind: comment
+        - any:
+          - not:
+              follows:
+                stopBy: neighbor
+                any:
+                - any:
+                  - kind: comment
+                - not:
+                    any:
+                    - kind: comment
+          - follows:
+              stopBy: neighbor
+              all:
+              - any:
+                - kind: comment
+              - any:
+                - not:
+                    follows:
+                      stopBy: neighbor
+                      any:
+                      - any:
+                        - kind: comment
+                      - not:
+                          any:
+                          - kind: comment
+                - follows:
+                    stopBy: neighbor
+                    all:
+                    - any:
+                      - kind: comment
+                    - not:
+                        follows:
+                          stopBy: neighbor
+                          any:
+                          - any:
+                            - kind: comment
+                          - not:
+                              any:
+                              - kind: comment
+  - any:
+    - has:
+        field: condition
+        kind: not_operator
+        regex: ^not\s+request\b
+    - inside:
+        stopBy: end
+        kind: module
+        has:
+          kind: import_from_statement
+          regex: ^from\s+flask_login\b
+min_engine: 0.39.0
+---
+# provider-stripe: an import of stripe's SDK (the practice's providers table). Evidence: the pass needs a verified
+# items-sdk handler for stripe (Q6).
+id: inbound-webhooks-verified.python-django.provider-stripe
+practice_id: inbound-webhooks-verified
+language: python
+frameworks:
+- django
+kind: evidence
+rule:
+  any:
+  - kind: import_statement
+    regex: ^import\s+(stripe)(\.|\s|,|$)
+  - kind: import_from_statement
+    regex: ^from\s+(stripe)(\.|\s)
+min_engine: 0.39.0
+---
+# verified-stripe: an items-sdk handler (the same match, so the same path and line) whose control calls stripe's own
+# verify call; an instance call counts only beside a literal naming one of stripe's headers. Evidence: with the SDK
+# control, it shows stripe verified for the pass (Q6).
+id: inbound-webhooks-verified.python-django.verified-stripe
+practice_id: inbound-webhooks-verified
+language: python
+frameworks:
+- django
+kind: evidence
+rule:
+  all:
+  - all:
+    - kind: function_definition
+      all:
+      - has:
+          field: parameters
+          kind: parameters
+          regex: ^\(\s*request\b
+      - not:
+          inside:
+            kind: class_definition
+            stopBy: end
+    - any:
+      - has:
+          stopBy: end
+          kind: string
+          regex: (?i)^[rbu]*['"](stripe-signature|x-twilio-signature|svix-signature|x-hub-signature-256|x-hub-signature|webhook-signature|HTTP_STRIPE_SIGNATURE|HTTP_X_TWILIO_SIGNATURE|HTTP_SVIX_SIGNATURE|HTTP_X_HUB_SIGNATURE_256|HTTP_X_HUB_SIGNATURE|HTTP_WEBHOOK_SIGNATURE)['"]$
+      - has:
+          stopBy: end
+          any:
+          - kind: call
+            has:
+              field: function
+              any:
+              - kind: identifier
+                regex: (^|\.)(construct_event)$
+              - kind: attribute
+                regex: (^|\.)(construct_event)$
+    - not:
+        has:
+          stopBy: end
+          kind: call
+          has:
+            field: function
+            kind: attribute
+            regex: ^hmac\.(new|digest)$
+  - any:
+    - has:
+        stopBy:
+          kind: decorated_definition
+          has:
+            kind: decorator
+            regex: (?i)^@((app|api|server|routes?|bp|blueprint|\w*router|\w*app|\w*_bp)\.(route|get|post|put|patch|delete|api_route)\(|\w+\.(route|get|post|put|patch|delete|api_route)\(\s*[rbuf]*['\"]/)
+        any:
+        - all:
+          - all:
+            - any:
+              - any:
+                - kind: call
+                  has:
+                    field: function
+                    any:
+                    - kind: identifier
+                      regex: (^|\.)(construct_event)$
+                    - kind: attribute
+                      regex: (^|\.)(construct_event)$
+            - not:
+                any:
+                - inside:
+                    stopBy: end
+                    kind: block
+                    inside:
+                      kind: try_statement
+                      has:
+                        kind: except_clause
+                        not:
+                          has:
+                            kind: block
+                            has:
+                              any:
+                              - kind: return_statement
+                              - kind: raise_statement
+                              - kind: expression_statement
+                                regex: ^abort\s*\(
+                - inside:
+                    stopBy: end
+                    kind: with_statement
+                    has:
+                      kind: with_clause
+                      has:
+                        stopBy: end
+                        kind: call
+                        regex: ^(contextlib\s*\.\s*)?suppress\s*\(
+          - not:
+              inside:
+                stopBy: end
+                any:
+                - kind: lambda
+                - kind: function_definition
+                  not:
+                    inside:
+                      kind: decorated_definition
+                      has:
+                        kind: decorator
+                        regex: (?i)^@((app|api|server|routes?|bp|blueprint|\w*router|\w*app|\w*_bp)\.(route|get|post|put|patch|delete|api_route)\(|\w+\.(route|get|post|put|patch|delete|api_route)\(\s*[rbuf]*['\"]/)
+                  inside:
+                    stopBy: end
+                    kind: function_definition
+min_engine: 0.39.0
+---
+# provider-twilio: an import of twilio's SDK (the practice's providers table). Evidence: the pass needs a verified
+# items-sdk handler for twilio (Q6).
+id: inbound-webhooks-verified.python-django.provider-twilio
+practice_id: inbound-webhooks-verified
+language: python
+frameworks:
+- django
+kind: evidence
+rule:
+  any:
+  - kind: import_statement
+    regex: ^import\s+(twilio)(\.|\s|,|$)
+  - kind: import_from_statement
+    regex: ^from\s+(twilio)(\.|\s)
+min_engine: 0.39.0
+---
+# verified-twilio: an items-sdk handler (the same match, so the same path and line) whose control calls twilio's own
+# verify call; an instance call counts only beside a literal naming one of twilio's headers. Evidence: with the SDK
+# control, it shows twilio verified for the pass (Q6).
+id: inbound-webhooks-verified.python-django.verified-twilio
+practice_id: inbound-webhooks-verified
+language: python
+frameworks:
+- django
+kind: evidence
+rule:
+  all:
+  - all:
+    - kind: function_definition
+      all:
+      - has:
+          field: parameters
+          kind: parameters
+          regex: ^\(\s*request\b
+      - not:
+          inside:
+            kind: class_definition
+            stopBy: end
+    - any:
+      - has:
+          stopBy: end
+          kind: string
+          regex: (?i)^[rbu]*['"](stripe-signature|x-twilio-signature|svix-signature|x-hub-signature-256|x-hub-signature|webhook-signature|HTTP_STRIPE_SIGNATURE|HTTP_X_TWILIO_SIGNATURE|HTTP_SVIX_SIGNATURE|HTTP_X_HUB_SIGNATURE_256|HTTP_X_HUB_SIGNATURE|HTTP_WEBHOOK_SIGNATURE)['"]$
+      - has:
+          stopBy: end
+          any:
+          - kind: call
+            has:
+              field: function
+              any:
+              - kind: identifier
+                regex: (^|\.)(construct_event)$
+              - kind: attribute
+                regex: (^|\.)(construct_event)$
+    - not:
+        has:
+          stopBy: end
+          kind: call
+          has:
+            field: function
+            kind: attribute
+            regex: ^hmac\.(new|digest)$
+  - any:
+    - all:
+      - has:
+          stopBy:
+            kind: decorated_definition
+            has:
+              kind: decorator
+              regex: (?i)^@((app|api|server|routes?|bp|blueprint|\w*router|\w*app|\w*_bp)\.(route|get|post|put|patch|delete|api_route)\(|\w+\.(route|get|post|put|patch|delete|api_route)\(\s*[rbuf]*['\"]/)
+          any:
+          - all:
+            - all:
+              - any:
+                - all:
+                  - any:
+                    - kind: call
+                      has:
+                        field: function
+                        kind: attribute
+                        regex: (?i)^[A-Za-z_]?\w*(wh|webhooks?|svix|hook|validator)\w*\.(validate)$
+                  - inside:
+                      stopBy: end
+                      kind: module
+                      has:
+                        stopBy: end
+                        any:
+                        - kind: import_statement
+                          regex: ^import\s+(twilio|twilio)(\.|\s|,|$)
+                        - kind: import_from_statement
+                          regex: ^from\s+(twilio|twilio)(\.|\s)
+              - any:
+                - inside:
+                    stopBy: end
+                    kind: not_operator
+                    inside:
+                      kind: if_statement
+                      has:
+                        field: consequence
+                        kind: block
+                        has:
+                          any:
+                          - kind: return_statement
+                          - kind: raise_statement
+                          - kind: expression_statement
+                            regex: ^abort\s*\(
+                - all:
+                  - inside:
+                      any:
+                      - kind: assignment
+                      - kind: await
+                        inside:
+                          kind: assignment
+                  - any:
+                    - inside:
+                        stopBy: end
+                        kind: expression_statement
+                        has:
+                          kind: assignment
+                          pattern: $OK = $V
+                        precedes:
+                          kind: if_statement
+                          has:
+                            field: consequence
+                            kind: block
+                            has:
+                              any:
+                              - kind: return_statement
+                              - kind: raise_statement
+                              - kind: expression_statement
+                                regex: ^abort\s*\(
+                          all:
+                          - has:
+                              field: condition
+                              kind: not_operator
+                              pattern: not $OK
+            - not:
+                inside:
+                  stopBy: end
+                  any:
+                  - kind: lambda
+                  - kind: function_definition
+                    not:
+                      inside:
+                        kind: decorated_definition
+                        has:
+                          kind: decorator
+                          regex: (?i)^@((app|api|server|routes?|bp|blueprint|\w*router|\w*app|\w*_bp)\.(route|get|post|put|patch|delete|api_route)\(|\w+\.(route|get|post|put|patch|delete|api_route)\(\s*[rbuf]*['\"]/)
+                    inside:
+                      stopBy: end
+                      kind: function_definition
+      - has:
+          stopBy:
+            kind: decorated_definition
+            has:
+              kind: decorator
+              regex: (?i)^@((app|api|server|routes?|bp|blueprint|\w*router|\w*app|\w*_bp)\.(route|get|post|put|patch|delete|api_route)\(|\w+\.(route|get|post|put|patch|delete|api_route)\(\s*[rbuf]*['\"]/)
+          any:
+          - kind: string
+            regex: (?i)(X-Twilio-Signature)
+min_engine: 0.39.0
+---
+# provider-svix: an import of svix's SDK (the practice's providers table). Evidence: the pass needs a verified
+# items-sdk handler for svix (Q6).
+id: inbound-webhooks-verified.python-django.provider-svix
+practice_id: inbound-webhooks-verified
+language: python
+frameworks:
+- django
+kind: evidence
+rule:
+  any:
+  - kind: import_statement
+    regex: ^import\s+(svix)(\.|\s|,|$)
+  - kind: import_from_statement
+    regex: ^from\s+(svix)(\.|\s)
+min_engine: 0.39.0
+---
+# verified-svix: an items-sdk handler (the same match, so the same path and line) whose control calls svix's own
+# verify call; an instance call counts only beside a literal naming one of svix's headers. Evidence: with the SDK
+# control, it shows svix verified for the pass (Q6).
+id: inbound-webhooks-verified.python-django.verified-svix
+practice_id: inbound-webhooks-verified
+language: python
+frameworks:
+- django
+kind: evidence
+rule:
+  all:
+  - all:
+    - kind: function_definition
+      all:
+      - has:
+          field: parameters
+          kind: parameters
+          regex: ^\(\s*request\b
+      - not:
+          inside:
+            kind: class_definition
+            stopBy: end
+    - any:
+      - has:
+          stopBy: end
+          kind: string
+          regex: (?i)^[rbu]*['"](stripe-signature|x-twilio-signature|svix-signature|x-hub-signature-256|x-hub-signature|webhook-signature|HTTP_STRIPE_SIGNATURE|HTTP_X_TWILIO_SIGNATURE|HTTP_SVIX_SIGNATURE|HTTP_X_HUB_SIGNATURE_256|HTTP_X_HUB_SIGNATURE|HTTP_WEBHOOK_SIGNATURE)['"]$
+      - has:
+          stopBy: end
+          any:
+          - kind: call
+            has:
+              field: function
+              any:
+              - kind: identifier
+                regex: (^|\.)(construct_event)$
+              - kind: attribute
+                regex: (^|\.)(construct_event)$
+    - not:
+        has:
+          stopBy: end
+          kind: call
+          has:
+            field: function
+            kind: attribute
+            regex: ^hmac\.(new|digest)$
+  - any:
+    - all:
+      - has:
+          stopBy:
+            kind: decorated_definition
+            has:
+              kind: decorator
+              regex: (?i)^@((app|api|server|routes?|bp|blueprint|\w*router|\w*app|\w*_bp)\.(route|get|post|put|patch|delete|api_route)\(|\w+\.(route|get|post|put|patch|delete|api_route)\(\s*[rbuf]*['\"]/)
+          any:
+          - all:
+            - all:
+              - any:
+                - all:
+                  - any:
+                    - kind: call
+                      has:
+                        field: function
+                        kind: attribute
+                        regex: (?i)^[A-Za-z_]?\w*(wh|webhooks?|svix|hook|validator)\w*\.(verify)$
+                  - inside:
+                      stopBy: end
+                      kind: module
+                      has:
+                        stopBy: end
+                        any:
+                        - kind: import_statement
+                          regex: ^import\s+(svix|svix)(\.|\s|,|$)
+                        - kind: import_from_statement
+                          regex: ^from\s+(svix|svix)(\.|\s)
+              - not:
+                  any:
+                  - inside:
+                      stopBy: end
+                      kind: block
+                      inside:
+                        kind: try_statement
+                        has:
+                          kind: except_clause
+                          not:
+                            has:
+                              kind: block
+                              has:
+                                any:
+                                - kind: return_statement
+                                - kind: raise_statement
+                                - kind: expression_statement
+                                  regex: ^abort\s*\(
+                  - inside:
+                      stopBy: end
+                      kind: with_statement
+                      has:
+                        kind: with_clause
+                        has:
+                          stopBy: end
+                          kind: call
+                          regex: ^(contextlib\s*\.\s*)?suppress\s*\(
+            - not:
+                inside:
+                  stopBy: end
+                  any:
+                  - kind: lambda
+                  - kind: function_definition
+                    not:
+                      inside:
+                        kind: decorated_definition
+                        has:
+                          kind: decorator
+                          regex: (?i)^@((app|api|server|routes?|bp|blueprint|\w*router|\w*app|\w*_bp)\.(route|get|post|put|patch|delete|api_route)\(|\w+\.(route|get|post|put|patch|delete|api_route)\(\s*[rbuf]*['\"]/)
+                    inside:
+                      stopBy: end
+                      kind: function_definition
+      - has:
+          stopBy:
+            kind: decorated_definition
+            has:
+              kind: decorator
+              regex: (?i)^@((app|api|server|routes?|bp|blueprint|\w*router|\w*app|\w*_bp)\.(route|get|post|put|patch|delete|api_route)\(|\w+\.(route|get|post|put|patch|delete|api_route)\(\s*[rbuf]*['\"]/)
+          any:
+          - kind: string
+            regex: (?i)(svix-signature)
+min_engine: 0.39.0
+---
+# provider-standard-webhooks: an import of standard-webhooks's SDK (the practice's providers table). Evidence: the
+# pass needs a verified items-sdk handler for standard-webhooks (Q6).
+id: inbound-webhooks-verified.python-django.provider-standard-webhooks
+practice_id: inbound-webhooks-verified
+language: python
+frameworks:
+- django
+kind: evidence
+rule:
+  any:
+  - kind: import_statement
+    regex: ^import\s+(standardwebhooks)(\.|\s|,|$)
+  - kind: import_from_statement
+    regex: ^from\s+(standardwebhooks)(\.|\s)
+min_engine: 0.39.0
+---
+# provider-plaid: an import of plaid's SDK (the practice's providers table). Evidence: the pass needs a verified
+# items-sdk handler for plaid (Q6).
+id: inbound-webhooks-verified.python-django.provider-plaid
+practice_id: inbound-webhooks-verified
+language: python
+frameworks:
+- django
+kind: evidence
+rule:
+  any:
+  - kind: import_statement
+    regex: ^import\s+(plaid)(\.|\s|,|$)
+  - kind: import_from_statement
+    regex: ^from\s+(plaid)(\.|\s)
+min_engine: 0.39.0
+---
+# provider-dynamic: a provider loaded where no import names it (B32p C5): a dynamic import of a provider package or of
+# a name, a wrapper module's re-export of a provider, or importlib.import_module or __import__. Evidence: no pass
+# while it is seen; never an object of its own.
+id: inbound-webhooks-verified.python-django.provider-dynamic
+practice_id: inbound-webhooks-verified
+language: python
+frameworks:
+- django
+kind: evidence
+rule:
+  kind: call
+  all:
+  - has:
+      field: function
+      any:
+      - kind: identifier
+        regex: ^(import_module|__import__)$
+      - kind: attribute
+        regex: (^|\.)import_module$
+  - has:
+      field: arguments
+      kind: argument_list
+      regex: ^\(\s*([rbuRBU]?['\"](stripe|twilio|svix|standardwebhooks|plaid)(\.[\w.]*)?['\"]|[A-Za-z_])
+min_engine: 0.39.0
+---
+# webhook-mount: a webhook path bound to code this file doesn't hold: a router, blueprint or group mounted under it,
+# or a route whose handler is passed by name. Evidence: held for a person, and no pass while it is seen (Q6).
+id: inbound-webhooks-verified.python-django.webhook-mount
+practice_id: inbound-webhooks-verified
+language: python
+frameworks:
+- django
+kind: evidence
+rule:
+  kind: call
+  all:
+  - has:
+      field: function
+      any:
+      - kind: identifier
+        regex: ^(path|re_path|url)$
+      - kind: attribute
+        regex: \.(path|re_path|url)$
+  - has:
+      field: arguments
+      kind: argument_list
+      regex: (?is)^\(\s*[rbuf]*['\"]\^?/?([^'\"]*[/_-])?(webhooks?|hooks?|callbacks?|notify)([/_.-][^'\"]*)?['\"]\s*,
+min_engine: 0.39.0

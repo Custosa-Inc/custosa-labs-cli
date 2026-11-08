@@ -1,0 +1,419 @@
+id: security-events-logged.tsx-generic.denial
+practice_id: security-events-logged
+language: tsx
+frameworks:
+- generic
+kind: items
+rule:
+  all:
+  - any:
+    - kind: return_statement
+    - kind: throw_statement
+    - kind: expression_statement
+  - has:
+      stopBy:
+        any:
+        - kind: statement_block
+        - kind: arrow_function
+        - kind: function_expression
+      any:
+      - kind: call_expression
+        regex: '^[\w.]*\.(sendStatus|status|writeHead)\(\s*(401|403|[\w.]*(FORBIDDEN|UNAUTHORIZED|Forbidden|Unauthorized)\w*)\s*[,)]'
+      - kind: new_expression
+        regex: '(?-u)^new\s+(ForbiddenException|UnauthorizedException|ForbiddenError|UnauthorizedError|AuthorizationError)\b'
+      - kind: pair
+        regex: '^status\s*:\s*(401|403|[\w.]*(FORBIDDEN|UNAUTHORIZED|Forbidden|Unauthorized)\w*)$'
+control:
+  all:
+  - any:
+    - kind: return_statement
+    - kind: throw_statement
+    - kind: expression_statement
+  - any:
+    - follows: &id001
+        kind: expression_statement
+        regex: '(?-u)^(await\s+)?(this\.)?[\w.]*(?i-u)(audit|security_?events?|log_?security|record_?security|log_?denied|record_?denied|log_?access_?denied)\w*\s*[.(]'
+        not:
+          any:
+          - kind: expression_statement
+            regex: '^(await\s+)?(this\.)?[\w.]*(?i-u)(skip|disable|without|bypass|noaudit|no_audit)'
+          - kind: expression_statement
+            regex: '(?-u)\.(find\w*|count\w*|aggregate|groupBy|is\w+|set\w*|clear|remove\w*|disable\w*|toString|get\w*|list\w*)\s*\('
+    - follows:
+        any:
+        - &id002
+          kind: expression_statement
+        - &id003
+          kind: lexical_declaration
+        - &id004
+          kind: variable_declaration
+        - &id005
+          kind: comment
+        - &id006
+          kind: if_statement
+        follows: *id001
+    - follows:
+        any:
+        - *id002
+        - *id003
+        - *id004
+        - *id005
+        - *id006
+        follows:
+          any:
+          - *id002
+          - *id003
+          - *id004
+          - *id005
+          - *id006
+          follows: *id001
+    - follows:
+        any:
+        - *id002
+        - *id003
+        - *id004
+        - *id005
+        - *id006
+        follows:
+          any:
+          - *id002
+          - *id003
+          - *id004
+          - *id005
+          - *id006
+          follows:
+            any:
+            - *id002
+            - *id003
+            - *id004
+            - *id005
+            - *id006
+            follows: *id001
+min_engine: 0.45.3
+---
+id: security-events-logged.tsx-generic.role-change
+practice_id: security-events-logged
+language: tsx
+frameworks:
+- generic
+kind: items
+rule:
+  all:
+  - kind: call_expression
+  - has:
+      field: function
+      kind: member_expression
+      regex: '\.(update|updateMany|upsert)$'
+  - has:
+      field: arguments
+      kind: arguments
+      has:
+        stopBy: end
+        kind: pair
+        has:
+          field: key
+          kind: property_identifier
+          regex: '^(role|roles|is_?admin|isAdmin|permissions|is_?staff)$'
+control:
+  any:
+  - inside:
+      kind: await_expression
+      inside:
+        kind: expression_statement
+        any:
+        - follows: &id001
+            kind: expression_statement
+            regex: '(?-u)^(await\s+)?(this\.)?[\w.]*(?i-u)(audit|security_?events?|log_?security|record_?security|log_?denied|record_?denied|log_?access_?denied)\w*\s*[.(]'
+            not:
+              any:
+              - kind: expression_statement
+                regex: '^(await\s+)?(this\.)?[\w.]*(?i-u)(skip|disable|without|bypass|noaudit|no_audit)'
+              - kind: expression_statement
+                regex: '(?-u)\.(find\w*|count\w*|aggregate|groupBy|is\w+|set\w*|clear|remove\w*|disable\w*|toString|get\w*|list\w*)\s*\('
+        - follows:
+            any:
+            - &id002
+              kind: expression_statement
+            - &id003
+              kind: lexical_declaration
+            - &id004
+              kind: variable_declaration
+            - &id005
+              kind: comment
+            - &id006
+              kind: if_statement
+            follows: *id001
+        - follows:
+            any:
+            - *id002
+            - *id003
+            - *id004
+            - *id005
+            - *id006
+            follows:
+              any:
+              - *id002
+              - *id003
+              - *id004
+              - *id005
+              - *id006
+              follows: *id001
+        - follows:
+            any:
+            - *id002
+            - *id003
+            - *id004
+            - *id005
+            - *id006
+            follows:
+              any:
+              - *id002
+              - *id003
+              - *id004
+              - *id005
+              - *id006
+              follows:
+                any:
+                - *id002
+                - *id003
+                - *id004
+                - *id005
+                - *id006
+                follows: *id001
+  - inside:
+      kind: expression_statement
+      any:
+      - follows: &id007
+          kind: expression_statement
+          regex: '(?-u)^(await\s+)?(this\.)?[\w.]*(?i-u)(audit|security_?events?|log_?security|record_?security|log_?denied|record_?denied|log_?access_?denied)\w*\s*[.(]'
+          not:
+            any:
+            - kind: expression_statement
+              regex: '^(await\s+)?(this\.)?[\w.]*(?i-u)(skip|disable|without|bypass|noaudit|no_audit)'
+            - kind: expression_statement
+              regex: '(?-u)\.(find\w*|count\w*|aggregate|groupBy|is\w+|set\w*|clear|remove\w*|disable\w*|toString|get\w*|list\w*)\s*\('
+      - follows:
+          any:
+          - &id008
+            kind: expression_statement
+          - &id009
+            kind: lexical_declaration
+          - &id010
+            kind: variable_declaration
+          - &id011
+            kind: comment
+          - &id012
+            kind: if_statement
+          follows: *id007
+      - follows:
+          any:
+          - *id008
+          - *id009
+          - *id010
+          - *id011
+          - *id012
+          follows:
+            any:
+            - *id008
+            - *id009
+            - *id010
+            - *id011
+            - *id012
+            follows: *id007
+      - follows:
+          any:
+          - *id008
+          - *id009
+          - *id010
+          - *id011
+          - *id012
+          follows:
+            any:
+            - *id008
+            - *id009
+            - *id010
+            - *id011
+            - *id012
+            follows:
+              any:
+              - *id008
+              - *id009
+              - *id010
+              - *id011
+              - *id012
+              follows: *id007
+min_engine: 0.45.3
+---
+id: security-events-logged.tsx-generic.role-change-data
+practice_id: security-events-logged
+language: tsx
+frameworks:
+- generic
+kind: items
+rule:
+  all:
+  - kind: call_expression
+  - has:
+      field: function
+      kind: member_expression
+      regex: '\.(update|updateMany|upsert)$'
+  - has:
+      field: arguments
+      kind: arguments
+      has:
+        kind: object
+        has:
+          kind: shorthand_property_identifier
+          regex: '^data$'
+  - inside:
+      stopBy: end
+      kind: statement_block
+      has:
+        any:
+        - kind: lexical_declaration
+        - kind: variable_declaration
+        has:
+          kind: variable_declarator
+          all:
+          - has:
+              field: name
+              kind: identifier
+              regex: '^data$'
+          - has:
+              field: value
+              kind: object
+              has:
+                kind: pair
+                has:
+                  field: key
+                  kind: property_identifier
+                  regex: '^(role|roles|is_?admin|isAdmin|permissions|is_?staff)$'
+control:
+  any:
+  - inside:
+      kind: await_expression
+      inside:
+        kind: expression_statement
+        any:
+        - follows: &id001
+            kind: expression_statement
+            regex: '(?-u)^(await\s+)?(this\.)?[\w.]*(?i-u)(audit|security_?events?|log_?security|record_?security|log_?denied|record_?denied|log_?access_?denied)\w*\s*[.(]'
+            not:
+              any:
+              - kind: expression_statement
+                regex: '^(await\s+)?(this\.)?[\w.]*(?i-u)(skip|disable|without|bypass|noaudit|no_audit)'
+              - kind: expression_statement
+                regex: '(?-u)\.(find\w*|count\w*|aggregate|groupBy|is\w+|set\w*|clear|remove\w*|disable\w*|toString|get\w*|list\w*)\s*\('
+        - follows:
+            any:
+            - &id002
+              kind: expression_statement
+            - &id003
+              kind: lexical_declaration
+            - &id004
+              kind: variable_declaration
+            - &id005
+              kind: comment
+            - &id006
+              kind: if_statement
+            follows: *id001
+        - follows:
+            any:
+            - *id002
+            - *id003
+            - *id004
+            - *id005
+            - *id006
+            follows:
+              any:
+              - *id002
+              - *id003
+              - *id004
+              - *id005
+              - *id006
+              follows: *id001
+        - follows:
+            any:
+            - *id002
+            - *id003
+            - *id004
+            - *id005
+            - *id006
+            follows:
+              any:
+              - *id002
+              - *id003
+              - *id004
+              - *id005
+              - *id006
+              follows:
+                any:
+                - *id002
+                - *id003
+                - *id004
+                - *id005
+                - *id006
+                follows: *id001
+  - inside:
+      kind: expression_statement
+      any:
+      - follows: &id007
+          kind: expression_statement
+          regex: '(?-u)^(await\s+)?(this\.)?[\w.]*(?i-u)(audit|security_?events?|log_?security|record_?security|log_?denied|record_?denied|log_?access_?denied)\w*\s*[.(]'
+          not:
+            any:
+            - kind: expression_statement
+              regex: '^(await\s+)?(this\.)?[\w.]*(?i-u)(skip|disable|without|bypass|noaudit|no_audit)'
+            - kind: expression_statement
+              regex: '(?-u)\.(find\w*|count\w*|aggregate|groupBy|is\w+|set\w*|clear|remove\w*|disable\w*|toString|get\w*|list\w*)\s*\('
+      - follows:
+          any:
+          - &id008
+            kind: expression_statement
+          - &id009
+            kind: lexical_declaration
+          - &id010
+            kind: variable_declaration
+          - &id011
+            kind: comment
+          - &id012
+            kind: if_statement
+          follows: *id007
+      - follows:
+          any:
+          - *id008
+          - *id009
+          - *id010
+          - *id011
+          - *id012
+          follows:
+            any:
+            - *id008
+            - *id009
+            - *id010
+            - *id011
+            - *id012
+            follows: *id007
+      - follows:
+          any:
+          - *id008
+          - *id009
+          - *id010
+          - *id011
+          - *id012
+          follows:
+            any:
+            - *id008
+            - *id009
+            - *id010
+            - *id011
+            - *id012
+            follows:
+              any:
+              - *id008
+              - *id009
+              - *id010
+              - *id011
+              - *id012
+              follows: *id007
+min_engine: 0.45.3

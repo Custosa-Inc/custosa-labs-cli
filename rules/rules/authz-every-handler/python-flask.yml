@@ -1,0 +1,32 @@
+# Flask views whose route takes a parameter (a record id), one item each (the function under the decorator). The
+# control is the caller read inside it: Flask-Login's current_user, g.user, flask_jwt_extended's get_jwt_identity() or
+# get_jwt(), or the user id from the session. login_required or jwt_required alone says the caller is signed in, never
+# which record, so it doesn't count.
+id: authz-every-handler.python-flask.route
+practice_id: authz-every-handler
+language: python
+frameworks:
+- flask
+kind: items
+rule:
+  kind: function_definition
+  inside:
+    kind: decorated_definition
+    has:
+      kind: decorator
+      regex: '^@\w+\.(route|get|post|put|patch|delete)\(\s*[''\"][^''\"]*<'
+control:
+  has:
+    stopBy: end
+    any:
+    - kind: identifier
+      regex: '^current_user$'
+    - kind: attribute
+      regex: '^g\.(user|current_user|user_id)\b'
+    - pattern: get_jwt_identity()
+    - pattern: get_jwt()
+    - kind: subscript
+      regex: '^session\[\s*[''\"](user|user_id|uid|_user_id|account_id)[''\"]'
+    - kind: call
+      regex: '^session\.get\(\s*[''\"](user|user_id|uid|_user_id|account_id)[''\"]'
+min_engine: 0.39.0

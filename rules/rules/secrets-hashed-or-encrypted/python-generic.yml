@@ -1,0 +1,14 @@
+id: secrets-hashed-or-encrypted.python-generic.raw-password-assign
+practice_id: secrets-hashed-or-encrypted
+language: python
+frameworks:
+- generic
+kind: violation
+rule:
+  all:
+  - kind: assignment
+    regex: ^\w+\.(password|api_key|secret|token)\s*=\s*(\w+\.)*\w+$
+  - not:
+      kind: assignment
+      regex: (?i)=\s*.*(hash|digest|encrypt|make_password)
+min_engine: 0.39.0

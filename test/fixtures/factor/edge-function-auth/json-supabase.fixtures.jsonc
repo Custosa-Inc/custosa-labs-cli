@@ -1,0 +1,23 @@
+// Made-up deno.json for edge-function-auth: a deno.json or import_map.json in a function's folder
+// or a parent up to supabase/functions that can change how a qualified specifier resolves keeps that function's
+// control from counting (config-unsafe); every other top-level object is config-safe, so the two together mark each
+// analysed .json file (the function sees a package.json through them). One match per top-level value. The other cases
+// (links, patch, vendor, nodeModulesDir, workspace, scopes, importMap, a qualified key, a value out of the folder, a
+// jsx or types compilerOption, a parse error, a package.json) each need a file of their own:
+// the hosted rule set's own tests.
+// ruleid: edge-function-auth.json-supabase.config-unsafe
+// ok: edge-function-auth.json-supabase.config-safe
+{
+  // ok: edge-function-auth.json-supabase.config-unsafe
+  "imports": {
+    "zod": "npm:zod@3"
+  },
+  "compilerOptions": { "strict": true, "jsxImportSource": "npm:preact" }
+}
+// ruleid: edge-function-auth.json-supabase.config-safe
+// ok: edge-function-auth.json-supabase.config-unsafe
+{
+  // ok: edge-function-auth.json-supabase.config-safe
+  "imports": { "zod": "npm:zod@3" },
+  "compilerOptions": { "strict": true }
+}

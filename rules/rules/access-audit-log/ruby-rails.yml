@@ -1,0 +1,45 @@
+id: access-audit-log.ruby-rails.read-handler
+practice_id: access-audit-log
+language: ruby
+frameworks:
+- rails
+kind: items
+rule:
+  all:
+  - kind: method
+  - has:
+      field: name
+      kind: identifier
+      regex: '^(index|show)$'
+  - inside:
+      stopBy: end
+      kind: class
+      has:
+        field: superclass
+        kind: superclass
+        regex: Controller
+  - not:
+      inside:
+        stopBy: end
+        kind: class
+        has:
+          kind: body_statement
+          has:
+            kind: call
+            regex: '^((after_action|before_action|around_action)\s+:\w*([Aa]udit|AUDIT|[Aa]ccess_?[Ll]ogs?|ACCESS_?LOGS?|[Ll]og_?[Aa]ccess|LOG_?ACCESS|[Rr]ecord_?[Aa]ccess|[Aa]ccess_?[Ee]vents?|ACCESS_?EVENTS?|[Pp]hi_?[Aa]ccess|PHI_?ACCESS|[Aa]ctivity_?[Ll]ogs?|ACTIVITY_?LOGS?)|include\s+[\w:]*([Aa]udit|AUDIT|[Aa]ccess_?[Ll]ogs?|ACCESS_?LOGS?|[Ll]og_?[Aa]ccess|LOG_?ACCESS|[Rr]ecord_?[Aa]ccess|[Aa]ccess_?[Ee]vents?|ACCESS_?EVENTS?|[Pp]hi_?[Aa]ccess|PHI_?ACCESS|[Aa]ctivity_?[Ll]ogs?|ACTIVITY_?LOGS?))'
+  - not:
+      all:
+      - has:
+          stopBy: end
+          kind: call
+          regex: '^[\w.@]*([Aa]udit|AUDIT|[Aa]ccess_?[Ll]ogs?|ACCESS_?LOGS?|[Ll]og_?[Aa]ccess|LOG_?ACCESS|[Rr]ecord_?[Aa]ccess|[Aa]ccess_?[Ee]vents?|ACCESS_?EVENTS?|[Pp]hi_?[Aa]ccess|PHI_?ACCESS|[Aa]ctivity_?[Ll]ogs?|ACTIVITY_?LOGS?)'
+          not:
+            kind: call
+            regex: '(?-u)\.(count|find\w*|where|exists\?|enabled\?)'
+      - not: &id001
+          has:
+            stopBy: end
+            kind: call
+            regex: '(?-u)^(\w*Audit\w*|AccessLog|ActivityLog|SecurityEvent)\s*\.\s*(create!?|insert!?|insert_all!?)'
+control: *id001
+min_engine: 0.45.3

@@ -1,0 +1,42 @@
+id: staff-mfa-enforced.typescript-supabase.aal2-gate
+practice_id: staff-mfa-enforced
+language: typescript
+frameworks:
+- supabase
+kind: evidence
+rule:
+  all:
+  - kind: if_statement
+  - has:
+      field: condition
+      kind: parenthesized_expression
+      regex: (currentLevel|(?-u:\b)aal)\s*!==?\s*['\"]aal2['\"]|['\"]aal2['\"]\s*!==?\s*([0-9A-Za-z_]+\.)*(currentLevel|aal)(?-u:\b)
+  - not:
+      has:
+        field: condition
+        kind: parenthesized_expression
+        regex: nextLevel
+  - has:
+      field: consequence
+      stopBy: end
+      any:
+      - kind: return_statement
+      - kind: throw_statement
+      - kind: call_expression
+        regex: ^(redirect|NextResponse\.redirect|notFound)\(
+min_engine: 0.39.0
+---
+id: staff-mfa-enforced.typescript-supabase.aal2-enrolled-only
+practice_id: staff-mfa-enforced
+language: typescript
+frameworks:
+- supabase
+kind: violation
+rule:
+  all:
+  - kind: if_statement
+  - has:
+      field: condition
+      kind: parenthesized_expression
+      regex: nextLevel\s*===?\s*['\"]aal2['\"]|['\"]aal2['\"]\s*===?\s*([0-9A-Za-z_]+\.)*nextLevel
+min_engine: 0.39.0

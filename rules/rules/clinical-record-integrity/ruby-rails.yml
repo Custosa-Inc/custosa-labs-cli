@@ -1,0 +1,16 @@
+id: clinical-record-integrity.ruby-rails.rails-model
+practice_id: clinical-record-integrity
+language: ruby
+frameworks:
+- rails
+kind: items
+rule:
+  kind: class
+  regex: ^class\s+\w+\s*<\s*(ApplicationRecord|ActiveRecord::Base)
+control:
+  any:
+  - kind: class
+    regex: \n\s*(has_paper_trail|audited|acts_as_audited|has_associated_audits)\b
+  - kind: class
+    regex: \n\s*(before_update|before_destroy)\b[^\n]*(signed|done|validated|finali[sz]ed|locked|completed|closed|approved)|def\s+readonly\?\s*\n[^\n]*(signed|done|validated|finali[sz]ed|locked|completed|closed|approved)
+min_engine: 0.39.0

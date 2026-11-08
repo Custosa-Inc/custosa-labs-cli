@@ -1,0 +1,4112 @@
+id: upload-validation.typescript-nextjs.handler
+practice_id: upload-validation
+language: typescript
+frameworks:
+- nextjs
+kind: items
+rule:
+  any:
+  - all:
+    - &id001
+      any:
+      - kind: function_declaration
+      - kind: method_definition
+      - kind: arrow_function
+      - kind: function_expression
+    - any:
+      - has:
+          field: parameters
+          has:
+            stopBy: end
+            kind: identifier
+            regex: ^(req|request)$
+      - has:
+          field: parameter
+          kind: identifier
+          regex: ^(req|request)$
+    - has:
+        stopBy: end
+        any:
+        - kind: member_expression
+          regex: ^(req|request)\.files?$
+        - kind: call_expression
+          regex: ^(busboy|Busboy)\(
+        - kind: new_expression
+          regex: ^new\s+(busboy|Busboy)\(
+  - all:
+    - *id001
+    - has:
+        stopBy: end
+        any:
+        - kind: call_expression
+          regex: \.formData\(\)$|^createSignedUploadUrl\(|\.storage\.from\([^)]*\)\.upload\(
+        - kind: decorator
+          regex: ^@UploadedFiles?\(
+  - all:
+    - *id001
+    - has:
+        field: parameters
+        has:
+          kind: required_parameter
+          has:
+            kind: type_annotation
+            regex: ^:\s*FormData$
+    - has:
+        stopBy: end
+        any:
+        - kind: as_expression
+          regex: \sas\s+File$
+        - kind: binary_expression
+          regex: \sinstanceof\s+File$
+control:
+  any:
+  - has:
+      stopBy:
+        any:
+        - kind: function_declaration
+        - kind: method_definition
+        - kind: arrow_function
+        - kind: function_expression
+      kind: if_statement
+      all:
+      - has:
+          field: condition
+          any:
+          - &id004
+            any:
+            - all:
+              - kind: member_expression
+              - has:
+                  field: property
+                  kind: property_identifier
+                  regex: ^(isInfected|is_infected|infected|hasVirus|hasViruses|virusFound|isMalicious|malicious)$
+              - has:
+                  field: object
+                  any:
+                  - &id003
+                    all: &id002
+                    - kind: call_expression
+                      regex: ^([A-Za-z0-9_$.>:-]*[0-9_$.>:-])?(?i:(clam|clamav|clamd|clamscan|virus|viruses|virustotal|antivirus|malware|antimalware|quahog|cloudmersive|scanii|metadefender|opswat))(\(|[A-Z0-9_$.>:-][A-Za-z0-9_$.>:-]*\()|^[A-Za-z0-9_$.>:-]*(Clam|ClamAV|Clamav|Clamd|Clamscan|CLAMAV|CLAMD|Virus|Viruses|VirusTotal|Antivirus|AntiVirus|Malware|AntiMalware|Quahog|Cloudmersive|Scanii|MetaDefender|Opswat|OPSWAT)(\(|[A-Z0-9_$.>:-][A-Za-z0-9_$.>:-]*\()|^([A-Za-z0-9_$.>:-]*[.>:])?(is_?[iI]nfected|instream|scan_stream)\(
+                    - not:
+                        kind: call_expression
+                        regex: (?i)(queue|job|task|enqueue|delay|apply_async|publish|dispatch|schedule|enabled|configured|available|definition|signature|update|fresh|version|health|ping)
+                  - has:
+                      stopBy: end
+                      all: *id002
+              - not:
+                  inside:
+                    kind: unary_expression
+            - all:
+              - kind: unary_expression
+                regex: ^!
+              - has:
+                  kind: member_expression
+                  all:
+                  - has:
+                      field: property
+                      kind: property_identifier
+                      regex: ^(isClean|is_clean|clean)$
+                  - has:
+                      field: object
+                      any:
+                      - *id003
+                      - has:
+                          stopBy: end
+                          all: *id002
+          - has:
+              stopBy: end
+              any:
+              - *id004
+      - has:
+          field: consequence
+          any:
+          - &id005
+            kind: return_statement
+          - &id006
+            kind: throw_statement
+          - has:
+              stopBy: end
+              any:
+              - *id005
+              - *id006
+  - all:
+    - has:
+        stopBy:
+          any:
+          - kind: function_declaration
+          - kind: method_definition
+          - kind: arrow_function
+          - kind: function_expression
+        all:
+        - kind: variable_declarator
+          all:
+          - pattern:
+              context: const $V = $E
+              selector: variable_declarator
+          - has:
+              field: name
+              kind: identifier
+        - has:
+            stopBy: end
+            any:
+            - kind: call_expression
+              regex: ^([A-Za-z0-9_$.>:-]*[0-9_$.>:-])?(?i:(clam|clamav|clamd|clamscan|virus|viruses|virustotal|antivirus|malware|antimalware|quahog|cloudmersive|scanii|metadefender|opswat))(\(|[A-Z0-9_$.>:-][A-Za-z0-9_$.>:-]*\()|^[A-Za-z0-9_$.>:-]*(Clam|ClamAV|Clamav|Clamd|Clamscan|CLAMAV|CLAMD|Virus|Viruses|VirusTotal|Antivirus|AntiVirus|Malware|AntiMalware|Quahog|Cloudmersive|Scanii|MetaDefender|Opswat|OPSWAT)(\(|[A-Z0-9_$.>:-][A-Za-z0-9_$.>:-]*\()|^([A-Za-z0-9_$.>:-]*[.>:])?(is_?[iI]nfected|instream|scan_stream)\(
+        - not:
+            has:
+              stopBy: end
+              any:
+              - kind: call_expression
+                regex: (?i)(queue|job|task|enqueue|delay|apply_async|publish|dispatch|schedule|enabled|configured|available|definition|signature|update|fresh|version|health|ping)
+    - has:
+        stopBy:
+          any:
+          - kind: function_declaration
+          - kind: method_definition
+          - kind: arrow_function
+          - kind: function_expression
+        kind: if_statement
+        all:
+        - has:
+            field: condition
+            any:
+            - &id007
+              all:
+              - pattern: $V.$P
+              - regex: ^[A-Za-z0-9_$]+\.(isInfected|is_infected|infected|hasVirus|hasViruses|virusFound|isMalicious|malicious)$
+              - not:
+                  inside:
+                    kind: unary_expression
+            - &id008
+              all:
+              - pattern: '!$V.$P'
+              - regex: ^!\s*[A-Za-z0-9_$]+\.(isClean|is_clean|clean)$
+            - &id009
+              all:
+              - pattern: $V.$P.length
+              - regex: ^[A-Za-z0-9_$]+\.(viruses|threats)\.length$
+            - &id010
+              all:
+              - kind: binary_expression
+              - regex: (?i)^[A-Za-z0-9_$]+\.(status|verdict|result)\s*(!==?\s*[\'"](clean|ok|passed)[\'"]|===?\s*[\'"](infected|found|malicious|virus)[\'"])$
+              - has:
+                  field: left
+                  pattern: $V.$P
+            - has:
+                stopBy: end
+                any:
+                - *id007
+                - *id008
+                - *id009
+                - *id010
+        - has:
+            field: consequence
+            any:
+            - *id005
+            - *id006
+            - has:
+                stopBy: end
+                any:
+                - *id005
+                - *id006
+min_engine: 0.39.0
+---
+id: upload-validation.typescript-nextjs.scan-candidate
+practice_id: upload-validation
+language: typescript
+frameworks:
+- nextjs
+kind: evidence
+rule:
+  any:
+  - all:
+    - any:
+      - kind: call_expression
+        regex: (?i)^[A-Za-z0-9_$.>:-]*(scan|clamav|clamd|clamscan|virus|malware)[A-Za-z0-9_$.>:-]*\(
+      - kind: call_expression
+        regex: ^([A-Za-z0-9_$.>:-]*[0-9_$.>:-])?(?i:(clam|clamav|clamd|clamscan|virus|viruses|virustotal|antivirus|malware|antimalware|quahog|cloudmersive|scanii|metadefender|opswat))(\(|[A-Z0-9_$.>:-][A-Za-z0-9_$.>:-]*\()|^[A-Za-z0-9_$.>:-]*(Clam|ClamAV|Clamav|Clamd|Clamscan|CLAMAV|CLAMD|Virus|Viruses|VirusTotal|Antivirus|AntiVirus|Malware|AntiMalware|Quahog|Cloudmersive|Scanii|MetaDefender|Opswat|OPSWAT)(\(|[A-Z0-9_$.>:-][A-Za-z0-9_$.>:-]*\()|^([A-Za-z0-9_$.>:-]*[.>:])?(is_?[iI]nfected|instream|scan_stream)\(
+    - not:
+        kind: call_expression
+        regex: (?i)^[A-Za-z0-9_$.>:-]*(queue|enabled|configured|available)[A-Za-z0-9_$.>:-]*\(
+min_engine: 0.39.0
+---
+id: upload-validation.typescript-nextjs.scan-unchecked
+practice_id: upload-validation
+language: typescript
+frameworks:
+- nextjs
+kind: evidence
+rule:
+  all:
+  - any:
+    - all:
+      - &id001
+        any:
+        - kind: function_declaration
+        - kind: method_definition
+        - kind: arrow_function
+        - kind: function_expression
+      - any:
+        - has:
+            field: parameters
+            has:
+              stopBy: end
+              kind: identifier
+              regex: ^(req|request)$
+        - has:
+            field: parameter
+            kind: identifier
+            regex: ^(req|request)$
+      - has:
+          stopBy: end
+          any:
+          - kind: member_expression
+            regex: ^(req|request)\.files?$
+          - kind: call_expression
+            regex: ^(busboy|Busboy)\(
+          - kind: new_expression
+            regex: ^new\s+(busboy|Busboy)\(
+    - all:
+      - *id001
+      - has:
+          stopBy: end
+          any:
+          - kind: call_expression
+            regex: \.formData\(\)$|^createSignedUploadUrl\(|\.storage\.from\([^)]*\)\.upload\(
+          - kind: decorator
+            regex: ^@UploadedFiles?\(
+    - all:
+      - *id001
+      - has:
+          field: parameters
+          has:
+            kind: required_parameter
+            has:
+              kind: type_annotation
+              regex: ^:\s*FormData$
+      - has:
+          stopBy: end
+          any:
+          - kind: as_expression
+            regex: \sas\s+File$
+          - kind: binary_expression
+            regex: \sinstanceof\s+File$
+  - not:
+      any:
+      - has:
+          stopBy:
+            any:
+            - kind: function_declaration
+            - kind: method_definition
+            - kind: arrow_function
+            - kind: function_expression
+          kind: if_statement
+          all:
+          - has:
+              field: condition
+              any:
+              - &id004
+                any:
+                - all:
+                  - kind: member_expression
+                  - has:
+                      field: property
+                      kind: property_identifier
+                      regex: ^(isInfected|is_infected|infected|hasVirus|hasViruses|virusFound|isMalicious|malicious)$
+                  - has:
+                      field: object
+                      any:
+                      - &id003
+                        all: &id002
+                        - kind: call_expression
+                          regex: ^([A-Za-z0-9_$.>:-]*[0-9_$.>:-])?(?i:(clam|clamav|clamd|clamscan|virus|viruses|virustotal|antivirus|malware|antimalware|quahog|cloudmersive|scanii|metadefender|opswat))(\(|[A-Z0-9_$.>:-][A-Za-z0-9_$.>:-]*\()|^[A-Za-z0-9_$.>:-]*(Clam|ClamAV|Clamav|Clamd|Clamscan|CLAMAV|CLAMD|Virus|Viruses|VirusTotal|Antivirus|AntiVirus|Malware|AntiMalware|Quahog|Cloudmersive|Scanii|MetaDefender|Opswat|OPSWAT)(\(|[A-Z0-9_$.>:-][A-Za-z0-9_$.>:-]*\()|^([A-Za-z0-9_$.>:-]*[.>:])?(is_?[iI]nfected|instream|scan_stream)\(
+                        - not:
+                            kind: call_expression
+                            regex: (?i)(queue|job|task|enqueue|delay|apply_async|publish|dispatch|schedule|enabled|configured|available|definition|signature|update|fresh|version|health|ping)
+                      - has:
+                          stopBy: end
+                          all: *id002
+                  - not:
+                      inside:
+                        kind: unary_expression
+                - all:
+                  - kind: unary_expression
+                    regex: ^!
+                  - has:
+                      kind: member_expression
+                      all:
+                      - has:
+                          field: property
+                          kind: property_identifier
+                          regex: ^(isClean|is_clean|clean)$
+                      - has:
+                          field: object
+                          any:
+                          - *id003
+                          - has:
+                              stopBy: end
+                              all: *id002
+              - has:
+                  stopBy: end
+                  any:
+                  - *id004
+          - has:
+              field: consequence
+              any:
+              - &id005
+                kind: return_statement
+              - &id006
+                kind: throw_statement
+              - has:
+                  stopBy: end
+                  any:
+                  - *id005
+                  - *id006
+      - all:
+        - has:
+            stopBy:
+              any:
+              - kind: function_declaration
+              - kind: method_definition
+              - kind: arrow_function
+              - kind: function_expression
+            all:
+            - kind: variable_declarator
+              all:
+              - pattern:
+                  context: const $V = $E
+                  selector: variable_declarator
+              - has:
+                  field: name
+                  kind: identifier
+            - has:
+                stopBy: end
+                any:
+                - kind: call_expression
+                  regex: ^([A-Za-z0-9_$.>:-]*[0-9_$.>:-])?(?i:(clam|clamav|clamd|clamscan|virus|viruses|virustotal|antivirus|malware|antimalware|quahog|cloudmersive|scanii|metadefender|opswat))(\(|[A-Z0-9_$.>:-][A-Za-z0-9_$.>:-]*\()|^[A-Za-z0-9_$.>:-]*(Clam|ClamAV|Clamav|Clamd|Clamscan|CLAMAV|CLAMD|Virus|Viruses|VirusTotal|Antivirus|AntiVirus|Malware|AntiMalware|Quahog|Cloudmersive|Scanii|MetaDefender|Opswat|OPSWAT)(\(|[A-Z0-9_$.>:-][A-Za-z0-9_$.>:-]*\()|^([A-Za-z0-9_$.>:-]*[.>:])?(is_?[iI]nfected|instream|scan_stream)\(
+            - not:
+                has:
+                  stopBy: end
+                  any:
+                  - kind: call_expression
+                    regex: (?i)(queue|job|task|enqueue|delay|apply_async|publish|dispatch|schedule|enabled|configured|available|definition|signature|update|fresh|version|health|ping)
+        - has:
+            stopBy:
+              any:
+              - kind: function_declaration
+              - kind: method_definition
+              - kind: arrow_function
+              - kind: function_expression
+            kind: if_statement
+            all:
+            - has:
+                field: condition
+                any:
+                - &id007
+                  all:
+                  - pattern: $V.$P
+                  - regex: ^[A-Za-z0-9_$]+\.(isInfected|is_infected|infected|hasVirus|hasViruses|virusFound|isMalicious|malicious)$
+                  - not:
+                      inside:
+                        kind: unary_expression
+                - &id008
+                  all:
+                  - pattern: '!$V.$P'
+                  - regex: ^!\s*[A-Za-z0-9_$]+\.(isClean|is_clean|clean)$
+                - &id009
+                  all:
+                  - pattern: $V.$P.length
+                  - regex: ^[A-Za-z0-9_$]+\.(viruses|threats)\.length$
+                - &id010
+                  all:
+                  - kind: binary_expression
+                  - regex: (?i)^[A-Za-z0-9_$]+\.(status|verdict|result)\s*(!==?\s*[\'"](clean|ok|passed)[\'"]|===?\s*[\'"](infected|found|malicious|virus)[\'"])$
+                  - has:
+                      field: left
+                      pattern: $V.$P
+                - has:
+                    stopBy: end
+                    any:
+                    - *id007
+                    - *id008
+                    - *id009
+                    - *id010
+            - has:
+                field: consequence
+                any:
+                - *id005
+                - *id006
+                - has:
+                    stopBy: end
+                    any:
+                    - *id005
+                    - *id006
+  - has:
+      stopBy:
+        any:
+        - kind: function_declaration
+        - kind: method_definition
+        - kind: arrow_function
+        - kind: function_expression
+      any:
+      - all:
+        - any:
+          - kind: call_expression
+            regex: (?i)^[A-Za-z0-9_$.>:-]*(scan|clamav|clamd|clamscan|virus|malware)[A-Za-z0-9_$.>:-]*\(
+          - kind: call_expression
+            regex: ^([A-Za-z0-9_$.>:-]*[0-9_$.>:-])?(?i:(clam|clamav|clamd|clamscan|virus|viruses|virustotal|antivirus|malware|antimalware|quahog|cloudmersive|scanii|metadefender|opswat))(\(|[A-Z0-9_$.>:-][A-Za-z0-9_$.>:-]*\()|^[A-Za-z0-9_$.>:-]*(Clam|ClamAV|Clamav|Clamd|Clamscan|CLAMAV|CLAMD|Virus|Viruses|VirusTotal|Antivirus|AntiVirus|Malware|AntiMalware|Quahog|Cloudmersive|Scanii|MetaDefender|Opswat|OPSWAT)(\(|[A-Z0-9_$.>:-][A-Za-z0-9_$.>:-]*\()|^([A-Za-z0-9_$.>:-]*[.>:])?(is_?[iI]nfected|instream|scan_stream)\(
+        - not:
+            kind: call_expression
+            regex: (?i)^[A-Za-z0-9_$.>:-]*(queue|enabled|configured|available)[A-Za-z0-9_$.>:-]*\(
+min_engine: 0.39.0
+---
+id: upload-validation.typescript-nextjs.no-content-type-check
+practice_id: upload-validation
+language: typescript
+frameworks:
+- nextjs
+kind: violation
+rule:
+  all:
+  - any:
+    - all:
+      - &id001
+        any:
+        - kind: function_declaration
+        - kind: method_definition
+        - kind: arrow_function
+        - kind: function_expression
+      - any:
+        - has:
+            field: parameters
+            has:
+              stopBy: end
+              kind: identifier
+              regex: ^(req|request)$
+        - has:
+            field: parameter
+            kind: identifier
+            regex: ^(req|request)$
+      - has:
+          stopBy: end
+          any:
+          - kind: member_expression
+            regex: ^(req|request)\.files?$
+          - kind: call_expression
+            regex: ^(busboy|Busboy)\(
+          - kind: new_expression
+            regex: ^new\s+(busboy|Busboy)\(
+    - all:
+      - *id001
+      - has:
+          stopBy: end
+          any:
+          - kind: call_expression
+            regex: \.formData\(\)$|^createSignedUploadUrl\(|\.storage\.from\([^)]*\)\.upload\(
+          - kind: decorator
+            regex: ^@UploadedFiles?\(
+    - all:
+      - *id001
+      - has:
+          field: parameters
+          has:
+            kind: required_parameter
+            has:
+              kind: type_annotation
+              regex: ^:\s*FormData$
+      - has:
+          stopBy: end
+          any:
+          - kind: as_expression
+            regex: \sas\s+File$
+          - kind: binary_expression
+            regex: \sinstanceof\s+File$
+  - not:
+      any:
+      - all:
+        - has:
+            stopBy:
+              any:
+              - kind: function_declaration
+              - kind: method_definition
+              - kind: arrow_function
+              - kind: function_expression
+            all:
+            - kind: variable_declarator
+              all:
+              - pattern:
+                  context: const $V = $E
+                  selector: variable_declarator
+              - has:
+                  field: name
+                  kind: identifier
+            - has:
+                stopBy: end
+                any:
+                - kind: call_expression
+                  regex: (?-u:\b)(fileTypeFrom[0-9A-Za-z_]+|fromBuffer|fromFile|fromStream|magicBytes|detectFileType)\(
+        - has:
+            stopBy:
+              any:
+              - kind: function_declaration
+              - kind: method_definition
+              - kind: arrow_function
+              - kind: function_expression
+            kind: if_statement
+            all:
+            - has:
+                field: condition
+                any:
+                - &id002
+                  all:
+                  - pattern: $X.includes($V.$P)
+                  - regex: \.(mime|ext)\)$
+                - &id003
+                  all:
+                  - pattern: $X.has($V.$P)
+                  - regex: \.(mime|ext)\)$
+                - &id004
+                  all:
+                  - pattern: $V.$P !== $Y
+                  - regex: ^[A-Za-z0-9_$]+\.(mime|ext)\s
+                - &id005
+                  pattern: $X.includes($V)
+                - &id006
+                  pattern: $X.has($V)
+                - &id007
+                  pattern: $V !== $Y
+                - has:
+                    stopBy: end
+                    any:
+                    - *id002
+                    - *id003
+                    - *id004
+                    - *id005
+                    - *id006
+                    - *id007
+            - has:
+                field: consequence
+                any:
+                - &id008
+                  kind: return_statement
+                - &id009
+                  kind: throw_statement
+                - has:
+                    stopBy: end
+                    any:
+                    - *id008
+                    - *id009
+  - not:
+      any:
+      - all:
+        - has:
+            stopBy: end
+            any:
+            - kind: call_expression
+              regex: (?-u:\b)(fileTypeFrom[0-9A-Za-z_]+|fromBuffer|fromFile|fromStream|magicBytes|detectFileType)\(
+        - not:
+            all:
+            - has:
+                stopBy: end
+                all:
+                - kind: variable_declarator
+                  all:
+                  - pattern:
+                      context: const $V = $E
+                      selector: variable_declarator
+                  - has:
+                      field: name
+                      kind: identifier
+                - has:
+                    stopBy: end
+                    any:
+                    - kind: call_expression
+                      regex: (?-u:\b)(fileTypeFrom[0-9A-Za-z_]+|fromBuffer|fromFile|fromStream|magicBytes|detectFileType)\(
+            - not:
+                has:
+                  stopBy: end
+                  all:
+                  - kind: identifier
+                    pattern:
+                      context: $V.x;
+                      selector: identifier
+                  - not:
+                      inside:
+                        kind: variable_declarator
+                        field: name
+      - has:
+          stopBy: end
+          any:
+          - kind: call_expression
+            regex: (?i)^[A-Za-z0-9_$.>:-]*(check|assert|validate|ensure|verify|is|allowed|sniff)[A-Za-z0-9_]*(type|mime|magic|filetype|allowed|content)[A-Za-z0-9_]*\(
+min_engine: 0.39.0
+---
+id: upload-validation.typescript-nextjs.type-candidate
+practice_id: upload-validation
+language: typescript
+frameworks:
+- nextjs
+kind: evidence
+rule:
+  all:
+  - any:
+    - all:
+      - &id001
+        any:
+        - kind: function_declaration
+        - kind: method_definition
+        - kind: arrow_function
+        - kind: function_expression
+      - any:
+        - has:
+            field: parameters
+            has:
+              stopBy: end
+              kind: identifier
+              regex: ^(req|request)$
+        - has:
+            field: parameter
+            kind: identifier
+            regex: ^(req|request)$
+      - has:
+          stopBy: end
+          any:
+          - kind: member_expression
+            regex: ^(req|request)\.files?$
+          - kind: call_expression
+            regex: ^(busboy|Busboy)\(
+          - kind: new_expression
+            regex: ^new\s+(busboy|Busboy)\(
+    - all:
+      - *id001
+      - has:
+          stopBy: end
+          any:
+          - kind: call_expression
+            regex: \.formData\(\)$|^createSignedUploadUrl\(|\.storage\.from\([^)]*\)\.upload\(
+          - kind: decorator
+            regex: ^@UploadedFiles?\(
+    - all:
+      - *id001
+      - has:
+          field: parameters
+          has:
+            kind: required_parameter
+            has:
+              kind: type_annotation
+              regex: ^:\s*FormData$
+      - has:
+          stopBy: end
+          any:
+          - kind: as_expression
+            regex: \sas\s+File$
+          - kind: binary_expression
+            regex: \sinstanceof\s+File$
+  - not:
+      any:
+      - all:
+        - has:
+            stopBy:
+              any:
+              - kind: function_declaration
+              - kind: method_definition
+              - kind: arrow_function
+              - kind: function_expression
+            all:
+            - kind: variable_declarator
+              all:
+              - pattern:
+                  context: const $V = $E
+                  selector: variable_declarator
+              - has:
+                  field: name
+                  kind: identifier
+            - has:
+                stopBy: end
+                any:
+                - kind: call_expression
+                  regex: (?-u:\b)(fileTypeFrom[0-9A-Za-z_]+|fromBuffer|fromFile|fromStream|magicBytes|detectFileType)\(
+        - has:
+            stopBy:
+              any:
+              - kind: function_declaration
+              - kind: method_definition
+              - kind: arrow_function
+              - kind: function_expression
+            kind: if_statement
+            all:
+            - has:
+                field: condition
+                any:
+                - &id002
+                  all:
+                  - pattern: $X.includes($V.$P)
+                  - regex: \.(mime|ext)\)$
+                - &id003
+                  all:
+                  - pattern: $X.has($V.$P)
+                  - regex: \.(mime|ext)\)$
+                - &id004
+                  all:
+                  - pattern: $V.$P !== $Y
+                  - regex: ^[A-Za-z0-9_$]+\.(mime|ext)\s
+                - &id005
+                  pattern: $X.includes($V)
+                - &id006
+                  pattern: $X.has($V)
+                - &id007
+                  pattern: $V !== $Y
+                - has:
+                    stopBy: end
+                    any:
+                    - *id002
+                    - *id003
+                    - *id004
+                    - *id005
+                    - *id006
+                    - *id007
+            - has:
+                field: consequence
+                any:
+                - &id008
+                  kind: return_statement
+                - &id009
+                  kind: throw_statement
+                - has:
+                    stopBy: end
+                    any:
+                    - *id008
+                    - *id009
+  - any:
+    - all:
+      - has:
+          stopBy: end
+          any:
+          - kind: call_expression
+            regex: (?-u:\b)(fileTypeFrom[0-9A-Za-z_]+|fromBuffer|fromFile|fromStream|magicBytes|detectFileType)\(
+      - not:
+          all:
+          - has:
+              stopBy: end
+              all:
+              - kind: variable_declarator
+                all:
+                - pattern:
+                    context: const $V = $E
+                    selector: variable_declarator
+                - has:
+                    field: name
+                    kind: identifier
+              - has:
+                  stopBy: end
+                  any:
+                  - kind: call_expression
+                    regex: (?-u:\b)(fileTypeFrom[0-9A-Za-z_]+|fromBuffer|fromFile|fromStream|magicBytes|detectFileType)\(
+          - not:
+              has:
+                stopBy: end
+                all:
+                - kind: identifier
+                  pattern:
+                    context: $V.x;
+                    selector: identifier
+                - not:
+                    inside:
+                      kind: variable_declarator
+                      field: name
+    - has:
+        stopBy: end
+        any:
+        - kind: call_expression
+          regex: (?i)^[A-Za-z0-9_$.>:-]*(check|assert|validate|ensure|verify|is|allowed|sniff)[A-Za-z0-9_]*(type|mime|magic|filetype|allowed|content)[A-Za-z0-9_]*\(
+min_engine: 0.39.0
+---
+id: upload-validation.typescript-nextjs.no-size-limit
+practice_id: upload-validation
+language: typescript
+frameworks:
+- nextjs
+kind: violation
+rule:
+  all:
+  - any:
+    - all:
+      - &id001
+        any:
+        - kind: function_declaration
+        - kind: method_definition
+        - kind: arrow_function
+        - kind: function_expression
+      - any:
+        - has:
+            field: parameters
+            has:
+              stopBy: end
+              kind: identifier
+              regex: ^(req|request)$
+        - has:
+            field: parameter
+            kind: identifier
+            regex: ^(req|request)$
+      - has:
+          stopBy: end
+          any:
+          - kind: member_expression
+            regex: ^(req|request)\.files?$
+          - kind: call_expression
+            regex: ^(busboy|Busboy)\(
+          - kind: new_expression
+            regex: ^new\s+(busboy|Busboy)\(
+    - all:
+      - *id001
+      - has:
+          stopBy: end
+          any:
+          - kind: call_expression
+            regex: \.formData\(\)$|^createSignedUploadUrl\(|\.storage\.from\([^)]*\)\.upload\(
+          - kind: decorator
+            regex: ^@UploadedFiles?\(
+    - all:
+      - *id001
+      - has:
+          field: parameters
+          has:
+            kind: required_parameter
+            has:
+              kind: type_annotation
+              regex: ^:\s*FormData$
+      - has:
+          stopBy: end
+          any:
+          - kind: as_expression
+            regex: \sas\s+File$
+          - kind: binary_expression
+            regex: \sinstanceof\s+File$
+  - not:
+      any:
+      - has:
+          stopBy:
+            any:
+            - kind: function_declaration
+            - kind: method_definition
+            - kind: arrow_function
+            - kind: function_expression
+          kind: if_statement
+          all:
+          - has:
+              field: condition
+              any:
+              - &id002
+                kind: binary_expression
+                regex: ^((req|request)\??\.file|(req|request)\??\.files\??\.[A-Za-z0-9_]+|file|f|upload|uploaded|uploadedFile|attachment|document|doc|[a-z][A-Za-z0-9]*File)\??\.(size|buffer\??\.(length|byteLength))\s*>=?\s*(self::|static::|this\.|\$this->|self\.|cls\.)?([A-Z][A-Z0-9_]*(MAX|LIMIT)[A-Z0-9_]*|(MAX|LIMIT)[A-Z0-9_]*|[a-z][A-Za-z0-9]*(Max|Limit)[A-Za-z0-9]*|(Max|Limit)[A-Za-z0-9]*|max[A-Z][A-Za-z0-9]*|limit[A-Z][A-Za-z0-9]*|[1-9][0-9_]{3,}|[0-9]+\s*\*\s*1024(\s*\*\s*1024)?)$
+              - has:
+                  stopBy: end
+                  any:
+                  - *id002
+          - has:
+              field: consequence
+              any:
+              - &id003
+                kind: return_statement
+              - &id004
+                kind: throw_statement
+              - has:
+                  stopBy: end
+                  any:
+                  - *id003
+                  - *id004
+      - has:
+          stopBy:
+            any:
+            - kind: function_declaration
+            - kind: method_definition
+            - kind: arrow_function
+            - kind: function_expression
+          any:
+          - kind: call_expression
+            regex: ^(new\s+)?([bB]usboy|multer)\(
+            has:
+              field: arguments
+              has:
+                kind: object
+                has: &id005
+                  kind: pair
+                  all:
+                  - has:
+                      field: key
+                      any:
+                      - kind: property_identifier
+                        regex: ^['"]?limits['"]?$
+                      - kind: string
+                        regex: ^['"]?limits['"]?$
+                  - has:
+                      field: value
+                      kind: object
+                      has:
+                        kind: pair
+                        all:
+                        - has:
+                            field: key
+                            any:
+                            - kind: property_identifier
+                              regex: ^['"]?fileSize['"]?$
+                            - kind: string
+                              regex: ^['"]?fileSize['"]?$
+                        - has:
+                            field: value
+                            any:
+                            - kind: number
+                              regex: ^(self::|static::|this\.|\$this->|self\.|cls\.)?([A-Z][A-Z0-9_]*(MAX|LIMIT)[A-Z0-9_]*|(MAX|LIMIT)[A-Z0-9_]*|[a-z][A-Za-z0-9]*(Max|Limit)[A-Za-z0-9]*|(Max|Limit)[A-Za-z0-9]*|max[A-Z][A-Za-z0-9]*|limit[A-Z][A-Za-z0-9]*|[1-9][0-9_]{3,}|[0-9]+\s*\*\s*1024(\s*\*\s*1024)?)$
+                            - kind: identifier
+                              regex: ^(self::|static::|this\.|\$this->|self\.|cls\.)?([A-Z][A-Z0-9_]*(MAX|LIMIT)[A-Z0-9_]*|(MAX|LIMIT)[A-Z0-9_]*|[a-z][A-Za-z0-9]*(Max|Limit)[A-Za-z0-9]*|(Max|Limit)[A-Za-z0-9]*|max[A-Z][A-Za-z0-9]*|limit[A-Z][A-Za-z0-9]*|[1-9][0-9_]{3,}|[0-9]+\s*\*\s*1024(\s*\*\s*1024)?)$
+                            - kind: member_expression
+                              regex: ^(self::|static::|this\.|\$this->|self\.|cls\.)?([A-Z][A-Z0-9_]*(MAX|LIMIT)[A-Z0-9_]*|(MAX|LIMIT)[A-Z0-9_]*|[a-z][A-Za-z0-9]*(Max|Limit)[A-Za-z0-9]*|(Max|Limit)[A-Za-z0-9]*|max[A-Z][A-Za-z0-9]*|limit[A-Z][A-Za-z0-9]*|[1-9][0-9_]{3,}|[0-9]+\s*\*\s*1024(\s*\*\s*1024)?)$
+                            - kind: binary_expression
+                              regex: ^(self::|static::|this\.|\$this->|self\.|cls\.)?([A-Z][A-Z0-9_]*(MAX|LIMIT)[A-Z0-9_]*|(MAX|LIMIT)[A-Z0-9_]*|[a-z][A-Za-z0-9]*(Max|Limit)[A-Za-z0-9]*|(Max|Limit)[A-Za-z0-9]*|max[A-Z][A-Za-z0-9]*|limit[A-Z][A-Za-z0-9]*|[1-9][0-9_]{3,}|[0-9]+\s*\*\s*1024(\s*\*\s*1024)?)$
+                            - kind: call_expression
+                              regex: ^(self::|static::|this\.|\$this->|self\.|cls\.)?([A-Z][A-Z0-9_]*(MAX|LIMIT)[A-Z0-9_]*|(MAX|LIMIT)[A-Z0-9_]*|[a-z][A-Za-z0-9]*(Max|Limit)[A-Za-z0-9]*|(Max|Limit)[A-Za-z0-9]*|max[A-Z][A-Za-z0-9]*|limit[A-Z][A-Za-z0-9]*|[1-9][0-9_]{3,}|[0-9]+\s*\*\s*1024(\s*\*\s*1024)?)$
+                            - kind: parenthesized_expression
+                              regex: ^(self::|static::|this\.|\$this->|self\.|cls\.)?([A-Z][A-Z0-9_]*(MAX|LIMIT)[A-Z0-9_]*|(MAX|LIMIT)[A-Z0-9_]*|[a-z][A-Za-z0-9]*(Max|Limit)[A-Za-z0-9]*|(Max|Limit)[A-Za-z0-9]*|max[A-Z][A-Za-z0-9]*|limit[A-Z][A-Za-z0-9]*|[1-9][0-9_]{3,}|[0-9]+\s*\*\s*1024(\s*\*\s*1024)?)$
+                            - kind: unary_expression
+                              regex: ^(self::|static::|this\.|\$this->|self\.|cls\.)?([A-Z][A-Z0-9_]*(MAX|LIMIT)[A-Z0-9_]*|(MAX|LIMIT)[A-Z0-9_]*|[a-z][A-Za-z0-9]*(Max|Limit)[A-Za-z0-9]*|(Max|Limit)[A-Za-z0-9]*|max[A-Z][A-Za-z0-9]*|limit[A-Z][A-Za-z0-9]*|[1-9][0-9_]{3,}|[0-9]+\s*\*\s*1024(\s*\*\s*1024)?)$
+                            - kind: ternary_expression
+                              regex: ^(self::|static::|this\.|\$this->|self\.|cls\.)?([A-Z][A-Z0-9_]*(MAX|LIMIT)[A-Z0-9_]*|(MAX|LIMIT)[A-Z0-9_]*|[a-z][A-Za-z0-9]*(Max|Limit)[A-Za-z0-9]*|(Max|Limit)[A-Za-z0-9]*|max[A-Z][A-Za-z0-9]*|limit[A-Z][A-Za-z0-9]*|[1-9][0-9_]{3,}|[0-9]+\s*\*\s*1024(\s*\*\s*1024)?)$
+                            - kind: subscript_expression
+                              regex: ^(self::|static::|this\.|\$this->|self\.|cls\.)?([A-Z][A-Z0-9_]*(MAX|LIMIT)[A-Z0-9_]*|(MAX|LIMIT)[A-Z0-9_]*|[a-z][A-Za-z0-9]*(Max|Limit)[A-Za-z0-9]*|(Max|Limit)[A-Za-z0-9]*|max[A-Z][A-Za-z0-9]*|limit[A-Z][A-Za-z0-9]*|[1-9][0-9_]{3,}|[0-9]+\s*\*\s*1024(\s*\*\s*1024)?)$
+                            - kind: undefined
+                              regex: ^(self::|static::|this\.|\$this->|self\.|cls\.)?([A-Z][A-Z0-9_]*(MAX|LIMIT)[A-Z0-9_]*|(MAX|LIMIT)[A-Z0-9_]*|[a-z][A-Za-z0-9]*(Max|Limit)[A-Za-z0-9]*|(Max|Limit)[A-Za-z0-9]*|max[A-Z][A-Za-z0-9]*|limit[A-Z][A-Za-z0-9]*|[1-9][0-9_]{3,}|[0-9]+\s*\*\s*1024(\s*\*\s*1024)?)$
+                            - kind: 'null'
+                              regex: ^(self::|static::|this\.|\$this->|self\.|cls\.)?([A-Z][A-Z0-9_]*(MAX|LIMIT)[A-Z0-9_]*|(MAX|LIMIT)[A-Z0-9_]*|[a-z][A-Za-z0-9]*(Max|Limit)[A-Za-z0-9]*|(Max|Limit)[A-Za-z0-9]*|max[A-Z][A-Za-z0-9]*|limit[A-Z][A-Za-z0-9]*|[1-9][0-9_]{3,}|[0-9]+\s*\*\s*1024(\s*\*\s*1024)?)$
+                            - kind: string
+                              regex: ^(self::|static::|this\.|\$this->|self\.|cls\.)?([A-Z][A-Z0-9_]*(MAX|LIMIT)[A-Z0-9_]*|(MAX|LIMIT)[A-Z0-9_]*|[a-z][A-Za-z0-9]*(Max|Limit)[A-Za-z0-9]*|(Max|Limit)[A-Za-z0-9]*|max[A-Z][A-Za-z0-9]*|limit[A-Z][A-Za-z0-9]*|[1-9][0-9_]{3,}|[0-9]+\s*\*\s*1024(\s*\*\s*1024)?)$
+                            - kind: template_string
+                              regex: ^(self::|static::|this\.|\$this->|self\.|cls\.)?([A-Z][A-Z0-9_]*(MAX|LIMIT)[A-Z0-9_]*|(MAX|LIMIT)[A-Z0-9_]*|[a-z][A-Za-z0-9]*(Max|Limit)[A-Za-z0-9]*|(Max|Limit)[A-Za-z0-9]*|max[A-Z][A-Za-z0-9]*|limit[A-Z][A-Za-z0-9]*|[1-9][0-9_]{3,}|[0-9]+\s*\*\s*1024(\s*\*\s*1024)?)$
+          - kind: new_expression
+            regex: ^(new\s+)?([bB]usboy|multer)\(
+            has:
+              field: arguments
+              has:
+                kind: object
+                has: *id005
+      - all:
+        - &id008
+          inside:
+            kind: arguments
+            has:
+              kind: call_expression
+              pattern: $UP.$M($$$A)
+              regex: ^[A-Za-z0-9_$]+\.(single|array|fields|any)\(
+        - inside:
+            stopBy: end
+            kind: program
+            has:
+              stopBy: end
+              kind: variable_declarator
+              all:
+              - pattern:
+                  context: const $UP = multer($$$O)
+                  selector: variable_declarator
+              - has:
+                  field: value
+                  any:
+                  - kind: call_expression
+                    regex: ^multer\(
+                    has:
+                      field: arguments
+                      has:
+                        kind: object
+                        has: *id005
+                  - kind: new_expression
+                    regex: ^multer\(
+                    has:
+                      field: arguments
+                      has:
+                        kind: object
+                        has: *id005
+      - inside:
+          kind: arguments
+          has:
+            kind: call_expression
+            regex: ^multer\([\s\S]*\)\.(single|array|fields|any)\(
+            has:
+              field: function
+              has:
+                field: object
+                any:
+                - kind: call_expression
+                  regex: ^multer\(
+                  has:
+                    field: arguments
+                    has:
+                      kind: object
+                      has: *id005
+                - kind: new_expression
+                  regex: ^multer\(
+                  has:
+                    field: arguments
+                    has:
+                      kind: object
+                      has: *id005
+  - not:
+      any:
+      - has:
+          stopBy: end
+          kind: if_statement
+          all:
+          - has:
+              field: condition
+              any:
+              - &id006
+                kind: binary_expression
+                regex: (?i)(^([^<>]|->)*(size|length|bytes|len\()([^<>]|->)*\s>=?\s|\s<=?\s([^<>]|->)*(size|length|bytes|len\()([^<>]|->)*$)
+              - has:
+                  stopBy: end
+                  any:
+                  - *id006
+          - has:
+              field: consequence
+              any:
+              - *id003
+              - *id004
+              - &id007
+                kind: call_expression
+                regex: \.(status|sendStatus)\(\s*4[0-9][0-9]\s*\)
+              - has:
+                  stopBy: end
+                  any:
+                  - *id003
+                  - *id004
+                  - *id007
+      - has:
+          stopBy: end
+          any:
+          - kind: call_expression
+            regex: (?i)^[A-Za-z0-9_$.>:-]*(check|assert|validate|ensure|enforce|limit|verify)[A-Za-z0-9_]*(size|bytes|length)[A-Za-z0-9_]*\(
+      - all:
+        - *id008
+        - not:
+            inside:
+              stopBy: end
+              kind: program
+              has:
+                stopBy: end
+                kind: variable_declarator
+                pattern:
+                  context: const $UP = multer($$$O)
+                  selector: variable_declarator
+      - all:
+        - *id008
+        - inside:
+            stopBy: end
+            kind: program
+            has:
+              stopBy: end
+              kind: variable_declarator
+              all:
+              - pattern:
+                  context: const $UP = multer($$$O)
+                  selector: variable_declarator
+              - has:
+                  field: value
+                  any:
+                  - kind: call_expression
+                    regex: ^multer\(
+                    has:
+                      field: arguments
+                      has:
+                        kind: object
+                        has: &id009
+                          kind: pair
+                          all:
+                          - has:
+                              field: key
+                              any:
+                              - kind: property_identifier
+                                regex: ^['"]?limits['"]?$
+                              - kind: string
+                                regex: ^['"]?limits['"]?$
+                          - has:
+                              field: value
+                              kind: object
+                              has:
+                                kind: pair
+                                all:
+                                - has:
+                                    field: key
+                                    any:
+                                    - kind: property_identifier
+                                      regex: ^['"]?fileSize['"]?$
+                                    - kind: string
+                                      regex: ^['"]?fileSize['"]?$
+                                - has:
+                                    field: value
+                                    all:
+                                    - any:
+                                      - kind: number
+                                      - kind: identifier
+                                      - kind: member_expression
+                                      - kind: binary_expression
+                                      - kind: call_expression
+                                      - kind: parenthesized_expression
+                                      - kind: unary_expression
+                                      - kind: ternary_expression
+                                      - kind: subscript_expression
+                                      - kind: undefined
+                                      - kind: 'null'
+                                      - kind: string
+                                      - kind: template_string
+                                    - not:
+                                        any:
+                                        - kind: number
+                                          regex: ^(self::|static::|this\.|\$this->|self\.|cls\.)?([A-Z][A-Z0-9_]*(MAX|LIMIT)[A-Z0-9_]*|(MAX|LIMIT)[A-Z0-9_]*|[a-z][A-Za-z0-9]*(Max|Limit)[A-Za-z0-9]*|(Max|Limit)[A-Za-z0-9]*|max[A-Z][A-Za-z0-9]*|limit[A-Z][A-Za-z0-9]*|[1-9][0-9_]{3,}|[0-9]+\s*\*\s*1024(\s*\*\s*1024)?)$
+                                        - kind: identifier
+                                          regex: ^(self::|static::|this\.|\$this->|self\.|cls\.)?([A-Z][A-Z0-9_]*(MAX|LIMIT)[A-Z0-9_]*|(MAX|LIMIT)[A-Z0-9_]*|[a-z][A-Za-z0-9]*(Max|Limit)[A-Za-z0-9]*|(Max|Limit)[A-Za-z0-9]*|max[A-Z][A-Za-z0-9]*|limit[A-Z][A-Za-z0-9]*|[1-9][0-9_]{3,}|[0-9]+\s*\*\s*1024(\s*\*\s*1024)?)$
+                                        - kind: member_expression
+                                          regex: ^(self::|static::|this\.|\$this->|self\.|cls\.)?([A-Z][A-Z0-9_]*(MAX|LIMIT)[A-Z0-9_]*|(MAX|LIMIT)[A-Z0-9_]*|[a-z][A-Za-z0-9]*(Max|Limit)[A-Za-z0-9]*|(Max|Limit)[A-Za-z0-9]*|max[A-Z][A-Za-z0-9]*|limit[A-Z][A-Za-z0-9]*|[1-9][0-9_]{3,}|[0-9]+\s*\*\s*1024(\s*\*\s*1024)?)$
+                                        - kind: binary_expression
+                                          regex: ^(self::|static::|this\.|\$this->|self\.|cls\.)?([A-Z][A-Z0-9_]*(MAX|LIMIT)[A-Z0-9_]*|(MAX|LIMIT)[A-Z0-9_]*|[a-z][A-Za-z0-9]*(Max|Limit)[A-Za-z0-9]*|(Max|Limit)[A-Za-z0-9]*|max[A-Z][A-Za-z0-9]*|limit[A-Z][A-Za-z0-9]*|[1-9][0-9_]{3,}|[0-9]+\s*\*\s*1024(\s*\*\s*1024)?)$
+                                        - kind: call_expression
+                                          regex: ^(self::|static::|this\.|\$this->|self\.|cls\.)?([A-Z][A-Z0-9_]*(MAX|LIMIT)[A-Z0-9_]*|(MAX|LIMIT)[A-Z0-9_]*|[a-z][A-Za-z0-9]*(Max|Limit)[A-Za-z0-9]*|(Max|Limit)[A-Za-z0-9]*|max[A-Z][A-Za-z0-9]*|limit[A-Z][A-Za-z0-9]*|[1-9][0-9_]{3,}|[0-9]+\s*\*\s*1024(\s*\*\s*1024)?)$
+                                        - kind: parenthesized_expression
+                                          regex: ^(self::|static::|this\.|\$this->|self\.|cls\.)?([A-Z][A-Z0-9_]*(MAX|LIMIT)[A-Z0-9_]*|(MAX|LIMIT)[A-Z0-9_]*|[a-z][A-Za-z0-9]*(Max|Limit)[A-Za-z0-9]*|(Max|Limit)[A-Za-z0-9]*|max[A-Z][A-Za-z0-9]*|limit[A-Z][A-Za-z0-9]*|[1-9][0-9_]{3,}|[0-9]+\s*\*\s*1024(\s*\*\s*1024)?)$
+                                        - kind: unary_expression
+                                          regex: ^(self::|static::|this\.|\$this->|self\.|cls\.)?([A-Z][A-Z0-9_]*(MAX|LIMIT)[A-Z0-9_]*|(MAX|LIMIT)[A-Z0-9_]*|[a-z][A-Za-z0-9]*(Max|Limit)[A-Za-z0-9]*|(Max|Limit)[A-Za-z0-9]*|max[A-Z][A-Za-z0-9]*|limit[A-Z][A-Za-z0-9]*|[1-9][0-9_]{3,}|[0-9]+\s*\*\s*1024(\s*\*\s*1024)?)$
+                                        - kind: ternary_expression
+                                          regex: ^(self::|static::|this\.|\$this->|self\.|cls\.)?([A-Z][A-Z0-9_]*(MAX|LIMIT)[A-Z0-9_]*|(MAX|LIMIT)[A-Z0-9_]*|[a-z][A-Za-z0-9]*(Max|Limit)[A-Za-z0-9]*|(Max|Limit)[A-Za-z0-9]*|max[A-Z][A-Za-z0-9]*|limit[A-Z][A-Za-z0-9]*|[1-9][0-9_]{3,}|[0-9]+\s*\*\s*1024(\s*\*\s*1024)?)$
+                                        - kind: subscript_expression
+                                          regex: ^(self::|static::|this\.|\$this->|self\.|cls\.)?([A-Z][A-Z0-9_]*(MAX|LIMIT)[A-Z0-9_]*|(MAX|LIMIT)[A-Z0-9_]*|[a-z][A-Za-z0-9]*(Max|Limit)[A-Za-z0-9]*|(Max|Limit)[A-Za-z0-9]*|max[A-Z][A-Za-z0-9]*|limit[A-Z][A-Za-z0-9]*|[1-9][0-9_]{3,}|[0-9]+\s*\*\s*1024(\s*\*\s*1024)?)$
+                                        - kind: undefined
+                                          regex: ^(self::|static::|this\.|\$this->|self\.|cls\.)?([A-Z][A-Z0-9_]*(MAX|LIMIT)[A-Z0-9_]*|(MAX|LIMIT)[A-Z0-9_]*|[a-z][A-Za-z0-9]*(Max|Limit)[A-Za-z0-9]*|(Max|Limit)[A-Za-z0-9]*|max[A-Z][A-Za-z0-9]*|limit[A-Z][A-Za-z0-9]*|[1-9][0-9_]{3,}|[0-9]+\s*\*\s*1024(\s*\*\s*1024)?)$
+                                        - kind: 'null'
+                                          regex: ^(self::|static::|this\.|\$this->|self\.|cls\.)?([A-Z][A-Z0-9_]*(MAX|LIMIT)[A-Z0-9_]*|(MAX|LIMIT)[A-Z0-9_]*|[a-z][A-Za-z0-9]*(Max|Limit)[A-Za-z0-9]*|(Max|Limit)[A-Za-z0-9]*|max[A-Z][A-Za-z0-9]*|limit[A-Z][A-Za-z0-9]*|[1-9][0-9_]{3,}|[0-9]+\s*\*\s*1024(\s*\*\s*1024)?)$
+                                        - kind: string
+                                          regex: ^(self::|static::|this\.|\$this->|self\.|cls\.)?([A-Z][A-Z0-9_]*(MAX|LIMIT)[A-Z0-9_]*|(MAX|LIMIT)[A-Z0-9_]*|[a-z][A-Za-z0-9]*(Max|Limit)[A-Za-z0-9]*|(Max|Limit)[A-Za-z0-9]*|max[A-Z][A-Za-z0-9]*|limit[A-Z][A-Za-z0-9]*|[1-9][0-9_]{3,}|[0-9]+\s*\*\s*1024(\s*\*\s*1024)?)$
+                                        - kind: template_string
+                                          regex: ^(self::|static::|this\.|\$this->|self\.|cls\.)?([A-Z][A-Z0-9_]*(MAX|LIMIT)[A-Z0-9_]*|(MAX|LIMIT)[A-Z0-9_]*|[a-z][A-Za-z0-9]*(Max|Limit)[A-Za-z0-9]*|(Max|Limit)[A-Za-z0-9]*|max[A-Z][A-Za-z0-9]*|limit[A-Z][A-Za-z0-9]*|[1-9][0-9_]{3,}|[0-9]+\s*\*\s*1024(\s*\*\s*1024)?)$
+                                    - not:
+                                        any:
+                                        - kind: number
+                                          regex: ^(Infinity|Number\.(POSITIVE_INFINITY|MAX_SAFE_INTEGER|MAX_VALUE)|undefined|null|0|-1)$
+                                        - kind: identifier
+                                          regex: ^(Infinity|Number\.(POSITIVE_INFINITY|MAX_SAFE_INTEGER|MAX_VALUE)|undefined|null|0|-1)$
+                                        - kind: member_expression
+                                          regex: ^(Infinity|Number\.(POSITIVE_INFINITY|MAX_SAFE_INTEGER|MAX_VALUE)|undefined|null|0|-1)$
+                                        - kind: binary_expression
+                                          regex: ^(Infinity|Number\.(POSITIVE_INFINITY|MAX_SAFE_INTEGER|MAX_VALUE)|undefined|null|0|-1)$
+                                        - kind: call_expression
+                                          regex: ^(Infinity|Number\.(POSITIVE_INFINITY|MAX_SAFE_INTEGER|MAX_VALUE)|undefined|null|0|-1)$
+                                        - kind: parenthesized_expression
+                                          regex: ^(Infinity|Number\.(POSITIVE_INFINITY|MAX_SAFE_INTEGER|MAX_VALUE)|undefined|null|0|-1)$
+                                        - kind: unary_expression
+                                          regex: ^(Infinity|Number\.(POSITIVE_INFINITY|MAX_SAFE_INTEGER|MAX_VALUE)|undefined|null|0|-1)$
+                                        - kind: ternary_expression
+                                          regex: ^(Infinity|Number\.(POSITIVE_INFINITY|MAX_SAFE_INTEGER|MAX_VALUE)|undefined|null|0|-1)$
+                                        - kind: subscript_expression
+                                          regex: ^(Infinity|Number\.(POSITIVE_INFINITY|MAX_SAFE_INTEGER|MAX_VALUE)|undefined|null|0|-1)$
+                                        - kind: undefined
+                                          regex: ^(Infinity|Number\.(POSITIVE_INFINITY|MAX_SAFE_INTEGER|MAX_VALUE)|undefined|null|0|-1)$
+                                        - kind: 'null'
+                                          regex: ^(Infinity|Number\.(POSITIVE_INFINITY|MAX_SAFE_INTEGER|MAX_VALUE)|undefined|null|0|-1)$
+                                        - kind: string
+                                          regex: ^(Infinity|Number\.(POSITIVE_INFINITY|MAX_SAFE_INTEGER|MAX_VALUE)|undefined|null|0|-1)$
+                                        - kind: template_string
+                                          regex: ^(Infinity|Number\.(POSITIVE_INFINITY|MAX_SAFE_INTEGER|MAX_VALUE)|undefined|null|0|-1)$
+                  - kind: new_expression
+                    regex: ^multer\(
+                    has:
+                      field: arguments
+                      has:
+                        kind: object
+                        has: *id009
+      - inside:
+          kind: arguments
+          has:
+            kind: call_expression
+            regex: ^multer\([\s\S]*\)\.(single|array|fields|any)\(
+            has:
+              field: function
+              has:
+                field: object
+                any:
+                - kind: call_expression
+                  regex: ^multer\(
+                  has:
+                    field: arguments
+                    has:
+                      kind: object
+                      has: *id009
+                - kind: new_expression
+                  regex: ^multer\(
+                  has:
+                    field: arguments
+                    has:
+                      kind: object
+                      has: *id009
+      - has:
+          stopBy: end
+          any:
+          - kind: call_expression
+            regex: ^(new\s+)?([bB]usboy|multer)\(
+            has:
+              field: arguments
+              has:
+                kind: object
+                has: *id009
+          - kind: new_expression
+            regex: ^(new\s+)?([bB]usboy|multer)\(
+            has:
+              field: arguments
+              has:
+                kind: object
+                has: *id009
+min_engine: 0.39.0
+---
+id: upload-validation.typescript-nextjs.size-candidate
+practice_id: upload-validation
+language: typescript
+frameworks:
+- nextjs
+kind: evidence
+rule:
+  all:
+  - any:
+    - all:
+      - &id001
+        any:
+        - kind: function_declaration
+        - kind: method_definition
+        - kind: arrow_function
+        - kind: function_expression
+      - any:
+        - has:
+            field: parameters
+            has:
+              stopBy: end
+              kind: identifier
+              regex: ^(req|request)$
+        - has:
+            field: parameter
+            kind: identifier
+            regex: ^(req|request)$
+      - has:
+          stopBy: end
+          any:
+          - kind: member_expression
+            regex: ^(req|request)\.files?$
+          - kind: call_expression
+            regex: ^(busboy|Busboy)\(
+          - kind: new_expression
+            regex: ^new\s+(busboy|Busboy)\(
+    - all:
+      - *id001
+      - has:
+          stopBy: end
+          any:
+          - kind: call_expression
+            regex: \.formData\(\)$|^createSignedUploadUrl\(|\.storage\.from\([^)]*\)\.upload\(
+          - kind: decorator
+            regex: ^@UploadedFiles?\(
+    - all:
+      - *id001
+      - has:
+          field: parameters
+          has:
+            kind: required_parameter
+            has:
+              kind: type_annotation
+              regex: ^:\s*FormData$
+      - has:
+          stopBy: end
+          any:
+          - kind: as_expression
+            regex: \sas\s+File$
+          - kind: binary_expression
+            regex: \sinstanceof\s+File$
+  - not:
+      any:
+      - has:
+          stopBy:
+            any:
+            - kind: function_declaration
+            - kind: method_definition
+            - kind: arrow_function
+            - kind: function_expression
+          kind: if_statement
+          all:
+          - has:
+              field: condition
+              any:
+              - &id002
+                kind: binary_expression
+                regex: ^((req|request)\??\.file|(req|request)\??\.files\??\.[A-Za-z0-9_]+|file|f|upload|uploaded|uploadedFile|attachment|document|doc|[a-z][A-Za-z0-9]*File)\??\.(size|buffer\??\.(length|byteLength))\s*>=?\s*(self::|static::|this\.|\$this->|self\.|cls\.)?([A-Z][A-Z0-9_]*(MAX|LIMIT)[A-Z0-9_]*|(MAX|LIMIT)[A-Z0-9_]*|[a-z][A-Za-z0-9]*(Max|Limit)[A-Za-z0-9]*|(Max|Limit)[A-Za-z0-9]*|max[A-Z][A-Za-z0-9]*|limit[A-Z][A-Za-z0-9]*|[1-9][0-9_]{3,}|[0-9]+\s*\*\s*1024(\s*\*\s*1024)?)$
+              - has:
+                  stopBy: end
+                  any:
+                  - *id002
+          - has:
+              field: consequence
+              any:
+              - &id003
+                kind: return_statement
+              - &id004
+                kind: throw_statement
+              - has:
+                  stopBy: end
+                  any:
+                  - *id003
+                  - *id004
+      - has:
+          stopBy:
+            any:
+            - kind: function_declaration
+            - kind: method_definition
+            - kind: arrow_function
+            - kind: function_expression
+          any:
+          - kind: call_expression
+            regex: ^(new\s+)?([bB]usboy|multer)\(
+            has:
+              field: arguments
+              has:
+                kind: object
+                has: &id005
+                  kind: pair
+                  all:
+                  - has:
+                      field: key
+                      any:
+                      - kind: property_identifier
+                        regex: ^['"]?limits['"]?$
+                      - kind: string
+                        regex: ^['"]?limits['"]?$
+                  - has:
+                      field: value
+                      kind: object
+                      has:
+                        kind: pair
+                        all:
+                        - has:
+                            field: key
+                            any:
+                            - kind: property_identifier
+                              regex: ^['"]?fileSize['"]?$
+                            - kind: string
+                              regex: ^['"]?fileSize['"]?$
+                        - has:
+                            field: value
+                            any:
+                            - kind: number
+                              regex: ^(self::|static::|this\.|\$this->|self\.|cls\.)?([A-Z][A-Z0-9_]*(MAX|LIMIT)[A-Z0-9_]*|(MAX|LIMIT)[A-Z0-9_]*|[a-z][A-Za-z0-9]*(Max|Limit)[A-Za-z0-9]*|(Max|Limit)[A-Za-z0-9]*|max[A-Z][A-Za-z0-9]*|limit[A-Z][A-Za-z0-9]*|[1-9][0-9_]{3,}|[0-9]+\s*\*\s*1024(\s*\*\s*1024)?)$
+                            - kind: identifier
+                              regex: ^(self::|static::|this\.|\$this->|self\.|cls\.)?([A-Z][A-Z0-9_]*(MAX|LIMIT)[A-Z0-9_]*|(MAX|LIMIT)[A-Z0-9_]*|[a-z][A-Za-z0-9]*(Max|Limit)[A-Za-z0-9]*|(Max|Limit)[A-Za-z0-9]*|max[A-Z][A-Za-z0-9]*|limit[A-Z][A-Za-z0-9]*|[1-9][0-9_]{3,}|[0-9]+\s*\*\s*1024(\s*\*\s*1024)?)$
+                            - kind: member_expression
+                              regex: ^(self::|static::|this\.|\$this->|self\.|cls\.)?([A-Z][A-Z0-9_]*(MAX|LIMIT)[A-Z0-9_]*|(MAX|LIMIT)[A-Z0-9_]*|[a-z][A-Za-z0-9]*(Max|Limit)[A-Za-z0-9]*|(Max|Limit)[A-Za-z0-9]*|max[A-Z][A-Za-z0-9]*|limit[A-Z][A-Za-z0-9]*|[1-9][0-9_]{3,}|[0-9]+\s*\*\s*1024(\s*\*\s*1024)?)$
+                            - kind: binary_expression
+                              regex: ^(self::|static::|this\.|\$this->|self\.|cls\.)?([A-Z][A-Z0-9_]*(MAX|LIMIT)[A-Z0-9_]*|(MAX|LIMIT)[A-Z0-9_]*|[a-z][A-Za-z0-9]*(Max|Limit)[A-Za-z0-9]*|(Max|Limit)[A-Za-z0-9]*|max[A-Z][A-Za-z0-9]*|limit[A-Z][A-Za-z0-9]*|[1-9][0-9_]{3,}|[0-9]+\s*\*\s*1024(\s*\*\s*1024)?)$
+                            - kind: call_expression
+                              regex: ^(self::|static::|this\.|\$this->|self\.|cls\.)?([A-Z][A-Z0-9_]*(MAX|LIMIT)[A-Z0-9_]*|(MAX|LIMIT)[A-Z0-9_]*|[a-z][A-Za-z0-9]*(Max|Limit)[A-Za-z0-9]*|(Max|Limit)[A-Za-z0-9]*|max[A-Z][A-Za-z0-9]*|limit[A-Z][A-Za-z0-9]*|[1-9][0-9_]{3,}|[0-9]+\s*\*\s*1024(\s*\*\s*1024)?)$
+                            - kind: parenthesized_expression
+                              regex: ^(self::|static::|this\.|\$this->|self\.|cls\.)?([A-Z][A-Z0-9_]*(MAX|LIMIT)[A-Z0-9_]*|(MAX|LIMIT)[A-Z0-9_]*|[a-z][A-Za-z0-9]*(Max|Limit)[A-Za-z0-9]*|(Max|Limit)[A-Za-z0-9]*|max[A-Z][A-Za-z0-9]*|limit[A-Z][A-Za-z0-9]*|[1-9][0-9_]{3,}|[0-9]+\s*\*\s*1024(\s*\*\s*1024)?)$
+                            - kind: unary_expression
+                              regex: ^(self::|static::|this\.|\$this->|self\.|cls\.)?([A-Z][A-Z0-9_]*(MAX|LIMIT)[A-Z0-9_]*|(MAX|LIMIT)[A-Z0-9_]*|[a-z][A-Za-z0-9]*(Max|Limit)[A-Za-z0-9]*|(Max|Limit)[A-Za-z0-9]*|max[A-Z][A-Za-z0-9]*|limit[A-Z][A-Za-z0-9]*|[1-9][0-9_]{3,}|[0-9]+\s*\*\s*1024(\s*\*\s*1024)?)$
+                            - kind: ternary_expression
+                              regex: ^(self::|static::|this\.|\$this->|self\.|cls\.)?([A-Z][A-Z0-9_]*(MAX|LIMIT)[A-Z0-9_]*|(MAX|LIMIT)[A-Z0-9_]*|[a-z][A-Za-z0-9]*(Max|Limit)[A-Za-z0-9]*|(Max|Limit)[A-Za-z0-9]*|max[A-Z][A-Za-z0-9]*|limit[A-Z][A-Za-z0-9]*|[1-9][0-9_]{3,}|[0-9]+\s*\*\s*1024(\s*\*\s*1024)?)$
+                            - kind: subscript_expression
+                              regex: ^(self::|static::|this\.|\$this->|self\.|cls\.)?([A-Z][A-Z0-9_]*(MAX|LIMIT)[A-Z0-9_]*|(MAX|LIMIT)[A-Z0-9_]*|[a-z][A-Za-z0-9]*(Max|Limit)[A-Za-z0-9]*|(Max|Limit)[A-Za-z0-9]*|max[A-Z][A-Za-z0-9]*|limit[A-Z][A-Za-z0-9]*|[1-9][0-9_]{3,}|[0-9]+\s*\*\s*1024(\s*\*\s*1024)?)$
+                            - kind: undefined
+                              regex: ^(self::|static::|this\.|\$this->|self\.|cls\.)?([A-Z][A-Z0-9_]*(MAX|LIMIT)[A-Z0-9_]*|(MAX|LIMIT)[A-Z0-9_]*|[a-z][A-Za-z0-9]*(Max|Limit)[A-Za-z0-9]*|(Max|Limit)[A-Za-z0-9]*|max[A-Z][A-Za-z0-9]*|limit[A-Z][A-Za-z0-9]*|[1-9][0-9_]{3,}|[0-9]+\s*\*\s*1024(\s*\*\s*1024)?)$
+                            - kind: 'null'
+                              regex: ^(self::|static::|this\.|\$this->|self\.|cls\.)?([A-Z][A-Z0-9_]*(MAX|LIMIT)[A-Z0-9_]*|(MAX|LIMIT)[A-Z0-9_]*|[a-z][A-Za-z0-9]*(Max|Limit)[A-Za-z0-9]*|(Max|Limit)[A-Za-z0-9]*|max[A-Z][A-Za-z0-9]*|limit[A-Z][A-Za-z0-9]*|[1-9][0-9_]{3,}|[0-9]+\s*\*\s*1024(\s*\*\s*1024)?)$
+                            - kind: string
+                              regex: ^(self::|static::|this\.|\$this->|self\.|cls\.)?([A-Z][A-Z0-9_]*(MAX|LIMIT)[A-Z0-9_]*|(MAX|LIMIT)[A-Z0-9_]*|[a-z][A-Za-z0-9]*(Max|Limit)[A-Za-z0-9]*|(Max|Limit)[A-Za-z0-9]*|max[A-Z][A-Za-z0-9]*|limit[A-Z][A-Za-z0-9]*|[1-9][0-9_]{3,}|[0-9]+\s*\*\s*1024(\s*\*\s*1024)?)$
+                            - kind: template_string
+                              regex: ^(self::|static::|this\.|\$this->|self\.|cls\.)?([A-Z][A-Z0-9_]*(MAX|LIMIT)[A-Z0-9_]*|(MAX|LIMIT)[A-Z0-9_]*|[a-z][A-Za-z0-9]*(Max|Limit)[A-Za-z0-9]*|(Max|Limit)[A-Za-z0-9]*|max[A-Z][A-Za-z0-9]*|limit[A-Z][A-Za-z0-9]*|[1-9][0-9_]{3,}|[0-9]+\s*\*\s*1024(\s*\*\s*1024)?)$
+          - kind: new_expression
+            regex: ^(new\s+)?([bB]usboy|multer)\(
+            has:
+              field: arguments
+              has:
+                kind: object
+                has: *id005
+      - all:
+        - &id008
+          inside:
+            kind: arguments
+            has:
+              kind: call_expression
+              pattern: $UP.$M($$$A)
+              regex: ^[A-Za-z0-9_$]+\.(single|array|fields|any)\(
+        - inside:
+            stopBy: end
+            kind: program
+            has:
+              stopBy: end
+              kind: variable_declarator
+              all:
+              - pattern:
+                  context: const $UP = multer($$$O)
+                  selector: variable_declarator
+              - has:
+                  field: value
+                  any:
+                  - kind: call_expression
+                    regex: ^multer\(
+                    has:
+                      field: arguments
+                      has:
+                        kind: object
+                        has: *id005
+                  - kind: new_expression
+                    regex: ^multer\(
+                    has:
+                      field: arguments
+                      has:
+                        kind: object
+                        has: *id005
+      - inside:
+          kind: arguments
+          has:
+            kind: call_expression
+            regex: ^multer\([\s\S]*\)\.(single|array|fields|any)\(
+            has:
+              field: function
+              has:
+                field: object
+                any:
+                - kind: call_expression
+                  regex: ^multer\(
+                  has:
+                    field: arguments
+                    has:
+                      kind: object
+                      has: *id005
+                - kind: new_expression
+                  regex: ^multer\(
+                  has:
+                    field: arguments
+                    has:
+                      kind: object
+                      has: *id005
+  - any:
+    - has:
+        stopBy: end
+        kind: if_statement
+        all:
+        - has:
+            field: condition
+            any:
+            - &id006
+              kind: binary_expression
+              regex: (?i)(^([^<>]|->)*(size|length|bytes|len\()([^<>]|->)*\s>=?\s|\s<=?\s([^<>]|->)*(size|length|bytes|len\()([^<>]|->)*$)
+            - has:
+                stopBy: end
+                any:
+                - *id006
+        - has:
+            field: consequence
+            any:
+            - *id003
+            - *id004
+            - &id007
+              kind: call_expression
+              regex: \.(status|sendStatus)\(\s*4[0-9][0-9]\s*\)
+            - has:
+                stopBy: end
+                any:
+                - *id003
+                - *id004
+                - *id007
+    - has:
+        stopBy: end
+        any:
+        - kind: call_expression
+          regex: (?i)^[A-Za-z0-9_$.>:-]*(check|assert|validate|ensure|enforce|limit|verify)[A-Za-z0-9_]*(size|bytes|length)[A-Za-z0-9_]*\(
+    - all:
+      - *id008
+      - not:
+          inside:
+            stopBy: end
+            kind: program
+            has:
+              stopBy: end
+              kind: variable_declarator
+              pattern:
+                context: const $UP = multer($$$O)
+                selector: variable_declarator
+    - all:
+      - *id008
+      - inside:
+          stopBy: end
+          kind: program
+          has:
+            stopBy: end
+            kind: variable_declarator
+            all:
+            - pattern:
+                context: const $UP = multer($$$O)
+                selector: variable_declarator
+            - has:
+                field: value
+                any:
+                - kind: call_expression
+                  regex: ^multer\(
+                  has:
+                    field: arguments
+                    has:
+                      kind: object
+                      has: &id009
+                        kind: pair
+                        all:
+                        - has:
+                            field: key
+                            any:
+                            - kind: property_identifier
+                              regex: ^['"]?limits['"]?$
+                            - kind: string
+                              regex: ^['"]?limits['"]?$
+                        - has:
+                            field: value
+                            kind: object
+                            has:
+                              kind: pair
+                              all:
+                              - has:
+                                  field: key
+                                  any:
+                                  - kind: property_identifier
+                                    regex: ^['"]?fileSize['"]?$
+                                  - kind: string
+                                    regex: ^['"]?fileSize['"]?$
+                              - has:
+                                  field: value
+                                  all:
+                                  - any:
+                                    - kind: number
+                                    - kind: identifier
+                                    - kind: member_expression
+                                    - kind: binary_expression
+                                    - kind: call_expression
+                                    - kind: parenthesized_expression
+                                    - kind: unary_expression
+                                    - kind: ternary_expression
+                                    - kind: subscript_expression
+                                    - kind: undefined
+                                    - kind: 'null'
+                                    - kind: string
+                                    - kind: template_string
+                                  - not:
+                                      any:
+                                      - kind: number
+                                        regex: ^(self::|static::|this\.|\$this->|self\.|cls\.)?([A-Z][A-Z0-9_]*(MAX|LIMIT)[A-Z0-9_]*|(MAX|LIMIT)[A-Z0-9_]*|[a-z][A-Za-z0-9]*(Max|Limit)[A-Za-z0-9]*|(Max|Limit)[A-Za-z0-9]*|max[A-Z][A-Za-z0-9]*|limit[A-Z][A-Za-z0-9]*|[1-9][0-9_]{3,}|[0-9]+\s*\*\s*1024(\s*\*\s*1024)?)$
+                                      - kind: identifier
+                                        regex: ^(self::|static::|this\.|\$this->|self\.|cls\.)?([A-Z][A-Z0-9_]*(MAX|LIMIT)[A-Z0-9_]*|(MAX|LIMIT)[A-Z0-9_]*|[a-z][A-Za-z0-9]*(Max|Limit)[A-Za-z0-9]*|(Max|Limit)[A-Za-z0-9]*|max[A-Z][A-Za-z0-9]*|limit[A-Z][A-Za-z0-9]*|[1-9][0-9_]{3,}|[0-9]+\s*\*\s*1024(\s*\*\s*1024)?)$
+                                      - kind: member_expression
+                                        regex: ^(self::|static::|this\.|\$this->|self\.|cls\.)?([A-Z][A-Z0-9_]*(MAX|LIMIT)[A-Z0-9_]*|(MAX|LIMIT)[A-Z0-9_]*|[a-z][A-Za-z0-9]*(Max|Limit)[A-Za-z0-9]*|(Max|Limit)[A-Za-z0-9]*|max[A-Z][A-Za-z0-9]*|limit[A-Z][A-Za-z0-9]*|[1-9][0-9_]{3,}|[0-9]+\s*\*\s*1024(\s*\*\s*1024)?)$
+                                      - kind: binary_expression
+                                        regex: ^(self::|static::|this\.|\$this->|self\.|cls\.)?([A-Z][A-Z0-9_]*(MAX|LIMIT)[A-Z0-9_]*|(MAX|LIMIT)[A-Z0-9_]*|[a-z][A-Za-z0-9]*(Max|Limit)[A-Za-z0-9]*|(Max|Limit)[A-Za-z0-9]*|max[A-Z][A-Za-z0-9]*|limit[A-Z][A-Za-z0-9]*|[1-9][0-9_]{3,}|[0-9]+\s*\*\s*1024(\s*\*\s*1024)?)$
+                                      - kind: call_expression
+                                        regex: ^(self::|static::|this\.|\$this->|self\.|cls\.)?([A-Z][A-Z0-9_]*(MAX|LIMIT)[A-Z0-9_]*|(MAX|LIMIT)[A-Z0-9_]*|[a-z][A-Za-z0-9]*(Max|Limit)[A-Za-z0-9]*|(Max|Limit)[A-Za-z0-9]*|max[A-Z][A-Za-z0-9]*|limit[A-Z][A-Za-z0-9]*|[1-9][0-9_]{3,}|[0-9]+\s*\*\s*1024(\s*\*\s*1024)?)$
+                                      - kind: parenthesized_expression
+                                        regex: ^(self::|static::|this\.|\$this->|self\.|cls\.)?([A-Z][A-Z0-9_]*(MAX|LIMIT)[A-Z0-9_]*|(MAX|LIMIT)[A-Z0-9_]*|[a-z][A-Za-z0-9]*(Max|Limit)[A-Za-z0-9]*|(Max|Limit)[A-Za-z0-9]*|max[A-Z][A-Za-z0-9]*|limit[A-Z][A-Za-z0-9]*|[1-9][0-9_]{3,}|[0-9]+\s*\*\s*1024(\s*\*\s*1024)?)$
+                                      - kind: unary_expression
+                                        regex: ^(self::|static::|this\.|\$this->|self\.|cls\.)?([A-Z][A-Z0-9_]*(MAX|LIMIT)[A-Z0-9_]*|(MAX|LIMIT)[A-Z0-9_]*|[a-z][A-Za-z0-9]*(Max|Limit)[A-Za-z0-9]*|(Max|Limit)[A-Za-z0-9]*|max[A-Z][A-Za-z0-9]*|limit[A-Z][A-Za-z0-9]*|[1-9][0-9_]{3,}|[0-9]+\s*\*\s*1024(\s*\*\s*1024)?)$
+                                      - kind: ternary_expression
+                                        regex: ^(self::|static::|this\.|\$this->|self\.|cls\.)?([A-Z][A-Z0-9_]*(MAX|LIMIT)[A-Z0-9_]*|(MAX|LIMIT)[A-Z0-9_]*|[a-z][A-Za-z0-9]*(Max|Limit)[A-Za-z0-9]*|(Max|Limit)[A-Za-z0-9]*|max[A-Z][A-Za-z0-9]*|limit[A-Z][A-Za-z0-9]*|[1-9][0-9_]{3,}|[0-9]+\s*\*\s*1024(\s*\*\s*1024)?)$
+                                      - kind: subscript_expression
+                                        regex: ^(self::|static::|this\.|\$this->|self\.|cls\.)?([A-Z][A-Z0-9_]*(MAX|LIMIT)[A-Z0-9_]*|(MAX|LIMIT)[A-Z0-9_]*|[a-z][A-Za-z0-9]*(Max|Limit)[A-Za-z0-9]*|(Max|Limit)[A-Za-z0-9]*|max[A-Z][A-Za-z0-9]*|limit[A-Z][A-Za-z0-9]*|[1-9][0-9_]{3,}|[0-9]+\s*\*\s*1024(\s*\*\s*1024)?)$
+                                      - kind: undefined
+                                        regex: ^(self::|static::|this\.|\$this->|self\.|cls\.)?([A-Z][A-Z0-9_]*(MAX|LIMIT)[A-Z0-9_]*|(MAX|LIMIT)[A-Z0-9_]*|[a-z][A-Za-z0-9]*(Max|Limit)[A-Za-z0-9]*|(Max|Limit)[A-Za-z0-9]*|max[A-Z][A-Za-z0-9]*|limit[A-Z][A-Za-z0-9]*|[1-9][0-9_]{3,}|[0-9]+\s*\*\s*1024(\s*\*\s*1024)?)$
+                                      - kind: 'null'
+                                        regex: ^(self::|static::|this\.|\$this->|self\.|cls\.)?([A-Z][A-Z0-9_]*(MAX|LIMIT)[A-Z0-9_]*|(MAX|LIMIT)[A-Z0-9_]*|[a-z][A-Za-z0-9]*(Max|Limit)[A-Za-z0-9]*|(Max|Limit)[A-Za-z0-9]*|max[A-Z][A-Za-z0-9]*|limit[A-Z][A-Za-z0-9]*|[1-9][0-9_]{3,}|[0-9]+\s*\*\s*1024(\s*\*\s*1024)?)$
+                                      - kind: string
+                                        regex: ^(self::|static::|this\.|\$this->|self\.|cls\.)?([A-Z][A-Z0-9_]*(MAX|LIMIT)[A-Z0-9_]*|(MAX|LIMIT)[A-Z0-9_]*|[a-z][A-Za-z0-9]*(Max|Limit)[A-Za-z0-9]*|(Max|Limit)[A-Za-z0-9]*|max[A-Z][A-Za-z0-9]*|limit[A-Z][A-Za-z0-9]*|[1-9][0-9_]{3,}|[0-9]+\s*\*\s*1024(\s*\*\s*1024)?)$
+                                      - kind: template_string
+                                        regex: ^(self::|static::|this\.|\$this->|self\.|cls\.)?([A-Z][A-Z0-9_]*(MAX|LIMIT)[A-Z0-9_]*|(MAX|LIMIT)[A-Z0-9_]*|[a-z][A-Za-z0-9]*(Max|Limit)[A-Za-z0-9]*|(Max|Limit)[A-Za-z0-9]*|max[A-Z][A-Za-z0-9]*|limit[A-Z][A-Za-z0-9]*|[1-9][0-9_]{3,}|[0-9]+\s*\*\s*1024(\s*\*\s*1024)?)$
+                                  - not:
+                                      any:
+                                      - kind: number
+                                        regex: ^(Infinity|Number\.(POSITIVE_INFINITY|MAX_SAFE_INTEGER|MAX_VALUE)|undefined|null|0|-1)$
+                                      - kind: identifier
+                                        regex: ^(Infinity|Number\.(POSITIVE_INFINITY|MAX_SAFE_INTEGER|MAX_VALUE)|undefined|null|0|-1)$
+                                      - kind: member_expression
+                                        regex: ^(Infinity|Number\.(POSITIVE_INFINITY|MAX_SAFE_INTEGER|MAX_VALUE)|undefined|null|0|-1)$
+                                      - kind: binary_expression
+                                        regex: ^(Infinity|Number\.(POSITIVE_INFINITY|MAX_SAFE_INTEGER|MAX_VALUE)|undefined|null|0|-1)$
+                                      - kind: call_expression
+                                        regex: ^(Infinity|Number\.(POSITIVE_INFINITY|MAX_SAFE_INTEGER|MAX_VALUE)|undefined|null|0|-1)$
+                                      - kind: parenthesized_expression
+                                        regex: ^(Infinity|Number\.(POSITIVE_INFINITY|MAX_SAFE_INTEGER|MAX_VALUE)|undefined|null|0|-1)$
+                                      - kind: unary_expression
+                                        regex: ^(Infinity|Number\.(POSITIVE_INFINITY|MAX_SAFE_INTEGER|MAX_VALUE)|undefined|null|0|-1)$
+                                      - kind: ternary_expression
+                                        regex: ^(Infinity|Number\.(POSITIVE_INFINITY|MAX_SAFE_INTEGER|MAX_VALUE)|undefined|null|0|-1)$
+                                      - kind: subscript_expression
+                                        regex: ^(Infinity|Number\.(POSITIVE_INFINITY|MAX_SAFE_INTEGER|MAX_VALUE)|undefined|null|0|-1)$
+                                      - kind: undefined
+                                        regex: ^(Infinity|Number\.(POSITIVE_INFINITY|MAX_SAFE_INTEGER|MAX_VALUE)|undefined|null|0|-1)$
+                                      - kind: 'null'
+                                        regex: ^(Infinity|Number\.(POSITIVE_INFINITY|MAX_SAFE_INTEGER|MAX_VALUE)|undefined|null|0|-1)$
+                                      - kind: string
+                                        regex: ^(Infinity|Number\.(POSITIVE_INFINITY|MAX_SAFE_INTEGER|MAX_VALUE)|undefined|null|0|-1)$
+                                      - kind: template_string
+                                        regex: ^(Infinity|Number\.(POSITIVE_INFINITY|MAX_SAFE_INTEGER|MAX_VALUE)|undefined|null|0|-1)$
+                - kind: new_expression
+                  regex: ^multer\(
+                  has:
+                    field: arguments
+                    has:
+                      kind: object
+                      has: *id009
+    - inside:
+        kind: arguments
+        has:
+          kind: call_expression
+          regex: ^multer\([\s\S]*\)\.(single|array|fields|any)\(
+          has:
+            field: function
+            has:
+              field: object
+              any:
+              - kind: call_expression
+                regex: ^multer\(
+                has:
+                  field: arguments
+                  has:
+                    kind: object
+                    has: *id009
+              - kind: new_expression
+                regex: ^multer\(
+                has:
+                  field: arguments
+                  has:
+                    kind: object
+                    has: *id009
+    - has:
+        stopBy: end
+        any:
+        - kind: call_expression
+          regex: ^(new\s+)?([bB]usboy|multer)\(
+          has:
+            field: arguments
+            has:
+              kind: object
+              has: *id009
+        - kind: new_expression
+          regex: ^(new\s+)?([bB]usboy|multer)\(
+          has:
+            field: arguments
+            has:
+              kind: object
+              has: *id009
+min_engine: 0.39.0
+---
+id: upload-validation.typescript-nextjs.no-authorization
+practice_id: upload-validation
+language: typescript
+frameworks:
+- nextjs
+kind: violation
+rule:
+  all:
+  - any:
+    - all:
+      - &id001
+        any:
+        - kind: function_declaration
+        - kind: method_definition
+        - kind: arrow_function
+        - kind: function_expression
+      - any:
+        - has:
+            field: parameters
+            has:
+              stopBy: end
+              kind: identifier
+              regex: ^(req|request)$
+        - has:
+            field: parameter
+            kind: identifier
+            regex: ^(req|request)$
+      - has:
+          stopBy: end
+          any:
+          - kind: member_expression
+            regex: ^(req|request)\.files?$
+          - kind: call_expression
+            regex: ^(busboy|Busboy)\(
+          - kind: new_expression
+            regex: ^new\s+(busboy|Busboy)\(
+    - all:
+      - *id001
+      - has:
+          stopBy: end
+          any:
+          - kind: call_expression
+            regex: \.formData\(\)$|^createSignedUploadUrl\(|\.storage\.from\([^)]*\)\.upload\(
+          - kind: decorator
+            regex: ^@UploadedFiles?\(
+    - all:
+      - *id001
+      - has:
+          field: parameters
+          has:
+            kind: required_parameter
+            has:
+              kind: type_annotation
+              regex: ^:\s*FormData$
+      - has:
+          stopBy: end
+          any:
+          - kind: as_expression
+            regex: \sas\s+File$
+          - kind: binary_expression
+            regex: \sinstanceof\s+File$
+  - not:
+      any:
+      - inside:
+          kind: arguments
+          has:
+            any:
+            - kind: identifier
+              regex: ^(requireAuth|isAuthenticated|ensureAuth[0-9A-Za-z_]*|authenticate[0-9A-Za-z_]*|authMiddleware|verifyToken|jwtAuth|requireUser|withAuth|checkJwt|protect)$
+            - kind: member_expression
+              regex: (?-u:\b)(requireAuth|isAuthenticated|authenticate[0-9A-Za-z_]*|verifyToken|requireUser)$
+            - kind: call_expression
+              regex: ^(passport\.authenticate|requireAuth|authenticate[0-9A-Za-z_]*|requireRole|checkJwt|jwtAuth|withAuth)\(
+      - has:
+          stopBy:
+            any:
+            - kind: function_declaration
+            - kind: method_definition
+            - kind: arrow_function
+            - kind: function_expression
+          kind: if_statement
+          all:
+          - has:
+              field: condition
+              any:
+              - &id002
+                kind: unary_expression
+                regex: ^!\s*((req|request)\.(user|auth)(\.(id|userId|sub))?|(req|request)\.session\.(user|userId)|res\.locals\.user|(req|request)\.isAuthenticated\(\))$
+              - has:
+                  stopBy: end
+                  any:
+                  - *id002
+          - has:
+              field: consequence
+              any:
+              - &id003
+                kind: return_statement
+              - &id004
+                kind: throw_statement
+              - has:
+                  stopBy: end
+                  any:
+                  - *id003
+                  - *id004
+      - all:
+        - has:
+            stopBy:
+              any:
+              - kind: function_declaration
+              - kind: method_definition
+              - kind: arrow_function
+              - kind: function_expression
+            all:
+            - kind: variable_declarator
+              all:
+              - pattern:
+                  context: const $V = $E
+                  selector: variable_declarator
+              - has:
+                  field: name
+                  kind: identifier
+            - has:
+                stopBy: end
+                any:
+                - kind: call_expression
+                  regex: ^((getServerSession|auth|getAuth|currentUser|getCurrentUser|getSession)\(|[A-Za-z0-9_$.]*\.auth\.(getUser|getSession)\()
+        - has:
+            stopBy:
+              any:
+              - kind: function_declaration
+              - kind: method_definition
+              - kind: arrow_function
+              - kind: function_expression
+            kind: if_statement
+            all:
+            - has:
+                field: condition
+                any:
+                - &id005
+                  pattern: '!$V'
+                - &id006
+                  all:
+                  - pattern: '!$V.$P'
+                  - regex: \.(user|userId|id|sub)$
+                - has:
+                    stopBy: end
+                    any:
+                    - *id005
+                    - *id006
+            - has:
+                field: consequence
+                any:
+                - *id003
+                - *id004
+                - has:
+                    stopBy: end
+                    any:
+                    - *id003
+                    - *id004
+      - all:
+        - has:
+            stopBy:
+              any:
+              - kind: function_declaration
+              - kind: method_definition
+              - kind: arrow_function
+              - kind: function_expression
+            kind: variable_declarator
+            all:
+            - has:
+                field: name
+                kind: object_pattern
+                has:
+                  stopBy: end
+                  kind: shorthand_property_identifier_pattern
+                  regex: ^user$
+            - has:
+                stopBy: end
+                kind: call_expression
+                regex: ^((getServerSession|auth|getAuth|currentUser|getCurrentUser|getSession)\(|[A-Za-z0-9_$.]*\.auth\.(getUser|getSession)\()
+        - has:
+            stopBy:
+              any:
+              - kind: function_declaration
+              - kind: method_definition
+              - kind: arrow_function
+              - kind: function_expression
+            kind: if_statement
+            all:
+            - has:
+                field: condition
+                any:
+                - &id007
+                  kind: unary_expression
+                  regex: ^!\s*user$
+                - has:
+                    stopBy: end
+                    any:
+                    - *id007
+            - has:
+                field: consequence
+                any:
+                - *id003
+                - *id004
+                - has:
+                    stopBy: end
+                    any:
+                    - *id003
+                    - *id004
+  - all:
+    - inside:
+        kind: arguments
+        all:
+        - inside:
+            kind: call_expression
+            pattern: $APP.$M($$$A)
+            regex: ^[A-Za-z_$][A-Za-z0-9_$]*\.(post|put|patch|delete|all|get)\(
+        - not:
+            has:
+              any:
+              - kind: identifier
+              - kind: member_expression
+              - kind: array
+              - kind: subscript_expression
+              - kind: new_expression
+              - kind: parenthesized_expression
+              - kind: spread_element
+              - kind: await_expression
+              - kind: ternary_expression
+              - kind: object
+              - all:
+                - kind: call_expression
+                - not:
+                    kind: call_expression
+                    regex: ^[A-Za-z0-9_$]+\.(single|array|fields|any|none)\(
+    - inside:
+        stopBy: end
+        kind: program
+        has:
+          stopBy: end
+          kind: variable_declarator
+          pattern:
+            context: const $APP = express()
+            selector: variable_declarator
+    - not:
+        inside:
+          stopBy: end
+          kind: program
+          has:
+            stopBy: end
+            any:
+            - kind: call_expression
+              all:
+              - pattern: $APP.$USE($$$U)
+              - regex: ^[A-Za-z0-9_$]+\.(use|all)\(
+              - has:
+                  field: arguments
+                  has:
+                    all:
+                    - any:
+                      - kind: identifier
+                      - kind: member_expression
+                      - kind: call_expression
+                      - kind: arrow_function
+                      - kind: function_expression
+                      - kind: array
+                      - kind: new_expression
+                      - kind: subscript_expression
+                      - kind: spread_element
+                      - kind: parenthesized_expression
+                      - kind: ternary_expression
+                      - kind: await_expression
+                      - kind: object
+                    - not:
+                        any:
+                        - kind: identifier
+                          regex: ^(express\.(json|urlencoded|static|raw|text)|bodyParser\.[A-Za-z]+|json|urlencoded|cors|helmet|morgan|compression|cookieParser|serveStatic|favicon|serveFavicon|responseTime|requestId)(\(|$)
+                        - kind: member_expression
+                          regex: ^(express\.(json|urlencoded|static|raw|text)|bodyParser\.[A-Za-z]+|json|urlencoded|cors|helmet|morgan|compression|cookieParser|serveStatic|favicon|serveFavicon|responseTime|requestId)(\(|$)
+                        - kind: call_expression
+                          regex: ^(express\.(json|urlencoded|static|raw|text)|bodyParser\.[A-Za-z]+|json|urlencoded|cors|helmet|morgan|compression|cookieParser|serveStatic|favicon|serveFavicon|responseTime|requestId)(\(|$)
+            - kind: call_expression
+              all:
+              - any:
+                - pattern: $F($APP)
+                - pattern: $F($APP, $$$X)
+                - pattern: $F($$$X, $APP)
+              - not:
+                  kind: call_expression
+                  regex: ^((https?|http2)\.)?(createServer|createSecureServer)\(|^(serverless|serverlessHttp|supertest|request)\(
+    - not:
+        has:
+          stopBy: end
+          any:
+          - kind: member_expression
+            regex: ^((req|request)\.(user|auth|session|isAuthenticated|headers\.authorization)|res\.locals\.(user|auth))
+          - kind: call_expression
+            regex: (?i)(^|\.)(getServerSession|auth|getAuth|currentUser|getCurrentUser|getSession|getUser|getClaims|require[A-Za-z]*(User|Auth|Session|Role|Permission)|assertAuthenticated|ensureAuthenticated|verify[A-Za-z]*Token|verifyJwt|authorize|checkPermission|withAuth)\(
+          - kind: call_expression
+            regex: ^jwt\.verify\(
+          - kind: string
+            regex: (?i)^['"]authorization['"]$
+min_engine: 0.39.0
+---
+id: upload-validation.typescript-nextjs.auth-unobserved
+practice_id: upload-validation
+language: typescript
+frameworks:
+- nextjs
+kind: evidence
+rule:
+  all:
+  - any:
+    - all:
+      - &id001
+        any:
+        - kind: function_declaration
+        - kind: method_definition
+        - kind: arrow_function
+        - kind: function_expression
+      - any:
+        - has:
+            field: parameters
+            has:
+              stopBy: end
+              kind: identifier
+              regex: ^(req|request)$
+        - has:
+            field: parameter
+            kind: identifier
+            regex: ^(req|request)$
+      - has:
+          stopBy: end
+          any:
+          - kind: member_expression
+            regex: ^(req|request)\.files?$
+          - kind: call_expression
+            regex: ^(busboy|Busboy)\(
+          - kind: new_expression
+            regex: ^new\s+(busboy|Busboy)\(
+    - all:
+      - *id001
+      - has:
+          stopBy: end
+          any:
+          - kind: call_expression
+            regex: \.formData\(\)$|^createSignedUploadUrl\(|\.storage\.from\([^)]*\)\.upload\(
+          - kind: decorator
+            regex: ^@UploadedFiles?\(
+    - all:
+      - *id001
+      - has:
+          field: parameters
+          has:
+            kind: required_parameter
+            has:
+              kind: type_annotation
+              regex: ^:\s*FormData$
+      - has:
+          stopBy: end
+          any:
+          - kind: as_expression
+            regex: \sas\s+File$
+          - kind: binary_expression
+            regex: \sinstanceof\s+File$
+  - not:
+      any:
+      - inside:
+          kind: arguments
+          has:
+            any:
+            - kind: identifier
+              regex: ^(requireAuth|isAuthenticated|ensureAuth[0-9A-Za-z_]*|authenticate[0-9A-Za-z_]*|authMiddleware|verifyToken|jwtAuth|requireUser|withAuth|checkJwt|protect)$
+            - kind: member_expression
+              regex: (?-u:\b)(requireAuth|isAuthenticated|authenticate[0-9A-Za-z_]*|verifyToken|requireUser)$
+            - kind: call_expression
+              regex: ^(passport\.authenticate|requireAuth|authenticate[0-9A-Za-z_]*|requireRole|checkJwt|jwtAuth|withAuth)\(
+      - has:
+          stopBy:
+            any:
+            - kind: function_declaration
+            - kind: method_definition
+            - kind: arrow_function
+            - kind: function_expression
+          kind: if_statement
+          all:
+          - has:
+              field: condition
+              any:
+              - &id002
+                kind: unary_expression
+                regex: ^!\s*((req|request)\.(user|auth)(\.(id|userId|sub))?|(req|request)\.session\.(user|userId)|res\.locals\.user|(req|request)\.isAuthenticated\(\))$
+              - has:
+                  stopBy: end
+                  any:
+                  - *id002
+          - has:
+              field: consequence
+              any:
+              - &id003
+                kind: return_statement
+              - &id004
+                kind: throw_statement
+              - has:
+                  stopBy: end
+                  any:
+                  - *id003
+                  - *id004
+      - all:
+        - has:
+            stopBy:
+              any:
+              - kind: function_declaration
+              - kind: method_definition
+              - kind: arrow_function
+              - kind: function_expression
+            all:
+            - kind: variable_declarator
+              all:
+              - pattern:
+                  context: const $V = $E
+                  selector: variable_declarator
+              - has:
+                  field: name
+                  kind: identifier
+            - has:
+                stopBy: end
+                any:
+                - kind: call_expression
+                  regex: ^((getServerSession|auth|getAuth|currentUser|getCurrentUser|getSession)\(|[A-Za-z0-9_$.]*\.auth\.(getUser|getSession)\()
+        - has:
+            stopBy:
+              any:
+              - kind: function_declaration
+              - kind: method_definition
+              - kind: arrow_function
+              - kind: function_expression
+            kind: if_statement
+            all:
+            - has:
+                field: condition
+                any:
+                - &id005
+                  pattern: '!$V'
+                - &id006
+                  all:
+                  - pattern: '!$V.$P'
+                  - regex: \.(user|userId|id|sub)$
+                - has:
+                    stopBy: end
+                    any:
+                    - *id005
+                    - *id006
+            - has:
+                field: consequence
+                any:
+                - *id003
+                - *id004
+                - has:
+                    stopBy: end
+                    any:
+                    - *id003
+                    - *id004
+      - all:
+        - has:
+            stopBy:
+              any:
+              - kind: function_declaration
+              - kind: method_definition
+              - kind: arrow_function
+              - kind: function_expression
+            kind: variable_declarator
+            all:
+            - has:
+                field: name
+                kind: object_pattern
+                has:
+                  stopBy: end
+                  kind: shorthand_property_identifier_pattern
+                  regex: ^user$
+            - has:
+                stopBy: end
+                kind: call_expression
+                regex: ^((getServerSession|auth|getAuth|currentUser|getCurrentUser|getSession)\(|[A-Za-z0-9_$.]*\.auth\.(getUser|getSession)\()
+        - has:
+            stopBy:
+              any:
+              - kind: function_declaration
+              - kind: method_definition
+              - kind: arrow_function
+              - kind: function_expression
+            kind: if_statement
+            all:
+            - has:
+                field: condition
+                any:
+                - &id007
+                  kind: unary_expression
+                  regex: ^!\s*user$
+                - has:
+                    stopBy: end
+                    any:
+                    - *id007
+            - has:
+                field: consequence
+                any:
+                - *id003
+                - *id004
+                - has:
+                    stopBy: end
+                    any:
+                    - *id003
+                    - *id004
+  - not:
+      all:
+      - inside:
+          kind: arguments
+          all:
+          - inside:
+              kind: call_expression
+              pattern: $APP.$M($$$A)
+              regex: ^[A-Za-z_$][A-Za-z0-9_$]*\.(post|put|patch|delete|all|get)\(
+          - not:
+              has:
+                any:
+                - kind: identifier
+                - kind: member_expression
+                - kind: array
+                - kind: subscript_expression
+                - kind: new_expression
+                - kind: parenthesized_expression
+                - kind: spread_element
+                - kind: await_expression
+                - kind: ternary_expression
+                - kind: object
+                - all:
+                  - kind: call_expression
+                  - not:
+                      kind: call_expression
+                      regex: ^[A-Za-z0-9_$]+\.(single|array|fields|any|none)\(
+      - inside:
+          stopBy: end
+          kind: program
+          has:
+            stopBy: end
+            kind: variable_declarator
+            pattern:
+              context: const $APP = express()
+              selector: variable_declarator
+      - not:
+          inside:
+            stopBy: end
+            kind: program
+            has:
+              stopBy: end
+              any:
+              - kind: call_expression
+                all:
+                - pattern: $APP.$USE($$$U)
+                - regex: ^[A-Za-z0-9_$]+\.(use|all)\(
+                - has:
+                    field: arguments
+                    has:
+                      all:
+                      - any:
+                        - kind: identifier
+                        - kind: member_expression
+                        - kind: call_expression
+                        - kind: arrow_function
+                        - kind: function_expression
+                        - kind: array
+                        - kind: new_expression
+                        - kind: subscript_expression
+                        - kind: spread_element
+                        - kind: parenthesized_expression
+                        - kind: ternary_expression
+                        - kind: await_expression
+                        - kind: object
+                      - not:
+                          any:
+                          - kind: identifier
+                            regex: ^(express\.(json|urlencoded|static|raw|text)|bodyParser\.[A-Za-z]+|json|urlencoded|cors|helmet|morgan|compression|cookieParser|serveStatic|favicon|serveFavicon|responseTime|requestId)(\(|$)
+                          - kind: member_expression
+                            regex: ^(express\.(json|urlencoded|static|raw|text)|bodyParser\.[A-Za-z]+|json|urlencoded|cors|helmet|morgan|compression|cookieParser|serveStatic|favicon|serveFavicon|responseTime|requestId)(\(|$)
+                          - kind: call_expression
+                            regex: ^(express\.(json|urlencoded|static|raw|text)|bodyParser\.[A-Za-z]+|json|urlencoded|cors|helmet|morgan|compression|cookieParser|serveStatic|favicon|serveFavicon|responseTime|requestId)(\(|$)
+              - kind: call_expression
+                all:
+                - any:
+                  - pattern: $F($APP)
+                  - pattern: $F($APP, $$$X)
+                  - pattern: $F($$$X, $APP)
+                - not:
+                    kind: call_expression
+                    regex: ^((https?|http2)\.)?(createServer|createSecureServer)\(|^(serverless|serverlessHttp|supertest|request)\(
+      - not:
+          has:
+            stopBy: end
+            any:
+            - kind: member_expression
+              regex: ^((req|request)\.(user|auth|session|isAuthenticated|headers\.authorization)|res\.locals\.(user|auth))
+            - kind: call_expression
+              regex: (?i)(^|\.)(getServerSession|auth|getAuth|currentUser|getCurrentUser|getSession|getUser|getClaims|require[A-Za-z]*(User|Auth|Session|Role|Permission)|assertAuthenticated|ensureAuthenticated|verify[A-Za-z]*Token|verifyJwt|authorize|checkPermission|withAuth)\(
+            - kind: call_expression
+              regex: ^jwt\.verify\(
+            - kind: string
+              regex: (?i)^['"]authorization['"]$
+min_engine: 0.39.0
+---
+id: upload-validation.typescript-nextjs.original-name-key
+practice_id: upload-validation
+language: typescript
+frameworks:
+- nextjs
+kind: violation
+rule:
+  any:
+  - kind: member_expression
+    regex: ^(file|f|upload|uploaded|attachment|blob|req\.file|image|doc|document)\.(originalname|name|originalName)$
+    any:
+    - inside:
+        stopBy: end
+        kind: pair
+        regex: '^(Key|key|path|pathname|filename|Name)\s*:'
+    - inside:
+        stopBy: end
+        kind: call_expression
+        regex: ^[0-9A-Za-z_.]*(\.upload|path\.(join|resolve)|createWriteStream|writeFile|(?-u:\b)put)\(
+  - all:
+    - kind: lexical_declaration
+      pattern: const $KEY = $VAL
+      regex: (?-u:\b)(file|f|upload|uploaded|attachment|req\.file|image|doc|document)\.(originalname|name|originalName)(?-u:\b)
+    - inside:
+        stopBy: end
+        any:
+        - kind: function_declaration
+        - kind: method_definition
+        - kind: arrow_function
+        - kind: function_expression
+        has:
+          stopBy: end
+          any:
+          - pattern:
+              context: '({ Key: $KEY })'
+              selector: pair
+          - pattern: $S.upload($KEY, $$$REST)
+          - pattern: path.join($$$P, $KEY)
+          - pattern: createWriteStream($KEY)
+min_engine: 0.39.0
+---
+id: upload-validation.typescript-nextjs.raw-body-upload
+practice_id: upload-validation
+language: typescript
+frameworks:
+- nextjs
+kind: items
+rule:
+  all:
+  - any:
+    - kind: function_declaration
+    - kind: method_definition
+    - kind: arrow_function
+    - kind: function_expression
+  - any:
+    - all:
+      - any:
+        - any:
+          - has:
+              field: parameters
+              has:
+                stopBy: end
+                kind: identifier
+                regex: ^(req|request)$
+          - has:
+              field: parameter
+              kind: identifier
+              regex: ^(req|request)$
+        - has:
+            field: parameters
+            has:
+              stopBy: end
+              kind: shorthand_property_identifier_pattern
+              regex: ^body$
+      - any:
+        - has:
+            stopBy: end
+            any:
+            - kind: member_expression
+              regex: ^(req|request)\.raw\.pipe$
+            - kind: member_expression
+              regex: ^(req|request)\.raw$
+              inside:
+                kind: arguments
+                inside:
+                  kind: call_expression
+                  has:
+                    field: function
+                    kind: identifier
+                    regex: ^(pipeline|pump)$
+            - kind: member_expression
+              regex: ^(req|request)\.body\.pipeTo$
+            - kind: member_expression
+              regex: ^(req|request)\.body$
+              inside:
+                kind: arguments
+                inside:
+                  kind: call_expression
+                  has:
+                    field: function
+                    any:
+                    - kind: identifier
+                      regex: ^(writeFile|writeFileSync|pipeline|pump|putObject|uploadFile|writeBinary|uploadStream)$
+                    - kind: member_expression
+                      has:
+                        field: property
+                        kind: property_identifier
+                        regex: ^(writeFile|writeFileSync|pipeline|pump|putObject|uploadFile|writeBinary|uploadStream)$
+            - kind: member_expression
+              regex: ^(req|request)\.pipe$
+              inside:
+                kind: call_expression
+            - kind: member_expression
+              regex: ^(req|request)\.on$
+              inside:
+                kind: call_expression
+                has:
+                  field: arguments
+                  has:
+                    kind: string
+                    regex: ^['"](data|readable)['"]$
+            - all:
+              - kind: call_expression
+              - has:
+                  field: function
+                  any:
+                  - kind: identifier
+                    regex: ^((get|read|parse|collect)?(Raw|raw)_?[Bb]ody|(get|read|create)?(Content|content|Body|body|Request|request|Upload|upload|File|file|Binary|binary)_?[Ss]tream|pipeline|pump|(write|upload|put|store|save)_?(Binary|binary|File|file|Blob|blob|Object|object|Stream|stream|Bytes|bytes|Content|content|Attachment|attachment|Media|media|Image|image)s?)$
+                  - kind: member_expression
+                    has:
+                      field: property
+                      kind: property_identifier
+                      regex: ^((get|read|parse|collect)?(Raw|raw)_?[Bb]ody|(get|read|create)?(Content|content|Body|body|Request|request|Upload|upload|File|file|Binary|binary)_?[Ss]tream|pipeline|pump|(write|upload|put|store|save)_?(Binary|binary|File|file|Blob|blob|Object|object|Stream|stream|Bytes|bytes|Content|content|Attachment|attachment|Media|media|Image|image)s?)$
+              - has:
+                  field: arguments
+                  has:
+                    kind: identifier
+                    regex: ^(req|request)$
+            - kind: pair
+              all:
+              - has:
+                  field: key
+                  kind: property_identifier
+                  regex: ^(body|Body)$
+              - has:
+                  field: value
+                  kind: identifier
+                  regex: ^(req|request)$
+            - kind: pair
+              all:
+              - has:
+                  field: key
+                  kind: property_identifier
+                  regex: ^(body|Body)$
+              - has:
+                  field: value
+                  kind: member_expression
+                  regex: ^(req|request)\.body$
+              - any:
+                - has:
+                    field: key
+                    kind: property_identifier
+                    regex: ^Body$
+                - inside:
+                    stopBy: end
+                    kind: call_expression
+                    regex: ^fetch\(
+                - inside:
+                    stopBy: end
+                    any:
+                    - kind: new_expression
+                      regex: ^new\s+(PutObjectCommand|Upload)\(
+                    - kind: call_expression
+                      has:
+                        field: function
+                        any:
+                        - kind: identifier
+                          regex: ^(writeFile|writeFileSync|appendFile|appendFileSync|createWriteStream|putObject|put|upload|uploadFile|uploadBinary|uploadStream|writeBinary|saveFile|storeFile|toFile|save|uploadData|uploadBlob)$
+                        - kind: member_expression
+                          has:
+                            field: property
+                            kind: property_identifier
+                            regex: ^(writeFile|writeFileSync|appendFile|appendFileSync|createWriteStream|putObject|put|upload|uploadFile|uploadBinary|uploadStream|writeBinary|saveFile|storeFile|toFile|save|uploadData|uploadBlob)$
+                - inside:
+                    stopBy: end
+                    kind: program
+                    has:
+                      stopBy: end
+                      kind: call_expression
+                      regex: ^(express|bodyParser)\.raw\(
+            - kind: member_expression
+              regex: ^(req|request)\.body$
+              inside:
+                kind: arguments
+                inside:
+                  kind: call_expression
+                  has:
+                    field: function
+                    any:
+                    - kind: identifier
+                      regex: ^(writeFile|writeFileSync|appendFile|appendFileSync|createWriteStream|putObject|put|upload|uploadFile|uploadBinary|uploadStream|writeBinary|saveFile|storeFile|toFile|save|uploadData|uploadBlob)$
+                    - kind: member_expression
+                      has:
+                        field: property
+                        kind: property_identifier
+                        regex: ^(writeFile|writeFileSync|appendFile|appendFileSync|createWriteStream|putObject|put|upload|uploadFile|uploadBinary|uploadStream|writeBinary|saveFile|storeFile|toFile|save|uploadData|uploadBlob)$
+            - kind: await_expression
+              regex: ^await\s+(req|request)\.body$
+        - all:
+          - has:
+              stopBy: end
+              kind: variable_declarator
+              all:
+              - has:
+                  field: name
+                  kind: identifier
+                  pattern: &id001
+                    context: '[$RBY]'
+                    selector: identifier
+              - has:
+                  field: value
+                  kind: member_expression
+                  regex: ^(req|request)\.body$
+          - has:
+              stopBy: end
+              any:
+              - kind: pair
+                all:
+                - has:
+                    field: key
+                    kind: property_identifier
+                    regex: ^(body|Body)$
+                - has:
+                    field: value
+                    kind: identifier
+                    pattern: *id001
+                - any:
+                  - has:
+                      field: key
+                      kind: property_identifier
+                      regex: ^Body$
+                  - inside:
+                      stopBy: end
+                      kind: call_expression
+                      regex: ^fetch\(
+                  - inside:
+                      stopBy: end
+                      any:
+                      - kind: new_expression
+                        regex: ^new\s+(PutObjectCommand|Upload)\(
+                      - kind: call_expression
+                        has:
+                          field: function
+                          any:
+                          - kind: identifier
+                            regex: ^(writeFile|writeFileSync|appendFile|appendFileSync|createWriteStream|putObject|put|upload|uploadFile|uploadBinary|uploadStream|writeBinary|saveFile|storeFile|toFile|save|uploadData|uploadBlob)$
+                          - kind: member_expression
+                            has:
+                              field: property
+                              kind: property_identifier
+                              regex: ^(writeFile|writeFileSync|appendFile|appendFileSync|createWriteStream|putObject|put|upload|uploadFile|uploadBinary|uploadStream|writeBinary|saveFile|storeFile|toFile|save|uploadData|uploadBlob)$
+                  - inside:
+                      stopBy: end
+                      kind: program
+                      has:
+                        stopBy: end
+                        kind: call_expression
+                        regex: ^(express|bodyParser)\.raw\(
+              - kind: identifier
+                pattern: *id001
+                inside:
+                  kind: arguments
+                  inside:
+                    kind: call_expression
+                    has:
+                      field: function
+                      any:
+                      - kind: identifier
+                        regex: ^(writeFile|writeFileSync|appendFile|appendFileSync|createWriteStream|putObject|put|upload|uploadFile|uploadBinary|uploadStream|writeBinary|saveFile|storeFile|toFile|save|uploadData|uploadBlob)$
+                      - kind: member_expression
+                        has:
+                          field: property
+                          kind: property_identifier
+                          regex: ^(writeFile|writeFileSync|appendFile|appendFileSync|createWriteStream|putObject|put|upload|uploadFile|uploadBinary|uploadStream|writeBinary|saveFile|storeFile|toFile|save|uploadData|uploadBlob)$
+    - all:
+      - has:
+          field: parameters
+          has:
+            kind: required_parameter
+            all:
+            - has:
+                kind: decorator
+                regex: ^@Req\(\)$
+            - has:
+                field: pattern
+                kind: identifier
+                pattern: &id002
+                  context: '[$RBQ]'
+                  selector: identifier
+      - has:
+          stopBy: end
+          kind: pair
+          all:
+          - has:
+              field: key
+              kind: property_identifier
+              regex: ^(body|Body)$
+          - has:
+              field: value
+              any:
+              - kind: identifier
+                pattern: *id002
+              - kind: member_expression
+                all:
+                - has:
+                    field: object
+                    kind: identifier
+                    pattern: *id002
+                - has:
+                    field: property
+                    kind: property_identifier
+                    regex: ^body$
+    - all:
+      - any:
+        - has:
+            field: parameters
+            has:
+              stopBy: end
+              kind: identifier
+              regex: ^(req|request|ctx)$
+        - has:
+            field: parameter
+            kind: identifier
+            regex: ^(req|request|ctx)$
+        - has:
+            field: parameters
+            has:
+              stopBy: end
+              kind: shorthand_property_identifier_pattern
+              regex: ^body$
+        - has:
+            field: parameters
+            has:
+              stopBy: end
+              kind: type_annotation
+              regex: (Request|NextRequest|FastifyRequest)\b
+      - all:
+        - has:
+            stopBy: end
+            any:
+            - kind: member_expression
+              inside:
+                kind: call_expression
+              any:
+              - has:
+                  field: property
+                  kind: property_identifier
+                  regex: ^(arrayBuffer|blob|text)$
+                not:
+                  has:
+                    field: object
+                    any:
+                    - kind: string
+                    - kind: template_string
+                all:
+                - not:
+                    has:
+                      field: object
+                      kind: identifier
+                      pattern:
+                        context: '[$RBF]'
+                        selector: identifier
+                      inside:
+                        stopBy: end
+                        any:
+                        - kind: function_declaration
+                        - kind: method_definition
+                        - kind: arrow_function
+                        - kind: function_expression
+                        has:
+                          stopBy: end
+                          kind: variable_declarator
+                          all:
+                          - has:
+                              field: name
+                              any:
+                              - kind: identifier
+                                pattern: &id003
+                                  context: '[$RBF]'
+                                  selector: identifier
+                              - has:
+                                  stopBy: end
+                                  kind: identifier
+                                  pattern: *id003
+                          - has:
+                              field: value
+                              stopBy: end
+                              kind: call_expression
+                              regex: (^fetch\(|\.download\()
+              - regex: ^(req|request)\.read$
+                kind: member_expression
+            - kind: member_expression
+              regex: \.getReader$
+            - kind: for_in_statement
+              regex: ^for\s+await\b
+            - kind: call_expression
+              regex: (^|\.)Readable\.from\(
+            - kind: call_expression
+              has:
+                field: function
+                kind: identifier
+                regex: ^(pipeline|pump)$
+              not:
+                has:
+                  field: arguments
+                  kind: arguments
+                  regex: ',\s*(res|reply|response)\s*\)$'
+            - kind: member_expression
+              regex: \.pipe$
+              inside:
+                kind: call_expression
+                not:
+                  has:
+                    field: arguments
+                    kind: arguments
+                    regex: ^\(\s*(res|reply|response)\s*\)$
+        - not:
+            any:
+            - all:
+              - not:
+                  has:
+                    stopBy: end
+                    any:
+                    - kind: member_expression
+                      regex: \.getReader$
+                    - kind: for_in_statement
+                      regex: ^for\s+await\b
+                    - kind: call_expression
+                      regex: (^|\.)Readable\.from\(
+                    - kind: call_expression
+                      has:
+                        field: function
+                        kind: identifier
+                        regex: ^(pipeline|pump)$
+                      not:
+                        has:
+                          field: arguments
+                          kind: arguments
+                          regex: ',\s*(res|reply|response)\s*\)$'
+                    - kind: member_expression
+                      regex: \.pipe$
+                      inside:
+                        kind: call_expression
+                        not:
+                          has:
+                            field: arguments
+                            kind: arguments
+                            regex: ^\(\s*(res|reply|response)\s*\)$
+              - not:
+                  has:
+                    stopBy: end
+                    kind: member_expression
+                    inside:
+                      kind: call_expression
+                    any:
+                    - has:
+                        field: property
+                        kind: property_identifier
+                        regex: ^(arrayBuffer|blob|text)$
+                      not:
+                        has:
+                          field: object
+                          any:
+                          - kind: string
+                          - kind: template_string
+                      all:
+                      - not:
+                          has:
+                            field: object
+                            kind: identifier
+                            pattern:
+                              context: '[$RBF]'
+                              selector: identifier
+                            inside:
+                              stopBy: end
+                              any:
+                              - kind: function_declaration
+                              - kind: method_definition
+                              - kind: arrow_function
+                              - kind: function_expression
+                              has:
+                                stopBy: end
+                                kind: variable_declarator
+                                all:
+                                - has:
+                                    field: name
+                                    any:
+                                    - kind: identifier
+                                      pattern: &id004
+                                        context: '[$RBF]'
+                                        selector: identifier
+                                    - has:
+                                        stopBy: end
+                                        kind: identifier
+                                        pattern: *id004
+                                - has:
+                                    field: value
+                                    stopBy: end
+                                    kind: call_expression
+                                    regex: (^fetch\(|\.download\()
+                    - regex: ^(req|request)\.read$
+                      kind: member_expression
+                    not:
+                      inside:
+                        stopBy: end
+                        kind: call_expression
+                        any:
+                        - regex: ^(JSON\.parse\(|[A-Za-z0-9_$.]*createHmac\(|[A-Za-z0-9_$.]*timingSafeEqual\(|[A-Za-z0-9_$.]*\.webhooks\.constructEvent(Async)?\()
+                          kind: call_expression
+                        - all:
+                          - has:
+                              field: function
+                              kind: member_expression
+                              all:
+                              - has:
+                                  field: property
+                                  kind: property_identifier
+                                  regex: ^verify$
+                              - has:
+                                  field: object
+                                  kind: identifier
+                                  pattern: &id005
+                                    context: '[$RBV]'
+                                    selector: identifier
+                          - inside:
+                              stopBy: end
+                              kind: program
+                              has:
+                                kind: import_statement
+                                all:
+                                - has:
+                                    field: source
+                                    kind: string
+                                    not:
+                                      kind: string
+                                      regex: ^['"][./]
+                                - has:
+                                    stopBy: end
+                                    kind: identifier
+                                    pattern: *id005
+            - all:
+              - not:
+                  has:
+                    stopBy: end
+                    any:
+                    - kind: member_expression
+                      regex: \.getReader$
+                    - kind: for_in_statement
+                      regex: ^for\s+await\b
+                    - kind: call_expression
+                      regex: (^|\.)Readable\.from\(
+                    - kind: call_expression
+                      has:
+                        field: function
+                        kind: identifier
+                        regex: ^(pipeline|pump)$
+                      not:
+                        has:
+                          field: arguments
+                          kind: arguments
+                          regex: ',\s*(res|reply|response)\s*\)$'
+                    - kind: member_expression
+                      regex: \.pipe$
+                      inside:
+                        kind: call_expression
+                        not:
+                          has:
+                            field: arguments
+                            kind: arguments
+                            regex: ^\(\s*(res|reply|response)\s*\)$
+              - has:
+                  stopBy: end
+                  kind: variable_declarator
+                  all:
+                  - has:
+                      field: name
+                      kind: identifier
+                      pattern: &id009
+                        context: '[$RBX]'
+                        selector: identifier
+                  - has:
+                      field: value
+                      stopBy: end
+                      kind: member_expression
+                      inside:
+                        kind: call_expression
+                      any:
+                      - has:
+                          field: property
+                          kind: property_identifier
+                          regex: ^(arrayBuffer|blob|text)$
+                        not:
+                          has:
+                            field: object
+                            any:
+                            - kind: string
+                            - kind: template_string
+                        all:
+                        - not:
+                            has:
+                              field: object
+                              kind: identifier
+                              pattern:
+                                context: '[$RBF]'
+                                selector: identifier
+                              inside:
+                                stopBy: end
+                                any:
+                                - kind: function_declaration
+                                - kind: method_definition
+                                - kind: arrow_function
+                                - kind: function_expression
+                                has:
+                                  stopBy: end
+                                  kind: variable_declarator
+                                  all:
+                                  - has:
+                                      field: name
+                                      any:
+                                      - kind: identifier
+                                        pattern: &id006
+                                          context: '[$RBF]'
+                                          selector: identifier
+                                      - has:
+                                          stopBy: end
+                                          kind: identifier
+                                          pattern: *id006
+                                  - has:
+                                      field: value
+                                      stopBy: end
+                                      kind: call_expression
+                                      regex: (^fetch\(|\.download\()
+                      - regex: ^(req|request)\.read$
+                        kind: member_expression
+              - not:
+                  has:
+                    stopBy: end
+                    kind: member_expression
+                    inside:
+                      kind: call_expression
+                    any:
+                    - has:
+                        field: property
+                        kind: property_identifier
+                        regex: ^(arrayBuffer|blob|text)$
+                      not:
+                        has:
+                          field: object
+                          any:
+                          - kind: string
+                          - kind: template_string
+                      all:
+                      - not:
+                          has:
+                            field: object
+                            kind: identifier
+                            pattern:
+                              context: '[$RBF]'
+                              selector: identifier
+                            inside:
+                              stopBy: end
+                              any:
+                              - kind: function_declaration
+                              - kind: method_definition
+                              - kind: arrow_function
+                              - kind: function_expression
+                              has:
+                                stopBy: end
+                                kind: variable_declarator
+                                all:
+                                - has:
+                                    field: name
+                                    any:
+                                    - kind: identifier
+                                      pattern: &id007
+                                        context: '[$RBF]'
+                                        selector: identifier
+                                    - has:
+                                        stopBy: end
+                                        kind: identifier
+                                        pattern: *id007
+                                - has:
+                                    field: value
+                                    stopBy: end
+                                    kind: call_expression
+                                    regex: (^fetch\(|\.download\()
+                    - regex: ^(req|request)\.read$
+                      kind: member_expression
+                    all:
+                    - not:
+                        inside:
+                          stopBy: end
+                          kind: call_expression
+                          any:
+                          - regex: ^(JSON\.parse\(|[A-Za-z0-9_$.]*createHmac\(|[A-Za-z0-9_$.]*timingSafeEqual\(|[A-Za-z0-9_$.]*\.webhooks\.constructEvent(Async)?\()
+                            kind: call_expression
+                          - all:
+                            - has:
+                                field: function
+                                kind: member_expression
+                                all:
+                                - has:
+                                    field: property
+                                    kind: property_identifier
+                                    regex: ^verify$
+                                - has:
+                                    field: object
+                                    kind: identifier
+                                    pattern: &id008
+                                      context: '[$RBV]'
+                                      selector: identifier
+                            - inside:
+                                stopBy: end
+                                kind: program
+                                has:
+                                  kind: import_statement
+                                  all:
+                                  - has:
+                                      field: source
+                                      kind: string
+                                      not:
+                                        kind: string
+                                        regex: ^['"][./]
+                                  - has:
+                                      stopBy: end
+                                      kind: identifier
+                                      pattern: *id008
+                    - not:
+                        inside:
+                          stopBy: end
+                          kind: variable_declarator
+                          has:
+                            field: name
+                            kind: identifier
+                            pattern: *id009
+              - not:
+                  has:
+                    stopBy: end
+                    kind: identifier
+                    pattern: *id009
+                    all:
+                    - not:
+                        inside:
+                          kind: variable_declarator
+                          field: name
+                    - not:
+                        inside:
+                          stopBy: end
+                          kind: call_expression
+                          any:
+                          - regex: ^(JSON\.parse\(|[A-Za-z0-9_$.]*createHmac\(|[A-Za-z0-9_$.]*timingSafeEqual\(|[A-Za-z0-9_$.]*\.webhooks\.constructEvent(Async)?\()
+                            kind: call_expression
+                          - all:
+                            - has:
+                                field: function
+                                kind: member_expression
+                                all:
+                                - has:
+                                    field: property
+                                    kind: property_identifier
+                                    regex: ^verify$
+                                - has:
+                                    field: object
+                                    kind: identifier
+                                    pattern: &id010
+                                      context: '[$RBV]'
+                                      selector: identifier
+                            - inside:
+                                stopBy: end
+                                kind: program
+                                has:
+                                  kind: import_statement
+                                  all:
+                                  - has:
+                                      field: source
+                                      kind: string
+                                      not:
+                                        kind: string
+                                        regex: ^['"][./]
+                                  - has:
+                                      stopBy: end
+                                      kind: identifier
+                                      pattern: *id010
+                    - not:
+                        inside:
+                          kind: member_expression
+                          field: object
+                          regex: \.(length|byteLength)$
+              - not:
+                  has:
+                    stopBy: end
+                    kind: shorthand_property_identifier
+                    pattern:
+                      context: ({ $RBX })
+                      selector: shorthand_property_identifier
+                    not:
+                      inside:
+                        stopBy: end
+                        kind: call_expression
+                        any:
+                        - regex: ^(JSON\.parse\(|[A-Za-z0-9_$.]*createHmac\(|[A-Za-z0-9_$.]*timingSafeEqual\(|[A-Za-z0-9_$.]*\.webhooks\.constructEvent(Async)?\()
+                          kind: call_expression
+                        - all:
+                          - has:
+                              field: function
+                              kind: member_expression
+                              all:
+                              - has:
+                                  field: property
+                                  kind: property_identifier
+                                  regex: ^verify$
+                              - has:
+                                  field: object
+                                  kind: identifier
+                                  pattern: &id011
+                                    context: '[$RBV]'
+                                    selector: identifier
+                          - inside:
+                              stopBy: end
+                              kind: program
+                              has:
+                                kind: import_statement
+                                all:
+                                - has:
+                                    field: source
+                                    kind: string
+                                    not:
+                                      kind: string
+                                      regex: ^['"][./]
+                                - has:
+                                    stopBy: end
+                                    kind: identifier
+                                    pattern: *id011
+  - not:
+      has:
+        stopBy: end
+        any:
+        - kind: member_expression
+          regex: ^(req|request)\.files?$
+        - kind: member_expression
+          regex: \.formData$
+          inside:
+            kind: call_expression
+        - kind: call_expression
+          regex: ^(busboy|Busboy|multer)\(
+        - kind: new_expression
+          regex: ^new\s+(busboy|Busboy)\(
+control:
+  has:
+    stopBy:
+      any:
+      - kind: function_declaration
+      - kind: method_definition
+      - kind: arrow_function
+      - kind: function_expression
+    kind: call_expression
+    regex: (?i)^[A-Za-z0-9_$.>:-]*(clam|clamav|clamd|clamscan|virus|malware|antivirus|antimalware)[A-Za-z0-9_$.>:-]*\(
+min_engine: 0.39.0
+---
+id: upload-validation.typescript-nextjs.raw-body-unchecked
+practice_id: upload-validation
+language: typescript
+frameworks:
+- nextjs
+kind: violation
+rule:
+  all:
+  - all:
+    - any:
+      - kind: function_declaration
+      - kind: method_definition
+      - kind: arrow_function
+      - kind: function_expression
+    - any:
+      - all:
+        - &id001
+          any:
+          - any:
+            - has:
+                field: parameters
+                has:
+                  stopBy: end
+                  kind: identifier
+                  regex: ^(req|request)$
+            - has:
+                field: parameter
+                kind: identifier
+                regex: ^(req|request)$
+          - has:
+              field: parameters
+              has:
+                stopBy: end
+                kind: shorthand_property_identifier_pattern
+                regex: ^body$
+        - has:
+            stopBy: end
+            any:
+            - kind: member_expression
+              regex: ^(req|request)\.raw\.pipe$
+            - kind: member_expression
+              regex: ^(req|request)\.raw$
+              inside:
+                kind: arguments
+                inside:
+                  kind: call_expression
+                  has:
+                    field: function
+                    kind: identifier
+                    regex: ^(pipeline|pump)$
+            - kind: member_expression
+              regex: ^(req|request)\.body\.pipeTo$
+            - kind: member_expression
+              regex: ^(req|request)\.body$
+              inside:
+                kind: arguments
+                inside:
+                  kind: call_expression
+                  has:
+                    field: function
+                    any:
+                    - kind: identifier
+                      regex: ^(writeFile|writeFileSync|pipeline|pump|putObject|uploadFile|writeBinary|uploadStream)$
+                    - kind: member_expression
+                      has:
+                        field: property
+                        kind: property_identifier
+                        regex: ^(writeFile|writeFileSync|pipeline|pump|putObject|uploadFile|writeBinary|uploadStream)$
+            - kind: member_expression
+              regex: ^(req|request)\.pipe$
+              inside:
+                kind: call_expression
+            - kind: member_expression
+              regex: ^(req|request)\.on$
+              inside:
+                kind: call_expression
+                has:
+                  field: arguments
+                  has:
+                    kind: string
+                    regex: ^['"](data|readable)['"]$
+            - all:
+              - kind: call_expression
+              - has:
+                  field: function
+                  any:
+                  - kind: identifier
+                    regex: ^((get|read|parse|collect)?(Raw|raw)_?[Bb]ody|(get|read|create)?(Content|content|Body|body|Request|request|Upload|upload|File|file|Binary|binary)_?[Ss]tream|pipeline|pump|(write|upload|put|store|save)_?(Binary|binary|File|file|Blob|blob|Object|object|Stream|stream|Bytes|bytes|Content|content|Attachment|attachment|Media|media|Image|image)s?)$
+                  - kind: member_expression
+                    has:
+                      field: property
+                      kind: property_identifier
+                      regex: ^((get|read|parse|collect)?(Raw|raw)_?[Bb]ody|(get|read|create)?(Content|content|Body|body|Request|request|Upload|upload|File|file|Binary|binary)_?[Ss]tream|pipeline|pump|(write|upload|put|store|save)_?(Binary|binary|File|file|Blob|blob|Object|object|Stream|stream|Bytes|bytes|Content|content|Attachment|attachment|Media|media|Image|image)s?)$
+              - has:
+                  field: arguments
+                  has:
+                    kind: identifier
+                    regex: ^(req|request)$
+            - kind: pair
+              all:
+              - has:
+                  field: key
+                  kind: property_identifier
+                  regex: ^(body|Body)$
+              - has:
+                  field: value
+                  kind: identifier
+                  regex: ^(req|request)$
+              inside:
+                stopBy: end
+                any:
+                - kind: new_expression
+                  regex: ^new\s+(PutObjectCommand|Upload)\(
+                - kind: call_expression
+                  has:
+                    field: function
+                    any:
+                    - kind: identifier
+                      regex: ^(writeFile|writeFileSync|appendFile|appendFileSync|createWriteStream|putObject|put|upload|uploadFile|uploadBinary|uploadStream|writeBinary|saveFile|storeFile|toFile|save|uploadData|uploadBlob)$
+                    - kind: member_expression
+                      has:
+                        field: property
+                        kind: property_identifier
+                        regex: ^(writeFile|writeFileSync|appendFile|appendFileSync|createWriteStream|putObject|put|upload|uploadFile|uploadBinary|uploadStream|writeBinary|saveFile|storeFile|toFile|save|uploadData|uploadBlob)$
+            - kind: pair
+              all:
+              - has:
+                  field: key
+                  kind: property_identifier
+                  regex: ^(body|Body)$
+              - has:
+                  field: value
+                  kind: member_expression
+                  regex: ^(req|request)\.body$
+              - any:
+                - has:
+                    field: key
+                    kind: property_identifier
+                    regex: ^Body$
+                - inside:
+                    stopBy: end
+                    kind: call_expression
+                    regex: ^fetch\(
+                - inside:
+                    stopBy: end
+                    any:
+                    - kind: new_expression
+                      regex: ^new\s+(PutObjectCommand|Upload)\(
+                    - kind: call_expression
+                      has:
+                        field: function
+                        any:
+                        - kind: identifier
+                          regex: ^(writeFile|writeFileSync|appendFile|appendFileSync|createWriteStream|putObject|put|upload|uploadFile|uploadBinary|uploadStream|writeBinary|saveFile|storeFile|toFile|save|uploadData|uploadBlob)$
+                        - kind: member_expression
+                          has:
+                            field: property
+                            kind: property_identifier
+                            regex: ^(writeFile|writeFileSync|appendFile|appendFileSync|createWriteStream|putObject|put|upload|uploadFile|uploadBinary|uploadStream|writeBinary|saveFile|storeFile|toFile|save|uploadData|uploadBlob)$
+                - inside:
+                    stopBy: end
+                    kind: program
+                    has:
+                      stopBy: end
+                      kind: call_expression
+                      regex: ^(express|bodyParser)\.raw\(
+              inside:
+                stopBy: end
+                any:
+                - kind: new_expression
+                  regex: ^new\s+(PutObjectCommand|Upload)\(
+                - kind: call_expression
+                  has:
+                    field: function
+                    any:
+                    - kind: identifier
+                      regex: ^(writeFile|writeFileSync|appendFile|appendFileSync|createWriteStream|putObject|put|upload|uploadFile|uploadBinary|uploadStream|writeBinary|saveFile|storeFile|toFile|save|uploadData|uploadBlob)$
+                    - kind: member_expression
+                      has:
+                        field: property
+                        kind: property_identifier
+                        regex: ^(writeFile|writeFileSync|appendFile|appendFileSync|createWriteStream|putObject|put|upload|uploadFile|uploadBinary|uploadStream|writeBinary|saveFile|storeFile|toFile|save|uploadData|uploadBlob)$
+            - kind: member_expression
+              regex: ^(req|request)\.body$
+              inside:
+                kind: arguments
+                inside:
+                  kind: call_expression
+                  has:
+                    field: function
+                    any:
+                    - kind: identifier
+                      regex: ^(writeFile|writeFileSync|appendFile|appendFileSync|createWriteStream|putObject|put|upload|uploadFile|uploadBinary|uploadStream|writeBinary|saveFile|storeFile|toFile|save|uploadData|uploadBlob)$
+                    - kind: member_expression
+                      has:
+                        field: property
+                        kind: property_identifier
+                        regex: ^(writeFile|writeFileSync|appendFile|appendFileSync|createWriteStream|putObject|put|upload|uploadFile|uploadBinary|uploadStream|writeBinary|saveFile|storeFile|toFile|save|uploadData|uploadBlob)$
+      - all:
+        - *id001
+        - all:
+          - has:
+              stopBy: end
+              kind: variable_declarator
+              all:
+              - has:
+                  field: name
+                  kind: identifier
+                  pattern: &id002
+                    context: '[$RBY]'
+                    selector: identifier
+              - has:
+                  field: value
+                  kind: member_expression
+                  regex: ^(req|request)\.body$
+          - has:
+              stopBy: end
+              any:
+              - kind: pair
+                all:
+                - has:
+                    field: key
+                    kind: property_identifier
+                    regex: ^(body|Body)$
+                - has:
+                    field: value
+                    kind: identifier
+                    pattern: *id002
+                - any:
+                  - has:
+                      field: key
+                      kind: property_identifier
+                      regex: ^Body$
+                  - inside:
+                      stopBy: end
+                      kind: call_expression
+                      regex: ^fetch\(
+                  - inside:
+                      stopBy: end
+                      any:
+                      - kind: new_expression
+                        regex: ^new\s+(PutObjectCommand|Upload)\(
+                      - kind: call_expression
+                        has:
+                          field: function
+                          any:
+                          - kind: identifier
+                            regex: ^(writeFile|writeFileSync|appendFile|appendFileSync|createWriteStream|putObject|put|upload|uploadFile|uploadBinary|uploadStream|writeBinary|saveFile|storeFile|toFile|save|uploadData|uploadBlob)$
+                          - kind: member_expression
+                            has:
+                              field: property
+                              kind: property_identifier
+                              regex: ^(writeFile|writeFileSync|appendFile|appendFileSync|createWriteStream|putObject|put|upload|uploadFile|uploadBinary|uploadStream|writeBinary|saveFile|storeFile|toFile|save|uploadData|uploadBlob)$
+                  - inside:
+                      stopBy: end
+                      kind: program
+                      has:
+                        stopBy: end
+                        kind: call_expression
+                        regex: ^(express|bodyParser)\.raw\(
+                inside:
+                  stopBy: end
+                  any:
+                  - kind: new_expression
+                    regex: ^new\s+(PutObjectCommand|Upload)\(
+                  - kind: call_expression
+                    has:
+                      field: function
+                      any:
+                      - kind: identifier
+                        regex: ^(writeFile|writeFileSync|appendFile|appendFileSync|createWriteStream|putObject|put|upload|uploadFile|uploadBinary|uploadStream|writeBinary|saveFile|storeFile|toFile|save|uploadData|uploadBlob)$
+                      - kind: member_expression
+                        has:
+                          field: property
+                          kind: property_identifier
+                          regex: ^(writeFile|writeFileSync|appendFile|appendFileSync|createWriteStream|putObject|put|upload|uploadFile|uploadBinary|uploadStream|writeBinary|saveFile|storeFile|toFile|save|uploadData|uploadBlob)$
+              - kind: identifier
+                pattern: *id002
+                inside:
+                  kind: arguments
+                  inside:
+                    kind: call_expression
+                    has:
+                      field: function
+                      any:
+                      - kind: identifier
+                        regex: ^(writeFile|writeFileSync|appendFile|appendFileSync|createWriteStream|putObject|put|upload|uploadFile|uploadBinary|uploadStream|writeBinary|saveFile|storeFile|toFile|save|uploadData|uploadBlob)$
+                      - kind: member_expression
+                        has:
+                          field: property
+                          kind: property_identifier
+                          regex: ^(writeFile|writeFileSync|appendFile|appendFileSync|createWriteStream|putObject|put|upload|uploadFile|uploadBinary|uploadStream|writeBinary|saveFile|storeFile|toFile|save|uploadData|uploadBlob)$
+      - all:
+        - has:
+            field: parameters
+            has:
+              kind: required_parameter
+              all:
+              - has:
+                  kind: decorator
+                  regex: ^@Req\(\)$
+              - has:
+                  field: pattern
+                  kind: identifier
+                  pattern: &id003
+                    context: '[$RBQ]'
+                    selector: identifier
+        - has:
+            stopBy: end
+            kind: pair
+            all:
+            - has:
+                field: key
+                kind: property_identifier
+                regex: ^(body|Body)$
+            - has:
+                field: value
+                any:
+                - kind: identifier
+                  pattern: *id003
+                - kind: member_expression
+                  all:
+                  - has:
+                      field: object
+                      kind: identifier
+                      pattern: *id003
+                  - has:
+                      field: property
+                      kind: property_identifier
+                      regex: ^body$
+            inside:
+              stopBy: end
+              any:
+              - kind: new_expression
+                regex: ^new\s+(PutObjectCommand|Upload)\(
+              - kind: call_expression
+                has:
+                  field: function
+                  any:
+                  - kind: identifier
+                    regex: ^(writeFile|writeFileSync|appendFile|appendFileSync|createWriteStream|putObject|put|upload|uploadFile|uploadBinary|uploadStream|writeBinary|saveFile|storeFile|toFile|save|uploadData|uploadBlob)$
+                  - kind: member_expression
+                    has:
+                      field: property
+                      kind: property_identifier
+                      regex: ^(writeFile|writeFileSync|appendFile|appendFileSync|createWriteStream|putObject|put|upload|uploadFile|uploadBinary|uploadStream|writeBinary|saveFile|storeFile|toFile|save|uploadData|uploadBlob)$
+      - all:
+        - *id001
+        - any:
+          - has:
+              stopBy: end
+              any:
+              - kind: for_in_statement
+                regex: ^for\s+await\b
+                has:
+                  field: right
+                  kind: identifier
+                  regex: ^(req|request)$
+              - kind: member_expression
+                regex: ^(req|request)\.(arrayBuffer|text|blob|read)$
+                inside:
+                  kind: call_expression
+              - kind: member_expression
+                regex: ^(req|request)\.body\.getReader$
+              - kind: identifier
+                regex: ^(req|request)$
+                inside:
+                  kind: arguments
+                  inside:
+                    kind: call_expression
+                    has:
+                      field: function
+                      kind: member_expression
+                      regex: (^|\.)Readable\.from$
+              - kind: member_expression
+                regex: ^new\s+Response\(\s*(req|request)\.body\s*\)\.(arrayBuffer|text|blob)$
+          - all:
+            - has:
+                stopBy: end
+                kind: variable_declarator
+                all:
+                - has:
+                    field: name
+                    kind: identifier
+                    pattern: &id004
+                      context: '[$RBA]'
+                      selector: identifier
+                - has:
+                    field: value
+                    kind: identifier
+                    regex: ^(req|request)$
+            - has:
+                stopBy: end
+                kind: member_expression
+                all:
+                - has:
+                    field: object
+                    kind: identifier
+                    pattern: *id004
+                - has:
+                    field: property
+                    kind: property_identifier
+                    regex: ^(arrayBuffer|text|blob|read)$
+                - inside:
+                    kind: call_expression
+          - all:
+            - any:
+              - has:
+                  field: parameters
+                  has:
+                    stopBy: end
+                    kind: shorthand_property_identifier_pattern
+                    regex: ^body$
+              - has:
+                  stopBy: end
+                  kind: variable_declarator
+                  all:
+                  - has:
+                      field: name
+                      kind: object_pattern
+                      has:
+                        kind: shorthand_property_identifier_pattern
+                        regex: ^body$
+                  - has:
+                      field: value
+                      kind: identifier
+                      regex: ^(req|request)$
+            - has:
+                stopBy: end
+                any:
+                - kind: member_expression
+                  regex: ^body\.getReader$
+                - kind: for_in_statement
+                  regex: ^for\s+await\b
+                  has:
+                    field: right
+                    kind: identifier
+                    regex: ^body$
+                - kind: member_expression
+                  regex: ^new\s+Response\(\s*body\s*\)\.(arrayBuffer|text|blob)$
+                - kind: identifier
+                  regex: ^body$
+                  inside:
+                    kind: arguments
+                    inside:
+                      kind: call_expression
+                      has:
+                        field: function
+                        kind: member_expression
+                        regex: (^|\.)Readable\.from$
+        - has:
+            stopBy: end
+            any:
+            - kind: call_expression
+              has:
+                field: function
+                any:
+                - kind: identifier
+                  regex: ^(writeFile|writeFileSync|appendFile|appendFileSync|createWriteStream|putObject|put|upload|uploadFile|uploadBinary|uploadStream|writeBinary|saveFile|storeFile|toFile|save|uploadData|uploadBlob)$
+                - kind: member_expression
+                  has:
+                    field: property
+                    kind: property_identifier
+                    regex: ^(writeFile|writeFileSync|appendFile|appendFileSync|createWriteStream|putObject|put|upload|uploadFile|uploadBinary|uploadStream|writeBinary|saveFile|storeFile|toFile|save|uploadData|uploadBlob)$
+            - kind: call_expression
+              regex: ^Bun\.write\(
+            - kind: new_expression
+              regex: ^new\s+(PutObjectCommand|Upload)\(
+    - not:
+        has:
+          stopBy: end
+          any:
+          - kind: member_expression
+            regex: ^(req|request)\.files?$
+          - kind: member_expression
+            regex: \.formData$
+            inside:
+              kind: call_expression
+          - kind: call_expression
+            regex: ^(busboy|Busboy|multer)\(
+          - kind: new_expression
+            regex: ^new\s+(busboy|Busboy)\(
+  - any:
+    - not:
+        any:
+        - has:
+            stopBy: end
+            any:
+            - kind: call_expression
+              regex: (?-u:\b)(fileTypeFrom[0-9A-Za-z_]+|fromBuffer|fromFile|fromStream|magicBytes|detectFileType)\(
+            - kind: call_expression
+              regex: (?i)^[A-Za-z0-9_$.>:-]*(check|assert|validate|ensure|verify|is|allowed|sniff)[A-Za-z0-9_]*(type|mime|magic|filetype|allowed|content)[A-Za-z0-9_]*\(
+            - kind: call_expression
+              regex: ^sharp\([\s\S]*\)\s*\.metadata\(
+            - kind: call_expression
+              regex: \.(subarray|slice)\([^()]*\)\s*\.equals\(
+            - kind: binary_expression
+              regex: ^[A-Za-z_$][A-Za-z0-9_$]*\[\s*[0-9]+\s*\]\s*[!=]==?\s*(0x[0-9A-Fa-f]+|[0-9]+)$
+            - kind: binary_expression
+              regex: ^[A-Za-z_$][A-Za-z0-9_$]*\.read(UInt|Int)(8|16|32)(BE|LE)?\([^()]*\)\s*[!=]==?\s*(0x[0-9A-Fa-f]+|[0-9]+)$
+        - all:
+          - has:
+              stopBy: end
+              kind: identifier
+              regex: ^(req|request)$
+              inside:
+                kind: arguments
+                inside:
+                  kind: call_expression
+                  has:
+                    field: function
+                    kind: identifier
+                    pattern: &id005
+                      context: '[$RBH]'
+                      selector: identifier
+                    not:
+                      kind: identifier
+                      regex: ^((get|read|parse|collect)?(Raw|raw)_?[Bb]ody|(get|read|create)?(Content|content|Body|body|Request|request|Upload|upload|File|file|Binary|binary)_?[Ss]tream|pipeline|pump|(write|upload|put|store|save)_?(Binary|binary|File|file|Blob|blob|Object|object|Stream|stream|Bytes|bytes|Content|content|Attachment|attachment|Media|media|Image|image)s?)$
+          - not:
+              has:
+                field: parameters
+                has:
+                  stopBy: end
+                  kind: identifier
+                  pattern: *id005
+          - inside:
+              stopBy: end
+              kind: program
+              has:
+                stopBy: end
+                any:
+                - kind: import_statement
+                  all:
+                  - has:
+                      field: source
+                      kind: string
+                      regex: ^['"][./]
+                      not:
+                        kind: string
+                        regex: node_modules
+                  - has:
+                      stopBy: end
+                      kind: identifier
+                      pattern: *id005
+                - kind: variable_declarator
+                  all:
+                  - has:
+                      field: value
+                      kind: call_expression
+                      regex: ^require\(\s*['"][./]
+                      not:
+                        kind: call_expression
+                        regex: node_modules
+                  - has:
+                      field: name
+                      any:
+                      - kind: identifier
+                        pattern: *id005
+                      - kind: object_pattern
+                        has:
+                          stopBy: end
+                          kind: shorthand_property_identifier_pattern
+                          pattern:
+                            context: const { $RBH } = x
+                            selector: shorthand_property_identifier_pattern
+    - not:
+        any:
+        - has:
+            stopBy: end
+            any:
+            - kind: binary_expression
+              regex: (?i)(^([^<>]|->)*(size|length|bytes|len\()([^<>]|->)*\s>=?\s|\s<=?\s([^<>]|->)*(size|length|bytes|len\()([^<>]|->)*$)
+            - kind: call_expression
+              regex: (?i)^[A-Za-z0-9_$.>:-]*(check|assert|validate|ensure|enforce|limit|verify)[A-Za-z0-9_]*(size|bytes|length)[A-Za-z0-9_]*\(
+            - kind: pair
+              has:
+                field: key
+                any:
+                - kind: property_identifier
+                  regex: (?i)^['\"]?(limit|limits|max[A-Za-z]*(size|bytes|length)|fileSize|sizeLimit)['\"]?$
+                - kind: string
+                  regex: (?i)^['\"]?(limit|limits|max[A-Za-z]*(size|bytes|length)|fileSize|sizeLimit)['\"]?$
+            - kind: member_expression
+              regex: ^(req|request)\.on$
+              inside:
+                kind: call_expression
+                all:
+                - has:
+                    field: arguments
+                    has:
+                      kind: string
+                      regex: ^['"]data['"]$
+                - has:
+                    field: arguments
+                    has:
+                      stopBy: end
+                      kind: call_expression
+                      regex: ^(req|request)\.destroy\(|\.(status|sendStatus)\(\s*413\s*\)
+        - all:
+          - has:
+              stopBy: end
+              any:
+              - pattern:
+                  context: $RBV += $RBC.length
+                  selector: augmented_assignment_expression
+              - pattern:
+                  context: $RBV += $RBC.byteLength
+                  selector: augmented_assignment_expression
+          - has:
+              stopBy: end
+              any:
+              - pattern:
+                  context: $RBV > $RBM
+                  selector: binary_expression
+              - pattern:
+                  context: $RBV >= $RBM
+                  selector: binary_expression
+              - pattern:
+                  context: $RBM < $RBV
+                  selector: binary_expression
+              - pattern:
+                  context: $RBM <= $RBV
+                  selector: binary_expression
+        - all:
+          - has:
+              stopBy: end
+              kind: identifier
+              regex: ^(req|request)$
+              inside:
+                kind: arguments
+                inside:
+                  kind: call_expression
+                  has:
+                    field: function
+                    kind: identifier
+                    pattern: &id006
+                      context: '[$RBH]'
+                      selector: identifier
+                    not:
+                      kind: identifier
+                      regex: ^((get|read|parse|collect)?(Raw|raw)_?[Bb]ody|(get|read|create)?(Content|content|Body|body|Request|request|Upload|upload|File|file|Binary|binary)_?[Ss]tream|pipeline|pump|(write|upload|put|store|save)_?(Binary|binary|File|file|Blob|blob|Object|object|Stream|stream|Bytes|bytes|Content|content|Attachment|attachment|Media|media|Image|image)s?)$
+          - not:
+              has:
+                field: parameters
+                has:
+                  stopBy: end
+                  kind: identifier
+                  pattern: *id006
+          - inside:
+              stopBy: end
+              kind: program
+              has:
+                stopBy: end
+                any:
+                - kind: import_statement
+                  all:
+                  - has:
+                      field: source
+                      kind: string
+                      regex: ^['"][./]
+                      not:
+                        kind: string
+                        regex: node_modules
+                  - has:
+                      stopBy: end
+                      kind: identifier
+                      pattern: *id006
+                - kind: variable_declarator
+                  all:
+                  - has:
+                      field: value
+                      kind: call_expression
+                      regex: ^require\(\s*['"][./]
+                      not:
+                        kind: call_expression
+                        regex: node_modules
+                  - has:
+                      field: name
+                      any:
+                      - kind: identifier
+                        pattern: *id006
+                      - kind: object_pattern
+                        has:
+                          stopBy: end
+                          kind: shorthand_property_identifier_pattern
+                          pattern:
+                            context: const { $RBH } = x
+                            selector: shorthand_property_identifier_pattern
+        - inside:
+            kind: arguments
+            has:
+              kind: call_expression
+              regex: ^(express|bodyParser)\.raw\(
+              has:
+                stopBy: end
+                kind: pair
+                has:
+                  field: key
+                  kind: property_identifier
+                  regex: ^limit$
+min_engine: 0.39.0
+---
+id: upload-validation.typescript-nextjs.imported-upload
+practice_id: upload-validation
+language: typescript
+frameworks:
+- nextjs
+kind: items
+rule:
+  all:
+  - kind: call_expression
+  - has:
+      field: function
+      kind: member_expression
+      has:
+        field: property
+        kind: property_identifier
+        regex: ^(post|put|patch)$
+  - has:
+      field: arguments
+      all:
+      - has:
+          kind: string
+          regex: ^['"`]/
+      - has:
+          kind: identifier
+          regex: ^(upload|attach|binary|blob|file|media|image|photo|avatar|document|dicom|stow|store)|[a-z0-9_](Upload|Attach|Binary|Blob|File|Media|Image|Photo|Avatar|Document|Dicom|Stow|Store)|_(upload|attach|binary|blob|file|media|image|photo|avatar|document|dicom|stow|store)
+          pattern:
+            context: '[$H]'
+            selector: identifier
+      - kind: arguments
+        regex: '[(,]\s*(?:(?:upload|attach|binary|blob|file|media|image|photo|avatar|document|dicom|stow|store)[A-Za-z0-9_$]*|[A-Za-z_$][A-Za-z0-9_$]*?(?:[a-z0-9_](?:Upload|Attach|Binary|Blob|File|Media|Image|Photo|Avatar|Document|Dicom|Stow|Store)|_(?:upload|attach|binary|blob|file|media|image|photo|avatar|document|dicom|stow|store))[A-Za-z0-9_$]*)\s*,?\s*\)$'
+  - inside:
+      stopBy: end
+      kind: program
+      has:
+        kind: import_statement
+        has:
+          stopBy: end
+          any:
+          - kind: import_specifier
+            pattern:
+              context: import { $H } from 'm'
+              selector: import_specifier
+          - kind: identifier
+            inside:
+              kind: import_clause
+            pattern:
+              context: '[$H]'
+              selector: identifier
+control:
+  has:
+    field: arguments
+    has:
+      kind: call_expression
+      regex: (?i)^[A-Za-z0-9_$.>:-]*(clam|clamav|clamd|clamscan|virus|malware|antivirus|antimalware)[A-Za-z0-9_$.>:-]*\(
+min_engine: 0.39.0
+---
+id: upload-validation.typescript-nextjs.type-candidate-imported
+practice_id: upload-validation
+language: typescript
+frameworks:
+- nextjs
+kind: evidence
+rule:
+  all:
+  - kind: call_expression
+  - has:
+      field: function
+      kind: member_expression
+      has:
+        field: property
+        kind: property_identifier
+        regex: ^(post|put|patch)$
+  - has:
+      field: arguments
+      all:
+      - has:
+          kind: string
+          regex: ^['"`]/
+      - has:
+          kind: identifier
+          regex: ^(upload|attach|binary|blob|file|media|image|photo|avatar|document|dicom|stow|store)|[a-z0-9_](Upload|Attach|Binary|Blob|File|Media|Image|Photo|Avatar|Document|Dicom|Stow|Store)|_(upload|attach|binary|blob|file|media|image|photo|avatar|document|dicom|stow|store)
+          pattern:
+            context: '[$H]'
+            selector: identifier
+      - kind: arguments
+        regex: '[(,]\s*(?:(?:upload|attach|binary|blob|file|media|image|photo|avatar|document|dicom|stow|store)[A-Za-z0-9_$]*|[A-Za-z_$][A-Za-z0-9_$]*?(?:[a-z0-9_](?:Upload|Attach|Binary|Blob|File|Media|Image|Photo|Avatar|Document|Dicom|Stow|Store)|_(?:upload|attach|binary|blob|file|media|image|photo|avatar|document|dicom|stow|store))[A-Za-z0-9_$]*)\s*,?\s*\)$'
+  - inside:
+      stopBy: end
+      kind: program
+      has:
+        kind: import_statement
+        has:
+          stopBy: end
+          any:
+          - kind: import_specifier
+            pattern:
+              context: import { $H } from 'm'
+              selector: import_specifier
+          - kind: identifier
+            inside:
+              kind: import_clause
+            pattern:
+              context: '[$H]'
+              selector: identifier
+min_engine: 0.39.0
+---
+id: upload-validation.typescript-nextjs.data-url-write
+practice_id: upload-validation
+language: typescript
+frameworks:
+- nextjs
+kind: items
+rule:
+  all:
+  - any:
+    - kind: function_declaration
+    - kind: method_definition
+    - kind: arrow_function
+    - kind: function_expression
+  - has:
+      stopBy:
+        any:
+        - kind: function_declaration
+        - kind: method_definition
+        - kind: arrow_function
+        - kind: function_expression
+      kind: pair
+      all:
+      - any:
+        - all:
+          - has:
+              field: key
+              any:
+              - kind: property_identifier
+                regex: (?i)(data_?ur[il]|base_?64)
+              - kind: string
+                regex: (?i)(data_?ur[il]|base_?64)
+          - has:
+              field: value
+              any:
+              - kind: member_expression
+              - kind: identifier
+              - kind: subscript_expression
+        - has:
+            field: value
+            kind: member_expression
+            has:
+              field: property
+              kind: property_identifier
+              regex: (?i)(data_?ur[il]|base_?64)
+      - inside:
+          stopBy: end
+          kind: arguments
+          inside:
+            kind: call_expression
+            has:
+              field: function
+              kind: member_expression
+              has:
+                field: property
+                kind: property_identifier
+                regex: ^(create|createMany|insert|update|upsert|save)$
+control:
+  has:
+    stopBy:
+      any:
+      - kind: function_declaration
+      - kind: method_definition
+      - kind: arrow_function
+      - kind: function_expression
+    kind: call_expression
+    regex: (?i)^[A-Za-z0-9_$.>:-]*(clam|clamav|clamd|clamscan|virus|malware|antivirus|antimalware)[A-Za-z0-9_$.>:-]*\(
+min_engine: 0.39.0
+---
+id: upload-validation.typescript-nextjs.type-candidate-data-url
+practice_id: upload-validation
+language: typescript
+frameworks:
+- nextjs
+kind: evidence
+rule:
+  all:
+  - any:
+    - kind: function_declaration
+    - kind: method_definition
+    - kind: arrow_function
+    - kind: function_expression
+  - has:
+      stopBy:
+        any:
+        - kind: function_declaration
+        - kind: method_definition
+        - kind: arrow_function
+        - kind: function_expression
+      kind: pair
+      all:
+      - any:
+        - all:
+          - has:
+              field: key
+              any:
+              - kind: property_identifier
+                regex: (?i)(data_?ur[il]|base_?64)
+              - kind: string
+                regex: (?i)(data_?ur[il]|base_?64)
+          - has:
+              field: value
+              any:
+              - kind: member_expression
+              - kind: identifier
+              - kind: subscript_expression
+        - has:
+            field: value
+            kind: member_expression
+            has:
+              field: property
+              kind: property_identifier
+              regex: (?i)(data_?ur[il]|base_?64)
+      - inside:
+          stopBy: end
+          kind: arguments
+          inside:
+            kind: call_expression
+            has:
+              field: function
+              kind: member_expression
+              has:
+                field: property
+                kind: property_identifier
+                regex: ^(create|createMany|insert|update|upsert|save)$
+min_engine: 0.39.0

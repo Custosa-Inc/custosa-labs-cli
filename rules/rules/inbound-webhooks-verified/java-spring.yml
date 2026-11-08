@@ -1,0 +1,1194 @@
+# inbound-webhooks-verified (T23 B32, design v3 2.2.2). Written by scripts/gen_webhook_rules.py: edit that script,
+# never this file. The rule id's last part is the form (items-sdk, items-hmac, violation, webhook-route,
+# replay-dedupe), which the practice function reads, since a match carries only one has_control. replay-dedupe matches
+# the items-sdk handler itself, so the function joins the two on path and line.
+
+# items-sdk: a Spring mapping method that reads a provider signature header (@RequestHeader or getHeader) or calls a
+# provider SDK's verifying parse (Webhook.constructEvent), and computes no HMAC itself. The control is the SDK's
+# verify call with the raw body (a @RequestBody String or byte array, or the request's stream), or a call the provider
+# signs without it (Twilio's form check). No control: fail. The control holds only when no data call (a data-layer
+# receiver or ORM model) comes before the verify call in the handler's text.
+id: inbound-webhooks-verified.java-spring.items-sdk
+practice_id: inbound-webhooks-verified
+language: java
+frameworks:
+- spring
+kind: items
+rule:
+  all:
+  - kind: method_declaration
+    has:
+      kind: modifiers
+      has:
+        any:
+        - kind: annotation
+          regex: ^@(Get|Post|Put|Patch|Delete|Request)Mapping\b
+        - kind: marker_annotation
+          regex: ^@(Get|Post|Put|Patch|Delete|Request)Mapping\b
+  - any:
+    - has:
+        stopBy: end
+        kind: string_literal
+        regex: (?i)^"(stripe-signature|x-twilio-signature|svix-signature|x-hub-signature-256|x-hub-signature|webhook-signature)"$
+    - has:
+        stopBy: end
+        any:
+        - kind: method_invocation
+          has:
+            field: name
+            kind: identifier
+            regex: ^(constructEvent)$
+  - not:
+      has:
+        stopBy: end
+        kind: method_invocation
+        regex: ^Mac\.getInstance\(
+control:
+  all:
+  - any:
+    - all:
+      - has:
+          stopBy: end
+          any:
+          - all:
+            - all:
+              - any:
+                - any:
+                  - kind: method_invocation
+                    has:
+                      field: name
+                      kind: identifier
+                      regex: ^(constructEvent)$
+                - all:
+                  - any:
+                    - kind: method_invocation
+                      all:
+                      - has:
+                          field: object
+                          kind: identifier
+                          regex: (?i)^\w*(wh|webhooks?|svix|hook|validator)\w*$
+                      - has:
+                          field: name
+                          kind: identifier
+                          regex: ^(verify)$
+                  - inside:
+                      stopBy: end
+                      kind: program
+                      has:
+                        stopBy: end
+                        kind: import_declaration
+                        regex: ^import\s+(static\s+)?(com\.svix|com\.svix)\.
+              - not:
+                  any:
+                  - inside:
+                      stopBy: end
+                      kind: block
+                      inside:
+                        kind: try_statement
+                        has:
+                          kind: catch_clause
+                          not:
+                            has:
+                              kind: block
+                              has:
+                                any:
+                                - kind: return_statement
+                                - kind: throw_statement
+            - not:
+                inside:
+                  stopBy: end
+                  any:
+                  - kind: lambda_expression
+                  - kind: method_declaration
+                    inside:
+                      stopBy: end
+                      kind: method_declaration
+      - has:
+          stopBy: end
+          any:
+          - kind: formal_parameters
+            regex: '@RequestBody\s+(final\s+)?(String|byte\[\])\s+\w+'
+          - kind: method_invocation
+            regex: \.(getInputStream|getReader)\(\)
+    - has:
+        stopBy: end
+        any:
+        - all:
+          - all:
+            - any:
+              - all:
+                - any:
+                  - kind: method_invocation
+                    all:
+                    - has:
+                        field: object
+                        kind: identifier
+                        regex: (?i)^\w*(wh|webhooks?|svix|hook|validator)\w*$
+                    - has:
+                        field: name
+                        kind: identifier
+                        regex: ^(validate)$
+                - inside:
+                    stopBy: end
+                    kind: program
+                    has:
+                      stopBy: end
+                      kind: import_declaration
+                      regex: ^import\s+(static\s+)?(com\.twilio|com\.twilio)\.
+            - any:
+              - inside:
+                  stopBy: end
+                  kind: unary_expression
+                  regex: ^!
+                  inside:
+                    kind: parenthesized_expression
+                    inside:
+                      kind: if_statement
+                      has:
+                        field: consequence
+                        any:
+                        - kind: return_statement
+                        - kind: throw_statement
+                        - kind: block
+                          has:
+                            any:
+                            - kind: return_statement
+                            - kind: throw_statement
+              - all:
+                - inside:
+                    any:
+                    - kind: variable_declarator
+                    - kind: assignment_expression
+                - any:
+                  - inside:
+                      stopBy: end
+                      kind: local_variable_declaration
+                      has:
+                        kind: variable_declarator
+                        pattern:
+                          context: class A { void f() { boolean $OK = $V; } }
+                          selector: variable_declarator
+                      precedes:
+                        kind: if_statement
+                        has:
+                          field: consequence
+                          any:
+                          - kind: return_statement
+                          - kind: throw_statement
+                          - kind: block
+                            has:
+                              any:
+                              - kind: return_statement
+                              - kind: throw_statement
+                        all:
+                        - has:
+                            field: condition
+                            has:
+                              kind: unary_expression
+                              pattern:
+                                context: class A { void f() { if (!$OK) {} } }
+                                selector: unary_expression
+                  - inside:
+                      stopBy: end
+                      kind: expression_statement
+                      has:
+                        kind: assignment_expression
+                        pattern:
+                          context: class A { void f() { $OK = $V; } }
+                          selector: assignment_expression
+                      precedes:
+                        kind: if_statement
+                        has:
+                          field: consequence
+                          any:
+                          - kind: return_statement
+                          - kind: throw_statement
+                          - kind: block
+                            has:
+                              any:
+                              - kind: return_statement
+                              - kind: throw_statement
+                        all:
+                        - has:
+                            field: condition
+                            has:
+                              kind: unary_expression
+                              pattern:
+                                context: class A { void f() { if (!$OK) {} } }
+                                selector: unary_expression
+          - not:
+              inside:
+                stopBy: end
+                any:
+                - kind: lambda_expression
+                - kind: method_declaration
+                  inside:
+                    stopBy: end
+                    kind: method_declaration
+  - not:
+      any:
+      - kind: method_declaration
+        regex: (?s)\b(\w*[Rr]epository|\w*[Rr]epo|jdbcTemplate|jdbc|entityManager|em|dsl|jooq)\s*\.\s*(save\w*|find\w*|insert\w*|update\w*|delete\w*|query\w*|persist|merge|execute\w*|batchUpdate|select\w*)\s*\(.*\b(constructEvent|validate|verify)\b
+min_engine: 0.39.0
+---
+# items-hmac: a mapping method that reads a provider signature header and computes an HMAC itself (Mac.getInstance).
+# The control is a constant-time compare (MessageDigest.isEqual). With it, needs_review; without, fail.
+id: inbound-webhooks-verified.java-spring.items-hmac
+practice_id: inbound-webhooks-verified
+language: java
+frameworks:
+- spring
+kind: items
+rule:
+  all:
+  - kind: method_declaration
+    has:
+      kind: modifiers
+      has:
+        any:
+        - kind: annotation
+          regex: ^@(Get|Post|Put|Patch|Delete|Request)Mapping\b
+        - kind: marker_annotation
+          regex: ^@(Get|Post|Put|Patch|Delete|Request)Mapping\b
+  - has:
+      stopBy: end
+      kind: string_literal
+      regex: (?i)^"(stripe-signature|x-twilio-signature|svix-signature|x-hub-signature-256|x-hub-signature|webhook-signature)"$
+  - has:
+      stopBy: end
+      kind: method_invocation
+      regex: ^Mac\.getInstance\(
+control:
+  has:
+    stopBy: end
+    kind: method_invocation
+    regex: ^MessageDigest\.isEqual\(
+min_engine: 0.39.0
+---
+# violation: in a signature-reading method: a signature compared with ==, != or equals, or constructEvent given a
+# tolerance. Fail.
+id: inbound-webhooks-verified.java-spring.violation
+practice_id: inbound-webhooks-verified
+language: java
+frameworks:
+- spring
+kind: violation
+rule:
+  any:
+  - all:
+    - kind: binary_expression
+      regex: (?i)sig
+    - kind: binary_expression
+      regex: '[!=]='
+    inside:
+      stopBy: end
+      all:
+      - kind: method_declaration
+        has:
+          kind: modifiers
+          has:
+            any:
+            - kind: annotation
+              regex: ^@(Get|Post|Put|Patch|Delete|Request)Mapping\b
+            - kind: marker_annotation
+              regex: ^@(Get|Post|Put|Patch|Delete|Request)Mapping\b
+      - any:
+        - has:
+            stopBy: end
+            kind: string_literal
+            regex: (?i)^"(stripe-signature|x-twilio-signature|svix-signature|x-hub-signature-256|x-hub-signature|webhook-signature)"$
+        - has:
+            stopBy: end
+            any:
+            - kind: method_invocation
+              has:
+                field: name
+                kind: identifier
+                regex: ^(constructEvent)$
+  - all:
+    - kind: method_invocation
+      regex: (?i)sig
+    - kind: method_invocation
+      regex: \.(equals|equalsIgnoreCase|contentEquals)\(
+    inside:
+      stopBy: end
+      all:
+      - kind: method_declaration
+        has:
+          kind: modifiers
+          has:
+            any:
+            - kind: annotation
+              regex: ^@(Get|Post|Put|Patch|Delete|Request)Mapping\b
+            - kind: marker_annotation
+              regex: ^@(Get|Post|Put|Patch|Delete|Request)Mapping\b
+      - any:
+        - has:
+            stopBy: end
+            kind: string_literal
+            regex: (?i)^"(stripe-signature|x-twilio-signature|svix-signature|x-hub-signature-256|x-hub-signature|webhook-signature)"$
+        - has:
+            stopBy: end
+            any:
+            - kind: method_invocation
+              has:
+                field: name
+                kind: identifier
+                regex: ^(constructEvent)$
+  - kind: method_invocation
+    all:
+    - has:
+        field: name
+        kind: identifier
+        regex: ^(constructEvent)$
+    - has:
+        field: arguments
+        kind: argument_list
+        regex: ^\((?:[^,()]|\((?:[^()]|\([^()]*\))*\))*,(?:[^,()]|\((?:[^()]|\([^()]*\))*\))*,(?:[^,()]|\((?:[^()]|\([^()]*\))*\))*,
+    inside:
+      stopBy: end
+      all:
+      - kind: method_declaration
+        has:
+          kind: modifiers
+          has:
+            any:
+            - kind: annotation
+              regex: ^@(Get|Post|Put|Patch|Delete|Request)Mapping\b
+            - kind: marker_annotation
+              regex: ^@(Get|Post|Put|Patch|Delete|Request)Mapping\b
+      - any:
+        - has:
+            stopBy: end
+            kind: string_literal
+            regex: (?i)^"(stripe-signature|x-twilio-signature|svix-signature|x-hub-signature-256|x-hub-signature|webhook-signature)"$
+        - has:
+            stopBy: end
+            any:
+            - kind: method_invocation
+              has:
+                field: name
+                kind: identifier
+                regex: ^(constructEvent)$
+min_engine: 0.39.0
+---
+# webhook-route: a route whose path names a webhook, hook, callback or notify endpoint, or a handler (or its class,
+# controller or module) named for one, that reads no provider signature. Evidence: needs_review naming it.
+id: inbound-webhooks-verified.java-spring.webhook-route
+practice_id: inbound-webhooks-verified
+language: java
+frameworks:
+- spring
+kind: evidence
+rule:
+  all:
+  - kind: method_declaration
+    any:
+    - has:
+        kind: modifiers
+        has:
+          kind: annotation
+          regex: (?i)^@(Get|Post|Put|Patch|Delete|Request)Mapping\(\s*((value|path)\s*=\s*)?[\[{]?\s*\"/?([^\"]*[/_-])?(webhooks?|hooks?|callbacks?|notify)([/_.-][^\"]*)?\"
+    - has:
+        kind: modifiers
+        has:
+          any:
+          - kind: annotation
+            regex: ^@(Get|Post|Put|Patch|Delete|Request)Mapping\b
+          - kind: marker_annotation
+            regex: ^@(Get|Post|Put|Patch|Delete|Request)Mapping\b
+      inside:
+        stopBy: end
+        kind: class_declaration
+        has:
+          kind: modifiers
+          has:
+            kind: annotation
+            regex: (?i)^@(Get|Post|Put|Patch|Delete|Request)Mapping\(\s*((value|path)\s*=\s*)?[\[{]?\s*\"/?([^\"]*[/_-])?(webhooks?|hooks?|callbacks?|notify)([/_.-][^\"]*)?\"
+    - all:
+      - has:
+          kind: modifiers
+          has:
+            any:
+            - kind: annotation
+              regex: ^@(Post|Request)Mapping\b
+            - kind: marker_annotation
+              regex: ^@(Post|Request)Mapping\b
+      - has:
+          field: name
+          kind: identifier
+          regex: (?i)(webhooks?|hooks?|callbacks?|notify)
+    - has:
+        kind: modifiers
+        has:
+          any:
+          - kind: annotation
+            regex: ^@(Post|Request)Mapping\b
+          - kind: marker_annotation
+            regex: ^@(Post|Request)Mapping\b
+      inside:
+        stopBy: end
+        kind: class_declaration
+        has:
+          field: name
+          kind: identifier
+          regex: (?i)(webhooks?|hooks?|callbacks?|notify)
+  - not:
+      any:
+      - has:
+          stopBy: end
+          kind: string_literal
+          regex: (?i)^"(stripe-signature|x-twilio-signature|svix-signature|x-hub-signature-256|x-hub-signature|webhook-signature)"$
+      - has:
+          stopBy: end
+          any:
+          - kind: method_invocation
+            has:
+              field: name
+              kind: identifier
+              regex: ^(constructEvent)$
+min_engine: 0.39.0
+---
+# entry: an entry point that can take a request body (B32p E): a method under @PostMapping, @PutMapping or
+# @PatchMapping, or @RequestMapping with no method or naming POST, PUT or PATCH, and a @GetMapping method with a
+# parameter Spring can bind from the request. Evidence for the pass, which needs every entry verified or user-gated;
+# never an object of its own.
+id: inbound-webhooks-verified.java-spring.entry
+practice_id: inbound-webhooks-verified
+language: java
+frameworks:
+- spring
+kind: evidence
+rule:
+  kind: method_declaration
+  any:
+  - has:
+      kind: modifiers
+      has:
+        any:
+        - kind: annotation
+          regex: (?s)^@((Post|Put|Patch)Mapping\b|RequestMapping\b.*\bmethod\s*=.*\b(POST|PUT|PATCH)\b)
+        - kind: marker_annotation
+          regex: (?s)^@((Post|Put|Patch)Mapping\b|RequestMapping\b.*\bmethod\s*=.*\b(POST|PUT|PATCH)\b)
+  - has:
+      kind: modifiers
+      has:
+        any:
+        - kind: annotation
+          regex: ^@RequestMapping\b
+          not:
+            kind: annotation
+            regex: \bmethod\s*=
+        - kind: marker_annotation
+          regex: ^@RequestMapping\b
+          not:
+            kind: marker_annotation
+            regex: \bmethod\s*=
+  - all:
+    - has:
+        kind: modifiers
+        has:
+          any:
+          - kind: annotation
+            regex: (?s)^@(GetMapping\b|RequestMapping\b.*\bmethod\s*=)
+          - kind: marker_annotation
+            regex: (?s)^@(GetMapping\b|RequestMapping\b.*\bmethod\s*=)
+    - has:
+        kind: formal_parameters
+        not:
+          kind: formal_parameters
+          regex: ^\(\s*((final\s+)?(Model|ModelMap|Principal|Authentication|HttpServletResponse|ServerHttpResponse|HttpSession|Locale)\s+\w+\s*,?\s*)*\)$
+min_engine: 0.39.0
+---
+# route-unread: a route registration the inventory can't place (B32p C2): a mapping whose path is no literal (a
+# constant, a concatenation, a template), or a functional router (RouterFunctions, router or coRouter). Evidence: no
+# pass while it is seen; never an object of its own.
+id: inbound-webhooks-verified.java-spring.route-unread
+practice_id: inbound-webhooks-verified
+language: java
+frameworks:
+- spring
+kind: evidence
+rule:
+  any:
+  - kind: annotation
+    regex: (?s)^@(Get|Post|Put|Patch|Delete|Request)Mapping\(\s*(((value|path)\s*=\s*)?[\[{]?\s*[A-Za-z_][\w.]*\s*[,)\]}+]|.*\b(value|path)\s*=\s*[\[{]?\s*[A-Za-z_]|.*\"\s*\+|.*\+\s*\"|.*\"[^\"]*\$)
+  - kind: marker_annotation
+    regex: (?s)^@(Get|Post|Put|Patch|Delete|Request)Mapping\(\s*(((value|path)\s*=\s*)?[\[{]?\s*[A-Za-z_][\w.]*\s*[,)\]}+]|.*\b(value|path)\s*=\s*[\[{]?\s*[A-Za-z_]|.*\"\s*\+|.*\+\s*\"|.*\"[^\"]*\$)
+  - any:
+    - kind: method_invocation
+      regex: ^RouterFunctions\s*\.\s*(route|nest)\s*\(
+    - kind: method_invocation
+      regex: ^(route|nest)\s*\(\s*(RequestPredicates\s*\.\s*)?(GET|POST|PUT|PATCH|DELETE|path|method|all)\s*\(
+min_engine: 0.39.0
+---
+# replay-dedupe: an items-sdk handler (the same match, so the same path and line) that rejects a repeated event: a
+# data call inserting the event id with ON CONFLICT, INSERT IGNORE, ON DUPLICATE KEY, upsert, onConflict or the like,
+# whose result is tested right after (or in the condition) by an if that returns or throws; or a try around an insert
+# of the event id whose catch names a unique violation (23505, 1062, P2002, IntegrityError, RecordNotUnique,
+# DuplicateKey) and returns. No data call may come before it. A table name or a log line alone never counts. Evidence:
+# with the SDK control, it allows the pass once Q6 is ruled.
+id: inbound-webhooks-verified.java-spring.replay-dedupe
+practice_id: inbound-webhooks-verified
+language: java
+frameworks:
+- spring
+kind: evidence
+rule:
+  all:
+  - kind: method_declaration
+    has:
+      kind: modifiers
+      has:
+        any:
+        - kind: annotation
+          regex: ^@(Get|Post|Put|Patch|Delete|Request)Mapping\b
+        - kind: marker_annotation
+          regex: ^@(Get|Post|Put|Patch|Delete|Request)Mapping\b
+  - any:
+    - has:
+        stopBy: end
+        kind: string_literal
+        regex: (?i)^"(stripe-signature|x-twilio-signature|svix-signature|x-hub-signature-256|x-hub-signature|webhook-signature)"$
+    - has:
+        stopBy: end
+        any:
+        - kind: method_invocation
+          has:
+            field: name
+            kind: identifier
+            regex: ^(constructEvent)$
+  - not:
+      has:
+        stopBy: end
+        kind: method_invocation
+        regex: ^Mac\.getInstance\(
+  - has:
+      stopBy: end
+      any:
+      - all:
+        - any:
+          - all:
+            - kind: method_invocation
+              regex: (?i)(\bON\s+CONFLICT\b|\bINSERT\s+IGNORE\b|\bON\s+DUPLICATE\s+KEY\b|\bon_?conflict|\bupsert|\binsert_?or_?ignore|\bignore_?duplicates|\bskip_?duplicates|\bunique_by\b)
+            - kind: method_invocation
+              regex: (?i)(\b(event|evt)\s*(\?\.|\.|->)\s*(id\b|getId\(\))|\b(event|evt)\s*\[\s*:?['\"]?id['\"]?\s*\]|\bevent_?id\b)
+            - kind: method_invocation
+              has:
+                field: name
+                kind: identifier
+                regex: (?i)(^|\.)(insert|create|save|add|put|persist|exec|execute|query|update|upsert|run|raw|sql|on_?conflict|ignore|merge)\w*[!?]?$
+        - any:
+          - inside:
+              stopBy: end
+              any:
+              - kind: local_variable_declaration
+              - kind: expression_statement
+              precedes:
+                kind: if_statement
+                has:
+                  field: consequence
+                  any:
+                  - kind: return_statement
+                  - kind: throw_statement
+                  - kind: block
+                    has:
+                      any:
+                      - kind: return_statement
+                      - kind: throw_statement
+          - inside:
+              stopBy: end
+              any:
+              - kind: parenthesized_expression
+              inside:
+                kind: if_statement
+                has:
+                  field: consequence
+                  any:
+                  - kind: return_statement
+                  - kind: throw_statement
+                  - kind: block
+                    has:
+                      any:
+                      - kind: return_statement
+                      - kind: throw_statement
+      - kind: try_statement
+        all:
+        - has:
+            kind: catch_clause
+            regex: (?is)(\b23505\b|\b1062\b|ER_DUP_ENTRY|\bP2002\b|unique_?violation|UniqueConstraintViolation|IntegrityError|RecordNotUnique|DuplicateKey|SQLIntegrityConstraintViolation|duplicate key).{0,160}?\breturn\b
+        - has:
+            stopBy: end
+            any:
+            - all:
+              - kind: method_invocation
+                regex: (?i)\b(insert|create|save|add|put|persist|exec|execute|query|update)\w*\s*[!?]?\s*\(
+              - kind: method_invocation
+                regex: (?i)(\b(event|evt)\s*(\?\.|\.|->)\s*(id\b|getId\(\))|\b(event|evt)\s*\[\s*:?['\"]?id['\"]?\s*\]|\bevent_?id\b)
+            not:
+              inside:
+                stopBy: end
+                kind: catch_clause
+  - not:
+      any:
+      - kind: method_declaration
+        regex: (?s)\b(\w*[Rr]epository|\w*[Rr]epo|jdbcTemplate|jdbc|entityManager|em|dsl|jooq)\s*\.\s*(save\w*|find\w*|insert\w*|update\w*|delete\w*|query\w*|persist|merge|execute\w*|batchUpdate|select\w*)\s*\(.*\b(\w*[Rr]epository|\w*[Rr]epo|jdbcTemplate|jdbc|entityManager|em|dsl|jooq)\s*\.\s*(save\w*|find\w*|insert\w*|update\w*|delete\w*|query\w*|persist|merge|execute\w*|batchUpdate|select\w*)\s*\(.{0,400}?((\bON\s+CONFLICT\b|\bINSERT\s+IGNORE\b|\bON\s+DUPLICATE\s+KEY\b|\bon_?conflict|\bupsert|\binsert_?or_?ignore|\bignore_?duplicates|\bskip_?duplicates|\bunique_by\b))
+min_engine: 0.39.0
+---
+# payload-before-verify: an items-sdk handler (the same match, so the same path and line) whose text has a helper (a
+# bare call, or one on self, this or $this) given the body, event or payload, then later a verify call (B32p 5.2).
+# Evidence: no pass while it is seen, until the stem reads what the helper does; never an object of its own.
+id: inbound-webhooks-verified.java-spring.payload-before-verify
+practice_id: inbound-webhooks-verified
+language: java
+frameworks:
+- spring
+kind: evidence
+rule:
+  all:
+  - all:
+    - kind: method_declaration
+      has:
+        kind: modifiers
+        has:
+          any:
+          - kind: annotation
+            regex: ^@(Get|Post|Put|Patch|Delete|Request)Mapping\b
+          - kind: marker_annotation
+            regex: ^@(Get|Post|Put|Patch|Delete|Request)Mapping\b
+    - any:
+      - has:
+          stopBy: end
+          kind: string_literal
+          regex: (?i)^"(stripe-signature|x-twilio-signature|svix-signature|x-hub-signature-256|x-hub-signature|webhook-signature)"$
+      - has:
+          stopBy: end
+          any:
+          - kind: method_invocation
+            has:
+              field: name
+              kind: identifier
+              regex: ^(constructEvent)$
+    - not:
+        has:
+          stopBy: end
+          kind: method_invocation
+          regex: ^Mac\.getInstance\(
+  - any:
+    - kind: method_declaration
+      regex: (?s)(\n[ \t]*|=\s*|[(,]\s*|\b(return|await|yield|go|defer)\s+)(this\s*\.\s*)?[A-Za-z_]\w*\s*\(\s*((body|event|evt|payload|data)\b).*\b(constructEvent|validate|verify)\b
+min_engine: 0.39.0
+---
+# header-unread: a request header read by a name that is no literal: a variable, a member or a constant (B32p C6), so
+# it can't be checked against the providers' signature headers. Evidence: no pass while it is seen; never an object of
+# its own.
+id: inbound-webhooks-verified.java-spring.header-unread
+practice_id: inbound-webhooks-verified
+language: java
+frameworks:
+- spring
+kind: evidence
+rule:
+  any:
+  - kind: method_invocation
+    regex: (?i)^\w*(request|headers?)\w*\s*\.\s*(getHeader|getHeaders|getFirst)\s*\(\s*[A-Za-z_]
+  - kind: annotation
+    regex: ^@RequestHeader\(\s*((value|name)\s*=\s*)?[A-Za-z_]
+min_engine: 0.39.0
+---
+# session-gate: an entry handler whose first statement (or the one right after a first declaration of the lookup) is
+# an if that negates a user-session lookup from a known auth library alone and returns or throws (B32p 9.2). Evidence:
+# the entry is user-gated for the pass; never an object of its own.
+id: inbound-webhooks-verified.java-spring.session-gate
+practice_id: inbound-webhooks-verified
+language: java
+frameworks:
+- spring
+kind: evidence
+rule:
+  kind: if_statement
+  has:
+    field: consequence
+    any:
+    - kind: return_statement
+    - kind: throw_statement
+    - kind: block
+      has:
+        any:
+        - kind: return_statement
+        - kind: throw_statement
+  all:
+  - has:
+      field: condition
+      kind: parenthesized_expression
+      regex: ^\(\s*(SecurityContextHolder\s*\.\s*getContext\s*\(\s*\)\s*\.\s*getAuthentication\s*\(\s*\)|\w+\s*\.\s*getUserPrincipal\s*\(\s*\))\s*==\s*null\s*\)$
+  - inside:
+      kind: block
+      inside:
+        kind: method_declaration
+  - any:
+    - follows:
+        stopBy: neighbor
+        not:
+          follows:
+            stopBy: neighbor
+            any:
+            - any:
+              - kind: line_comment
+              - kind: block_comment
+            - not:
+                any:
+                - kind: line_comment
+                - kind: block_comment
+    - follows:
+        stopBy: neighbor
+        all:
+        - any:
+          - kind: line_comment
+          - kind: block_comment
+        - any:
+          - follows:
+              stopBy: neighbor
+              not:
+                follows:
+                  stopBy: neighbor
+                  any:
+                  - any:
+                    - kind: line_comment
+                    - kind: block_comment
+                  - not:
+                      any:
+                      - kind: line_comment
+                      - kind: block_comment
+          - follows:
+              stopBy: neighbor
+              all:
+              - any:
+                - kind: line_comment
+                - kind: block_comment
+              - any:
+                - follows:
+                    stopBy: neighbor
+                    not:
+                      follows:
+                        stopBy: neighbor
+                        any:
+                        - any:
+                          - kind: line_comment
+                          - kind: block_comment
+                        - not:
+                            any:
+                            - kind: line_comment
+                            - kind: block_comment
+                - follows:
+                    stopBy: neighbor
+                    all:
+                    - any:
+                      - kind: line_comment
+                      - kind: block_comment
+                    - follows:
+                        stopBy: neighbor
+                        not:
+                          follows:
+                            stopBy: neighbor
+                            any:
+                            - any:
+                              - kind: line_comment
+                              - kind: block_comment
+                            - not:
+                                any:
+                                - kind: line_comment
+                                - kind: block_comment
+min_engine: 0.39.0
+---
+# provider-stripe: an import of stripe's SDK (the practice's providers table). Evidence: the pass needs a verified
+# items-sdk handler for stripe (Q6).
+id: inbound-webhooks-verified.java-spring.provider-stripe
+practice_id: inbound-webhooks-verified
+language: java
+frameworks:
+- spring
+kind: evidence
+rule:
+  kind: import_declaration
+  regex: ^import\s+(static\s+)?(com\.stripe)\.
+min_engine: 0.39.0
+---
+# verified-stripe: an items-sdk handler (the same match, so the same path and line) whose control calls stripe's own
+# verify call; an instance call counts only beside a literal naming one of stripe's headers. Evidence: with the SDK
+# control, it shows stripe verified for the pass (Q6).
+id: inbound-webhooks-verified.java-spring.verified-stripe
+practice_id: inbound-webhooks-verified
+language: java
+frameworks:
+- spring
+kind: evidence
+rule:
+  all:
+  - all:
+    - kind: method_declaration
+      has:
+        kind: modifiers
+        has:
+          any:
+          - kind: annotation
+            regex: ^@(Get|Post|Put|Patch|Delete|Request)Mapping\b
+          - kind: marker_annotation
+            regex: ^@(Get|Post|Put|Patch|Delete|Request)Mapping\b
+    - any:
+      - has:
+          stopBy: end
+          kind: string_literal
+          regex: (?i)^"(stripe-signature|x-twilio-signature|svix-signature|x-hub-signature-256|x-hub-signature|webhook-signature)"$
+      - has:
+          stopBy: end
+          any:
+          - kind: method_invocation
+            has:
+              field: name
+              kind: identifier
+              regex: ^(constructEvent)$
+    - not:
+        has:
+          stopBy: end
+          kind: method_invocation
+          regex: ^Mac\.getInstance\(
+  - any:
+    - has:
+        stopBy: end
+        any:
+        - all:
+          - all:
+            - any:
+              - any:
+                - kind: method_invocation
+                  has:
+                    field: name
+                    kind: identifier
+                    regex: ^(constructEvent)$
+            - not:
+                any:
+                - inside:
+                    stopBy: end
+                    kind: block
+                    inside:
+                      kind: try_statement
+                      has:
+                        kind: catch_clause
+                        not:
+                          has:
+                            kind: block
+                            has:
+                              any:
+                              - kind: return_statement
+                              - kind: throw_statement
+          - not:
+              inside:
+                stopBy: end
+                any:
+                - kind: lambda_expression
+                - kind: method_declaration
+                  inside:
+                    stopBy: end
+                    kind: method_declaration
+min_engine: 0.39.0
+---
+# provider-twilio: an import of twilio's SDK (the practice's providers table). Evidence: the pass needs a verified
+# items-sdk handler for twilio (Q6).
+id: inbound-webhooks-verified.java-spring.provider-twilio
+practice_id: inbound-webhooks-verified
+language: java
+frameworks:
+- spring
+kind: evidence
+rule:
+  kind: import_declaration
+  regex: ^import\s+(static\s+)?(com\.twilio)\.
+min_engine: 0.39.0
+---
+# verified-twilio: an items-sdk handler (the same match, so the same path and line) whose control calls twilio's own
+# verify call; an instance call counts only beside a literal naming one of twilio's headers. Evidence: with the SDK
+# control, it shows twilio verified for the pass (Q6).
+id: inbound-webhooks-verified.java-spring.verified-twilio
+practice_id: inbound-webhooks-verified
+language: java
+frameworks:
+- spring
+kind: evidence
+rule:
+  all:
+  - all:
+    - kind: method_declaration
+      has:
+        kind: modifiers
+        has:
+          any:
+          - kind: annotation
+            regex: ^@(Get|Post|Put|Patch|Delete|Request)Mapping\b
+          - kind: marker_annotation
+            regex: ^@(Get|Post|Put|Patch|Delete|Request)Mapping\b
+    - any:
+      - has:
+          stopBy: end
+          kind: string_literal
+          regex: (?i)^"(stripe-signature|x-twilio-signature|svix-signature|x-hub-signature-256|x-hub-signature|webhook-signature)"$
+      - has:
+          stopBy: end
+          any:
+          - kind: method_invocation
+            has:
+              field: name
+              kind: identifier
+              regex: ^(constructEvent)$
+    - not:
+        has:
+          stopBy: end
+          kind: method_invocation
+          regex: ^Mac\.getInstance\(
+  - any:
+    - all:
+      - has:
+          stopBy: end
+          any:
+          - all:
+            - all:
+              - any:
+                - all:
+                  - any:
+                    - kind: method_invocation
+                      all:
+                      - has:
+                          field: object
+                          kind: identifier
+                          regex: (?i)^\w*(wh|webhooks?|svix|hook|validator)\w*$
+                      - has:
+                          field: name
+                          kind: identifier
+                          regex: ^(validate)$
+                  - inside:
+                      stopBy: end
+                      kind: program
+                      has:
+                        stopBy: end
+                        kind: import_declaration
+                        regex: ^import\s+(static\s+)?(com\.twilio|com\.twilio)\.
+              - any:
+                - inside:
+                    stopBy: end
+                    kind: unary_expression
+                    regex: ^!
+                    inside:
+                      kind: parenthesized_expression
+                      inside:
+                        kind: if_statement
+                        has:
+                          field: consequence
+                          any:
+                          - kind: return_statement
+                          - kind: throw_statement
+                          - kind: block
+                            has:
+                              any:
+                              - kind: return_statement
+                              - kind: throw_statement
+                - all:
+                  - inside:
+                      any:
+                      - kind: variable_declarator
+                      - kind: assignment_expression
+                  - any:
+                    - inside:
+                        stopBy: end
+                        kind: local_variable_declaration
+                        has:
+                          kind: variable_declarator
+                          pattern:
+                            context: class A { void f() { boolean $OK = $V; } }
+                            selector: variable_declarator
+                        precedes:
+                          kind: if_statement
+                          has:
+                            field: consequence
+                            any:
+                            - kind: return_statement
+                            - kind: throw_statement
+                            - kind: block
+                              has:
+                                any:
+                                - kind: return_statement
+                                - kind: throw_statement
+                          all:
+                          - has:
+                              field: condition
+                              has:
+                                kind: unary_expression
+                                pattern:
+                                  context: class A { void f() { if (!$OK) {} } }
+                                  selector: unary_expression
+                    - inside:
+                        stopBy: end
+                        kind: expression_statement
+                        has:
+                          kind: assignment_expression
+                          pattern:
+                            context: class A { void f() { $OK = $V; } }
+                            selector: assignment_expression
+                        precedes:
+                          kind: if_statement
+                          has:
+                            field: consequence
+                            any:
+                            - kind: return_statement
+                            - kind: throw_statement
+                            - kind: block
+                              has:
+                                any:
+                                - kind: return_statement
+                                - kind: throw_statement
+                          all:
+                          - has:
+                              field: condition
+                              has:
+                                kind: unary_expression
+                                pattern:
+                                  context: class A { void f() { if (!$OK) {} } }
+                                  selector: unary_expression
+            - not:
+                inside:
+                  stopBy: end
+                  any:
+                  - kind: lambda_expression
+                  - kind: method_declaration
+                    inside:
+                      stopBy: end
+                      kind: method_declaration
+      - has:
+          stopBy: end
+          any:
+          - kind: string_literal
+            regex: (?i)(X-Twilio-Signature)
+min_engine: 0.39.0
+---
+# provider-svix: an import of svix's SDK (the practice's providers table). Evidence: the pass needs a verified
+# items-sdk handler for svix (Q6).
+id: inbound-webhooks-verified.java-spring.provider-svix
+practice_id: inbound-webhooks-verified
+language: java
+frameworks:
+- spring
+kind: evidence
+rule:
+  kind: import_declaration
+  regex: ^import\s+(static\s+)?(com\.svix)\.
+min_engine: 0.39.0
+---
+# verified-svix: an items-sdk handler (the same match, so the same path and line) whose control calls svix's own
+# verify call; an instance call counts only beside a literal naming one of svix's headers. Evidence: with the SDK
+# control, it shows svix verified for the pass (Q6).
+id: inbound-webhooks-verified.java-spring.verified-svix
+practice_id: inbound-webhooks-verified
+language: java
+frameworks:
+- spring
+kind: evidence
+rule:
+  all:
+  - all:
+    - kind: method_declaration
+      has:
+        kind: modifiers
+        has:
+          any:
+          - kind: annotation
+            regex: ^@(Get|Post|Put|Patch|Delete|Request)Mapping\b
+          - kind: marker_annotation
+            regex: ^@(Get|Post|Put|Patch|Delete|Request)Mapping\b
+    - any:
+      - has:
+          stopBy: end
+          kind: string_literal
+          regex: (?i)^"(stripe-signature|x-twilio-signature|svix-signature|x-hub-signature-256|x-hub-signature|webhook-signature)"$
+      - has:
+          stopBy: end
+          any:
+          - kind: method_invocation
+            has:
+              field: name
+              kind: identifier
+              regex: ^(constructEvent)$
+    - not:
+        has:
+          stopBy: end
+          kind: method_invocation
+          regex: ^Mac\.getInstance\(
+  - any:
+    - all:
+      - has:
+          stopBy: end
+          any:
+          - all:
+            - all:
+              - any:
+                - all:
+                  - any:
+                    - kind: method_invocation
+                      all:
+                      - has:
+                          field: object
+                          kind: identifier
+                          regex: (?i)^\w*(wh|webhooks?|svix|hook|validator)\w*$
+                      - has:
+                          field: name
+                          kind: identifier
+                          regex: ^(verify)$
+                  - inside:
+                      stopBy: end
+                      kind: program
+                      has:
+                        stopBy: end
+                        kind: import_declaration
+                        regex: ^import\s+(static\s+)?(com\.svix|com\.svix)\.
+              - not:
+                  any:
+                  - inside:
+                      stopBy: end
+                      kind: block
+                      inside:
+                        kind: try_statement
+                        has:
+                          kind: catch_clause
+                          not:
+                            has:
+                              kind: block
+                              has:
+                                any:
+                                - kind: return_statement
+                                - kind: throw_statement
+            - not:
+                inside:
+                  stopBy: end
+                  any:
+                  - kind: lambda_expression
+                  - kind: method_declaration
+                    inside:
+                      stopBy: end
+                      kind: method_declaration
+      - has:
+          stopBy: end
+          any:
+          - kind: string_literal
+            regex: (?i)(svix-signature)
+min_engine: 0.39.0
+---
+# provider-plaid: an import of plaid's SDK (the practice's providers table). Evidence: the pass needs a verified
+# items-sdk handler for plaid (Q6).
+id: inbound-webhooks-verified.java-spring.provider-plaid
+practice_id: inbound-webhooks-verified
+language: java
+frameworks:
+- spring
+kind: evidence
+rule:
+  kind: import_declaration
+  regex: ^import\s+(static\s+)?(com\.plaid)\.
+min_engine: 0.39.0

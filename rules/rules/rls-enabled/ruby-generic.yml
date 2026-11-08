@@ -1,0 +1,48 @@
+# Candidates for one scoped data-access layer (read only where row-level security is off on a patient table): a
+# default_scope whose where names a tenant, owner or user key, acts_as_tenant, or a Pundit policy Scope whose resolve
+# filters on the user. A candidate never passes the practice (needs_review); with none, RLS off fails.
+id: rls-enabled.ruby-generic.scoped-layer
+practice_id: rls-enabled
+language: ruby
+frameworks:
+- generic
+kind: evidence
+rule:
+  any:
+  - kind: call
+    regex: '^default_scope\b'
+    has:
+      stopBy: end
+      kind: call
+      regex: '^where\b'
+      has:
+        stopBy: end
+        any:
+        - kind: hash_key_symbol
+          regex: '(?i)tenant|owner|user_?id|userId|account_?id|org(anization)?_?id|clinic_?id|practice_?id|current_?user|principal'
+        - kind: simple_symbol
+          regex: '(?i)tenant|owner|user_?id|userId|account_?id|org(anization)?_?id|clinic_?id|practice_?id|current_?user|principal'
+  - kind: call
+    regex: '^acts_as_tenant\b'
+  - kind: method
+    all:
+    - has:
+        field: name
+        kind: identifier
+        regex: '^resolve$'
+    - inside:
+        kind: class
+        stopBy: end
+        has:
+          field: name
+          kind: constant
+          regex: '^Scope$'
+    - has:
+        stopBy: end
+        kind: call
+        regex: '\bwhere\b'
+        has:
+          stopBy: end
+          kind: identifier
+          regex: '^user$'
+min_engine: 0.39.0

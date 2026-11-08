@@ -1,0 +1,11 @@
+id: audit-log-append-only.java-generic.sql-mutation
+practice_id: audit-log-append-only
+language: java
+frameworks:
+- generic
+kind: violation
+rule:
+  any:
+  - kind: string_literal
+    regex: '(?i)(?:\bdelete\s+from\s+(?:[`\x22]?\w+[`\x22]?\.)?[`\x22]?(?:\w*audit\w*|\w*access_logs?|\w*security_logs?|\w*security_events?|activity_logs?|extended_log|api_log|log)[`\x22]?(?:[\s;)''\x22`]|$)|\bupdate\s+(?:[`\x22]?\w+[`\x22]?\.)?[`\x22]?(?:\w*audit\w*|\w*access_logs?|\w*security_logs?|\w*security_events?|activity_logs?|extended_log|api_log|log)[`\x22]?\s+set\b|\btruncate(?:\s+table)?(?:\s+only)?\s+(?:[`\x22]?\w+[`\x22]?\.)?[`\x22]?(?:\w*audit\w*|\w*access_logs?|\w*security_logs?|\w*security_events?|activity_logs?|extended_log|api_log|log)[`\x22]?(?:[\s;,)''\x22`]|$))'
+min_engine: 0.45.3

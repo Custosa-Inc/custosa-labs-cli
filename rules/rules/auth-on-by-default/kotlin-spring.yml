@@ -1,0 +1,439 @@
+# Auth that a missing setting turns off (T23 B56d). Written by
+# scripts/gen_auth_default_rules.py: don't edit. The practice is capped at needs_review.
+id: auth-on-by-default.kotlin-spring.conditional-open-default
+practice_id: auth-on-by-default
+language: kotlin
+frameworks:
+- spring
+kind: violation
+rule:
+  any:
+  - kind: class_declaration
+    all:
+    - &id005
+      has:
+        kind: modifiers
+        has:
+          kind: annotation
+          regex: (?s)^@ConditionalOnProperty\b.*\bmatchIfMissing\s*=\s*true\b
+    - &id006
+      any:
+      - has:
+          stopBy: end
+          kind: call_expression
+          regex: anyRequest\s*\(\s*\)\s*\.\s*permitAll\s*\(|authorize\s*\(\s*anyRequest\s*,\s*permitAll\s*\)|anyRequest\s*\(\s*\)\s*\.\s*anonymous\s*\(|requestMatchers\s*\(\s*\"/\*\*\"\s*\)\s*\.\s*permitAll\s*\(|authorize\s*\(\s*\"/\*\*\"\s*,\s*permitAll\s*\)|ignoring\s*\(\s*\)\s*\.\s*anyRequest\s*\(|ignoring\s*\(\s*\)\s*\.\s*(requestMatchers|antMatchers|mvcMatchers)\s*\(\s*\"/\*\*\"\s*\)
+      - any:
+        - kind: function_declaration
+          all:
+          - any:
+            - has:
+                kind: user_type
+                regex: (^|\.)\w*(SecurityFilterChain|HttpSecurity|SecurityWebFilterChain)$
+            - all:
+              - has:
+                  kind: simple_identifier
+                  regex: ^configure$
+              - &id001
+                has:
+                  kind: function_value_parameters
+                  has:
+                    kind: parameter
+                    all:
+                    - has:
+                        kind: user_type
+                        regex: (^|\.)(Server)?HttpSecurity$
+                    - pattern:
+                        context: 'fun f($HTTP: $_T) {}'
+                        selector: parameter
+            - all:
+              - *id001
+              - any:
+                - has:
+                    stopBy: end
+                    kind: call_expression
+                    regex: \.\s*build\s*\(\s*\)$
+                    has:
+                      stopBy: end
+                      kind: navigation_expression
+                      pattern: $HTTP.$_M
+                - all:
+                  - has:
+                      stopBy: end
+                      kind: call_expression
+                      regex: \.\s*build\s*\(\s*\)$
+                      has:
+                        stopBy: end
+                        kind: navigation_expression
+                        pattern: $LOCAL.$_M
+                  - has:
+                      stopBy: end
+                      kind: property_declaration
+                      any:
+                      - pattern:
+                          context: fun f() { val $LOCAL = $HTTP }
+                          selector: property_declaration
+                      - pattern:
+                          context: 'fun f() { val $LOCAL: $_TY = $HTTP }'
+                          selector: property_declaration
+                      - pattern:
+                          context: fun f() { var $LOCAL = $HTTP }
+                          selector: property_declaration
+                      - pattern:
+                          context: 'fun f() { var $LOCAL: $_TY = $HTTP }'
+                          selector: property_declaration
+                      - all:
+                        - any:
+                          - pattern:
+                              context: fun f() { val $LOCAL = $V }
+                              selector: property_declaration
+                          - pattern:
+                              context: 'fun f() { val $LOCAL: $_TY = $V }'
+                              selector: property_declaration
+                          - pattern:
+                              context: fun f() { var $LOCAL = $V }
+                              selector: property_declaration
+                          - pattern:
+                              context: 'fun f() { var $LOCAL: $_TY = $V }'
+                              selector: property_declaration
+                        - has:
+                            stopBy: end
+                            kind: navigation_expression
+                            pattern: $HTTP.$_M
+                - has:
+                    kind: modifiers
+                    has:
+                      kind: annotation
+                      regex: ^@Bean\b
+          - &id004
+            not:
+              has:
+                stopBy: end
+                kind: call_expression
+                regex: \.\s*authenticated\s*\(|authorize\s*\(\s*anyRequest\s*,\s*authenticated\s*\)|\.\s*(fullyAuthenticated|hasRole|hasAnyRole|hasAuthority|hasAnyAuthority|access)\s*\(|authorize\s*\([^)]*,\s*(authenticated|fullyAuthenticated|hasRole|hasAnyRole|hasAuthority|hasAnyAuthority)\b
+                any:
+                - has: &id002
+                    any:
+                    - kind: simple_identifier
+                      regex: ^authorize\w*$
+                    - kind: navigation_expression
+                      regex: \.\s*authorize\w*$
+                - inside:
+                    stopBy: end
+                    kind: call_expression
+                    has: *id002
+                - has:
+                    stopBy: end
+                    kind: call_expression
+                    has: *id002
+        - has:
+            stopBy: end
+            kind: function_declaration
+            all:
+            - any:
+              - has:
+                  kind: user_type
+                  regex: (^|\.)\w*(SecurityFilterChain|HttpSecurity|SecurityWebFilterChain)$
+              - all:
+                - has:
+                    kind: simple_identifier
+                    regex: ^configure$
+                - &id003
+                  has:
+                    kind: function_value_parameters
+                    has:
+                      kind: parameter
+                      all:
+                      - has:
+                          kind: user_type
+                          regex: (^|\.)(Server)?HttpSecurity$
+                      - pattern:
+                          context: 'fun f($HTTP: $_T) {}'
+                          selector: parameter
+              - all:
+                - *id003
+                - any:
+                  - has:
+                      stopBy: end
+                      kind: call_expression
+                      regex: \.\s*build\s*\(\s*\)$
+                      has:
+                        stopBy: end
+                        kind: navigation_expression
+                        pattern: $HTTP.$_M
+                  - all:
+                    - has:
+                        stopBy: end
+                        kind: call_expression
+                        regex: \.\s*build\s*\(\s*\)$
+                        has:
+                          stopBy: end
+                          kind: navigation_expression
+                          pattern: $LOCAL.$_M
+                    - has:
+                        stopBy: end
+                        kind: property_declaration
+                        any:
+                        - pattern:
+                            context: fun f() { val $LOCAL = $HTTP }
+                            selector: property_declaration
+                        - pattern:
+                            context: 'fun f() { val $LOCAL: $_TY = $HTTP }'
+                            selector: property_declaration
+                        - pattern:
+                            context: fun f() { var $LOCAL = $HTTP }
+                            selector: property_declaration
+                        - pattern:
+                            context: 'fun f() { var $LOCAL: $_TY = $HTTP }'
+                            selector: property_declaration
+                        - all:
+                          - any:
+                            - pattern:
+                                context: fun f() { val $LOCAL = $V }
+                                selector: property_declaration
+                            - pattern:
+                                context: 'fun f() { val $LOCAL: $_TY = $V }'
+                                selector: property_declaration
+                            - pattern:
+                                context: fun f() { var $LOCAL = $V }
+                                selector: property_declaration
+                            - pattern:
+                                context: 'fun f() { var $LOCAL: $_TY = $V }'
+                                selector: property_declaration
+                          - has:
+                              stopBy: end
+                              kind: navigation_expression
+                              pattern: $HTTP.$_M
+                  - has:
+                      kind: modifiers
+                      has:
+                        kind: annotation
+                        regex: ^@Bean\b
+            - *id004
+  - kind: function_declaration
+    all:
+    - *id005
+    - *id006
+min_engine: 0.39.0
+---
+id: auth-on-by-default.kotlin-spring.conditional-secure-off
+practice_id: auth-on-by-default
+language: kotlin
+frameworks:
+- spring
+kind: violation
+rule:
+  any:
+  - kind: class_declaration
+    all:
+    - &id006
+      any:
+      - has:
+          kind: modifiers
+          has:
+            kind: annotation
+            regex: (?s)^@ConditionalOnProperty\b.*\bhavingValue\s*=\s*\"(?i:true|on|yes|1|enabled)\"
+            not: &id001
+              regex: (?s)^@ConditionalOnProperty\b.*\bmatchIfMissing\s*=\s*true\b
+              kind: annotation
+      - has:
+          kind: modifiers
+          has:
+            kind: annotation
+            regex: ^@ConditionalOnProperty\b
+            all:
+            - not: *id001
+            - not:
+                regex: \bhavingValue\b
+                kind: annotation
+    - &id007
+      any:
+      - kind: function_declaration
+        all:
+        - any:
+          - has:
+              kind: user_type
+              regex: (^|\.)\w*(SecurityFilterChain|HttpSecurity|SecurityWebFilterChain)$
+          - all:
+            - has:
+                kind: simple_identifier
+                regex: ^configure$
+            - &id002
+              has:
+                kind: function_value_parameters
+                has:
+                  kind: parameter
+                  all:
+                  - has:
+                      kind: user_type
+                      regex: (^|\.)(Server)?HttpSecurity$
+                  - pattern:
+                      context: 'fun f($HTTP: $_T) {}'
+                      selector: parameter
+          - all:
+            - *id002
+            - any:
+              - has:
+                  stopBy: end
+                  kind: call_expression
+                  regex: \.\s*build\s*\(\s*\)$
+                  has:
+                    stopBy: end
+                    kind: navigation_expression
+                    pattern: $HTTP.$_M
+              - all:
+                - has:
+                    stopBy: end
+                    kind: call_expression
+                    regex: \.\s*build\s*\(\s*\)$
+                    has:
+                      stopBy: end
+                      kind: navigation_expression
+                      pattern: $LOCAL.$_M
+                - has:
+                    stopBy: end
+                    kind: property_declaration
+                    any:
+                    - pattern:
+                        context: fun f() { val $LOCAL = $HTTP }
+                        selector: property_declaration
+                    - pattern:
+                        context: 'fun f() { val $LOCAL: $_TY = $HTTP }'
+                        selector: property_declaration
+                    - pattern:
+                        context: fun f() { var $LOCAL = $HTTP }
+                        selector: property_declaration
+                    - pattern:
+                        context: 'fun f() { var $LOCAL: $_TY = $HTTP }'
+                        selector: property_declaration
+                    - all:
+                      - any:
+                        - pattern:
+                            context: fun f() { val $LOCAL = $V }
+                            selector: property_declaration
+                        - pattern:
+                            context: 'fun f() { val $LOCAL: $_TY = $V }'
+                            selector: property_declaration
+                        - pattern:
+                            context: fun f() { var $LOCAL = $V }
+                            selector: property_declaration
+                        - pattern:
+                            context: 'fun f() { var $LOCAL: $_TY = $V }'
+                            selector: property_declaration
+                      - has:
+                          stopBy: end
+                          kind: navigation_expression
+                          pattern: $HTTP.$_M
+              - has:
+                  kind: modifiers
+                  has:
+                    kind: annotation
+                    regex: ^@Bean\b
+        - &id005
+          has:
+            stopBy: end
+            kind: call_expression
+            regex: \.\s*authenticated\s*\(|authorize\s*\(\s*anyRequest\s*,\s*authenticated\s*\)|\.\s*(fullyAuthenticated|hasRole|hasAnyRole|hasAuthority|hasAnyAuthority|access)\s*\(|authorize\s*\([^)]*,\s*(authenticated|fullyAuthenticated|hasRole|hasAnyRole|hasAuthority|hasAnyAuthority)\b
+            any:
+            - has: &id003
+                any:
+                - kind: simple_identifier
+                  regex: ^authorize\w*$
+                - kind: navigation_expression
+                  regex: \.\s*authorize\w*$
+            - inside:
+                stopBy: end
+                kind: call_expression
+                has: *id003
+            - has:
+                stopBy: end
+                kind: call_expression
+                has: *id003
+      - has:
+          stopBy: end
+          kind: function_declaration
+          all:
+          - any:
+            - has:
+                kind: user_type
+                regex: (^|\.)\w*(SecurityFilterChain|HttpSecurity|SecurityWebFilterChain)$
+            - all:
+              - has:
+                  kind: simple_identifier
+                  regex: ^configure$
+              - &id004
+                has:
+                  kind: function_value_parameters
+                  has:
+                    kind: parameter
+                    all:
+                    - has:
+                        kind: user_type
+                        regex: (^|\.)(Server)?HttpSecurity$
+                    - pattern:
+                        context: 'fun f($HTTP: $_T) {}'
+                        selector: parameter
+            - all:
+              - *id004
+              - any:
+                - has:
+                    stopBy: end
+                    kind: call_expression
+                    regex: \.\s*build\s*\(\s*\)$
+                    has:
+                      stopBy: end
+                      kind: navigation_expression
+                      pattern: $HTTP.$_M
+                - all:
+                  - has:
+                      stopBy: end
+                      kind: call_expression
+                      regex: \.\s*build\s*\(\s*\)$
+                      has:
+                        stopBy: end
+                        kind: navigation_expression
+                        pattern: $LOCAL.$_M
+                  - has:
+                      stopBy: end
+                      kind: property_declaration
+                      any:
+                      - pattern:
+                          context: fun f() { val $LOCAL = $HTTP }
+                          selector: property_declaration
+                      - pattern:
+                          context: 'fun f() { val $LOCAL: $_TY = $HTTP }'
+                          selector: property_declaration
+                      - pattern:
+                          context: fun f() { var $LOCAL = $HTTP }
+                          selector: property_declaration
+                      - pattern:
+                          context: 'fun f() { var $LOCAL: $_TY = $HTTP }'
+                          selector: property_declaration
+                      - all:
+                        - any:
+                          - pattern:
+                              context: fun f() { val $LOCAL = $V }
+                              selector: property_declaration
+                          - pattern:
+                              context: 'fun f() { val $LOCAL: $_TY = $V }'
+                              selector: property_declaration
+                          - pattern:
+                              context: fun f() { var $LOCAL = $V }
+                              selector: property_declaration
+                          - pattern:
+                              context: 'fun f() { var $LOCAL: $_TY = $V }'
+                              selector: property_declaration
+                        - has:
+                            stopBy: end
+                            kind: navigation_expression
+                            pattern: $HTTP.$_M
+                - has:
+                    kind: modifiers
+                    has:
+                      kind: annotation
+                      regex: ^@Bean\b
+          - *id005
+  - kind: function_declaration
+    all:
+    - *id006
+    - *id007
+min_engine: 0.39.0

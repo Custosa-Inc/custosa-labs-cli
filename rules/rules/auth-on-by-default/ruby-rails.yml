@@ -1,0 +1,202 @@
+# Auth that a missing setting turns off (T23 B56d). Written by
+# scripts/gen_auth_default_rules.py: don't edit. The practice is capped at needs_review.
+id: auth-on-by-default.ruby-rails.off-when-unset
+practice_id: auth-on-by-default
+language: ruby
+frameworks:
+- rails
+kind: violation
+rule:
+  any:
+  - kind: binary
+    all:
+    - has:
+        stopBy: end
+        any:
+        - kind: call
+          all: &id001
+          - has:
+              field: receiver
+              kind: constant
+              regex: ^ENV$
+          - has:
+              field: method
+              kind: identifier
+              regex: ^fetch$
+          has:
+            kind: argument_list
+            regex: ^\(\s*["'](?i:(AUTH|AUTHENTICATION|SECURITY)_(ENABLED|REQUIRED|ON)|(ENABLE|REQUIRE)_AUTH(ENTICATION)?)["']\s*\)$
+        - kind: call
+          all: *id001
+          has:
+            kind: argument_list
+            regex: ^\(\s*["'](?i:(AUTH|AUTHENTICATION|SECURITY)_(ENABLED|REQUIRED|ON)|(ENABLE|REQUIRE)_AUTH(ENTICATION)?)["']\s*,\s*(default\s*=\s*)?(["'](?i:false|0|no|off|disabled|)["']|False|false|0)\s*[,)]|^\(\s*["'](?i:(AUTH|AUTHENTICATION|SECURITY)_(ENABLED|REQUIRED|ON)|(ENABLE|REQUIRE)_AUTH(ENTICATION)?)["']\s*,[\s\S]*\bdefault\s*=\s*(["'](?i:false|0|no|off|disabled|)["']|False|false|0)\s*[,)]
+        - kind: element_reference
+          regex: ^ENV\s*\[\s*["'](?i:(AUTH|AUTHENTICATION|SECURITY)_(ENABLED|REQUIRED|ON)|(ENABLE|REQUIRE)_AUTH(ENTICATION)?)["']\s*\]$
+    - has:
+        any:
+        - kind: string
+          regex: ^["'](?i:true|1|yes|on|enabled)["']$
+  - kind: binary
+    all:
+    - has:
+        stopBy: end
+        any:
+        - kind: call
+          all: *id001
+          has:
+            kind: argument_list
+            regex: ^\(\s*["'](?i:(DISABLE|SKIP|NO)_AUTH(ENTICATION)?|AUTH_DISABLED)["']\s*\)$
+        - kind: call
+          all: *id001
+          has:
+            kind: argument_list
+            regex: ^\(\s*["'](?i:(DISABLE|SKIP|NO)_AUTH(ENTICATION)?|AUTH_DISABLED)["']\s*,\s*(default\s*=\s*)?(["'](?i:false|0|no|off|disabled|)["']|False|false|0)\s*[,)]|^\(\s*["'](?i:(DISABLE|SKIP|NO)_AUTH(ENTICATION)?|AUTH_DISABLED)["']\s*,[\s\S]*\bdefault\s*=\s*(["'](?i:false|0|no|off|disabled|)["']|False|false|0)\s*[,)]
+        - kind: element_reference
+          regex: ^ENV\s*\[\s*["'](?i:(DISABLE|SKIP|NO)_AUTH(ENTICATION)?|AUTH_DISABLED)["']\s*\]$
+    - has:
+        any:
+        - kind: string
+          regex: ^(["'](?i:false|0|no|off|disabled|)["']|False|false|0)$
+  - kind: call
+    all: *id001
+    has:
+      kind: argument_list
+      regex: ^\(\s*["'](?i:(AUTH|AUTHENTICATION|SECURITY)_(ENABLED|REQUIRED|ON)|(ENABLE|REQUIRE)_AUTH(ENTICATION)?)["']\s*,\s*(default\s*=\s*)?(["'](?i:false|0|no|off|disabled|)["']|False|false|0)\s*[,)]|^\(\s*["'](?i:(AUTH|AUTHENTICATION|SECURITY)_(ENABLED|REQUIRED|ON)|(ENABLE|REQUIRE)_AUTH(ENTICATION)?)["']\s*,[\s\S]*\bdefault\s*=\s*(["'](?i:false|0|no|off|disabled|)["']|False|false|0)\s*[,)]
+  - kind: call
+    all: *id001
+    has:
+      kind: argument_list
+      regex: ^\(\s*["'](?i:(DISABLE|SKIP|NO)_AUTH(ENTICATION)?|AUTH_DISABLED)["']\s*,\s*(default\s*=\s*)?["'](?i:true|1|yes|on|enabled)["']\s*[,)]|^\(\s*["'](?i:(DISABLE|SKIP|NO)_AUTH(ENTICATION)?|AUTH_DISABLED)["']\s*,[\s\S]*\bdefault\s*=\s*["'](?i:true|1|yes|on|enabled)["']\s*[,)]
+  - kind: call
+    all: *id001
+    has:
+      kind: argument_list
+      regex: ^\(\s*["'](?i:AUTH_(MODE|TYPE))["']\s*,\s*(default\s*=\s*)?["'](?i:none|off|disabled|noauth|no-auth|anonymous|public)["']\s*[,)]|^\(\s*["'](?i:AUTH_(MODE|TYPE))["']\s*,[\s\S]*\bdefault\s*=\s*["'](?i:none|off|disabled|noauth|no-auth|anonymous|public)["']\s*[,)]
+min_engine: 0.39.0
+---
+id: auth-on-by-default.ruby-rails.bypass-flag
+practice_id: auth-on-by-default
+language: ruby
+frameworks:
+- rails
+kind: evidence
+rule:
+  any:
+  - kind: binary
+    all:
+    - has:
+        stopBy: end
+        any:
+        - kind: call
+          all: &id001
+          - has:
+              field: receiver
+              kind: constant
+              regex: ^ENV$
+          - has:
+              field: method
+              kind: identifier
+              regex: ^fetch$
+          has:
+            kind: argument_list
+            regex: ^\(\s*["'](?i:(DISABLE|SKIP|NO)_AUTH(ENTICATION)?|AUTH_DISABLED)["']\s*\)$
+        - kind: call
+          all: *id001
+          has:
+            kind: argument_list
+            regex: ^\(\s*["'](?i:(DISABLE|SKIP|NO)_AUTH(ENTICATION)?|AUTH_DISABLED)["']\s*,\s*(default\s*=\s*)?(["'](?i:false|0|no|off|disabled|)["']|False|false|0)\s*[,)]|^\(\s*["'](?i:(DISABLE|SKIP|NO)_AUTH(ENTICATION)?|AUTH_DISABLED)["']\s*,[\s\S]*\bdefault\s*=\s*(["'](?i:false|0|no|off|disabled|)["']|False|false|0)\s*[,)]
+        - kind: element_reference
+          regex: ^ENV\s*\[\s*["'](?i:(DISABLE|SKIP|NO)_AUTH(ENTICATION)?|AUTH_DISABLED)["']\s*\]$
+    - has:
+        any:
+        - kind: string
+          regex: ^["'](?i:true|1|yes|on|enabled)["']$
+  - kind: binary
+    all:
+    - has:
+        stopBy: end
+        any:
+        - kind: call
+          all: *id001
+          has:
+            kind: argument_list
+            regex: ^\(\s*["'](?i:(AUTH|AUTHENTICATION|SECURITY)_(ENABLED|REQUIRED|ON)|(ENABLE|REQUIRE)_AUTH(ENTICATION)?)["']\s*\)$
+        - kind: call
+          all: *id001
+          has:
+            kind: argument_list
+            regex: ^\(\s*["'](?i:(AUTH|AUTHENTICATION|SECURITY)_(ENABLED|REQUIRED|ON)|(ENABLE|REQUIRE)_AUTH(ENTICATION)?)["']\s*,\s*(default\s*=\s*)?(["'](?i:false|0|no|off|disabled|)["']|False|false|0)\s*[,)]|^\(\s*["'](?i:(AUTH|AUTHENTICATION|SECURITY)_(ENABLED|REQUIRED|ON)|(ENABLE|REQUIRE)_AUTH(ENTICATION)?)["']\s*,[\s\S]*\bdefault\s*=\s*(["'](?i:false|0|no|off|disabled|)["']|False|false|0)\s*[,)]
+        - kind: element_reference
+          regex: ^ENV\s*\[\s*["'](?i:(AUTH|AUTHENTICATION|SECURITY)_(ENABLED|REQUIRED|ON)|(ENABLE|REQUIRE)_AUTH(ENTICATION)?)["']\s*\]$
+    - has:
+        any:
+        - kind: string
+          regex: ^(["'](?i:false|0|no|off|disabled|)["']|False|false|0)$
+min_engine: 0.39.0
+---
+id: auth-on-by-default.ruby-rails.skip-auth-app
+practice_id: auth-on-by-default
+language: ruby
+frameworks:
+- rails
+kind: violation
+rule:
+  kind: call
+  all:
+  - has:
+      field: method
+      kind: identifier
+      regex: ^skip_before_action$
+  - has:
+      field: arguments
+      regex: ^\(?\s*:authenticate_\w+!?
+      kind: argument_list
+  - not:
+      has:
+        field: arguments
+        kind: argument_list
+        regex: '\b(only|if|unless)\s*:'
+  - inside:
+      stopBy: end
+      kind: class
+      has:
+        field: name
+        kind: constant
+        regex: ^ApplicationController$
+min_engine: 0.39.0
+---
+id: auth-on-by-default.ruby-rails.bypass-flag-skip-auth
+practice_id: auth-on-by-default
+language: ruby
+frameworks:
+- rails
+kind: evidence
+rule:
+  kind: call
+  all:
+  - has:
+      field: method
+      kind: identifier
+      regex: ^skip_before_action$
+  - has:
+      field: arguments
+      regex: ^\(?\s*:authenticate_\w+!?
+      kind: argument_list
+  - has:
+      field: arguments
+      kind: argument_list
+      regex: '\b(if|unless)\s*:'
+  - not:
+      has:
+        field: arguments
+        kind: argument_list
+        regex: '\bonly\s*:'
+  - inside:
+      stopBy: end
+      kind: class
+      has:
+        field: name
+        kind: constant
+        regex: ^ApplicationController$
+min_engine: 0.39.0

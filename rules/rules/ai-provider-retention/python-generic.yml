@@ -1,0 +1,133 @@
+id: ai-provider-retention.python-generic.responses-store
+practice_id: ai-provider-retention
+language: python
+frameworks:
+- generic
+kind: items
+rule:
+  all:
+  - kind: call
+  - has:
+      field: function
+      kind: attribute
+      regex: '\.responses\.(create|stream|parse)$'
+  - not:
+      has:
+        field: arguments
+        kind: argument_list
+        any:
+        - has:
+            kind: dictionary_splat
+        - has:
+            kind: keyword_argument
+            all:
+            - has:
+                field: name
+                kind: identifier
+                regex: '^store$'
+            - not:
+                has:
+                  field: value
+                  any:
+                  - kind: 'true'
+                  - kind: 'false'
+control:
+  has:
+    field: arguments
+    kind: argument_list
+    has:
+      kind: keyword_argument
+      all:
+      - has:
+          field: name
+          kind: identifier
+          regex: '^store$'
+      - has:
+          field: value
+          kind: 'false'
+min_engine: 0.45.3
+---
+id: ai-provider-retention.python-generic.store-on
+practice_id: ai-provider-retention
+language: python
+frameworks:
+- generic
+kind: violation
+rule:
+  all:
+  - kind: keyword_argument
+  - any:
+    - all:
+      - has:
+          field: name
+          kind: identifier
+          regex: '^store$'
+      - has:
+          field: value
+          kind: 'true'
+    - has:
+        field: name
+        kind: identifier
+        regex: '^(previous_response_id|conversation)$'
+  - inside:
+      kind: argument_list
+      inside:
+        kind: call
+        has:
+          field: function
+          kind: attribute
+          regex: '\.(responses\.(create|stream|parse)|chat\.completions\.(create|stream|parse))$'
+min_engine: 0.45.3
+---
+id: ai-provider-retention.python-generic.stateful-endpoint
+practice_id: ai-provider-retention
+language: python
+frameworks:
+- generic
+kind: violation
+rule:
+  all:
+  - kind: call
+  - has:
+      field: function
+      kind: attribute
+      regex: '^(openai|client|oai|openai_client|self\.client|self\.openai)\.(files\.create|uploads\.create|batches\.create)$|\.(beta\.)?(threads|assistants|vector_stores)\.\w+$|\.conversations\.create$'
+min_engine: 0.45.3
+---
+id: ai-provider-retention.python-generic.gemini-developer-api
+practice_id: ai-provider-retention
+language: python
+frameworks:
+- generic
+kind: violation
+rule:
+  any:
+  - all:
+    - kind: call
+    - has:
+        field: function
+        kind: attribute
+        regex: '^genai\.configure$'
+  - all:
+    - kind: call
+    - has:
+        field: function
+        kind: attribute
+        regex: '^genai\.Client$'
+    - not:
+        has:
+          field: arguments
+          kind: argument_list
+          has:
+            kind: keyword_argument
+            all:
+            - has:
+                field: name
+                kind: identifier
+                regex: '^vertexai$'
+            - has:
+                field: value
+                kind: 'true'
+  - kind: string
+    regex: '^f?[''"]https://generativelanguage\.googleapis\.com/'
+min_engine: 0.45.3

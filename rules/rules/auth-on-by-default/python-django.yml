@@ -1,0 +1,100 @@
+# Auth that a missing setting turns off (T23 B56d). Written by
+# scripts/gen_auth_default_rules.py: don't edit. The practice is capped at needs_review.
+id: auth-on-by-default.python-django.drf-allow-any
+practice_id: auth-on-by-default
+language: python
+frameworks:
+- django
+kind: violation
+rule:
+  any:
+  - kind: pair
+    all:
+    - has:
+        field: key
+        kind: string
+        regex: ^["']DEFAULT_PERMISSION_CLASSES["']$
+    - has:
+        field: value
+        any: &id001
+        - has:
+            stopBy: end
+            kind: string
+            regex: AllowAny
+        - has:
+            stopBy: end
+            kind: identifier
+            regex: ^AllowAny$
+        - kind: list
+          regex: ^\[\s*\]$
+        - kind: tuple
+          regex: ^\(\s*\)$
+    - inside:
+        kind: dictionary
+        inside: &id002
+          kind: assignment
+          has:
+            field: left
+            kind: identifier
+            regex: ^REST_FRAMEWORK$
+  - kind: keyword_argument
+    all:
+    - has:
+        field: name
+        kind: identifier
+        regex: ^DEFAULT_PERMISSION_CLASSES$
+    - has:
+        field: value
+        any: *id001
+    - inside:
+        kind: argument_list
+        inside:
+          kind: call
+          all:
+          - has:
+              field: function
+              kind: identifier
+              regex: ^dict$
+          - inside: *id002
+min_engine: 0.39.0
+---
+id: auth-on-by-default.python-django.drf-default-unset
+practice_id: auth-on-by-default
+language: python
+frameworks:
+- django
+kind: evidence
+rule:
+  any:
+  - kind: dictionary
+    all:
+    - inside: &id001
+        kind: assignment
+        has:
+          field: left
+          kind: identifier
+          regex: ^REST_FRAMEWORK$
+    - not:
+        has:
+          kind: pair
+          has:
+            field: key
+            kind: string
+            regex: ^["']DEFAULT_PERMISSION_CLASSES["']$
+  - kind: call
+    all:
+    - has:
+        field: function
+        kind: identifier
+        regex: ^dict$
+    - inside: *id001
+    not:
+      has:
+        field: arguments
+        has:
+          kind: keyword_argument
+          has:
+            field: name
+            kind: identifier
+            regex: ^DEFAULT_PERMISSION_CLASSES$
+min_engine: 0.39.0

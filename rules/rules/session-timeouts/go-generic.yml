@@ -1,0 +1,54 @@
+id: session-timeouts.go-generic.lifetime-within
+practice_id: session-timeouts
+language: go
+frameworks:
+- generic
+kind: evidence
+rule:
+  kind: call_expression
+  regex: ^time\.Now\(\)\.Add\(\s*(time\.Duration\()?(([1-9]|1[0-9]|2[0-4])\)?\s*\*\s*time\.Hour|([1-9][0-9]{0,2}|1[0-3][0-9][0-9]|14[0-3][0-9]|1440)\)?\s*\*\s*time\.Minute|time\.Hour|time\.Minute)\s*\)$
+  inside:
+    stopBy: end
+    any:
+    - kind: keyed_element
+      regex: '^(ExpiresAt|Expiry|Expires|ExpiresIn|ExpirationTime|Exp|ExpiredAt|ExpiresOn|MaxAge)\s*:'
+    - kind: call_expression
+      regex: ^jwt\.NewNumericDate\(
+    - kind: call_expression
+      regex: (?i)^([0-9A-Za-z_]+\.)?(generate|create|issue|sign|new|make)[0-9A-Za-z_]*(token|jwt|session)[0-9A-Za-z_]*\(
+    - kind: assignment_statement
+      regex: (?i)^([0-9A-Za-z_]+\.)?(expires_?at|expiry|expiration|exp|token_?exp[0-9A-Za-z_]*|session_?exp[0-9A-Za-z_]*)\s*=
+    - kind: short_var_declaration
+      regex: (?i)^(expires_?at|expiry|expiration|exp|token_?exp[0-9A-Za-z_]*)\s*:=
+min_engine: 0.39.0
+---
+id: session-timeouts.go-generic.over-limit
+practice_id: session-timeouts
+language: go
+frameworks:
+- generic
+kind: violation
+rule:
+  any:
+  - kind: call_expression
+    regex: ^time\.Now\(\)\.Add\(\s*(time\.Duration\()?((2[5-9]|[3-9][0-9]|[0-9]{3,})\)?\s*\*\s*time\.Hour|[0-9]+\s*\*\s*24\s*\*\s*time\.Hour)\s*\)$
+    inside: &id001
+      stopBy: end
+      any:
+      - kind: keyed_element
+        regex: '^(ExpiresAt|Expiry|Expires|ExpiresIn|ExpirationTime|Exp|ExpiredAt|ExpiresOn|MaxAge)\s*:'
+      - kind: call_expression
+        regex: ^jwt\.NewNumericDate\(
+      - kind: call_expression
+        regex: (?i)^([0-9A-Za-z_]+\.)?(generate|create|issue|sign|new|make)[0-9A-Za-z_]*(token|jwt|session)[0-9A-Za-z_]*\(
+      - kind: assignment_statement
+        regex: (?i)^([0-9A-Za-z_]+\.)?(expires_?at|expiry|expiration|exp|token_?exp[0-9A-Za-z_]*|session_?exp[0-9A-Za-z_]*)\s*=
+      - kind: short_var_declaration
+        regex: (?i)^(expires_?at|expiry|expiration|exp|token_?exp[0-9A-Za-z_]*)\s*:=
+  - kind: call_expression
+    regex: ^time\.Now\(\)\.AddDate\(
+    inside: *id001
+  - kind: call_expression
+    regex: ^time\.Date\(\s*2[0-9]{3}\s*,
+    inside: *id001
+min_engine: 0.39.0

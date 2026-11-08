@@ -1,0 +1,2399 @@
+# inbound-webhooks-verified (T23 B32, design v3 2.2.2). Written by scripts/gen_webhook_rules.py: edit that script,
+# never this file. The rule id's last part is the form (items-sdk, items-hmac, violation, webhook-route,
+# replay-dedupe), which the practice function reads, since a match carries only one has_control. replay-dedupe matches
+# the items-sdk handler itself, so the function joins the two on path and line.
+
+# items-sdk: a handler (a gin, echo or fiber context, or an http.ResponseWriter) that reads a provider signature
+# header or calls a provider SDK's verifying parse (webhook.ConstructEvent), and computes no HMAC itself. The control
+# is the SDK's verify call with the raw body read (io.ReadAll or GetRawData), or a call the provider signs without it
+# (Twilio's form check). No control: fail. The control holds only when no data call (a data-layer receiver or ORM
+# model) comes before the verify call in the handler's text.
+id: inbound-webhooks-verified.go-gin.items-sdk
+practice_id: inbound-webhooks-verified
+language: go
+frameworks:
+- gin
+kind: items
+rule:
+  all:
+  - any:
+    - kind: function_declaration
+      has:
+        kind: parameter_list
+        regex: \*gin\.Context|echo\.Context|\*fiber\.Ctx|http\.ResponseWriter
+    - kind: method_declaration
+      has:
+        kind: parameter_list
+        regex: \*gin\.Context|echo\.Context|\*fiber\.Ctx|http\.ResponseWriter
+    - kind: func_literal
+      has:
+        kind: parameter_list
+        regex: \*gin\.Context|echo\.Context|\*fiber\.Ctx|http\.ResponseWriter
+  - any:
+    - has:
+        stopBy: end
+        any:
+        - kind: interpreted_string_literal
+          regex: (?i)^["`](stripe-signature|x-twilio-signature|svix-signature|x-hub-signature-256|x-hub-signature|webhook-signature)["`]$
+        - kind: raw_string_literal
+          regex: (?i)^["`](stripe-signature|x-twilio-signature|svix-signature|x-hub-signature-256|x-hub-signature|webhook-signature)["`]$
+    - has:
+        stopBy: end
+        any:
+        - kind: call_expression
+          has:
+            field: function
+            kind: selector_expression
+            regex: (^|\.)(ConstructEvent|ConstructEventWithOptions|ValidatePayload)$
+  - not:
+      has:
+        stopBy: end
+        kind: call_expression
+        regex: ^hmac\.New\(
+control:
+  all:
+  - any:
+    - all:
+      - has:
+          stopBy: end
+          any:
+          - all:
+            - all:
+              - any:
+                - any:
+                  - kind: call_expression
+                    has:
+                      field: function
+                      kind: selector_expression
+                      regex: (^|\.)(ConstructEvent|ConstructEventWithOptions|ValidatePayload)$
+                - all:
+                  - any:
+                    - kind: call_expression
+                      has:
+                        field: function
+                        kind: selector_expression
+                        regex: (?i)^\w*(wh|webhooks?|svix|hook|validator)\w*\.(ValidateBody)$
+                  - inside:
+                      stopBy: end
+                      kind: source_file
+                      has:
+                        stopBy: end
+                        kind: import_spec
+                        regex: '[\"`](github\.com/twilio/twilio\-go|github\.com/twilio/twilio\-go)(/[^\"`]*)?[\"`]'
+                - all:
+                  - any:
+                    - kind: call_expression
+                      has:
+                        field: function
+                        kind: selector_expression
+                        regex: (?i)^\w*(wh|webhooks?|svix|hook|validator)\w*\.(Verify)$
+                  - inside:
+                      stopBy: end
+                      kind: source_file
+                      has:
+                        stopBy: end
+                        kind: import_spec
+                        regex: '[\"`](github\.com/svix/svix\-webhooks|github\.com/svix/svix\-webhooks)(/[^\"`]*)?[\"`]'
+              - any:
+                - inside:
+                    stopBy: end
+                    kind: unary_expression
+                    regex: ^!
+                    inside:
+                      kind: if_statement
+                      has:
+                        field: consequence
+                        kind: block
+                        has:
+                          kind: statement_list
+                          has:
+                            kind: return_statement
+                - all:
+                  - inside:
+                      kind: expression_list
+                      inside:
+                        any:
+                        - kind: short_var_declaration
+                        - kind: assignment_statement
+                        - kind: var_spec
+                  - any:
+                    - inside:
+                        stopBy: end
+                        kind: short_var_declaration
+                        pattern: $OK := $V
+                        precedes:
+                          kind: if_statement
+                          has:
+                            field: consequence
+                            kind: block
+                            has:
+                              kind: statement_list
+                              has:
+                                kind: return_statement
+                          all:
+                          - has:
+                              field: condition
+                              kind: binary_expression
+                              pattern: $OK != nil
+                    - inside:
+                        stopBy: end
+                        kind: short_var_declaration
+                        pattern: $OK := $V
+                        precedes:
+                          kind: if_statement
+                          has:
+                            field: consequence
+                            kind: block
+                            has:
+                              kind: statement_list
+                              has:
+                                kind: return_statement
+                          all:
+                          - has:
+                              field: condition
+                              kind: unary_expression
+                              pattern:
+                                context: 'package a
+
+                                  func f() { if !$OK {} }'
+                                selector: unary_expression
+                    - inside:
+                        stopBy: end
+                        kind: short_var_declaration
+                        pattern: $A, $OK := $V
+                        precedes:
+                          kind: if_statement
+                          has:
+                            field: consequence
+                            kind: block
+                            has:
+                              kind: statement_list
+                              has:
+                                kind: return_statement
+                          all:
+                          - has:
+                              field: condition
+                              kind: binary_expression
+                              pattern: $OK != nil
+                    - inside:
+                        stopBy: end
+                        kind: short_var_declaration
+                        pattern: $A, $OK := $V
+                        precedes:
+                          kind: if_statement
+                          has:
+                            field: consequence
+                            kind: block
+                            has:
+                              kind: statement_list
+                              has:
+                                kind: return_statement
+                          all:
+                          - has:
+                              field: condition
+                              kind: unary_expression
+                              pattern:
+                                context: 'package a
+
+                                  func f() { if !$OK {} }'
+                                selector: unary_expression
+                    - inside:
+                        stopBy: end
+                        kind: assignment_statement
+                        pattern: $OK = $V
+                        precedes:
+                          kind: if_statement
+                          has:
+                            field: consequence
+                            kind: block
+                            has:
+                              kind: statement_list
+                              has:
+                                kind: return_statement
+                          all:
+                          - has:
+                              field: condition
+                              kind: binary_expression
+                              pattern: $OK != nil
+                    - inside:
+                        stopBy: end
+                        kind: assignment_statement
+                        pattern: $OK = $V
+                        precedes:
+                          kind: if_statement
+                          has:
+                            field: consequence
+                            kind: block
+                            has:
+                              kind: statement_list
+                              has:
+                                kind: return_statement
+                          all:
+                          - has:
+                              field: condition
+                              kind: unary_expression
+                              pattern:
+                                context: 'package a
+
+                                  func f() { if !$OK {} }'
+                                selector: unary_expression
+                    - inside:
+                        stopBy: end
+                        kind: assignment_statement
+                        pattern: $A, $OK = $V
+                        precedes:
+                          kind: if_statement
+                          has:
+                            field: consequence
+                            kind: block
+                            has:
+                              kind: statement_list
+                              has:
+                                kind: return_statement
+                          all:
+                          - has:
+                              field: condition
+                              kind: binary_expression
+                              pattern: $OK != nil
+                    - inside:
+                        stopBy: end
+                        kind: assignment_statement
+                        pattern: $A, $OK = $V
+                        precedes:
+                          kind: if_statement
+                          has:
+                            field: consequence
+                            kind: block
+                            has:
+                              kind: statement_list
+                              has:
+                                kind: return_statement
+                          all:
+                          - has:
+                              field: condition
+                              kind: unary_expression
+                              pattern:
+                                context: 'package a
+
+                                  func f() { if !$OK {} }'
+                                selector: unary_expression
+                    - inside:
+                        stopBy: end
+                        kind: var_declaration
+                        pattern: var $OK = $V
+                        precedes:
+                          kind: if_statement
+                          has:
+                            field: consequence
+                            kind: block
+                            has:
+                              kind: statement_list
+                              has:
+                                kind: return_statement
+                          all:
+                          - has:
+                              field: condition
+                              kind: binary_expression
+                              pattern: $OK != nil
+                    - inside:
+                        stopBy: end
+                        kind: var_declaration
+                        pattern: var $OK = $V
+                        precedes:
+                          kind: if_statement
+                          has:
+                            field: consequence
+                            kind: block
+                            has:
+                              kind: statement_list
+                              has:
+                                kind: return_statement
+                          all:
+                          - has:
+                              field: condition
+                              kind: unary_expression
+                              pattern:
+                                context: 'package a
+
+                                  func f() { if !$OK {} }'
+                                selector: unary_expression
+                - all:
+                  - inside:
+                      kind: expression_list
+                      inside:
+                        any:
+                        - kind: short_var_declaration
+                        - kind: assignment_statement
+                        - kind: var_spec
+                  - inside:
+                      stopBy: end
+                      kind: short_var_declaration
+                      pattern: $OK := $V
+                      inside:
+                        kind: if_statement
+                        has:
+                          field: consequence
+                          kind: block
+                          has:
+                            kind: statement_list
+                            has:
+                              kind: return_statement
+                        all:
+                        - has:
+                            field: condition
+                            kind: binary_expression
+                            pattern: $OK != nil
+                - all:
+                  - inside:
+                      kind: expression_list
+                      inside:
+                        any:
+                        - kind: short_var_declaration
+                        - kind: assignment_statement
+                        - kind: var_spec
+                  - inside:
+                      stopBy: end
+                      kind: short_var_declaration
+                      pattern: $A, $OK := $V
+                      inside:
+                        kind: if_statement
+                        has:
+                          field: consequence
+                          kind: block
+                          has:
+                            kind: statement_list
+                            has:
+                              kind: return_statement
+                        all:
+                        - has:
+                            field: condition
+                            kind: binary_expression
+                            pattern: $OK != nil
+            - not:
+                inside:
+                  stopBy: end
+                  kind: func_literal
+                  inside:
+                    stopBy: end
+                    any:
+                    - kind: function_declaration
+                      has:
+                        kind: parameter_list
+                        regex: \*gin\.Context|echo\.Context|\*fiber\.Ctx|http\.ResponseWriter
+                    - kind: method_declaration
+                      has:
+                        kind: parameter_list
+                        regex: \*gin\.Context|echo\.Context|\*fiber\.Ctx|http\.ResponseWriter
+                    - kind: func_literal
+                      has:
+                        kind: parameter_list
+                        regex: \*gin\.Context|echo\.Context|\*fiber\.Ctx|http\.ResponseWriter
+      - has:
+          stopBy: end
+          kind: call_expression
+          regex: ^((io|ioutil)\.ReadAll\(|\w+\.GetRawData\(\))
+    - has:
+        stopBy: end
+        any:
+        - all:
+          - all:
+            - any:
+              - all:
+                - any:
+                  - kind: call_expression
+                    has:
+                      field: function
+                      kind: selector_expression
+                      regex: (?i)^\w*(wh|webhooks?|svix|hook|validator)\w*\.(Validate)$
+                - inside:
+                    stopBy: end
+                    kind: source_file
+                    has:
+                      stopBy: end
+                      kind: import_spec
+                      regex: '[\"`](github\.com/twilio/twilio\-go|github\.com/twilio/twilio\-go)(/[^\"`]*)?[\"`]'
+            - any:
+              - inside:
+                  stopBy: end
+                  kind: unary_expression
+                  regex: ^!
+                  inside:
+                    kind: if_statement
+                    has:
+                      field: consequence
+                      kind: block
+                      has:
+                        kind: statement_list
+                        has:
+                          kind: return_statement
+              - all:
+                - inside:
+                    kind: expression_list
+                    inside:
+                      any:
+                      - kind: short_var_declaration
+                      - kind: assignment_statement
+                      - kind: var_spec
+                - any:
+                  - inside:
+                      stopBy: end
+                      kind: short_var_declaration
+                      pattern: $OK := $V
+                      precedes:
+                        kind: if_statement
+                        has:
+                          field: consequence
+                          kind: block
+                          has:
+                            kind: statement_list
+                            has:
+                              kind: return_statement
+                        all:
+                        - has:
+                            field: condition
+                            kind: binary_expression
+                            pattern: $OK != nil
+                  - inside:
+                      stopBy: end
+                      kind: short_var_declaration
+                      pattern: $OK := $V
+                      precedes:
+                        kind: if_statement
+                        has:
+                          field: consequence
+                          kind: block
+                          has:
+                            kind: statement_list
+                            has:
+                              kind: return_statement
+                        all:
+                        - has:
+                            field: condition
+                            kind: unary_expression
+                            pattern:
+                              context: 'package a
+
+                                func f() { if !$OK {} }'
+                              selector: unary_expression
+                  - inside:
+                      stopBy: end
+                      kind: short_var_declaration
+                      pattern: $A, $OK := $V
+                      precedes:
+                        kind: if_statement
+                        has:
+                          field: consequence
+                          kind: block
+                          has:
+                            kind: statement_list
+                            has:
+                              kind: return_statement
+                        all:
+                        - has:
+                            field: condition
+                            kind: binary_expression
+                            pattern: $OK != nil
+                  - inside:
+                      stopBy: end
+                      kind: short_var_declaration
+                      pattern: $A, $OK := $V
+                      precedes:
+                        kind: if_statement
+                        has:
+                          field: consequence
+                          kind: block
+                          has:
+                            kind: statement_list
+                            has:
+                              kind: return_statement
+                        all:
+                        - has:
+                            field: condition
+                            kind: unary_expression
+                            pattern:
+                              context: 'package a
+
+                                func f() { if !$OK {} }'
+                              selector: unary_expression
+                  - inside:
+                      stopBy: end
+                      kind: assignment_statement
+                      pattern: $OK = $V
+                      precedes:
+                        kind: if_statement
+                        has:
+                          field: consequence
+                          kind: block
+                          has:
+                            kind: statement_list
+                            has:
+                              kind: return_statement
+                        all:
+                        - has:
+                            field: condition
+                            kind: binary_expression
+                            pattern: $OK != nil
+                  - inside:
+                      stopBy: end
+                      kind: assignment_statement
+                      pattern: $OK = $V
+                      precedes:
+                        kind: if_statement
+                        has:
+                          field: consequence
+                          kind: block
+                          has:
+                            kind: statement_list
+                            has:
+                              kind: return_statement
+                        all:
+                        - has:
+                            field: condition
+                            kind: unary_expression
+                            pattern:
+                              context: 'package a
+
+                                func f() { if !$OK {} }'
+                              selector: unary_expression
+                  - inside:
+                      stopBy: end
+                      kind: assignment_statement
+                      pattern: $A, $OK = $V
+                      precedes:
+                        kind: if_statement
+                        has:
+                          field: consequence
+                          kind: block
+                          has:
+                            kind: statement_list
+                            has:
+                              kind: return_statement
+                        all:
+                        - has:
+                            field: condition
+                            kind: binary_expression
+                            pattern: $OK != nil
+                  - inside:
+                      stopBy: end
+                      kind: assignment_statement
+                      pattern: $A, $OK = $V
+                      precedes:
+                        kind: if_statement
+                        has:
+                          field: consequence
+                          kind: block
+                          has:
+                            kind: statement_list
+                            has:
+                              kind: return_statement
+                        all:
+                        - has:
+                            field: condition
+                            kind: unary_expression
+                            pattern:
+                              context: 'package a
+
+                                func f() { if !$OK {} }'
+                              selector: unary_expression
+                  - inside:
+                      stopBy: end
+                      kind: var_declaration
+                      pattern: var $OK = $V
+                      precedes:
+                        kind: if_statement
+                        has:
+                          field: consequence
+                          kind: block
+                          has:
+                            kind: statement_list
+                            has:
+                              kind: return_statement
+                        all:
+                        - has:
+                            field: condition
+                            kind: binary_expression
+                            pattern: $OK != nil
+                  - inside:
+                      stopBy: end
+                      kind: var_declaration
+                      pattern: var $OK = $V
+                      precedes:
+                        kind: if_statement
+                        has:
+                          field: consequence
+                          kind: block
+                          has:
+                            kind: statement_list
+                            has:
+                              kind: return_statement
+                        all:
+                        - has:
+                            field: condition
+                            kind: unary_expression
+                            pattern:
+                              context: 'package a
+
+                                func f() { if !$OK {} }'
+                              selector: unary_expression
+              - all:
+                - inside:
+                    kind: expression_list
+                    inside:
+                      any:
+                      - kind: short_var_declaration
+                      - kind: assignment_statement
+                      - kind: var_spec
+                - inside:
+                    stopBy: end
+                    kind: short_var_declaration
+                    pattern: $OK := $V
+                    inside:
+                      kind: if_statement
+                      has:
+                        field: consequence
+                        kind: block
+                        has:
+                          kind: statement_list
+                          has:
+                            kind: return_statement
+                      all:
+                      - has:
+                          field: condition
+                          kind: binary_expression
+                          pattern: $OK != nil
+              - all:
+                - inside:
+                    kind: expression_list
+                    inside:
+                      any:
+                      - kind: short_var_declaration
+                      - kind: assignment_statement
+                      - kind: var_spec
+                - inside:
+                    stopBy: end
+                    kind: short_var_declaration
+                    pattern: $A, $OK := $V
+                    inside:
+                      kind: if_statement
+                      has:
+                        field: consequence
+                        kind: block
+                        has:
+                          kind: statement_list
+                          has:
+                            kind: return_statement
+                      all:
+                      - has:
+                          field: condition
+                          kind: binary_expression
+                          pattern: $OK != nil
+          - not:
+              inside:
+                stopBy: end
+                kind: func_literal
+                inside:
+                  stopBy: end
+                  any:
+                  - kind: function_declaration
+                    has:
+                      kind: parameter_list
+                      regex: \*gin\.Context|echo\.Context|\*fiber\.Ctx|http\.ResponseWriter
+                  - kind: method_declaration
+                    has:
+                      kind: parameter_list
+                      regex: \*gin\.Context|echo\.Context|\*fiber\.Ctx|http\.ResponseWriter
+                  - kind: func_literal
+                    has:
+                      kind: parameter_list
+                      regex: \*gin\.Context|echo\.Context|\*fiber\.Ctx|http\.ResponseWriter
+  - not:
+      any:
+      - kind: function_declaration
+        regex: (?s)\b(db|tx|conn|pool|gdb|gormDB|database|DB|repo|store)\s*\.\s*(Exec|Query|QueryRow|Create|Save|First|Find|Where|Update|Delete|Insert|Select|Model|Table)\w*\s*\(.*\b(ConstructEvent|ConstructEventWithOptions|Validate|ValidateBody|ValidatePayload|Verify)\b
+      - kind: method_declaration
+        regex: (?s)\b(db|tx|conn|pool|gdb|gormDB|database|DB|repo|store)\s*\.\s*(Exec|Query|QueryRow|Create|Save|First|Find|Where|Update|Delete|Insert|Select|Model|Table)\w*\s*\(.*\b(ConstructEvent|ConstructEventWithOptions|Validate|ValidateBody|ValidatePayload|Verify)\b
+      - kind: func_literal
+        regex: (?s)\b(db|tx|conn|pool|gdb|gormDB|database|DB|repo|store)\s*\.\s*(Exec|Query|QueryRow|Create|Save|First|Find|Where|Update|Delete|Insert|Select|Model|Table)\w*\s*\(.*\b(ConstructEvent|ConstructEventWithOptions|Validate|ValidateBody|ValidatePayload|Verify)\b
+min_engine: 0.39.0
+---
+# items-hmac: a handler that reads a provider signature header and computes an HMAC itself (hmac.New). The control is
+# a constant-time compare (hmac.Equal, subtle.ConstantTimeCompare). With it, needs_review; without, fail.
+id: inbound-webhooks-verified.go-gin.items-hmac
+practice_id: inbound-webhooks-verified
+language: go
+frameworks:
+- gin
+kind: items
+rule:
+  all:
+  - any:
+    - kind: function_declaration
+      has:
+        kind: parameter_list
+        regex: \*gin\.Context|echo\.Context|\*fiber\.Ctx|http\.ResponseWriter
+    - kind: method_declaration
+      has:
+        kind: parameter_list
+        regex: \*gin\.Context|echo\.Context|\*fiber\.Ctx|http\.ResponseWriter
+    - kind: func_literal
+      has:
+        kind: parameter_list
+        regex: \*gin\.Context|echo\.Context|\*fiber\.Ctx|http\.ResponseWriter
+  - has:
+      stopBy: end
+      any:
+      - kind: interpreted_string_literal
+        regex: (?i)^["`](stripe-signature|x-twilio-signature|svix-signature|x-hub-signature-256|x-hub-signature|webhook-signature)["`]$
+      - kind: raw_string_literal
+        regex: (?i)^["`](stripe-signature|x-twilio-signature|svix-signature|x-hub-signature-256|x-hub-signature|webhook-signature)["`]$
+  - has:
+      stopBy: end
+      kind: call_expression
+      regex: ^hmac\.New\(
+control:
+  has:
+    stopBy: end
+    kind: call_expression
+    regex: ^(hmac\.Equal|subtle\.ConstantTimeCompare)\(
+min_engine: 0.39.0
+---
+# violation: in a signature-reading handler: a signature compared with ==, != or bytes.Equal, or
+# ConstructEventWithOptions widening or skipping the tolerance. Fail.
+id: inbound-webhooks-verified.go-gin.violation
+practice_id: inbound-webhooks-verified
+language: go
+frameworks:
+- gin
+kind: violation
+rule:
+  any:
+  - all:
+    - kind: binary_expression
+      regex: (?i)sig
+    - kind: binary_expression
+      regex: '[!=]='
+    inside:
+      stopBy: end
+      all:
+      - any:
+        - kind: function_declaration
+          has:
+            kind: parameter_list
+            regex: \*gin\.Context|echo\.Context|\*fiber\.Ctx|http\.ResponseWriter
+        - kind: method_declaration
+          has:
+            kind: parameter_list
+            regex: \*gin\.Context|echo\.Context|\*fiber\.Ctx|http\.ResponseWriter
+        - kind: func_literal
+          has:
+            kind: parameter_list
+            regex: \*gin\.Context|echo\.Context|\*fiber\.Ctx|http\.ResponseWriter
+      - any:
+        - has:
+            stopBy: end
+            any:
+            - kind: interpreted_string_literal
+              regex: (?i)^["`](stripe-signature|x-twilio-signature|svix-signature|x-hub-signature-256|x-hub-signature|webhook-signature)["`]$
+            - kind: raw_string_literal
+              regex: (?i)^["`](stripe-signature|x-twilio-signature|svix-signature|x-hub-signature-256|x-hub-signature|webhook-signature)["`]$
+        - has:
+            stopBy: end
+            any:
+            - kind: call_expression
+              has:
+                field: function
+                kind: selector_expression
+                regex: (^|\.)(ConstructEvent|ConstructEventWithOptions|ValidatePayload)$
+  - all:
+    - kind: call_expression
+      regex: ^(bytes\.Equal|strings\.EqualFold)\(
+    - kind: call_expression
+      regex: (?i)sig
+    inside:
+      stopBy: end
+      all:
+      - any:
+        - kind: function_declaration
+          has:
+            kind: parameter_list
+            regex: \*gin\.Context|echo\.Context|\*fiber\.Ctx|http\.ResponseWriter
+        - kind: method_declaration
+          has:
+            kind: parameter_list
+            regex: \*gin\.Context|echo\.Context|\*fiber\.Ctx|http\.ResponseWriter
+        - kind: func_literal
+          has:
+            kind: parameter_list
+            regex: \*gin\.Context|echo\.Context|\*fiber\.Ctx|http\.ResponseWriter
+      - any:
+        - has:
+            stopBy: end
+            any:
+            - kind: interpreted_string_literal
+              regex: (?i)^["`](stripe-signature|x-twilio-signature|svix-signature|x-hub-signature-256|x-hub-signature|webhook-signature)["`]$
+            - kind: raw_string_literal
+              regex: (?i)^["`](stripe-signature|x-twilio-signature|svix-signature|x-hub-signature-256|x-hub-signature|webhook-signature)["`]$
+        - has:
+            stopBy: end
+            any:
+            - kind: call_expression
+              has:
+                field: function
+                kind: selector_expression
+                regex: (^|\.)(ConstructEvent|ConstructEventWithOptions|ValidatePayload)$
+  - kind: call_expression
+    regex: \b(Tolerance|SkipTolerance)\b
+    inside:
+      stopBy: end
+      all:
+      - any:
+        - kind: function_declaration
+          has:
+            kind: parameter_list
+            regex: \*gin\.Context|echo\.Context|\*fiber\.Ctx|http\.ResponseWriter
+        - kind: method_declaration
+          has:
+            kind: parameter_list
+            regex: \*gin\.Context|echo\.Context|\*fiber\.Ctx|http\.ResponseWriter
+        - kind: func_literal
+          has:
+            kind: parameter_list
+            regex: \*gin\.Context|echo\.Context|\*fiber\.Ctx|http\.ResponseWriter
+      - any:
+        - has:
+            stopBy: end
+            any:
+            - kind: interpreted_string_literal
+              regex: (?i)^["`](stripe-signature|x-twilio-signature|svix-signature|x-hub-signature-256|x-hub-signature|webhook-signature)["`]$
+            - kind: raw_string_literal
+              regex: (?i)^["`](stripe-signature|x-twilio-signature|svix-signature|x-hub-signature-256|x-hub-signature|webhook-signature)["`]$
+        - has:
+            stopBy: end
+            any:
+            - kind: call_expression
+              has:
+                field: function
+                kind: selector_expression
+                regex: (^|\.)(ConstructEvent|ConstructEventWithOptions|ValidatePayload)$
+    has:
+      field: function
+      kind: selector_expression
+      regex: \.ConstructEventWithOptions$
+min_engine: 0.39.0
+---
+# webhook-route: a function literal registered on a path that names a webhook, hook, callback or notify endpoint, or a
+# handler named for one, that reads no provider signature. Evidence: needs_review naming it.
+id: inbound-webhooks-verified.go-gin.webhook-route
+practice_id: inbound-webhooks-verified
+language: go
+frameworks:
+- gin
+kind: evidence
+rule:
+  all:
+  - any:
+    - kind: func_literal
+      has:
+        kind: parameter_list
+        regex: \*gin\.Context|echo\.Context|\*fiber\.Ctx|http\.ResponseWriter
+      inside:
+        kind: argument_list
+        inside:
+          kind: call_expression
+          has:
+            field: arguments
+            kind: argument_list
+            has:
+              any:
+              - kind: interpreted_string_literal
+                regex: (?i)^[\"`]/?([^\"`]*[/_-])?(webhooks?|hooks?|callbacks?|notify)([/_.-][^\"`]*)?[\"`]$
+              - kind: raw_string_literal
+                regex: (?i)^[\"`]/?([^\"`]*[/_-])?(webhooks?|hooks?|callbacks?|notify)([/_.-][^\"`]*)?[\"`]$
+    - any:
+      - kind: function_declaration
+        all:
+        - has:
+            kind: parameter_list
+            regex: \*gin\.Context|echo\.Context|\*fiber\.Ctx|http\.ResponseWriter
+        - has:
+            field: name
+            kind: identifier
+            regex: (?i)(webhooks?|hooks?|callbacks?|notify)
+      - kind: method_declaration
+        all:
+        - has:
+            kind: parameter_list
+            regex: \*gin\.Context|echo\.Context|\*fiber\.Ctx|http\.ResponseWriter
+        - has:
+            field: name
+            kind: field_identifier
+            regex: (?i)(webhooks?|hooks?|callbacks?|notify)
+  - not:
+      any:
+      - has:
+          stopBy: end
+          any:
+          - kind: interpreted_string_literal
+            regex: (?i)^["`](stripe-signature|x-twilio-signature|svix-signature|x-hub-signature-256|x-hub-signature|webhook-signature)["`]$
+          - kind: raw_string_literal
+            regex: (?i)^["`](stripe-signature|x-twilio-signature|svix-signature|x-hub-signature-256|x-hub-signature|webhook-signature)["`]$
+      - has:
+          stopBy: end
+          any:
+          - kind: call_expression
+            has:
+              field: function
+              kind: selector_expression
+              regex: (^|\.)(ConstructEvent|ConstructEventWithOptions|ValidatePayload)$
+min_engine: 0.39.0
+---
+# entry: an entry point that can take a request body (B32p E): a POST, PUT, PATCH, Any, Match or Handle route (gin), a
+# Post, Put, Patch or Method route (chi), or Handle or HandleFunc (gorilla, chi, net/http) unless its pattern names
+# GET, HEAD, DELETE or OPTIONS; and any handler that reads the query, a path parameter, a form, a bind or the body.
+# Evidence for the pass, which needs every entry verified or user-gated; never an object of its own.
+id: inbound-webhooks-verified.go-gin.entry
+practice_id: inbound-webhooks-verified
+language: go
+frameworks:
+- gin
+kind: evidence
+rule:
+  any:
+  - kind: call_expression
+    all:
+    - has:
+        field: function
+        kind: selector_expression
+        regex: \.(POST|PUT|PATCH|Any|Match|Handle|Post|Put|Patch|Method|MethodFunc|HandleFunc)$
+        not:
+          kind: selector_expression
+          regex: ^(http\.(Post|PostForm|Get|Head)$|(?i:\w*client\w*\.|resty\.))
+    - has:
+        field: arguments
+        kind: argument_list
+        regex: (?s)^\(\s*[^,]+,
+        not:
+          kind: argument_list
+          regex: ^\(\s*[\"`](GET|HEAD|DELETE|OPTIONS)\s
+  - kind: function_declaration
+    has:
+      kind: parameter_list
+      regex: \*gin\.Context|echo\.Context|\*fiber\.Ctx|http\.ResponseWriter
+    regex: (\b\w+\.(Query|DefaultQuery|QueryArray|QueryMap|GetQuery|Param|Params|PostForm|DefaultPostForm|PostFormArray|PostFormMap|FormFile|MultipartForm|Bind|BindJSON|BindQuery|BindUri|ShouldBind\w*|GetRawData|FormValue|PostFormValue|ParseForm|ParseMultipartForm|PathValue)\(|\.URL\s*\.\s*(Query\s*\(|RawQuery\b)|\.Body\b|\bchi\.URLParam\w*\(|\bmux\.Vars\()
+  - kind: method_declaration
+    has:
+      kind: parameter_list
+      regex: \*gin\.Context|echo\.Context|\*fiber\.Ctx|http\.ResponseWriter
+    regex: (\b\w+\.(Query|DefaultQuery|QueryArray|QueryMap|GetQuery|Param|Params|PostForm|DefaultPostForm|PostFormArray|PostFormMap|FormFile|MultipartForm|Bind|BindJSON|BindQuery|BindUri|ShouldBind\w*|GetRawData|FormValue|PostFormValue|ParseForm|ParseMultipartForm|PathValue)\(|\.URL\s*\.\s*(Query\s*\(|RawQuery\b)|\.Body\b|\bchi\.URLParam\w*\(|\bmux\.Vars\()
+  - kind: func_literal
+    has:
+      kind: parameter_list
+      regex: \*gin\.Context|echo\.Context|\*fiber\.Ctx|http\.ResponseWriter
+    regex: (\b\w+\.(Query|DefaultQuery|QueryArray|QueryMap|GetQuery|Param|Params|PostForm|DefaultPostForm|PostFormArray|PostFormMap|FormFile|MultipartForm|Bind|BindJSON|BindQuery|BindUri|ShouldBind\w*|GetRawData|FormValue|PostFormValue|ParseForm|ParseMultipartForm|PathValue)\(|\.URL\s*\.\s*(Query\s*\(|RawQuery\b)|\.Body\b|\bchi\.URLParam\w*\(|\bmux\.Vars\()
+min_engine: 0.39.0
+---
+# route-unread: a route registration the inventory can't place (B32p C2): a path that is no literal (a name, a call, a
+# concatenation), a group or mount (Group, Route, Mount, PathPrefix, Subrouter), or Handle given a mux or router.
+# Evidence: no pass while it is seen; never an object of its own.
+id: inbound-webhooks-verified.go-gin.route-unread
+practice_id: inbound-webhooks-verified
+language: go
+frameworks:
+- gin
+kind: evidence
+rule:
+  kind: call_expression
+  any:
+  - all:
+    - has:
+        field: function
+        kind: selector_expression
+        regex: (?i)^([a-z]|rt|router|mux|v\d+|api|app|engine|srv|server|group|rg|\w*router|\w*mux|\w*group|\w*api|http)\.(GET|POST|PUT|PATCH|DELETE|HEAD|OPTIONS|Any|Get|Post|Put|Patch|Delete|Head|Options|Handle|HandleFunc)$
+        not:
+          kind: selector_expression
+          regex: ^(http\.(Post|PostForm|Get|Head)$|(?i:\w*client\w*\.|resty\.))
+    - has:
+        field: arguments
+        kind: argument_list
+        regex: (?s)^\(\s*([A-Za-z_][\w.]*\s*(\(|[,+])|[\"`][^\"`]*[\"`]\s*\+)
+        not:
+          kind: argument_list
+          regex: ^\(\s*http\.Method\w+\s*,
+  - has:
+      field: function
+      kind: selector_expression
+      regex: \.(Group|Route|Mount|PathPrefix|Subrouter|NewRoute|Host)$
+  - has:
+      field: function
+      kind: selector_expression
+      regex: (?i)^([a-z]|rt|router|mux|v\d+|api|app|engine|srv|server|group|rg|\w*router|\w*mux|\w*group|\w*api|http)\.Handle$
+    all:
+    - has:
+        field: arguments
+        kind: argument_list
+        regex: (?is)^\(\s*[^,]+,\s*(\w*(mux|router)|r|api|srv|server|http\.StripPrefix)\b
+min_engine: 0.39.0
+---
+# replay-dedupe: an items-sdk handler (the same match, so the same path and line) that rejects a repeated event: a
+# data call inserting the event id with ON CONFLICT, INSERT IGNORE, ON DUPLICATE KEY or the like, whose row count
+# (RowsAffected) is tested by an if that returns when it is 0. Go has no catch, so a unique-violation check after the
+# insert doesn't count. No data call may come before it. A table name or a log line alone never counts. Evidence: with
+# the SDK control, it allows the pass once Q6 is ruled.
+id: inbound-webhooks-verified.go-gin.replay-dedupe
+practice_id: inbound-webhooks-verified
+language: go
+frameworks:
+- gin
+kind: evidence
+rule:
+  all:
+  - any:
+    - kind: function_declaration
+      has:
+        kind: parameter_list
+        regex: \*gin\.Context|echo\.Context|\*fiber\.Ctx|http\.ResponseWriter
+    - kind: method_declaration
+      has:
+        kind: parameter_list
+        regex: \*gin\.Context|echo\.Context|\*fiber\.Ctx|http\.ResponseWriter
+    - kind: func_literal
+      has:
+        kind: parameter_list
+        regex: \*gin\.Context|echo\.Context|\*fiber\.Ctx|http\.ResponseWriter
+  - any:
+    - has:
+        stopBy: end
+        any:
+        - kind: interpreted_string_literal
+          regex: (?i)^["`](stripe-signature|x-twilio-signature|svix-signature|x-hub-signature-256|x-hub-signature|webhook-signature)["`]$
+        - kind: raw_string_literal
+          regex: (?i)^["`](stripe-signature|x-twilio-signature|svix-signature|x-hub-signature-256|x-hub-signature|webhook-signature)["`]$
+    - has:
+        stopBy: end
+        any:
+        - kind: call_expression
+          has:
+            field: function
+            kind: selector_expression
+            regex: (^|\.)(ConstructEvent|ConstructEventWithOptions|ValidatePayload)$
+  - not:
+      has:
+        stopBy: end
+        kind: call_expression
+        regex: ^hmac\.New\(
+  - has:
+      stopBy: end
+      any:
+      - all:
+        - kind: call_expression
+          regex: (?i)(\bON\s+CONFLICT\b|\bINSERT\s+IGNORE\b|\bON\s+DUPLICATE\s+KEY\b|\bon_?conflict|\bupsert|\binsert_?or_?ignore|\bignore_?duplicates|\bskip_?duplicates|\bunique_by\b)
+        - kind: call_expression
+          regex: (?i)(\b(event|evt)\s*(\?\.|\.|->)\s*(id\b|getId\(\))|\b(event|evt)\s*\[\s*:?['\"]?id['\"]?\s*\]|\bevent_?id\b)
+        - kind: call_expression
+          has:
+            field: function
+            any:
+            - kind: identifier
+              regex: (?i)(^|\.)(insert|create|save|add|put|persist|exec|execute|query|update|upsert|run|raw|sql|on_?conflict|ignore|merge)\w*[!?]?$
+            - kind: selector_expression
+              regex: (?i)(^|\.)(insert|create|save|add|put|persist|exec|execute|query|update|upsert|run|raw|sql|on_?conflict|ignore|merge)\w*[!?]?$
+  - not:
+      any:
+      - kind: function_declaration
+        regex: (?s)\b(db|tx|conn|pool|gdb|gormDB|database|DB|repo|store)\s*\.\s*(Exec|Query|QueryRow|Create|Save|First|Find|Where|Update|Delete|Insert|Select|Model|Table)\w*\s*\(.*\b(db|tx|conn|pool|gdb|gormDB|database|DB|repo|store)\s*\.\s*(Exec|Query|QueryRow|Create|Save|First|Find|Where|Update|Delete|Insert|Select|Model|Table)\w*\s*\(.{0,400}?((\bON\s+CONFLICT\b|\bINSERT\s+IGNORE\b|\bON\s+DUPLICATE\s+KEY\b|\bon_?conflict|\bupsert|\binsert_?or_?ignore|\bignore_?duplicates|\bskip_?duplicates|\bunique_by\b))
+      - kind: method_declaration
+        regex: (?s)\b(db|tx|conn|pool|gdb|gormDB|database|DB|repo|store)\s*\.\s*(Exec|Query|QueryRow|Create|Save|First|Find|Where|Update|Delete|Insert|Select|Model|Table)\w*\s*\(.*\b(db|tx|conn|pool|gdb|gormDB|database|DB|repo|store)\s*\.\s*(Exec|Query|QueryRow|Create|Save|First|Find|Where|Update|Delete|Insert|Select|Model|Table)\w*\s*\(.{0,400}?((\bON\s+CONFLICT\b|\bINSERT\s+IGNORE\b|\bON\s+DUPLICATE\s+KEY\b|\bon_?conflict|\bupsert|\binsert_?or_?ignore|\bignore_?duplicates|\bskip_?duplicates|\bunique_by\b))
+      - kind: func_literal
+        regex: (?s)\b(db|tx|conn|pool|gdb|gormDB|database|DB|repo|store)\s*\.\s*(Exec|Query|QueryRow|Create|Save|First|Find|Where|Update|Delete|Insert|Select|Model|Table)\w*\s*\(.*\b(db|tx|conn|pool|gdb|gormDB|database|DB|repo|store)\s*\.\s*(Exec|Query|QueryRow|Create|Save|First|Find|Where|Update|Delete|Insert|Select|Model|Table)\w*\s*\(.{0,400}?((\bON\s+CONFLICT\b|\bINSERT\s+IGNORE\b|\bON\s+DUPLICATE\s+KEY\b|\bon_?conflict|\bupsert|\binsert_?or_?ignore|\bignore_?duplicates|\bskip_?duplicates|\bunique_by\b))
+  - any:
+    - kind: function_declaration
+      regex: (?s)(\bif\b[^{]*\bRowsAffected\b|\bRowsAffected\b.{0,160}?\bif\b)[^{]*==\s*0\s*\{[^}]*\breturn\b
+    - kind: method_declaration
+      regex: (?s)(\bif\b[^{]*\bRowsAffected\b|\bRowsAffected\b.{0,160}?\bif\b)[^{]*==\s*0\s*\{[^}]*\breturn\b
+    - kind: func_literal
+      regex: (?s)(\bif\b[^{]*\bRowsAffected\b|\bRowsAffected\b.{0,160}?\bif\b)[^{]*==\s*0\s*\{[^}]*\breturn\b
+min_engine: 0.39.0
+---
+# payload-before-verify: an items-sdk handler (the same match, so the same path and line) whose text has a helper (a
+# bare call, or one on self, this or $this) given the body, event or payload, then later a verify call (B32p 5.2).
+# Evidence: no pass while it is seen, until the stem reads what the helper does; never an object of its own.
+id: inbound-webhooks-verified.go-gin.payload-before-verify
+practice_id: inbound-webhooks-verified
+language: go
+frameworks:
+- gin
+kind: evidence
+rule:
+  all:
+  - all:
+    - any:
+      - kind: function_declaration
+        has:
+          kind: parameter_list
+          regex: \*gin\.Context|echo\.Context|\*fiber\.Ctx|http\.ResponseWriter
+      - kind: method_declaration
+        has:
+          kind: parameter_list
+          regex: \*gin\.Context|echo\.Context|\*fiber\.Ctx|http\.ResponseWriter
+      - kind: func_literal
+        has:
+          kind: parameter_list
+          regex: \*gin\.Context|echo\.Context|\*fiber\.Ctx|http\.ResponseWriter
+    - any:
+      - has:
+          stopBy: end
+          any:
+          - kind: interpreted_string_literal
+            regex: (?i)^["`](stripe-signature|x-twilio-signature|svix-signature|x-hub-signature-256|x-hub-signature|webhook-signature)["`]$
+          - kind: raw_string_literal
+            regex: (?i)^["`](stripe-signature|x-twilio-signature|svix-signature|x-hub-signature-256|x-hub-signature|webhook-signature)["`]$
+      - has:
+          stopBy: end
+          any:
+          - kind: call_expression
+            has:
+              field: function
+              kind: selector_expression
+              regex: (^|\.)(ConstructEvent|ConstructEventWithOptions|ValidatePayload)$
+    - not:
+        has:
+          stopBy: end
+          kind: call_expression
+          regex: ^hmac\.New\(
+  - any:
+    - kind: function_declaration
+      regex: (?s)(\n[ \t]*|=\s*|[(,]\s*|\b(return|await|yield|go|defer)\s+)[A-Za-z_]\w*\s*\(\s*((body|event|evt|payload|data|r\.Body|c\.Request\.Body)\b).*\b(ConstructEvent|ConstructEventWithOptions|Validate|ValidateBody|ValidatePayload|Verify)\b
+    - kind: method_declaration
+      regex: (?s)(\n[ \t]*|=\s*|[(,]\s*|\b(return|await|yield|go|defer)\s+)[A-Za-z_]\w*\s*\(\s*((body|event|evt|payload|data|r\.Body|c\.Request\.Body)\b).*\b(ConstructEvent|ConstructEventWithOptions|Validate|ValidateBody|ValidatePayload|Verify)\b
+    - kind: func_literal
+      regex: (?s)(\n[ \t]*|=\s*|[(,]\s*|\b(return|await|yield|go|defer)\s+)[A-Za-z_]\w*\s*\(\s*((body|event|evt|payload|data|r\.Body|c\.Request\.Body)\b).*\b(ConstructEvent|ConstructEventWithOptions|Validate|ValidateBody|ValidatePayload|Verify)\b
+min_engine: 0.39.0
+---
+# header-unread: a request header read by a name that is no literal: a variable, a member or a constant (B32p C6), so
+# it can't be checked against the providers' signature headers. Evidence: no pass while it is seen; never an object of
+# its own.
+id: inbound-webhooks-verified.go-gin.header-unread
+practice_id: inbound-webhooks-verified
+language: go
+frameworks:
+- gin
+kind: evidence
+rule:
+  kind: call_expression
+  regex: ^[\w.]*(\.Header\s*\.\s*(Get|Values)|\.GetHeader)\s*\(\s*[A-Za-z_]
+min_engine: 0.39.0
+---
+# provider-stripe: an import of stripe's SDK (the practice's providers table). Evidence: the pass needs a verified
+# items-sdk handler for stripe (Q6).
+id: inbound-webhooks-verified.go-gin.provider-stripe
+practice_id: inbound-webhooks-verified
+language: go
+frameworks:
+- gin
+kind: evidence
+rule:
+  kind: import_spec
+  regex: '[\"`](github\.com/stripe/stripe\-go)(/[^\"`]*)?[\"`]'
+min_engine: 0.39.0
+---
+# verified-stripe: an items-sdk handler (the same match, so the same path and line) whose control calls stripe's own
+# verify call; an instance call counts only beside a literal naming one of stripe's headers. Evidence: with the SDK
+# control, it shows stripe verified for the pass (Q6).
+id: inbound-webhooks-verified.go-gin.verified-stripe
+practice_id: inbound-webhooks-verified
+language: go
+frameworks:
+- gin
+kind: evidence
+rule:
+  all:
+  - all:
+    - any:
+      - kind: function_declaration
+        has:
+          kind: parameter_list
+          regex: \*gin\.Context|echo\.Context|\*fiber\.Ctx|http\.ResponseWriter
+      - kind: method_declaration
+        has:
+          kind: parameter_list
+          regex: \*gin\.Context|echo\.Context|\*fiber\.Ctx|http\.ResponseWriter
+      - kind: func_literal
+        has:
+          kind: parameter_list
+          regex: \*gin\.Context|echo\.Context|\*fiber\.Ctx|http\.ResponseWriter
+    - any:
+      - has:
+          stopBy: end
+          any:
+          - kind: interpreted_string_literal
+            regex: (?i)^["`](stripe-signature|x-twilio-signature|svix-signature|x-hub-signature-256|x-hub-signature|webhook-signature)["`]$
+          - kind: raw_string_literal
+            regex: (?i)^["`](stripe-signature|x-twilio-signature|svix-signature|x-hub-signature-256|x-hub-signature|webhook-signature)["`]$
+      - has:
+          stopBy: end
+          any:
+          - kind: call_expression
+            has:
+              field: function
+              kind: selector_expression
+              regex: (^|\.)(ConstructEvent|ConstructEventWithOptions|ValidatePayload)$
+    - not:
+        has:
+          stopBy: end
+          kind: call_expression
+          regex: ^hmac\.New\(
+  - any:
+    - has:
+        stopBy: end
+        any:
+        - all:
+          - all:
+            - any:
+              - any:
+                - kind: call_expression
+                  has:
+                    field: function
+                    kind: selector_expression
+                    regex: (^|\.)(ConstructEvent|ConstructEventWithOptions|ValidatePayload)$
+            - any:
+              - inside:
+                  stopBy: end
+                  kind: unary_expression
+                  regex: ^!
+                  inside:
+                    kind: if_statement
+                    has:
+                      field: consequence
+                      kind: block
+                      has:
+                        kind: statement_list
+                        has:
+                          kind: return_statement
+              - all:
+                - inside:
+                    kind: expression_list
+                    inside:
+                      any:
+                      - kind: short_var_declaration
+                      - kind: assignment_statement
+                      - kind: var_spec
+                - any:
+                  - inside:
+                      stopBy: end
+                      kind: short_var_declaration
+                      pattern: $OK := $V
+                      precedes:
+                        kind: if_statement
+                        has:
+                          field: consequence
+                          kind: block
+                          has:
+                            kind: statement_list
+                            has:
+                              kind: return_statement
+                        all:
+                        - has:
+                            field: condition
+                            kind: binary_expression
+                            pattern: $OK != nil
+                  - inside:
+                      stopBy: end
+                      kind: short_var_declaration
+                      pattern: $OK := $V
+                      precedes:
+                        kind: if_statement
+                        has:
+                          field: consequence
+                          kind: block
+                          has:
+                            kind: statement_list
+                            has:
+                              kind: return_statement
+                        all:
+                        - has:
+                            field: condition
+                            kind: unary_expression
+                            pattern:
+                              context: 'package a
+
+                                func f() { if !$OK {} }'
+                              selector: unary_expression
+                  - inside:
+                      stopBy: end
+                      kind: short_var_declaration
+                      pattern: $A, $OK := $V
+                      precedes:
+                        kind: if_statement
+                        has:
+                          field: consequence
+                          kind: block
+                          has:
+                            kind: statement_list
+                            has:
+                              kind: return_statement
+                        all:
+                        - has:
+                            field: condition
+                            kind: binary_expression
+                            pattern: $OK != nil
+                  - inside:
+                      stopBy: end
+                      kind: short_var_declaration
+                      pattern: $A, $OK := $V
+                      precedes:
+                        kind: if_statement
+                        has:
+                          field: consequence
+                          kind: block
+                          has:
+                            kind: statement_list
+                            has:
+                              kind: return_statement
+                        all:
+                        - has:
+                            field: condition
+                            kind: unary_expression
+                            pattern:
+                              context: 'package a
+
+                                func f() { if !$OK {} }'
+                              selector: unary_expression
+                  - inside:
+                      stopBy: end
+                      kind: assignment_statement
+                      pattern: $OK = $V
+                      precedes:
+                        kind: if_statement
+                        has:
+                          field: consequence
+                          kind: block
+                          has:
+                            kind: statement_list
+                            has:
+                              kind: return_statement
+                        all:
+                        - has:
+                            field: condition
+                            kind: binary_expression
+                            pattern: $OK != nil
+                  - inside:
+                      stopBy: end
+                      kind: assignment_statement
+                      pattern: $OK = $V
+                      precedes:
+                        kind: if_statement
+                        has:
+                          field: consequence
+                          kind: block
+                          has:
+                            kind: statement_list
+                            has:
+                              kind: return_statement
+                        all:
+                        - has:
+                            field: condition
+                            kind: unary_expression
+                            pattern:
+                              context: 'package a
+
+                                func f() { if !$OK {} }'
+                              selector: unary_expression
+                  - inside:
+                      stopBy: end
+                      kind: assignment_statement
+                      pattern: $A, $OK = $V
+                      precedes:
+                        kind: if_statement
+                        has:
+                          field: consequence
+                          kind: block
+                          has:
+                            kind: statement_list
+                            has:
+                              kind: return_statement
+                        all:
+                        - has:
+                            field: condition
+                            kind: binary_expression
+                            pattern: $OK != nil
+                  - inside:
+                      stopBy: end
+                      kind: assignment_statement
+                      pattern: $A, $OK = $V
+                      precedes:
+                        kind: if_statement
+                        has:
+                          field: consequence
+                          kind: block
+                          has:
+                            kind: statement_list
+                            has:
+                              kind: return_statement
+                        all:
+                        - has:
+                            field: condition
+                            kind: unary_expression
+                            pattern:
+                              context: 'package a
+
+                                func f() { if !$OK {} }'
+                              selector: unary_expression
+                  - inside:
+                      stopBy: end
+                      kind: var_declaration
+                      pattern: var $OK = $V
+                      precedes:
+                        kind: if_statement
+                        has:
+                          field: consequence
+                          kind: block
+                          has:
+                            kind: statement_list
+                            has:
+                              kind: return_statement
+                        all:
+                        - has:
+                            field: condition
+                            kind: binary_expression
+                            pattern: $OK != nil
+                  - inside:
+                      stopBy: end
+                      kind: var_declaration
+                      pattern: var $OK = $V
+                      precedes:
+                        kind: if_statement
+                        has:
+                          field: consequence
+                          kind: block
+                          has:
+                            kind: statement_list
+                            has:
+                              kind: return_statement
+                        all:
+                        - has:
+                            field: condition
+                            kind: unary_expression
+                            pattern:
+                              context: 'package a
+
+                                func f() { if !$OK {} }'
+                              selector: unary_expression
+              - all:
+                - inside:
+                    kind: expression_list
+                    inside:
+                      any:
+                      - kind: short_var_declaration
+                      - kind: assignment_statement
+                      - kind: var_spec
+                - inside:
+                    stopBy: end
+                    kind: short_var_declaration
+                    pattern: $OK := $V
+                    inside:
+                      kind: if_statement
+                      has:
+                        field: consequence
+                        kind: block
+                        has:
+                          kind: statement_list
+                          has:
+                            kind: return_statement
+                      all:
+                      - has:
+                          field: condition
+                          kind: binary_expression
+                          pattern: $OK != nil
+              - all:
+                - inside:
+                    kind: expression_list
+                    inside:
+                      any:
+                      - kind: short_var_declaration
+                      - kind: assignment_statement
+                      - kind: var_spec
+                - inside:
+                    stopBy: end
+                    kind: short_var_declaration
+                    pattern: $A, $OK := $V
+                    inside:
+                      kind: if_statement
+                      has:
+                        field: consequence
+                        kind: block
+                        has:
+                          kind: statement_list
+                          has:
+                            kind: return_statement
+                      all:
+                      - has:
+                          field: condition
+                          kind: binary_expression
+                          pattern: $OK != nil
+          - not:
+              inside:
+                stopBy: end
+                kind: func_literal
+                inside:
+                  stopBy: end
+                  any:
+                  - kind: function_declaration
+                    has:
+                      kind: parameter_list
+                      regex: \*gin\.Context|echo\.Context|\*fiber\.Ctx|http\.ResponseWriter
+                  - kind: method_declaration
+                    has:
+                      kind: parameter_list
+                      regex: \*gin\.Context|echo\.Context|\*fiber\.Ctx|http\.ResponseWriter
+                  - kind: func_literal
+                    has:
+                      kind: parameter_list
+                      regex: \*gin\.Context|echo\.Context|\*fiber\.Ctx|http\.ResponseWriter
+min_engine: 0.39.0
+---
+# provider-twilio: an import of twilio's SDK (the practice's providers table). Evidence: the pass needs a verified
+# items-sdk handler for twilio (Q6).
+id: inbound-webhooks-verified.go-gin.provider-twilio
+practice_id: inbound-webhooks-verified
+language: go
+frameworks:
+- gin
+kind: evidence
+rule:
+  kind: import_spec
+  regex: '[\"`](github\.com/twilio/twilio\-go)(/[^\"`]*)?[\"`]'
+min_engine: 0.39.0
+---
+# verified-twilio: an items-sdk handler (the same match, so the same path and line) whose control calls twilio's own
+# verify call; an instance call counts only beside a literal naming one of twilio's headers. Evidence: with the SDK
+# control, it shows twilio verified for the pass (Q6).
+id: inbound-webhooks-verified.go-gin.verified-twilio
+practice_id: inbound-webhooks-verified
+language: go
+frameworks:
+- gin
+kind: evidence
+rule:
+  all:
+  - all:
+    - any:
+      - kind: function_declaration
+        has:
+          kind: parameter_list
+          regex: \*gin\.Context|echo\.Context|\*fiber\.Ctx|http\.ResponseWriter
+      - kind: method_declaration
+        has:
+          kind: parameter_list
+          regex: \*gin\.Context|echo\.Context|\*fiber\.Ctx|http\.ResponseWriter
+      - kind: func_literal
+        has:
+          kind: parameter_list
+          regex: \*gin\.Context|echo\.Context|\*fiber\.Ctx|http\.ResponseWriter
+    - any:
+      - has:
+          stopBy: end
+          any:
+          - kind: interpreted_string_literal
+            regex: (?i)^["`](stripe-signature|x-twilio-signature|svix-signature|x-hub-signature-256|x-hub-signature|webhook-signature)["`]$
+          - kind: raw_string_literal
+            regex: (?i)^["`](stripe-signature|x-twilio-signature|svix-signature|x-hub-signature-256|x-hub-signature|webhook-signature)["`]$
+      - has:
+          stopBy: end
+          any:
+          - kind: call_expression
+            has:
+              field: function
+              kind: selector_expression
+              regex: (^|\.)(ConstructEvent|ConstructEventWithOptions|ValidatePayload)$
+    - not:
+        has:
+          stopBy: end
+          kind: call_expression
+          regex: ^hmac\.New\(
+  - any:
+    - all:
+      - has:
+          stopBy: end
+          any:
+          - all:
+            - all:
+              - any:
+                - all:
+                  - any:
+                    - kind: call_expression
+                      has:
+                        field: function
+                        kind: selector_expression
+                        regex: (?i)^\w*(wh|webhooks?|svix|hook|validator)\w*\.(Validate)$
+                  - inside:
+                      stopBy: end
+                      kind: source_file
+                      has:
+                        stopBy: end
+                        kind: import_spec
+                        regex: '[\"`](github\.com/twilio/twilio\-go|github\.com/twilio/twilio\-go)(/[^\"`]*)?[\"`]'
+                - all:
+                  - any:
+                    - kind: call_expression
+                      has:
+                        field: function
+                        kind: selector_expression
+                        regex: (?i)^\w*(wh|webhooks?|svix|hook|validator)\w*\.(ValidateBody)$
+                  - inside:
+                      stopBy: end
+                      kind: source_file
+                      has:
+                        stopBy: end
+                        kind: import_spec
+                        regex: '[\"`](github\.com/twilio/twilio\-go|github\.com/twilio/twilio\-go)(/[^\"`]*)?[\"`]'
+              - any:
+                - inside:
+                    stopBy: end
+                    kind: unary_expression
+                    regex: ^!
+                    inside:
+                      kind: if_statement
+                      has:
+                        field: consequence
+                        kind: block
+                        has:
+                          kind: statement_list
+                          has:
+                            kind: return_statement
+                - all:
+                  - inside:
+                      kind: expression_list
+                      inside:
+                        any:
+                        - kind: short_var_declaration
+                        - kind: assignment_statement
+                        - kind: var_spec
+                  - any:
+                    - inside:
+                        stopBy: end
+                        kind: short_var_declaration
+                        pattern: $OK := $V
+                        precedes:
+                          kind: if_statement
+                          has:
+                            field: consequence
+                            kind: block
+                            has:
+                              kind: statement_list
+                              has:
+                                kind: return_statement
+                          all:
+                          - has:
+                              field: condition
+                              kind: binary_expression
+                              pattern: $OK != nil
+                    - inside:
+                        stopBy: end
+                        kind: short_var_declaration
+                        pattern: $OK := $V
+                        precedes:
+                          kind: if_statement
+                          has:
+                            field: consequence
+                            kind: block
+                            has:
+                              kind: statement_list
+                              has:
+                                kind: return_statement
+                          all:
+                          - has:
+                              field: condition
+                              kind: unary_expression
+                              pattern:
+                                context: 'package a
+
+                                  func f() { if !$OK {} }'
+                                selector: unary_expression
+                    - inside:
+                        stopBy: end
+                        kind: short_var_declaration
+                        pattern: $A, $OK := $V
+                        precedes:
+                          kind: if_statement
+                          has:
+                            field: consequence
+                            kind: block
+                            has:
+                              kind: statement_list
+                              has:
+                                kind: return_statement
+                          all:
+                          - has:
+                              field: condition
+                              kind: binary_expression
+                              pattern: $OK != nil
+                    - inside:
+                        stopBy: end
+                        kind: short_var_declaration
+                        pattern: $A, $OK := $V
+                        precedes:
+                          kind: if_statement
+                          has:
+                            field: consequence
+                            kind: block
+                            has:
+                              kind: statement_list
+                              has:
+                                kind: return_statement
+                          all:
+                          - has:
+                              field: condition
+                              kind: unary_expression
+                              pattern:
+                                context: 'package a
+
+                                  func f() { if !$OK {} }'
+                                selector: unary_expression
+                    - inside:
+                        stopBy: end
+                        kind: assignment_statement
+                        pattern: $OK = $V
+                        precedes:
+                          kind: if_statement
+                          has:
+                            field: consequence
+                            kind: block
+                            has:
+                              kind: statement_list
+                              has:
+                                kind: return_statement
+                          all:
+                          - has:
+                              field: condition
+                              kind: binary_expression
+                              pattern: $OK != nil
+                    - inside:
+                        stopBy: end
+                        kind: assignment_statement
+                        pattern: $OK = $V
+                        precedes:
+                          kind: if_statement
+                          has:
+                            field: consequence
+                            kind: block
+                            has:
+                              kind: statement_list
+                              has:
+                                kind: return_statement
+                          all:
+                          - has:
+                              field: condition
+                              kind: unary_expression
+                              pattern:
+                                context: 'package a
+
+                                  func f() { if !$OK {} }'
+                                selector: unary_expression
+                    - inside:
+                        stopBy: end
+                        kind: assignment_statement
+                        pattern: $A, $OK = $V
+                        precedes:
+                          kind: if_statement
+                          has:
+                            field: consequence
+                            kind: block
+                            has:
+                              kind: statement_list
+                              has:
+                                kind: return_statement
+                          all:
+                          - has:
+                              field: condition
+                              kind: binary_expression
+                              pattern: $OK != nil
+                    - inside:
+                        stopBy: end
+                        kind: assignment_statement
+                        pattern: $A, $OK = $V
+                        precedes:
+                          kind: if_statement
+                          has:
+                            field: consequence
+                            kind: block
+                            has:
+                              kind: statement_list
+                              has:
+                                kind: return_statement
+                          all:
+                          - has:
+                              field: condition
+                              kind: unary_expression
+                              pattern:
+                                context: 'package a
+
+                                  func f() { if !$OK {} }'
+                                selector: unary_expression
+                    - inside:
+                        stopBy: end
+                        kind: var_declaration
+                        pattern: var $OK = $V
+                        precedes:
+                          kind: if_statement
+                          has:
+                            field: consequence
+                            kind: block
+                            has:
+                              kind: statement_list
+                              has:
+                                kind: return_statement
+                          all:
+                          - has:
+                              field: condition
+                              kind: binary_expression
+                              pattern: $OK != nil
+                    - inside:
+                        stopBy: end
+                        kind: var_declaration
+                        pattern: var $OK = $V
+                        precedes:
+                          kind: if_statement
+                          has:
+                            field: consequence
+                            kind: block
+                            has:
+                              kind: statement_list
+                              has:
+                                kind: return_statement
+                          all:
+                          - has:
+                              field: condition
+                              kind: unary_expression
+                              pattern:
+                                context: 'package a
+
+                                  func f() { if !$OK {} }'
+                                selector: unary_expression
+                - all:
+                  - inside:
+                      kind: expression_list
+                      inside:
+                        any:
+                        - kind: short_var_declaration
+                        - kind: assignment_statement
+                        - kind: var_spec
+                  - inside:
+                      stopBy: end
+                      kind: short_var_declaration
+                      pattern: $OK := $V
+                      inside:
+                        kind: if_statement
+                        has:
+                          field: consequence
+                          kind: block
+                          has:
+                            kind: statement_list
+                            has:
+                              kind: return_statement
+                        all:
+                        - has:
+                            field: condition
+                            kind: binary_expression
+                            pattern: $OK != nil
+                - all:
+                  - inside:
+                      kind: expression_list
+                      inside:
+                        any:
+                        - kind: short_var_declaration
+                        - kind: assignment_statement
+                        - kind: var_spec
+                  - inside:
+                      stopBy: end
+                      kind: short_var_declaration
+                      pattern: $A, $OK := $V
+                      inside:
+                        kind: if_statement
+                        has:
+                          field: consequence
+                          kind: block
+                          has:
+                            kind: statement_list
+                            has:
+                              kind: return_statement
+                        all:
+                        - has:
+                            field: condition
+                            kind: binary_expression
+                            pattern: $OK != nil
+            - not:
+                inside:
+                  stopBy: end
+                  kind: func_literal
+                  inside:
+                    stopBy: end
+                    any:
+                    - kind: function_declaration
+                      has:
+                        kind: parameter_list
+                        regex: \*gin\.Context|echo\.Context|\*fiber\.Ctx|http\.ResponseWriter
+                    - kind: method_declaration
+                      has:
+                        kind: parameter_list
+                        regex: \*gin\.Context|echo\.Context|\*fiber\.Ctx|http\.ResponseWriter
+                    - kind: func_literal
+                      has:
+                        kind: parameter_list
+                        regex: \*gin\.Context|echo\.Context|\*fiber\.Ctx|http\.ResponseWriter
+      - has:
+          stopBy: end
+          any:
+          - kind: interpreted_string_literal
+            regex: (?i)(X-Twilio-Signature)
+          - kind: raw_string_literal
+            regex: (?i)(X-Twilio-Signature)
+min_engine: 0.39.0
+---
+# provider-svix: an import of svix's SDK (the practice's providers table). Evidence: the pass needs a verified
+# items-sdk handler for svix (Q6).
+id: inbound-webhooks-verified.go-gin.provider-svix
+practice_id: inbound-webhooks-verified
+language: go
+frameworks:
+- gin
+kind: evidence
+rule:
+  kind: import_spec
+  regex: '[\"`](github\.com/svix/svix\-webhooks)(/[^\"`]*)?[\"`]'
+min_engine: 0.39.0
+---
+# verified-svix: an items-sdk handler (the same match, so the same path and line) whose control calls svix's own
+# verify call; an instance call counts only beside a literal naming one of svix's headers. Evidence: with the SDK
+# control, it shows svix verified for the pass (Q6).
+id: inbound-webhooks-verified.go-gin.verified-svix
+practice_id: inbound-webhooks-verified
+language: go
+frameworks:
+- gin
+kind: evidence
+rule:
+  all:
+  - all:
+    - any:
+      - kind: function_declaration
+        has:
+          kind: parameter_list
+          regex: \*gin\.Context|echo\.Context|\*fiber\.Ctx|http\.ResponseWriter
+      - kind: method_declaration
+        has:
+          kind: parameter_list
+          regex: \*gin\.Context|echo\.Context|\*fiber\.Ctx|http\.ResponseWriter
+      - kind: func_literal
+        has:
+          kind: parameter_list
+          regex: \*gin\.Context|echo\.Context|\*fiber\.Ctx|http\.ResponseWriter
+    - any:
+      - has:
+          stopBy: end
+          any:
+          - kind: interpreted_string_literal
+            regex: (?i)^["`](stripe-signature|x-twilio-signature|svix-signature|x-hub-signature-256|x-hub-signature|webhook-signature)["`]$
+          - kind: raw_string_literal
+            regex: (?i)^["`](stripe-signature|x-twilio-signature|svix-signature|x-hub-signature-256|x-hub-signature|webhook-signature)["`]$
+      - has:
+          stopBy: end
+          any:
+          - kind: call_expression
+            has:
+              field: function
+              kind: selector_expression
+              regex: (^|\.)(ConstructEvent|ConstructEventWithOptions|ValidatePayload)$
+    - not:
+        has:
+          stopBy: end
+          kind: call_expression
+          regex: ^hmac\.New\(
+  - any:
+    - all:
+      - has:
+          stopBy: end
+          any:
+          - all:
+            - all:
+              - any:
+                - all:
+                  - any:
+                    - kind: call_expression
+                      has:
+                        field: function
+                        kind: selector_expression
+                        regex: (?i)^\w*(wh|webhooks?|svix|hook|validator)\w*\.(Verify)$
+                  - inside:
+                      stopBy: end
+                      kind: source_file
+                      has:
+                        stopBy: end
+                        kind: import_spec
+                        regex: '[\"`](github\.com/svix/svix\-webhooks|github\.com/svix/svix\-webhooks)(/[^\"`]*)?[\"`]'
+              - any:
+                - inside:
+                    stopBy: end
+                    kind: unary_expression
+                    regex: ^!
+                    inside:
+                      kind: if_statement
+                      has:
+                        field: consequence
+                        kind: block
+                        has:
+                          kind: statement_list
+                          has:
+                            kind: return_statement
+                - all:
+                  - inside:
+                      kind: expression_list
+                      inside:
+                        any:
+                        - kind: short_var_declaration
+                        - kind: assignment_statement
+                        - kind: var_spec
+                  - any:
+                    - inside:
+                        stopBy: end
+                        kind: short_var_declaration
+                        pattern: $OK := $V
+                        precedes:
+                          kind: if_statement
+                          has:
+                            field: consequence
+                            kind: block
+                            has:
+                              kind: statement_list
+                              has:
+                                kind: return_statement
+                          all:
+                          - has:
+                              field: condition
+                              kind: binary_expression
+                              pattern: $OK != nil
+                    - inside:
+                        stopBy: end
+                        kind: short_var_declaration
+                        pattern: $OK := $V
+                        precedes:
+                          kind: if_statement
+                          has:
+                            field: consequence
+                            kind: block
+                            has:
+                              kind: statement_list
+                              has:
+                                kind: return_statement
+                          all:
+                          - has:
+                              field: condition
+                              kind: unary_expression
+                              pattern:
+                                context: 'package a
+
+                                  func f() { if !$OK {} }'
+                                selector: unary_expression
+                    - inside:
+                        stopBy: end
+                        kind: short_var_declaration
+                        pattern: $A, $OK := $V
+                        precedes:
+                          kind: if_statement
+                          has:
+                            field: consequence
+                            kind: block
+                            has:
+                              kind: statement_list
+                              has:
+                                kind: return_statement
+                          all:
+                          - has:
+                              field: condition
+                              kind: binary_expression
+                              pattern: $OK != nil
+                    - inside:
+                        stopBy: end
+                        kind: short_var_declaration
+                        pattern: $A, $OK := $V
+                        precedes:
+                          kind: if_statement
+                          has:
+                            field: consequence
+                            kind: block
+                            has:
+                              kind: statement_list
+                              has:
+                                kind: return_statement
+                          all:
+                          - has:
+                              field: condition
+                              kind: unary_expression
+                              pattern:
+                                context: 'package a
+
+                                  func f() { if !$OK {} }'
+                                selector: unary_expression
+                    - inside:
+                        stopBy: end
+                        kind: assignment_statement
+                        pattern: $OK = $V
+                        precedes:
+                          kind: if_statement
+                          has:
+                            field: consequence
+                            kind: block
+                            has:
+                              kind: statement_list
+                              has:
+                                kind: return_statement
+                          all:
+                          - has:
+                              field: condition
+                              kind: binary_expression
+                              pattern: $OK != nil
+                    - inside:
+                        stopBy: end
+                        kind: assignment_statement
+                        pattern: $OK = $V
+                        precedes:
+                          kind: if_statement
+                          has:
+                            field: consequence
+                            kind: block
+                            has:
+                              kind: statement_list
+                              has:
+                                kind: return_statement
+                          all:
+                          - has:
+                              field: condition
+                              kind: unary_expression
+                              pattern:
+                                context: 'package a
+
+                                  func f() { if !$OK {} }'
+                                selector: unary_expression
+                    - inside:
+                        stopBy: end
+                        kind: assignment_statement
+                        pattern: $A, $OK = $V
+                        precedes:
+                          kind: if_statement
+                          has:
+                            field: consequence
+                            kind: block
+                            has:
+                              kind: statement_list
+                              has:
+                                kind: return_statement
+                          all:
+                          - has:
+                              field: condition
+                              kind: binary_expression
+                              pattern: $OK != nil
+                    - inside:
+                        stopBy: end
+                        kind: assignment_statement
+                        pattern: $A, $OK = $V
+                        precedes:
+                          kind: if_statement
+                          has:
+                            field: consequence
+                            kind: block
+                            has:
+                              kind: statement_list
+                              has:
+                                kind: return_statement
+                          all:
+                          - has:
+                              field: condition
+                              kind: unary_expression
+                              pattern:
+                                context: 'package a
+
+                                  func f() { if !$OK {} }'
+                                selector: unary_expression
+                    - inside:
+                        stopBy: end
+                        kind: var_declaration
+                        pattern: var $OK = $V
+                        precedes:
+                          kind: if_statement
+                          has:
+                            field: consequence
+                            kind: block
+                            has:
+                              kind: statement_list
+                              has:
+                                kind: return_statement
+                          all:
+                          - has:
+                              field: condition
+                              kind: binary_expression
+                              pattern: $OK != nil
+                    - inside:
+                        stopBy: end
+                        kind: var_declaration
+                        pattern: var $OK = $V
+                        precedes:
+                          kind: if_statement
+                          has:
+                            field: consequence
+                            kind: block
+                            has:
+                              kind: statement_list
+                              has:
+                                kind: return_statement
+                          all:
+                          - has:
+                              field: condition
+                              kind: unary_expression
+                              pattern:
+                                context: 'package a
+
+                                  func f() { if !$OK {} }'
+                                selector: unary_expression
+                - all:
+                  - inside:
+                      kind: expression_list
+                      inside:
+                        any:
+                        - kind: short_var_declaration
+                        - kind: assignment_statement
+                        - kind: var_spec
+                  - inside:
+                      stopBy: end
+                      kind: short_var_declaration
+                      pattern: $OK := $V
+                      inside:
+                        kind: if_statement
+                        has:
+                          field: consequence
+                          kind: block
+                          has:
+                            kind: statement_list
+                            has:
+                              kind: return_statement
+                        all:
+                        - has:
+                            field: condition
+                            kind: binary_expression
+                            pattern: $OK != nil
+                - all:
+                  - inside:
+                      kind: expression_list
+                      inside:
+                        any:
+                        - kind: short_var_declaration
+                        - kind: assignment_statement
+                        - kind: var_spec
+                  - inside:
+                      stopBy: end
+                      kind: short_var_declaration
+                      pattern: $A, $OK := $V
+                      inside:
+                        kind: if_statement
+                        has:
+                          field: consequence
+                          kind: block
+                          has:
+                            kind: statement_list
+                            has:
+                              kind: return_statement
+                        all:
+                        - has:
+                            field: condition
+                            kind: binary_expression
+                            pattern: $OK != nil
+            - not:
+                inside:
+                  stopBy: end
+                  kind: func_literal
+                  inside:
+                    stopBy: end
+                    any:
+                    - kind: function_declaration
+                      has:
+                        kind: parameter_list
+                        regex: \*gin\.Context|echo\.Context|\*fiber\.Ctx|http\.ResponseWriter
+                    - kind: method_declaration
+                      has:
+                        kind: parameter_list
+                        regex: \*gin\.Context|echo\.Context|\*fiber\.Ctx|http\.ResponseWriter
+                    - kind: func_literal
+                      has:
+                        kind: parameter_list
+                        regex: \*gin\.Context|echo\.Context|\*fiber\.Ctx|http\.ResponseWriter
+      - has:
+          stopBy: end
+          any:
+          - kind: interpreted_string_literal
+            regex: (?i)(svix-signature)
+          - kind: raw_string_literal
+            regex: (?i)(svix-signature)
+min_engine: 0.39.0
+---
+# provider-plaid: an import of plaid's SDK (the practice's providers table). Evidence: the pass needs a verified
+# items-sdk handler for plaid (Q6).
+id: inbound-webhooks-verified.go-gin.provider-plaid
+practice_id: inbound-webhooks-verified
+language: go
+frameworks:
+- gin
+kind: evidence
+rule:
+  kind: import_spec
+  regex: '[\"`](github\.com/plaid/plaid\-go)(/[^\"`]*)?[\"`]'
+min_engine: 0.39.0
+---
+# webhook-mount: a webhook path bound to code this file doesn't hold: a router, blueprint or group mounted under it,
+# or a route whose handler is passed by name. Evidence: held for a person, and no pass while it is seen (Q6).
+id: inbound-webhooks-verified.go-gin.webhook-mount
+practice_id: inbound-webhooks-verified
+language: go
+frameworks:
+- gin
+kind: evidence
+rule:
+  kind: call_expression
+  any:
+  - all:
+    - has:
+        field: function
+        kind: selector_expression
+        regex: \.(Group|GET|POST|PUT|PATCH|DELETE|Any|Handle|HandleFunc)$
+    - has:
+        field: arguments
+        kind: argument_list
+        regex: (?i)^\(\s*[\"`]/?([^\"`]*[/_-])?(webhooks?|hooks?|callbacks?|notify)([/_.-][^\"`]*)?[\"`]
+    - not:
+        has:
+          field: arguments
+          kind: argument_list
+          has:
+            kind: func_literal
+  - all:
+    - has:
+        field: function
+        kind: selector_expression
+        regex: \.(Get|Post|Put|Patch|Delete|Mount|PathPrefix)$
+    - has:
+        field: arguments
+        kind: argument_list
+        regex: (?i)^\(\s*[\"`]/([^\"`]*[/_-])?(webhooks?|hooks?|callbacks?|notify)([/_.-][^\"`]*)?[\"`]
+    - not:
+        has:
+          field: arguments
+          kind: argument_list
+          has:
+            kind: func_literal
+  - all:
+    - has:
+        field: function
+        kind: selector_expression
+        regex: \.Route$
+    - has:
+        field: arguments
+        kind: argument_list
+        regex: (?i)^\(\s*[\"`]/([^\"`]*[/_-])?(webhooks?|hooks?|callbacks?|notify)([/_.-][^\"`]*)?[\"`]
+min_engine: 0.39.0

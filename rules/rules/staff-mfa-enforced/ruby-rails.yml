@@ -1,0 +1,66 @@
+id: staff-mfa-enforced.ruby-rails.sign-in
+practice_id: staff-mfa-enforced
+language: ruby
+frameworks:
+- rails
+kind: items
+rule:
+  all:
+  - kind: method
+  - has:
+      stopBy: end
+      kind: call
+      regex: (\.authenticate\(|valid_password\?\(|(?-u:\b)sign_in(?-u:\b))
+control:
+  has:
+    stopBy: end
+    all:
+    - kind: call
+      regex: (validate_and_consume_otp!|verify_otp|ROTP::TOTP\.new\([^)]*\)\.verify|totp\.verify|current_otp|webauthn|WebAuthn::Credential)
+    - not:
+        inside:
+          stopBy: end
+          any:
+          - kind: if
+          - kind: if_modifier
+          - kind: unless
+          has:
+            field: condition
+            any:
+            - kind: call
+              regex: (?i)^\(\s*!?\s*[A-Za-z0-9_.?]*\.(otp|totp|mfaCode|mfa_code|code)\s*\)$|(mfa|otp|totp|two_?factor|2fa|tfa)_?(enabled|enrolled|active|registered|configured)|(mfa|otp|two_?factor)_?required_?for_?login|is_?mfa_?required|mfa_?required|requires_?mfa|nextLevel|has_?mfa|factors\.(length|totp)|mfa_?types|\$this->types
+            - kind: identifier
+              regex: (?i)^\(\s*!?\s*[A-Za-z0-9_.?]*\.(otp|totp|mfaCode|mfa_code|code)\s*\)$|(mfa|otp|totp|two_?factor|2fa|tfa)_?(enabled|enrolled|active|registered|configured)|(mfa|otp|two_?factor)_?required_?for_?login|is_?mfa_?required|mfa_?required|requires_?mfa|nextLevel|has_?mfa|factors\.(length|totp)|mfa_?types|\$this->types
+min_engine: 0.39.0
+---
+id: staff-mfa-enforced.ruby-rails.mfa-optional
+practice_id: staff-mfa-enforced
+language: ruby
+frameworks:
+- rails
+kind: violation
+rule:
+  all:
+  - any:
+    - kind: if
+    - kind: if_modifier
+  - has:
+      field: condition
+      any:
+      - kind: call
+        regex: (?i)^\(\s*!?\s*[A-Za-z0-9_.?]*\.(otp|totp|mfaCode|mfa_code|code)\s*\)$|(mfa|otp|totp|two_?factor|2fa|tfa)_?(enabled|enrolled|active|registered|configured)|(mfa|otp|two_?factor)_?required_?for_?login|is_?mfa_?required|mfa_?required|requires_?mfa|nextLevel|has_?mfa|factors\.(length|totp)|mfa_?types|\$this->types
+      - kind: identifier
+        regex: (?i)^\(\s*!?\s*[A-Za-z0-9_.?]*\.(otp|totp|mfaCode|mfa_code|code)\s*\)$|(mfa|otp|totp|two_?factor|2fa|tfa)_?(enabled|enrolled|active|registered|configured)|(mfa|otp|two_?factor)_?required_?for_?login|is_?mfa_?required|mfa_?required|requires_?mfa|nextLevel|has_?mfa|factors\.(length|totp)|mfa_?types|\$this->types
+      - kind: binary
+        regex: (?i)^\(\s*!?\s*[A-Za-z0-9_.?]*\.(otp|totp|mfaCode|mfa_code|code)\s*\)$|(mfa|otp|totp|two_?factor|2fa|tfa)_?(enabled|enrolled|active|registered|configured)|(mfa|otp|two_?factor)_?required_?for_?login|is_?mfa_?required|mfa_?required|requires_?mfa|nextLevel|has_?mfa|factors\.(length|totp)|mfa_?types|\$this->types
+  - not:
+      has:
+        field: condition
+        any:
+        - kind: call
+          regex: (?i)(role|is_?staff|staff|admin|clinician|practitioner|provider|doctor|physician|nurse)
+        - kind: identifier
+          regex: (?i)(role|is_?staff|staff|admin|clinician|practitioner|provider|doctor|physician|nurse)
+        - kind: binary
+          regex: (?i)(role|is_?staff|staff|admin|clinician|practitioner|provider|doctor|physician|nurse)
+min_engine: 0.39.0

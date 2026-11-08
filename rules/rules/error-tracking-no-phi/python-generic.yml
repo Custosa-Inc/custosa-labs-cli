@@ -1,0 +1,110 @@
+id: error-tracking-no-phi.python-generic.sentry-init
+practice_id: error-tracking-no-phi
+language: python
+frameworks:
+- generic
+kind: items
+rule:
+  all:
+  - kind: call
+  - has:
+      field: function
+      kind: attribute
+      regex: '^sentry_sdk\.init$'
+  - not:
+      has:
+        field: arguments
+        kind: argument_list
+        has:
+          kind: dictionary_splat
+control:
+  has:
+    field: arguments
+    kind: argument_list
+    all:
+    - has:
+        kind: keyword_argument
+        all:
+        - has:
+            field: name
+            kind: identifier
+            regex: '^before_send$'
+        - has:
+            field: value
+            any:
+            - kind: identifier
+            - kind: attribute
+            - kind: lambda
+            not:
+              any:
+              - pattern: 'lambda $E1, $H1: $E1'
+              - pattern: 'lambda $E2: $E2'
+    - has:
+        kind: keyword_argument
+        all:
+        - has:
+            field: name
+            kind: identifier
+            regex: '^include_local_variables$'
+        - has:
+            field: value
+            kind: 'false'
+    - not:
+        has:
+          kind: keyword_argument
+          any:
+          - all:
+            - has:
+                field: name
+                kind: identifier
+                regex: '^send_default_pii$'
+            - has:
+                field: value
+                kind: 'true'
+          - all:
+            - has:
+                field: name
+                kind: identifier
+                regex: '^max_request_body_size$'
+            - has:
+                field: value
+                kind: string
+                regex: '^[''"](always|medium|small)[''"]$'
+min_engine: 0.45.3
+---
+id: error-tracking-no-phi.python-generic.pii-on
+practice_id: error-tracking-no-phi
+language: python
+frameworks:
+- generic
+kind: violation
+rule:
+  all:
+  - kind: keyword_argument
+  - any:
+    - all:
+      - has:
+          field: name
+          kind: identifier
+          regex: '^(send_default_pii|include_local_variables)$'
+      - has:
+          field: value
+          kind: 'true'
+    - all:
+      - has:
+          field: name
+          kind: identifier
+          regex: '^max_request_body_size$'
+      - has:
+          field: value
+          kind: string
+          regex: '^[''"]always[''"]$'
+  - inside:
+      kind: argument_list
+      inside:
+        kind: call
+        has:
+          field: function
+          kind: attribute
+          regex: '^sentry_sdk\.init$'
+min_engine: 0.45.3

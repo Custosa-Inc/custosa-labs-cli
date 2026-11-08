@@ -1,0 +1,20 @@
+id: clinical-record-integrity.java-spring.entity
+practice_id: clinical-record-integrity
+language: java
+frameworks:
+- spring
+kind: items
+rule:
+  all:
+  - kind: class_declaration
+  - has:
+      field: name
+      kind: identifier
+  - has:
+      kind: modifiers
+      regex: '@Entity\b'
+control:
+  has:
+    kind: modifiers
+    regex: '@(Audited|Immutable)\b'
+min_engine: 0.39.0

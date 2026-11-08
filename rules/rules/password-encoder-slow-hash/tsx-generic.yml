@@ -1,0 +1,134 @@
+id: password-encoder-slow-hash.tsx-generic.slow-hash
+practice_id: password-encoder-slow-hash
+language: tsx
+frameworks: [generic]
+kind: evidence
+rule:
+  all:
+    - any:
+        - pattern: bcrypt.hash($$$)
+        - pattern: bcrypt.hashSync($$$)
+        - pattern: bcrypt.compare($$$)
+        - pattern: bcrypt.compareSync($$$)
+        - pattern: argon2.hash($$$)
+        - pattern: argon2.verify($$$)
+        - pattern: crypto.scrypt($$$)
+        - pattern: crypto.scryptSync($$$)
+        - pattern: crypto.pbkdf2($$$)
+        - pattern: crypto.pbkdf2Sync($$$)
+    - not:
+        has:
+          field: arguments
+          has:
+            kind: number
+            regex: '^[0-9]$'
+min_engine: 0.39.0
+---
+id: password-encoder-slow-hash.tsx-generic.fast-hash
+practice_id: password-encoder-slow-hash
+language: tsx
+frameworks: [generic]
+kind: violation
+rule:
+  all:
+    - pattern: $HASH.update($$$)
+    - has:
+        field: function
+        has:
+          kind: call_expression
+          stopBy: end
+          all:
+            - any:
+                - pattern: createHash($ALG)
+                - pattern: $CRYPTO.createHash($ALG)
+            - has:
+                field: arguments
+                has:
+                  kind: string
+                  regex: '(?i)^.(md5|md4|sha-?1|sha-?224|sha-?256|sha-?384|sha-?512|sha3-\d+|ripemd160).$'
+    - has:
+        field: arguments
+        stopBy: end
+        any:
+          - kind: identifier
+            regex: '(?i)^(pass|pwd|passwd|password|passphrase|(new|plain|raw|old|current|user|admin)_?pass(word)?)$'
+          - kind: property_identifier
+            regex: '(?i)^(pass|pwd|passwd|password|passphrase|(new|plain|raw|old|current|user|admin)_?pass(word)?)$'
+    - not:
+        inside:
+          stopBy: end
+          any:
+            - kind: function_declaration
+            - kind: method_definition
+            - kind: arrow_function
+            - kind: function_expression
+          has:
+            stopBy: end
+            any:
+              - pattern: createCipheriv($$$)
+              - pattern: createDecipheriv($$$)
+              - pattern: $C.createCipheriv($$$)
+              - pattern: $C.createDecipheriv($$$)
+min_engine: 0.39.0
+---
+id: password-encoder-slow-hash.tsx-generic.low-cost
+practice_id: password-encoder-slow-hash
+language: tsx
+frameworks: [generic]
+kind: violation
+rule:
+  all:
+    - any:
+        - pattern: bcrypt.hash($$$)
+        - pattern: bcrypt.hashSync($$$)
+        - pattern: bcrypt.genSalt($$$)
+        - pattern: bcrypt.genSaltSync($$$)
+    - has:
+        field: arguments
+        has:
+          kind: number
+          regex: '^[0-9]$'
+min_engine: 0.39.0
+---
+id: password-encoder-slow-hash.tsx-generic.plain-compare
+practice_id: password-encoder-slow-hash
+language: tsx
+frameworks: [generic]
+kind: violation
+rule:
+  all:
+    - any:
+        - pattern: $A === $B
+        - pattern: $A == $B
+        - pattern: $A !== $B
+        - pattern: $A != $B
+    - has:
+        field: left
+        any:
+          - kind: identifier
+            regex: '(?i)^(pass|pwd|passwd|password|passphrase|(new|plain|raw|input|given|supplied)_?pass(word)?)$'
+          - all:
+              - kind: member_expression
+              - has:
+                  field: property
+                  kind: property_identifier
+                  regex: '(?i)^(pass|pwd|passwd|password|passphrase|[a-z_]*_password)$'
+    - has:
+        field: right
+        any:
+          - kind: identifier
+            regex: '(?i)^(pass|pwd|passwd|password|passphrase|(new|plain|raw|input|given|supplied)_?pass(word)?)$'
+          - all:
+              - kind: member_expression
+              - has:
+                  field: property
+                  kind: property_identifier
+                  regex: '(?i)^(pass|pwd|passwd|password|passphrase|[a-z_]*_password)$'
+    - any:
+        - has:
+            field: left
+            kind: member_expression
+        - has:
+            field: right
+            kind: member_expression
+min_engine: 0.39.0

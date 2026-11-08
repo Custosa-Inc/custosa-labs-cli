@@ -1,0 +1,61 @@
+id: password-encoder-slow-hash.yaml-spring.plain-configured-password
+practice_id: password-encoder-slow-hash
+language: yaml
+frameworks: [spring]
+kind: violation
+rule:
+  all:
+    - kind: block_mapping_pair
+    - has:
+        field: key
+        kind: flow_node
+        regex: '(?i)^(password|[a-z]*password|spring\.security\.user\.password)$'
+    - has:
+        field: value
+        kind: flow_node
+        not:
+          kind: flow_node
+          regex: '^[''"]?\{(bcrypt|argon2|scrypt|pbkdf2)[^}]*\}'
+    - any:
+        - has:
+            field: key
+            kind: flow_node
+            regex: '^spring\.security\.user\.password$'
+        - inside:
+            kind: block_mapping_pair
+            stopBy: end
+            has:
+              field: key
+              kind: flow_node
+              regex: '^(security|spring\.security|spring\.security\.user)$'
+min_engine: 0.39.0
+---
+id: password-encoder-slow-hash.yaml-spring.encoded-configured-password
+practice_id: password-encoder-slow-hash
+language: yaml
+frameworks: [spring]
+kind: evidence
+rule:
+  all:
+    - kind: block_mapping_pair
+    - has:
+        field: key
+        kind: flow_node
+        regex: '(?i)^(password|[a-z]*password|spring\.security\.user\.password)$'
+    - has:
+        field: value
+        kind: flow_node
+        regex: '^[''"]?\{(bcrypt|argon2|scrypt|pbkdf2)[^}]*\}'
+    - any:
+        - has:
+            field: key
+            kind: flow_node
+            regex: '^spring\.security\.user\.password$'
+        - inside:
+            kind: block_mapping_pair
+            stopBy: end
+            has:
+              field: key
+              kind: flow_node
+              regex: '^(security|spring\.security|spring\.security\.user)$'
+min_engine: 0.39.0

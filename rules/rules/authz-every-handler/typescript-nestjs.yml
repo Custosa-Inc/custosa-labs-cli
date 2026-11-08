@@ -1,0 +1,739 @@
+# NestJS controller methods under @Get, @Post, @Put, @Patch, @Delete or @All that take a record id with
+# @Param(), one item each, named by the method. The control is the caller read inside the method from
+# the request (@Req() req, then req.user or req.auth), as for an Express route. A guard says who may call,
+# never which record, so it is never the control; see the evidence below.
+id: authz-every-handler.typescript-nestjs.route
+practice_id: authz-every-handler
+language: typescript
+frameworks:
+- nestjs
+kind: items
+rule:
+  kind: method_definition
+  all:
+  - follows:
+      any:
+      - kind: decorator
+        regex: ^@(Get|Post|Put|Patch|Delete|All)\b
+      - any:
+        - kind: decorator
+        - kind: comment
+        follows:
+          any:
+          - kind: decorator
+            regex: ^@(Get|Post|Put|Patch|Delete|All)\b
+          - any:
+            - kind: decorator
+            - kind: comment
+            follows:
+              any:
+              - kind: decorator
+                regex: ^@(Get|Post|Put|Patch|Delete|All)\b
+              - any:
+                - kind: decorator
+                - kind: comment
+                follows:
+                  any:
+                  - kind: decorator
+                    regex: ^@(Get|Post|Put|Patch|Delete|All)\b
+                  - any:
+                    - kind: decorator
+                    - kind: comment
+                    follows:
+                      any:
+                      - kind: decorator
+                        regex: ^@(Get|Post|Put|Patch|Delete|All)\b
+                      - any:
+                        - kind: decorator
+                        - kind: comment
+                        follows:
+                          any:
+                          - kind: decorator
+                            regex: ^@(Get|Post|Put|Patch|Delete|All)\b
+                          - any:
+                            - kind: decorator
+                            - kind: comment
+                            follows:
+                              any:
+                              - kind: decorator
+                                regex: ^@(Get|Post|Put|Patch|Delete|All)\b
+                              - any:
+                                - kind: decorator
+                                - kind: comment
+                                follows:
+                                  any:
+                                  - kind: decorator
+                                    regex: ^@(Get|Post|Put|Patch|Delete|All)\b
+                                  - any:
+                                    - kind: decorator
+                                    - kind: comment
+                                    follows:
+                                      any:
+                                      - kind: decorator
+                                        regex: ^@(Get|Post|Put|Patch|Delete|All)\b
+                                      - any:
+                                        - kind: decorator
+                                        - kind: comment
+                                        follows:
+                                          any:
+                                          - kind: decorator
+                                            regex: ^@(Get|Post|Put|Patch|Delete|All)\b
+                                          - any:
+                                            - kind: decorator
+                                            - kind: comment
+                                            follows:
+                                              any:
+                                              - kind: decorator
+                                                regex: ^@(Get|Post|Put|Patch|Delete|All)\b
+                                              - any:
+                                                - kind: decorator
+                                                - kind: comment
+                                                follows:
+                                                  any:
+                                                  - kind: decorator
+                                                    regex: ^@(Get|Post|Put|Patch|Delete|All)\b
+                                                  - any:
+                                                    - kind: decorator
+                                                    - kind: comment
+                                                    follows:
+                                                      kind: decorator
+                                                      regex: ^@(Get|Post|Put|Patch|Delete|All)\b
+  - has:
+      field: parameters
+      kind: formal_parameters
+      has:
+        kind: required_parameter
+        has:
+          kind: decorator
+          regex: ^@Param\(
+control:
+  has:
+    field: body
+    kind: statement_block
+    has:
+      stopBy: end
+      kind: member_expression
+      regex: ^(req|request)\.(user|auth)\b
+min_engine: 0.39.0
+---
+# The same method under @UseGuards(...) naming an ownership guard (a name with Ownership, Owner, Policy or
+# Policies, Ability or Casl: OwnershipGuard, PoliciesGuard, CaslAbilityGuard), on the method or its
+# controller class: the guard may hold the record check. It holds the method's item for a person
+# (needs_review). Authentication-only guards (JwtAuthGuard, AuthGuard('jwt'), ThrottlerGuard, RolesGuard)
+# say who may call, never which record: they hold nothing, and a method behind only them with no caller
+# read fails.
+id: authz-every-handler.typescript-nestjs.auth-unobserved-guard
+practice_id: authz-every-handler
+language: typescript
+frameworks:
+- nestjs
+kind: evidence
+rule:
+  kind: method_definition
+  all:
+  - follows:
+      any:
+      - kind: decorator
+        regex: ^@(Get|Post|Put|Patch|Delete|All)\b
+      - any:
+        - kind: decorator
+        - kind: comment
+        follows:
+          any:
+          - kind: decorator
+            regex: ^@(Get|Post|Put|Patch|Delete|All)\b
+          - any:
+            - kind: decorator
+            - kind: comment
+            follows:
+              any:
+              - kind: decorator
+                regex: ^@(Get|Post|Put|Patch|Delete|All)\b
+              - any:
+                - kind: decorator
+                - kind: comment
+                follows:
+                  any:
+                  - kind: decorator
+                    regex: ^@(Get|Post|Put|Patch|Delete|All)\b
+                  - any:
+                    - kind: decorator
+                    - kind: comment
+                    follows:
+                      any:
+                      - kind: decorator
+                        regex: ^@(Get|Post|Put|Patch|Delete|All)\b
+                      - any:
+                        - kind: decorator
+                        - kind: comment
+                        follows:
+                          any:
+                          - kind: decorator
+                            regex: ^@(Get|Post|Put|Patch|Delete|All)\b
+                          - any:
+                            - kind: decorator
+                            - kind: comment
+                            follows:
+                              any:
+                              - kind: decorator
+                                regex: ^@(Get|Post|Put|Patch|Delete|All)\b
+                              - any:
+                                - kind: decorator
+                                - kind: comment
+                                follows:
+                                  any:
+                                  - kind: decorator
+                                    regex: ^@(Get|Post|Put|Patch|Delete|All)\b
+                                  - any:
+                                    - kind: decorator
+                                    - kind: comment
+                                    follows:
+                                      any:
+                                      - kind: decorator
+                                        regex: ^@(Get|Post|Put|Patch|Delete|All)\b
+                                      - any:
+                                        - kind: decorator
+                                        - kind: comment
+                                        follows:
+                                          any:
+                                          - kind: decorator
+                                            regex: ^@(Get|Post|Put|Patch|Delete|All)\b
+                                          - any:
+                                            - kind: decorator
+                                            - kind: comment
+                                            follows:
+                                              any:
+                                              - kind: decorator
+                                                regex: ^@(Get|Post|Put|Patch|Delete|All)\b
+                                              - any:
+                                                - kind: decorator
+                                                - kind: comment
+                                                follows:
+                                                  any:
+                                                  - kind: decorator
+                                                    regex: ^@(Get|Post|Put|Patch|Delete|All)\b
+                                                  - any:
+                                                    - kind: decorator
+                                                    - kind: comment
+                                                    follows:
+                                                      kind: decorator
+                                                      regex: ^@(Get|Post|Put|Patch|Delete|All)\b
+  - has:
+      field: parameters
+      kind: formal_parameters
+      has:
+        kind: required_parameter
+        has:
+          kind: decorator
+          regex: ^@Param\(
+  - any:
+    - follows:
+        any:
+        - kind: decorator
+          regex: ^@UseGuards\([\s\S]*(Ownership|Owner|Polic(y|ies)|Abilit(y|ies)|Casl|\b(ownership|owner|polic(y|ies)|abilit(y|ies)|casl))
+        - any:
+          - kind: decorator
+          - kind: comment
+          follows:
+            any:
+            - kind: decorator
+              regex: ^@UseGuards\([\s\S]*(Ownership|Owner|Polic(y|ies)|Abilit(y|ies)|Casl|\b(ownership|owner|polic(y|ies)|abilit(y|ies)|casl))
+            - any:
+              - kind: decorator
+              - kind: comment
+              follows:
+                any:
+                - kind: decorator
+                  regex: ^@UseGuards\([\s\S]*(Ownership|Owner|Polic(y|ies)|Abilit(y|ies)|Casl|\b(ownership|owner|polic(y|ies)|abilit(y|ies)|casl))
+                - any:
+                  - kind: decorator
+                  - kind: comment
+                  follows:
+                    any:
+                    - kind: decorator
+                      regex: ^@UseGuards\([\s\S]*(Ownership|Owner|Polic(y|ies)|Abilit(y|ies)|Casl|\b(ownership|owner|polic(y|ies)|abilit(y|ies)|casl))
+                    - any:
+                      - kind: decorator
+                      - kind: comment
+                      follows:
+                        any:
+                        - kind: decorator
+                          regex: ^@UseGuards\([\s\S]*(Ownership|Owner|Polic(y|ies)|Abilit(y|ies)|Casl|\b(ownership|owner|polic(y|ies)|abilit(y|ies)|casl))
+                        - any:
+                          - kind: decorator
+                          - kind: comment
+                          follows:
+                            any:
+                            - kind: decorator
+                              regex: ^@UseGuards\([\s\S]*(Ownership|Owner|Polic(y|ies)|Abilit(y|ies)|Casl|\b(ownership|owner|polic(y|ies)|abilit(y|ies)|casl))
+                            - any:
+                              - kind: decorator
+                              - kind: comment
+                              follows:
+                                any:
+                                - kind: decorator
+                                  regex: ^@UseGuards\([\s\S]*(Ownership|Owner|Polic(y|ies)|Abilit(y|ies)|Casl|\b(ownership|owner|polic(y|ies)|abilit(y|ies)|casl))
+                                - any:
+                                  - kind: decorator
+                                  - kind: comment
+                                  follows:
+                                    any:
+                                    - kind: decorator
+                                      regex: ^@UseGuards\([\s\S]*(Ownership|Owner|Polic(y|ies)|Abilit(y|ies)|Casl|\b(ownership|owner|polic(y|ies)|abilit(y|ies)|casl))
+                                    - any:
+                                      - kind: decorator
+                                      - kind: comment
+                                      follows:
+                                        any:
+                                        - kind: decorator
+                                          regex: ^@UseGuards\([\s\S]*(Ownership|Owner|Polic(y|ies)|Abilit(y|ies)|Casl|\b(ownership|owner|polic(y|ies)|abilit(y|ies)|casl))
+                                        - any:
+                                          - kind: decorator
+                                          - kind: comment
+                                          follows:
+                                            any:
+                                            - kind: decorator
+                                              regex: ^@UseGuards\([\s\S]*(Ownership|Owner|Polic(y|ies)|Abilit(y|ies)|Casl|\b(ownership|owner|polic(y|ies)|abilit(y|ies)|casl))
+                                            - any:
+                                              - kind: decorator
+                                              - kind: comment
+                                              follows:
+                                                any:
+                                                - kind: decorator
+                                                  regex: ^@UseGuards\([\s\S]*(Ownership|Owner|Polic(y|ies)|Abilit(y|ies)|Casl|\b(ownership|owner|polic(y|ies)|abilit(y|ies)|casl))
+                                                - any:
+                                                  - kind: decorator
+                                                  - kind: comment
+                                                  follows:
+                                                    any:
+                                                    - kind: decorator
+                                                      regex: ^@UseGuards\([\s\S]*(Ownership|Owner|Polic(y|ies)|Abilit(y|ies)|Casl|\b(ownership|owner|polic(y|ies)|abilit(y|ies)|casl))
+                                                    - any:
+                                                      - kind: decorator
+                                                      - kind: comment
+                                                      follows:
+                                                        kind: decorator
+                                                        regex: ^@UseGuards\([\s\S]*(Ownership|Owner|Polic(y|ies)|Abilit(y|ies)|Casl|\b(ownership|owner|polic(y|ies)|abilit(y|ies)|casl))
+    - inside:
+        kind: class_body
+        inside:
+          any:
+          - kind: class_declaration
+            has:
+              kind: decorator
+              regex: ^@UseGuards\([\s\S]*(Ownership|Owner|Polic(y|ies)|Abilit(y|ies)|Casl|\b(ownership|owner|polic(y|ies)|abilit(y|ies)|casl))
+          - kind: class_declaration
+            inside:
+              kind: export_statement
+              has:
+                kind: decorator
+                regex: ^@UseGuards\([\s\S]*(Ownership|Owner|Polic(y|ies)|Abilit(y|ies)|Casl|\b(ownership|owner|polic(y|ies)|abilit(y|ies)|casl))
+min_engine: 0.39.0
+---
+# The same method taking a parameter through a caller-named project decorator (@CurrentUser(), @User(),
+# @AuthUser(), @GetUser(), @Principal()): the caller read in a non-canonical shape. It holds the method's
+# item for a person (needs_review). Any other parameter decorator (@Locale(), @Tenant(), a validation pipe)
+# reads no caller and holds nothing.
+# (on a route item or a route-caller item: it needs no @Param() of its own)
+id: authz-every-handler.typescript-nestjs.auth-unobserved-decorator
+practice_id: authz-every-handler
+language: typescript
+frameworks:
+- nestjs
+kind: evidence
+rule:
+  kind: method_definition
+  all:
+  - follows:
+      any:
+      - kind: decorator
+        regex: ^@(Get|Post|Put|Patch|Delete|All)\b
+      - any:
+        - kind: decorator
+        - kind: comment
+        follows:
+          any:
+          - kind: decorator
+            regex: ^@(Get|Post|Put|Patch|Delete|All)\b
+          - any:
+            - kind: decorator
+            - kind: comment
+            follows:
+              any:
+              - kind: decorator
+                regex: ^@(Get|Post|Put|Patch|Delete|All)\b
+              - any:
+                - kind: decorator
+                - kind: comment
+                follows:
+                  any:
+                  - kind: decorator
+                    regex: ^@(Get|Post|Put|Patch|Delete|All)\b
+                  - any:
+                    - kind: decorator
+                    - kind: comment
+                    follows:
+                      any:
+                      - kind: decorator
+                        regex: ^@(Get|Post|Put|Patch|Delete|All)\b
+                      - any:
+                        - kind: decorator
+                        - kind: comment
+                        follows:
+                          any:
+                          - kind: decorator
+                            regex: ^@(Get|Post|Put|Patch|Delete|All)\b
+                          - any:
+                            - kind: decorator
+                            - kind: comment
+                            follows:
+                              any:
+                              - kind: decorator
+                                regex: ^@(Get|Post|Put|Patch|Delete|All)\b
+                              - any:
+                                - kind: decorator
+                                - kind: comment
+                                follows:
+                                  any:
+                                  - kind: decorator
+                                    regex: ^@(Get|Post|Put|Patch|Delete|All)\b
+                                  - any:
+                                    - kind: decorator
+                                    - kind: comment
+                                    follows:
+                                      any:
+                                      - kind: decorator
+                                        regex: ^@(Get|Post|Put|Patch|Delete|All)\b
+                                      - any:
+                                        - kind: decorator
+                                        - kind: comment
+                                        follows:
+                                          any:
+                                          - kind: decorator
+                                            regex: ^@(Get|Post|Put|Patch|Delete|All)\b
+                                          - any:
+                                            - kind: decorator
+                                            - kind: comment
+                                            follows:
+                                              any:
+                                              - kind: decorator
+                                                regex: ^@(Get|Post|Put|Patch|Delete|All)\b
+                                              - any:
+                                                - kind: decorator
+                                                - kind: comment
+                                                follows:
+                                                  any:
+                                                  - kind: decorator
+                                                    regex: ^@(Get|Post|Put|Patch|Delete|All)\b
+                                                  - any:
+                                                    - kind: decorator
+                                                    - kind: comment
+                                                    follows:
+                                                      kind: decorator
+                                                      regex: ^@(Get|Post|Put|Patch|Delete|All)\b
+  - has:
+      field: parameters
+      kind: formal_parameters
+      has:
+        kind: required_parameter
+        has:
+          kind: decorator
+          regex: ^@(Get|Current|Auth|Authed|Authenticated|Req|Request|Session|LoggedIn|SignedIn|Jwt|Token)?(User|Principal|Caller|Account|Identity|Claims|Actor|Viewer|Me)(Id|Info|Context|Claims)?\(
+min_engine: 0.39.0
+---
+# The same method handing the request itself on (this.svc.find(id, req), a delegate by name): the caller
+# check may live there. It holds the method's item for a person (needs_review). A logger or console (any
+# receiver ending in logger or log), a response, a known non-auth consumer by name (validationResult,
+# getClientIp, rateLimit, a limiter) or a name a package import binds is not it.
+id: authz-every-handler.typescript-nestjs.auth-unobserved-passes
+practice_id: authz-every-handler
+language: typescript
+frameworks:
+- nestjs
+kind: evidence
+rule:
+  kind: method_definition
+  all:
+  - follows:
+      any:
+      - kind: decorator
+        regex: ^@(Get|Post|Put|Patch|Delete|All)\b
+      - any:
+        - kind: decorator
+        - kind: comment
+        follows:
+          any:
+          - kind: decorator
+            regex: ^@(Get|Post|Put|Patch|Delete|All)\b
+          - any:
+            - kind: decorator
+            - kind: comment
+            follows:
+              any:
+              - kind: decorator
+                regex: ^@(Get|Post|Put|Patch|Delete|All)\b
+              - any:
+                - kind: decorator
+                - kind: comment
+                follows:
+                  any:
+                  - kind: decorator
+                    regex: ^@(Get|Post|Put|Patch|Delete|All)\b
+                  - any:
+                    - kind: decorator
+                    - kind: comment
+                    follows:
+                      any:
+                      - kind: decorator
+                        regex: ^@(Get|Post|Put|Patch|Delete|All)\b
+                      - any:
+                        - kind: decorator
+                        - kind: comment
+                        follows:
+                          any:
+                          - kind: decorator
+                            regex: ^@(Get|Post|Put|Patch|Delete|All)\b
+                          - any:
+                            - kind: decorator
+                            - kind: comment
+                            follows:
+                              any:
+                              - kind: decorator
+                                regex: ^@(Get|Post|Put|Patch|Delete|All)\b
+                              - any:
+                                - kind: decorator
+                                - kind: comment
+                                follows:
+                                  any:
+                                  - kind: decorator
+                                    regex: ^@(Get|Post|Put|Patch|Delete|All)\b
+                                  - any:
+                                    - kind: decorator
+                                    - kind: comment
+                                    follows:
+                                      any:
+                                      - kind: decorator
+                                        regex: ^@(Get|Post|Put|Patch|Delete|All)\b
+                                      - any:
+                                        - kind: decorator
+                                        - kind: comment
+                                        follows:
+                                          any:
+                                          - kind: decorator
+                                            regex: ^@(Get|Post|Put|Patch|Delete|All)\b
+                                          - any:
+                                            - kind: decorator
+                                            - kind: comment
+                                            follows:
+                                              any:
+                                              - kind: decorator
+                                                regex: ^@(Get|Post|Put|Patch|Delete|All)\b
+                                              - any:
+                                                - kind: decorator
+                                                - kind: comment
+                                                follows:
+                                                  any:
+                                                  - kind: decorator
+                                                    regex: ^@(Get|Post|Put|Patch|Delete|All)\b
+                                                  - any:
+                                                    - kind: decorator
+                                                    - kind: comment
+                                                    follows:
+                                                      kind: decorator
+                                                      regex: ^@(Get|Post|Put|Patch|Delete|All)\b
+  - has:
+      field: parameters
+      kind: formal_parameters
+      has:
+        kind: required_parameter
+        has:
+          kind: decorator
+          regex: ^@Param\(
+  - has:
+      field: body
+      kind: statement_block
+      has:
+        stopBy: end
+        kind: call_expression
+        has:
+          field: arguments
+          kind: arguments
+          has:
+            kind: identifier
+            regex: ^(req|request)$
+        not:
+          any:
+          - has:
+              field: function
+              kind: member_expression
+              regex: (^|\.)(console|\w*[lL]ogger|log|Log|res|response|reply)\.\w+$
+          - has:
+              field: function
+              any:
+              - kind: identifier
+                regex: ^(validationResult|matchedData|getClientIp|clientIp|getIp|rateLimit|rateLimiter|limiter|consume|slowDown|throttle)$
+              - kind: member_expression
+                has:
+                  field: property
+                  kind: property_identifier
+                  regex: ^(validationResult|matchedData|getClientIp|clientIp|getIp|rateLimit|rateLimiter|limiter|consume|slowDown|throttle)$
+          - all:
+            - has:
+                field: function
+                kind: identifier
+                pattern:
+                  context: $F()
+                  selector: identifier
+            - inside:
+                stopBy: end
+                kind: program
+                has:
+                  stopBy: end
+                  kind: import_statement
+                  all:
+                  - not:
+                      has:
+                        field: source
+                        kind: string
+                        regex: ^['"](\.{1,2}/|@/|~/|#|src/)
+                  - has:
+                      stopBy: end
+                      kind: identifier
+                      pattern:
+                        context: $F()
+                        selector: identifier
+min_engine: 0.39.0
+---
+# NestJS controller methods under @Get, @Post, @Put, @Patch, @Delete or @All taking no @Param() but a caller-named
+# parameter decorator (@CurrentUser() user) and calling a service (this.service.find(user)): one item each, the
+# record chosen by the caller. Same control as the route; the caller decorator holds it for a person.
+id: authz-every-handler.typescript-nestjs.route-caller
+practice_id: authz-every-handler
+language: typescript
+frameworks:
+- nestjs
+kind: items
+rule:
+  kind: method_definition
+  all:
+  - follows:
+      any:
+      - kind: decorator
+        regex: ^@(Get|Post|Put|Patch|Delete|All)\b
+      - any:
+        - kind: decorator
+        - kind: comment
+        follows:
+          any:
+          - kind: decorator
+            regex: ^@(Get|Post|Put|Patch|Delete|All)\b
+          - any:
+            - kind: decorator
+            - kind: comment
+            follows:
+              any:
+              - kind: decorator
+                regex: ^@(Get|Post|Put|Patch|Delete|All)\b
+              - any:
+                - kind: decorator
+                - kind: comment
+                follows:
+                  any:
+                  - kind: decorator
+                    regex: ^@(Get|Post|Put|Patch|Delete|All)\b
+                  - any:
+                    - kind: decorator
+                    - kind: comment
+                    follows:
+                      any:
+                      - kind: decorator
+                        regex: ^@(Get|Post|Put|Patch|Delete|All)\b
+                      - any:
+                        - kind: decorator
+                        - kind: comment
+                        follows:
+                          any:
+                          - kind: decorator
+                            regex: ^@(Get|Post|Put|Patch|Delete|All)\b
+                          - any:
+                            - kind: decorator
+                            - kind: comment
+                            follows:
+                              any:
+                              - kind: decorator
+                                regex: ^@(Get|Post|Put|Patch|Delete|All)\b
+                              - any:
+                                - kind: decorator
+                                - kind: comment
+                                follows:
+                                  any:
+                                  - kind: decorator
+                                    regex: ^@(Get|Post|Put|Patch|Delete|All)\b
+                                  - any:
+                                    - kind: decorator
+                                    - kind: comment
+                                    follows:
+                                      any:
+                                      - kind: decorator
+                                        regex: ^@(Get|Post|Put|Patch|Delete|All)\b
+                                      - any:
+                                        - kind: decorator
+                                        - kind: comment
+                                        follows:
+                                          any:
+                                          - kind: decorator
+                                            regex: ^@(Get|Post|Put|Patch|Delete|All)\b
+                                          - any:
+                                            - kind: decorator
+                                            - kind: comment
+                                            follows:
+                                              any:
+                                              - kind: decorator
+                                                regex: ^@(Get|Post|Put|Patch|Delete|All)\b
+                                              - any:
+                                                - kind: decorator
+                                                - kind: comment
+                                                follows:
+                                                  any:
+                                                  - kind: decorator
+                                                    regex: ^@(Get|Post|Put|Patch|Delete|All)\b
+                                                  - any:
+                                                    - kind: decorator
+                                                    - kind: comment
+                                                    follows:
+                                                      kind: decorator
+                                                      regex: ^@(Get|Post|Put|Patch|Delete|All)\b
+  - not:
+      has:
+        field: parameters
+        kind: formal_parameters
+        has:
+          stopBy: end
+          kind: decorator
+          regex: ^@Param\(
+  - has:
+      field: parameters
+      kind: formal_parameters
+      has:
+        stopBy: end
+        kind: decorator
+        regex: ^@(Get|Current|Auth|Authed|Authenticated|Req|Request|Session|LoggedIn|SignedIn|Jwt|Token)?(User|Principal|Caller|Account|Identity|Claims|Actor|Viewer|Me)(Id|Info|Context|Claims)?\(
+  - has:
+      field: body
+      kind: statement_block
+      has:
+        stopBy: end
+        kind: call_expression
+        has:
+          field: function
+          kind: member_expression
+          regex: ^this\.\w+\.\w+$
+control:
+  has:
+    field: body
+    kind: statement_block
+    has:
+      stopBy: end
+      kind: member_expression
+      regex: ^(req|request)\.(user|auth)\b
+min_engine: 0.39.0

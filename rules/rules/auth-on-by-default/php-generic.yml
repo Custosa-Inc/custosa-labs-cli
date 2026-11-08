@@ -1,0 +1,180 @@
+# Auth that a missing setting turns off (T23 B56d). Written by
+# scripts/gen_auth_default_rules.py: don't edit. The practice is capped at needs_review.
+id: auth-on-by-default.php-generic.off-when-unset
+practice_id: auth-on-by-default
+language: php
+frameworks:
+- generic
+kind: violation
+rule:
+  any:
+  - kind: binary_expression
+    all:
+    - has:
+        stopBy: end
+        any:
+        - kind: function_call_expression
+          all: &id001
+          - has:
+              field: function
+              kind: name
+              regex: ^(env|getenv)$
+          has:
+            kind: arguments
+            regex: ^\(\s*["'](?i:(AUTH|AUTHENTICATION|SECURITY)_(ENABLED|REQUIRED|ON)|(ENABLE|REQUIRE)_AUTH(ENTICATION)?)["']\s*\)$
+        - kind: function_call_expression
+          all: *id001
+          has:
+            kind: arguments
+            regex: ^\(\s*["'](?i:(AUTH|AUTHENTICATION|SECURITY)_(ENABLED|REQUIRED|ON)|(ENABLE|REQUIRE)_AUTH(ENTICATION)?)["']\s*,\s*(default\s*=\s*)?(["'](?i:false|0|no|off|disabled|)["']|False|false|0)\s*[,)]|^\(\s*["'](?i:(AUTH|AUTHENTICATION|SECURITY)_(ENABLED|REQUIRED|ON)|(ENABLE|REQUIRE)_AUTH(ENTICATION)?)["']\s*,[\s\S]*\bdefault\s*=\s*(["'](?i:false|0|no|off|disabled|)["']|False|false|0)\s*[,)]
+        - kind: subscript_expression
+          regex: ^\$_(ENV|SERVER)\s*\[\s*["'](?i:(AUTH|AUTHENTICATION|SECURITY)_(ENABLED|REQUIRED|ON)|(ENABLE|REQUIRE)_AUTH(ENTICATION)?)["']\s*\]$
+    - has:
+        any:
+        - kind: string
+          regex: ^["'](?i:true|1|yes|on|enabled)["']$
+  - kind: binary_expression
+    all:
+    - has:
+        stopBy: end
+        any:
+        - kind: function_call_expression
+          all: *id001
+          has:
+            kind: arguments
+            regex: ^\(\s*["'](?i:(DISABLE|SKIP|NO)_AUTH(ENTICATION)?|AUTH_DISABLED)["']\s*\)$
+        - kind: function_call_expression
+          all: *id001
+          has:
+            kind: arguments
+            regex: ^\(\s*["'](?i:(DISABLE|SKIP|NO)_AUTH(ENTICATION)?|AUTH_DISABLED)["']\s*,\s*(default\s*=\s*)?(["'](?i:false|0|no|off|disabled|)["']|False|false|0)\s*[,)]|^\(\s*["'](?i:(DISABLE|SKIP|NO)_AUTH(ENTICATION)?|AUTH_DISABLED)["']\s*,[\s\S]*\bdefault\s*=\s*(["'](?i:false|0|no|off|disabled|)["']|False|false|0)\s*[,)]
+        - kind: subscript_expression
+          regex: ^\$_(ENV|SERVER)\s*\[\s*["'](?i:(DISABLE|SKIP|NO)_AUTH(ENTICATION)?|AUTH_DISABLED)["']\s*\]$
+    - has:
+        any:
+        - kind: string
+          regex: ^(["'](?i:false|0|no|off|disabled|)["']|False|false|0)$
+  - kind: function_call_expression
+    all: *id001
+    has:
+      kind: arguments
+      regex: ^\(\s*["'](?i:(AUTH|AUTHENTICATION|SECURITY)_(ENABLED|REQUIRED|ON)|(ENABLE|REQUIRE)_AUTH(ENTICATION)?)["']\s*,\s*(default\s*=\s*)?(["'](?i:false|0|no|off|disabled|)["']|False|false|0)\s*[,)]|^\(\s*["'](?i:(AUTH|AUTHENTICATION|SECURITY)_(ENABLED|REQUIRED|ON)|(ENABLE|REQUIRE)_AUTH(ENTICATION)?)["']\s*,[\s\S]*\bdefault\s*=\s*(["'](?i:false|0|no|off|disabled|)["']|False|false|0)\s*[,)]
+  - kind: function_call_expression
+    all: *id001
+    has:
+      kind: arguments
+      regex: ^\(\s*["'](?i:(DISABLE|SKIP|NO)_AUTH(ENTICATION)?|AUTH_DISABLED)["']\s*,\s*(default\s*=\s*)?["'](?i:true|1|yes|on|enabled)["']\s*[,)]|^\(\s*["'](?i:(DISABLE|SKIP|NO)_AUTH(ENTICATION)?|AUTH_DISABLED)["']\s*,[\s\S]*\bdefault\s*=\s*["'](?i:true|1|yes|on|enabled)["']\s*[,)]
+  - kind: function_call_expression
+    all: *id001
+    has:
+      kind: arguments
+      regex: ^\(\s*["'](?i:AUTH_(MODE|TYPE))["']\s*,\s*(default\s*=\s*)?["'](?i:none|off|disabled|noauth|no-auth|anonymous|public)["']\s*[,)]|^\(\s*["'](?i:AUTH_(MODE|TYPE))["']\s*,[\s\S]*\bdefault\s*=\s*["'](?i:none|off|disabled|noauth|no-auth|anonymous|public)["']\s*[,)]
+  - kind: function_call_expression
+    all:
+    - has:
+        field: function
+        kind: name
+        regex: ^filter_var$
+    - has:
+        field: arguments
+        kind: arguments
+        regex: \bFILTER_VALIDATE_BOOL(EAN)?\b
+        has:
+          kind: argument
+          has:
+            any:
+            - kind: function_call_expression
+              all: *id001
+              has:
+                kind: arguments
+                regex: ^\(\s*["'](?i:(AUTH|AUTHENTICATION|SECURITY)_(ENABLED|REQUIRED|ON)|(ENABLE|REQUIRE)_AUTH(ENTICATION)?)["']\s*\)$
+            - kind: function_call_expression
+              all: *id001
+              has:
+                kind: arguments
+                regex: ^\(\s*["'](?i:(AUTH|AUTHENTICATION|SECURITY)_(ENABLED|REQUIRED|ON)|(ENABLE|REQUIRE)_AUTH(ENTICATION)?)["']\s*,\s*(default\s*=\s*)?(["'](?i:false|0|no|off|disabled|)["']|False|false|0)\s*[,)]|^\(\s*["'](?i:(AUTH|AUTHENTICATION|SECURITY)_(ENABLED|REQUIRED|ON)|(ENABLE|REQUIRE)_AUTH(ENTICATION)?)["']\s*,[\s\S]*\bdefault\s*=\s*(["'](?i:false|0|no|off|disabled|)["']|False|false|0)\s*[,)]
+            - kind: subscript_expression
+              regex: ^\$_(ENV|SERVER)\s*\[\s*["'](?i:(AUTH|AUTHENTICATION|SECURITY)_(ENABLED|REQUIRED|ON)|(ENABLE|REQUIRE)_AUTH(ENTICATION)?)["']\s*\]$
+min_engine: 0.39.0
+---
+id: auth-on-by-default.php-generic.bypass-flag
+practice_id: auth-on-by-default
+language: php
+frameworks:
+- generic
+kind: evidence
+rule:
+  any:
+  - kind: binary_expression
+    all:
+    - has:
+        stopBy: end
+        any:
+        - kind: function_call_expression
+          all: &id001
+          - has:
+              field: function
+              kind: name
+              regex: ^(env|getenv)$
+          has:
+            kind: arguments
+            regex: ^\(\s*["'](?i:(DISABLE|SKIP|NO)_AUTH(ENTICATION)?|AUTH_DISABLED)["']\s*\)$
+        - kind: function_call_expression
+          all: *id001
+          has:
+            kind: arguments
+            regex: ^\(\s*["'](?i:(DISABLE|SKIP|NO)_AUTH(ENTICATION)?|AUTH_DISABLED)["']\s*,\s*(default\s*=\s*)?(["'](?i:false|0|no|off|disabled|)["']|False|false|0)\s*[,)]|^\(\s*["'](?i:(DISABLE|SKIP|NO)_AUTH(ENTICATION)?|AUTH_DISABLED)["']\s*,[\s\S]*\bdefault\s*=\s*(["'](?i:false|0|no|off|disabled|)["']|False|false|0)\s*[,)]
+        - kind: subscript_expression
+          regex: ^\$_(ENV|SERVER)\s*\[\s*["'](?i:(DISABLE|SKIP|NO)_AUTH(ENTICATION)?|AUTH_DISABLED)["']\s*\]$
+    - has:
+        any:
+        - kind: string
+          regex: ^["'](?i:true|1|yes|on|enabled)["']$
+  - kind: binary_expression
+    all:
+    - has:
+        stopBy: end
+        any:
+        - kind: function_call_expression
+          all: *id001
+          has:
+            kind: arguments
+            regex: ^\(\s*["'](?i:(AUTH|AUTHENTICATION|SECURITY)_(ENABLED|REQUIRED|ON)|(ENABLE|REQUIRE)_AUTH(ENTICATION)?)["']\s*\)$
+        - kind: function_call_expression
+          all: *id001
+          has:
+            kind: arguments
+            regex: ^\(\s*["'](?i:(AUTH|AUTHENTICATION|SECURITY)_(ENABLED|REQUIRED|ON)|(ENABLE|REQUIRE)_AUTH(ENTICATION)?)["']\s*,\s*(default\s*=\s*)?(["'](?i:false|0|no|off|disabled|)["']|False|false|0)\s*[,)]|^\(\s*["'](?i:(AUTH|AUTHENTICATION|SECURITY)_(ENABLED|REQUIRED|ON)|(ENABLE|REQUIRE)_AUTH(ENTICATION)?)["']\s*,[\s\S]*\bdefault\s*=\s*(["'](?i:false|0|no|off|disabled|)["']|False|false|0)\s*[,)]
+        - kind: subscript_expression
+          regex: ^\$_(ENV|SERVER)\s*\[\s*["'](?i:(AUTH|AUTHENTICATION|SECURITY)_(ENABLED|REQUIRED|ON)|(ENABLE|REQUIRE)_AUTH(ENTICATION)?)["']\s*\]$
+    - has:
+        any:
+        - kind: string
+          regex: ^(["'](?i:false|0|no|off|disabled|)["']|False|false|0)$
+  - kind: function_call_expression
+    all:
+    - has:
+        field: function
+        kind: name
+        regex: ^filter_var$
+    - has:
+        field: arguments
+        kind: arguments
+        regex: \bFILTER_VALIDATE_BOOL(EAN)?\b
+        has:
+          kind: argument
+          has:
+            any:
+            - kind: function_call_expression
+              all: *id001
+              has:
+                kind: arguments
+                regex: ^\(\s*["'](?i:(DISABLE|SKIP|NO)_AUTH(ENTICATION)?|AUTH_DISABLED)["']\s*\)$
+            - kind: function_call_expression
+              all: *id001
+              has:
+                kind: arguments
+                regex: ^\(\s*["'](?i:(DISABLE|SKIP|NO)_AUTH(ENTICATION)?|AUTH_DISABLED)["']\s*,\s*(default\s*=\s*)?(["'](?i:false|0|no|off|disabled|)["']|False|false|0)\s*[,)]|^\(\s*["'](?i:(DISABLE|SKIP|NO)_AUTH(ENTICATION)?|AUTH_DISABLED)["']\s*,[\s\S]*\bdefault\s*=\s*(["'](?i:false|0|no|off|disabled|)["']|False|false|0)\s*[,)]
+            - kind: subscript_expression
+              regex: ^\$_(ENV|SERVER)\s*\[\s*["'](?i:(DISABLE|SKIP|NO)_AUTH(ENTICATION)?|AUTH_DISABLED)["']\s*\]$
+min_engine: 0.39.0

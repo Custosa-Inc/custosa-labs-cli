@@ -1,0 +1,54 @@
+id: purge-deleted-rows.ruby-rails.soft-delete-model
+practice_id: purge-deleted-rows
+language: ruby
+frameworks:
+- rails
+kind: items
+rule:
+  any:
+  - kind: identifier
+    regex: ^acts_as_paranoid$
+  - kind: call
+    regex: ^(acts_as_paranoid|include\s+Discard::Model)\b
+control:
+  inside:
+    stopBy: end
+    kind: class
+    regex: \.(only_deleted|discarded|with_deleted)\.where\([^)]*\)\.(delete_all|destroy_all|really_destroy)
+min_engine: 0.39.0
+---
+id: purge-deleted-rows.ruby-rails.purge-soft-deleted
+practice_id: purge-deleted-rows
+language: ruby
+frameworks:
+- rails
+kind: evidence
+rule:
+  all:
+  - any:
+    - kind: call
+      regex: \.(only_deleted|with_deleted)?\.?where\(\s*['\"]deleted_at\s*<=?\s*\?['\"]\s*,\s*\d+\.\w+\.ago\)\.(delete_all|destroy_all|really_destroy!)
+    - kind: call
+      regex: \.(only_deleted|discarded)\.where\([^)]*(deleted_at|discarded_at):\s*\.\.\s*\d+\.\w+\.ago[^)]*\)\.(delete_all|destroy_all)
+  - not:
+      kind: call
+      regex: (?i)audit
+min_engine: 0.39.0
+---
+id: purge-deleted-rows.ruby-rails.purge-history
+practice_id: purge-deleted-rows
+language: ruby
+frameworks:
+- rails
+kind: evidence
+rule:
+  all:
+  - kind: call
+    regex: ^(PaperTrail::Version|\w*(Version|History)\w*)\.where\([^)]+\)\.(delete_all|destroy_all)
+  - not:
+      kind: call
+      regex: (?i)audit
+  - not:
+      kind: call
+      regex: \.where\(\s*(id|:id\s*=>)
+min_engine: 0.39.0

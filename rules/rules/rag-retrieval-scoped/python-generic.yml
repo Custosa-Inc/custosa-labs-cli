@@ -1,0 +1,359 @@
+id: rag-retrieval-scoped.python-generic.similarity-search
+practice_id: rag-retrieval-scoped
+language: python
+frameworks:
+- generic
+kind: items
+rule:
+  all:
+  - kind: call
+  - has:
+      field: function
+      kind: attribute
+      regex: '\.(similarity_search|similarity_search_with_score|similarity_search_with_relevance_scores|similarity_search_by_vector|max_marginal_relevance_search|asimilarity_search)$'
+control:
+  has:
+    field: arguments
+    kind: argument_list
+    any:
+    - has:
+        kind: keyword_argument
+        all:
+        - has:
+            field: name
+            kind: identifier
+            regex: '^(filter|where|pre_filter)$'
+        - has:
+            field: value
+            kind: dictionary
+            all:
+            - has:
+                kind: pair
+                all:
+                - has:
+                    field: key
+                    kind: string
+                    regex: '(?-u)^[''\x22](?i:(p_|filter_|in_|match_)?(tenant|org|organization|clinic|practice|patient|owner|user|account)_?id)[''\x22]$'
+                - has:
+                    field: value
+                    any:
+                    - kind: attribute
+                      regex: '(?-u)^(?:self\.)?(?:request\.user|request\.auth|request\.session|g\.user|g\.tenant|current_user|session|user|tenant|ctx|context|claims)(?:\.\w+|\[[''\x22]\w+[''\x22]\])*$'
+                    - kind: identifier
+                      regex: '(?-u)^(?:self\.)?(?:request\.user|request\.auth|request\.session|g\.user|g\.tenant|current_user|session|user|tenant|ctx|context|claims)(?:\.\w+|\[[''\x22]\w+[''\x22]\])*$'
+                    - kind: subscript
+                      regex: '(?-u)^(?:self\.)?(?:request\.user|request\.auth|request\.session|g\.user|g\.tenant|current_user|session|user|tenant|ctx|context|claims)(?:\.\w+|\[[''\x22]\w+[''\x22]\])*$'
+                    - kind: dictionary
+                      has:
+                        kind: pair
+                        has:
+                          field: value
+                          any:
+                          - kind: attribute
+                            regex: '(?-u)^(?:self\.)?(?:request\.user|request\.auth|request\.session|g\.user|g\.tenant|current_user|session|user|tenant|ctx|context|claims)(?:\.\w+|\[[''\x22]\w+[''\x22]\])*$'
+                          - kind: identifier
+                            regex: '(?-u)^(?:self\.)?(?:request\.user|request\.auth|request\.session|g\.user|g\.tenant|current_user|session|user|tenant|ctx|context|claims)(?:\.\w+|\[[''\x22]\w+[''\x22]\])*$'
+                          - kind: subscript
+                            regex: '(?-u)^(?:self\.)?(?:request\.user|request\.auth|request\.session|g\.user|g\.tenant|current_user|session|user|tenant|ctx|context|claims)(?:\.\w+|\[[''\x22]\w+[''\x22]\])*$'
+            - not:
+                has:
+                  kind: dictionary_splat
+    - has:
+        kind: keyword_argument
+        all:
+        - has:
+            field: name
+            kind: identifier
+            regex: '^namespace$'
+        - has:
+            field: value
+            any:
+            - kind: attribute
+              regex: '(?-u)^(?:self\.)?(?:request\.user|request\.auth|request\.session|g\.user|g\.tenant|current_user|session|user|tenant|ctx|context|claims)(?:\.\w+|\[[''\x22]\w+[''\x22]\])*$'
+            - kind: identifier
+              regex: '(?-u)^(?:self\.)?(?:request\.user|request\.auth|request\.session|g\.user|g\.tenant|current_user|session|user|tenant|ctx|context|claims)(?:\.\w+|\[[''\x22]\w+[''\x22]\])*$'
+            - kind: subscript
+              regex: '(?-u)^(?:self\.)?(?:request\.user|request\.auth|request\.session|g\.user|g\.tenant|current_user|session|user|tenant|ctx|context|claims)(?:\.\w+|\[[''\x22]\w+[''\x22]\])*$'
+min_engine: 0.45.3
+---
+id: rag-retrieval-scoped.python-generic.retriever
+practice_id: rag-retrieval-scoped
+language: python
+frameworks:
+- generic
+kind: items
+rule:
+  all:
+  - kind: call
+  - has:
+      field: function
+      kind: attribute
+      regex: '\.as_retriever$'
+control:
+  has:
+    field: arguments
+    kind: argument_list
+    has:
+      kind: keyword_argument
+      all:
+      - has:
+          field: name
+          kind: identifier
+          regex: '^search_kwargs$'
+      - has:
+          field: value
+          kind: dictionary
+          has:
+            kind: pair
+            all:
+            - has:
+                field: key
+                kind: string
+                regex: '^[''\x22](filter|where)[''\x22]$'
+            - has:
+                field: value
+                kind: dictionary
+                all:
+                - has:
+                    kind: pair
+                    all:
+                    - has:
+                        field: key
+                        kind: string
+                        regex: '(?-u)^[''\x22](?i:(p_|filter_|in_|match_)?(tenant|org|organization|clinic|practice|patient|owner|user|account)_?id)[''\x22]$'
+                    - has:
+                        field: value
+                        any:
+                        - kind: attribute
+                          regex: '(?-u)^(?:self\.)?(?:request\.user|request\.auth|request\.session|g\.user|g\.tenant|current_user|session|user|tenant|ctx|context|claims)(?:\.\w+|\[[''\x22]\w+[''\x22]\])*$'
+                        - kind: identifier
+                          regex: '(?-u)^(?:self\.)?(?:request\.user|request\.auth|request\.session|g\.user|g\.tenant|current_user|session|user|tenant|ctx|context|claims)(?:\.\w+|\[[''\x22]\w+[''\x22]\])*$'
+                        - kind: subscript
+                          regex: '(?-u)^(?:self\.)?(?:request\.user|request\.auth|request\.session|g\.user|g\.tenant|current_user|session|user|tenant|ctx|context|claims)(?:\.\w+|\[[''\x22]\w+[''\x22]\])*$'
+                        - kind: dictionary
+                          has:
+                            kind: pair
+                            has:
+                              field: value
+                              any:
+                              - kind: attribute
+                                regex: '(?-u)^(?:self\.)?(?:request\.user|request\.auth|request\.session|g\.user|g\.tenant|current_user|session|user|tenant|ctx|context|claims)(?:\.\w+|\[[''\x22]\w+[''\x22]\])*$'
+                              - kind: identifier
+                                regex: '(?-u)^(?:self\.)?(?:request\.user|request\.auth|request\.session|g\.user|g\.tenant|current_user|session|user|tenant|ctx|context|claims)(?:\.\w+|\[[''\x22]\w+[''\x22]\])*$'
+                              - kind: subscript
+                                regex: '(?-u)^(?:self\.)?(?:request\.user|request\.auth|request\.session|g\.user|g\.tenant|current_user|session|user|tenant|ctx|context|claims)(?:\.\w+|\[[''\x22]\w+[''\x22]\])*$'
+                - not:
+                    has:
+                      kind: dictionary_splat
+min_engine: 0.45.3
+---
+id: rag-retrieval-scoped.python-generic.store-query
+practice_id: rag-retrieval-scoped
+language: python
+frameworks:
+- generic
+kind: items
+rule:
+  all:
+  - kind: call
+  - has:
+      field: function
+      kind: attribute
+      regex: '\.(query|search|query_points)$'
+  - has:
+      field: arguments
+      kind: argument_list
+      has:
+        kind: keyword_argument
+        has:
+          field: name
+          kind: identifier
+          regex: '^(top_k|vector|query_vector|query_embeddings|query_texts)$'
+control:
+  has:
+    field: arguments
+    kind: argument_list
+    any:
+    - has:
+        kind: keyword_argument
+        all:
+        - has:
+            field: name
+            kind: identifier
+            regex: '^(filter|where|query_filter)$'
+        - has:
+            field: value
+            kind: dictionary
+            all:
+            - has:
+                kind: pair
+                all:
+                - has:
+                    field: key
+                    kind: string
+                    regex: '(?-u)^[''\x22](?i:(p_|filter_|in_|match_)?(tenant|org|organization|clinic|practice|patient|owner|user|account)_?id)[''\x22]$'
+                - has:
+                    field: value
+                    any:
+                    - kind: attribute
+                      regex: '(?-u)^(?:self\.)?(?:request\.user|request\.auth|request\.session|g\.user|g\.tenant|current_user|session|user|tenant|ctx|context|claims)(?:\.\w+|\[[''\x22]\w+[''\x22]\])*$'
+                    - kind: identifier
+                      regex: '(?-u)^(?:self\.)?(?:request\.user|request\.auth|request\.session|g\.user|g\.tenant|current_user|session|user|tenant|ctx|context|claims)(?:\.\w+|\[[''\x22]\w+[''\x22]\])*$'
+                    - kind: subscript
+                      regex: '(?-u)^(?:self\.)?(?:request\.user|request\.auth|request\.session|g\.user|g\.tenant|current_user|session|user|tenant|ctx|context|claims)(?:\.\w+|\[[''\x22]\w+[''\x22]\])*$'
+                    - kind: dictionary
+                      has:
+                        kind: pair
+                        has:
+                          field: value
+                          any:
+                          - kind: attribute
+                            regex: '(?-u)^(?:self\.)?(?:request\.user|request\.auth|request\.session|g\.user|g\.tenant|current_user|session|user|tenant|ctx|context|claims)(?:\.\w+|\[[''\x22]\w+[''\x22]\])*$'
+                          - kind: identifier
+                            regex: '(?-u)^(?:self\.)?(?:request\.user|request\.auth|request\.session|g\.user|g\.tenant|current_user|session|user|tenant|ctx|context|claims)(?:\.\w+|\[[''\x22]\w+[''\x22]\])*$'
+                          - kind: subscript
+                            regex: '(?-u)^(?:self\.)?(?:request\.user|request\.auth|request\.session|g\.user|g\.tenant|current_user|session|user|tenant|ctx|context|claims)(?:\.\w+|\[[''\x22]\w+[''\x22]\])*$'
+            - not:
+                has:
+                  kind: dictionary_splat
+    - has:
+        kind: keyword_argument
+        all:
+        - has:
+            field: name
+            kind: identifier
+            regex: '^namespace$'
+        - has:
+            field: value
+            any:
+            - kind: attribute
+              regex: '(?-u)^(?:self\.)?(?:request\.user|request\.auth|request\.session|g\.user|g\.tenant|current_user|session|user|tenant|ctx|context|claims)(?:\.\w+|\[[''\x22]\w+[''\x22]\])*$'
+            - kind: identifier
+              regex: '(?-u)^(?:self\.)?(?:request\.user|request\.auth|request\.session|g\.user|g\.tenant|current_user|session|user|tenant|ctx|context|claims)(?:\.\w+|\[[''\x22]\w+[''\x22]\])*$'
+            - kind: subscript
+              regex: '(?-u)^(?:self\.)?(?:request\.user|request\.auth|request\.session|g\.user|g\.tenant|current_user|session|user|tenant|ctx|context|claims)(?:\.\w+|\[[''\x22]\w+[''\x22]\])*$'
+min_engine: 0.45.3
+---
+id: rag-retrieval-scoped.python-generic.match-rpc
+practice_id: rag-retrieval-scoped
+language: python
+frameworks:
+- generic
+kind: items
+rule:
+  all:
+  - kind: call
+  - has:
+      field: function
+      kind: attribute
+      regex: '\.rpc$'
+  - has:
+      field: arguments
+      kind: argument_list
+      has:
+        kind: string
+        regex: '(?-u)^[''"](match|search|similar|semantic|hybrid|nearest)_\w*[''"]$'
+control:
+  has:
+    field: arguments
+    kind: argument_list
+    has:
+      kind: dictionary
+      all:
+      - has:
+          kind: pair
+          all:
+          - has:
+              field: key
+              kind: string
+              regex: '(?-u)^[''\x22](?i:(p_|filter_|in_|match_)?(tenant|org|organization|clinic|practice|patient|owner|user|account)_?id)[''\x22]$'
+          - has:
+              field: value
+              any:
+              - kind: attribute
+                regex: '(?-u)^(?:self\.)?(?:request\.user|request\.auth|request\.session|g\.user|g\.tenant|current_user|session|user|tenant|ctx|context|claims)(?:\.\w+|\[[''\x22]\w+[''\x22]\])*$'
+              - kind: identifier
+                regex: '(?-u)^(?:self\.)?(?:request\.user|request\.auth|request\.session|g\.user|g\.tenant|current_user|session|user|tenant|ctx|context|claims)(?:\.\w+|\[[''\x22]\w+[''\x22]\])*$'
+              - kind: subscript
+                regex: '(?-u)^(?:self\.)?(?:request\.user|request\.auth|request\.session|g\.user|g\.tenant|current_user|session|user|tenant|ctx|context|claims)(?:\.\w+|\[[''\x22]\w+[''\x22]\])*$'
+              - kind: dictionary
+                has:
+                  kind: pair
+                  has:
+                    field: value
+                    any:
+                    - kind: attribute
+                      regex: '(?-u)^(?:self\.)?(?:request\.user|request\.auth|request\.session|g\.user|g\.tenant|current_user|session|user|tenant|ctx|context|claims)(?:\.\w+|\[[''\x22]\w+[''\x22]\])*$'
+                    - kind: identifier
+                      regex: '(?-u)^(?:self\.)?(?:request\.user|request\.auth|request\.session|g\.user|g\.tenant|current_user|session|user|tenant|ctx|context|claims)(?:\.\w+|\[[''\x22]\w+[''\x22]\])*$'
+                    - kind: subscript
+                      regex: '(?-u)^(?:self\.)?(?:request\.user|request\.auth|request\.session|g\.user|g\.tenant|current_user|session|user|tenant|ctx|context|claims)(?:\.\w+|\[[''\x22]\w+[''\x22]\])*$'
+      - not:
+          has:
+            kind: dictionary_splat
+min_engine: 0.45.3
+---
+id: rag-retrieval-scoped.python-generic.vector-store-host
+practice_id: rag-retrieval-scoped
+language: python
+frameworks:
+- generic
+kind: evidence
+rule:
+  any:
+  - all:
+    - kind: string
+      regex: '(?i)(api\.pinecone\.io|controller\.[\w-]+\.pinecone\.io|\.svc\.[\w.${}#%()-]*pinecone\.io|[\w-]+\.[\w.-]+\.weaviate\.cloud|[\w-]+\.weaviate\.network|\.cloud\.qdrant\.io|zillizcloud\.com|api\.trychroma\.com|-vector\.upstash\.io|api\.turbopuffer\.com|[a-z0-9]+-[\w-]+\.turbopuffer\.com|\.apps\.astra\.datastax\.com|\.search\.windows\.net|\.aoss\.amazonaws\.com|\$vectorSearch\b|(localhost|127\.0\.0\.1|qdrant[\w.-]*|milvus[\w.-]*):(6333|6334|19530)\b|(localhost|127\.0\.0\.1):8000/api/v[12]/(collections|tenants|databases)\b|chroma[\w.-]*:8000\b|(localhost|127\.0\.0\.1):8080/v1/(graphql|objects|schema|batch)\b|weaviate[\w.-]*:8080\b)'
+    - not:
+        inside:
+          kind: expression_statement
+min_engine: 0.45.3
+---
+id: rag-retrieval-scoped.python-generic.vector-sql
+practice_id: rag-retrieval-scoped
+language: python
+frameworks:
+- generic
+kind: evidence
+rule:
+  any:
+  - all:
+    - kind: string
+      regex: '<=>|<->|<#>|<\+>|<~>|<%>'
+    - regex: '(?i)embedding|vector|halfvec|sparsevec'
+    - not:
+        inside:
+          kind: expression_statement
+  - all:
+    - kind: string
+      regex: '(?is)\bselect\b.*\bfrom\b|\border\s+by\b'
+    - regex: '<#>|<\+>|<~>|<%>'
+    - not:
+        inside:
+          kind: expression_statement
+  - all:
+    - kind: string
+      regex: '(?is)\bselect\b.*\bfrom\b|\border\s+by\b'
+    - regex: '<->'
+    - not:
+        kind: string
+        regex: '(?i)(ST_\w+\s*\([^<>;]*\)|\b(the_geom|geom\w*|geog\w*|geometry|geography)\b|::\s*geo(metry|graphy))\s*<->\s*(ST_\w+\s*\(|\b(the_geom|geom\w*|geog\w*)\b|''[^'']*''\s*::\s*geo(metry|graphy)|[$:?%]\w*\s*::\s*geo(metry|graphy))'
+    - not:
+        inside:
+          kind: expression_statement
+  - all:
+    - kind: string
+      regex: '(?is)\bselect\b.*\bfrom\b|\border\s+by\b'
+    - regex: '(?s)<->.*<->'
+    - not:
+        inside:
+          kind: expression_statement
+  - all:
+    - kind: string
+      regex: '(?is)\bselect\b.*\bfrom\b|\border\s+by\b'
+    - regex: '<=>'
+    - regex: '(?is)\border\s+by\b|<=>[^,;]*\bas\s+\w|<=>\s*[^\s,;()]+(\s*::\s*\w+(\([\d,\s]+\))?)?\s*\)*\s*[<>]=?\s*[-\d.$:?%]|<=>\s*(''|\[|array\b|\w+\s*\(|[^\s,;)]*::)|(\]''|\)|::\s*\w+(\([\d,\s]+\))?)\s*<=>|\bselect\b[^;]*<=>[^;]*\bfrom\b'
+    - not:
+        inside:
+          kind: expression_statement
+min_engine: 0.45.3

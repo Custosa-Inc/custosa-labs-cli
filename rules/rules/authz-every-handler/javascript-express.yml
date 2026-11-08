@@ -1,0 +1,2232 @@
+# Express routes with a route parameter (a record id from the path, in a path string or a path array), one item each,
+# where the handler is an inline function. The control is the caller's identity read inside it (req.user, req.auth,
+# the session's user, res.locals.user, getAuth(req)) or a Supabase user check. Middleware alone never counts (it says
+# who may call, not which record). The same routes with the handler wrapped in a call (route-wrapped) or passed by
+# name (route-named) are items too; see below.
+id: authz-every-handler.javascript-express.route
+practice_id: authz-every-handler
+language: javascript
+frameworks:
+- express
+kind: items
+rule:
+  kind: call_expression
+  all:
+  - has:
+      field: function
+      kind: member_expression
+      has:
+        field: property
+        kind: property_identifier
+        regex: ^(get|post|put|patch|delete|all)$
+  - has:
+      field: arguments
+      kind: arguments
+      all:
+      - has:
+          any:
+          - kind: string
+            regex: ^['"`]/[^'"`]*:[A-Za-z_]
+          - kind: array
+            has:
+              kind: string
+              regex: ^['"`]/[^'"`]*:[A-Za-z_]
+      - has:
+          any:
+          - kind: arrow_function
+          - kind: function_expression
+control:
+  has:
+    field: arguments
+    kind: arguments
+    has:
+      any:
+      - kind: arrow_function
+      - kind: function_expression
+      has:
+        stopBy: end
+        any:
+        - kind: member_expression
+          regex: ^(req|request)\.(user|auth|session\.(user|userId|user_id|uid|passport))\b
+          not:
+            any:
+            - inside:
+                any:
+                - kind: assignment_expression
+                - kind: augmented_assignment_expression
+                field: left
+            - inside:
+                kind: member_expression
+                inside:
+                  any:
+                  - kind: assignment_expression
+                  - kind: augmented_assignment_expression
+                  field: left
+        - kind: member_expression
+          regex: ^res\.locals\.(user|auth|session|claims)\b
+          not:
+            any:
+            - inside:
+                any:
+                - kind: assignment_expression
+                - kind: augmented_assignment_expression
+                field: left
+            - inside:
+                kind: member_expression
+                inside:
+                  any:
+                  - kind: assignment_expression
+                  - kind: augmented_assignment_expression
+                  field: left
+        - kind: call_expression
+          pattern: getAuth($$$)
+          has:
+            field: arguments
+            kind: arguments
+            regex: ^\(\s*[^)\s]
+          not:
+            inside:
+              kind: program
+              stopBy: end
+              has:
+                kind: import_statement
+                regex: '[''"]firebase-admin(/[a-z-]+)?[''"]'
+        - pattern: $C.auth.getUser($$$)
+      all:
+      - any:
+        - precedes:
+            not:
+              precedes:
+                any:
+                - kind: comment
+                - not:
+                    kind: comment
+        - precedes:
+            precedes:
+              not:
+                precedes:
+                  any:
+                  - kind: comment
+                  - not:
+                      kind: comment
+min_engine: 0.39.0
+---
+# The same route with the inline handler wrapped in a call (asyncHandler(async (req, res) => ...), a project wrapper):
+# one item each, with the same control read inside the wrapped function.
+id: authz-every-handler.javascript-express.route-wrapped
+practice_id: authz-every-handler
+language: javascript
+frameworks:
+- express
+kind: items
+rule:
+  kind: call_expression
+  all:
+  - has:
+      field: function
+      kind: member_expression
+      has:
+        field: property
+        kind: property_identifier
+        regex: ^(get|post|put|patch|delete|all)$
+  - has:
+      field: arguments
+      kind: arguments
+      all:
+      - has:
+          any:
+          - kind: string
+            regex: ^['"`]/[^'"`]*:[A-Za-z_]
+          - kind: array
+            has:
+              kind: string
+              regex: ^['"`]/[^'"`]*:[A-Za-z_]
+      - has:
+          kind: call_expression
+          has:
+            field: arguments
+            kind: arguments
+            has:
+              any:
+              - kind: arrow_function
+              - kind: function_expression
+      - not:
+          has:
+            any:
+            - kind: arrow_function
+            - kind: function_expression
+control:
+  has:
+    field: arguments
+    kind: arguments
+    has:
+      kind: call_expression
+      has:
+        field: arguments
+        kind: arguments
+        has:
+          any:
+          - kind: arrow_function
+          - kind: function_expression
+          has:
+            stopBy: end
+            any:
+            - kind: member_expression
+              regex: ^(req|request)\.(user|auth|session\.(user|userId|user_id|uid|passport))\b
+              not:
+                any:
+                - inside:
+                    any:
+                    - kind: assignment_expression
+                    - kind: augmented_assignment_expression
+                    field: left
+                - inside:
+                    kind: member_expression
+                    inside:
+                      any:
+                      - kind: assignment_expression
+                      - kind: augmented_assignment_expression
+                      field: left
+            - kind: member_expression
+              regex: ^res\.locals\.(user|auth|session|claims)\b
+              not:
+                any:
+                - inside:
+                    any:
+                    - kind: assignment_expression
+                    - kind: augmented_assignment_expression
+                    field: left
+                - inside:
+                    kind: member_expression
+                    inside:
+                      any:
+                      - kind: assignment_expression
+                      - kind: augmented_assignment_expression
+                      field: left
+            - kind: call_expression
+              pattern: getAuth($$$)
+              has:
+                field: arguments
+                kind: arguments
+                regex: ^\(\s*[^)\s]
+              not:
+                inside:
+                  kind: program
+                  stopBy: end
+                  has:
+                    kind: import_statement
+                    regex: '[''"]firebase-admin(/[a-z-]+)?[''"]'
+            - pattern: $C.auth.getUser($$$)
+          all:
+          - any:
+            - precedes:
+                not:
+                  precedes:
+                    any:
+                    - kind: comment
+                    - not:
+                        kind: comment
+            - precedes:
+                precedes:
+                  not:
+                    precedes:
+                      any:
+                      - kind: comment
+                      - not:
+                          kind: comment
+      all:
+      - any:
+        - precedes:
+            not:
+              precedes:
+                any:
+                - kind: comment
+                - not:
+                    kind: comment
+        - precedes:
+            precedes:
+              not:
+                precedes:
+                  any:
+                  - kind: comment
+                  - not:
+                      kind: comment
+min_engine: 0.39.0
+---
+# The same route with its handler passed by name (a function of this file, an import, controller.method): one item
+# each, at the registration. The handler's body isn't in view of the rule, so no control can be observed here (the
+# control below never matches a registration) and the auth-unobserved-named twin holds the item for a person
+# (needs_review, never a fail and never a pass).
+# A handler of this file passed by name that makes no data access is no item: every call is one level on its own
+# response parameter (passing only literals, or object or array literals of literals), on console, or on a logger
+# from getLogger(), a logger factory or a logging package (whose arguments may be anything), with no indexing, no
+# new and no await (a not-implemented stub).
+id: authz-every-handler.javascript-express.route-named
+practice_id: authz-every-handler
+language: javascript
+frameworks:
+- express
+kind: items
+rule:
+  kind: call_expression
+  all:
+  - has:
+      field: function
+      kind: member_expression
+      has:
+        field: property
+        kind: property_identifier
+        regex: ^(get|post|put|patch|delete|all)$
+  - has:
+      field: arguments
+      kind: arguments
+      all:
+      - has:
+          any:
+          - kind: string
+            regex: ^['"`]/[^'"`]*:[A-Za-z_]
+          - kind: array
+            has:
+              kind: string
+              regex: ^['"`]/[^'"`]*:[A-Za-z_]
+      - has:
+          any:
+          - kind: identifier
+          - kind: member_expression
+      - not:
+          has:
+            any:
+            - kind: arrow_function
+            - kind: function_expression
+            - kind: call_expression
+              has:
+                field: arguments
+                kind: arguments
+                has:
+                  any:
+                  - kind: arrow_function
+                  - kind: function_expression
+  - not:
+      all:
+      - any:
+        - pattern: $R.$M($A, $H)
+        - pattern: $R.$M($A, $B, $H)
+        - pattern: $R.$M($A, $B, $C, $H)
+        - pattern: $R.$M($A, $B, $C, $D, $H)
+      - inside:
+          stopBy: end
+          kind: program
+          has:
+            stopBy: end
+            any:
+            - kind: function_declaration
+              not:
+                has:
+                  stopBy: end
+                  any:
+                  - kind: subscript_expression
+                  - kind: call_expression
+                    not:
+                      has:
+                        field: function
+                        any:
+                        - kind: member_expression
+                          regex: ^\w+\.(json|send|end|sendStatus|status|set|setHeader|header|type|contentType|location|redirect)$
+                          has:
+                            field: object
+                            kind: identifier
+                            pattern:
+                              context: $RS()
+                              selector: identifier
+                            inside:
+                              stopBy: end
+                              any:
+                              - kind: function_declaration
+                              - kind: arrow_function
+                              - kind: function_expression
+                              has:
+                                field: parameters
+                                has:
+                                  stopBy: end
+                                  kind: identifier
+                                  pattern:
+                                    context: $RS()
+                                    selector: identifier
+                        - kind: member_expression
+                          regex: ^\w+\.status\([^()]*\)\.(json|send|end|type|set|contentType)$
+                          has:
+                            field: object
+                            kind: call_expression
+                            has:
+                              field: function
+                              kind: member_expression
+                              has:
+                                field: object
+                                kind: identifier
+                                pattern:
+                                  context: $RS()
+                                  selector: identifier
+                                inside:
+                                  stopBy: end
+                                  any:
+                                  - kind: function_declaration
+                                  - kind: arrow_function
+                                  - kind: function_expression
+                                  has:
+                                    field: parameters
+                                    has:
+                                      stopBy: end
+                                      kind: identifier
+                                      pattern:
+                                        context: $RS()
+                                        selector: identifier
+                        - kind: member_expression
+                          regex: ^console\.(log|info|warn|error|debug|trace)$
+                        - kind: identifier
+                          regex: ^getLogger$
+                        - kind: member_expression
+                          regex: ^getLogger\(\)\.(info|warn|error|debug|trace|log)$
+                        - kind: member_expression
+                          regex: ^\w+\.(info|warn|error|debug|trace|log|fatal)$
+                          has:
+                            field: object
+                            kind: identifier
+                            pattern:
+                              context: $LG()
+                              selector: identifier
+                            inside:
+                              stopBy: end
+                              kind: program
+                              has:
+                                stopBy: end
+                                any:
+                                - kind: import_statement
+                                  all:
+                                  - has:
+                                      field: source
+                                      kind: string
+                                      regex: ^['\"](pino|winston|bunyan|log4js|loglevel|signale|consola)(/|['\"])
+                                  - has:
+                                      stopBy: end
+                                      kind: identifier
+                                      pattern:
+                                        context: $LG()
+                                        selector: identifier
+                                - kind: variable_declarator
+                                  all:
+                                  - has:
+                                      field: name
+                                      kind: identifier
+                                      pattern:
+                                        context: $LG()
+                                        selector: identifier
+                                  - has:
+                                      field: value
+                                      kind: call_expression
+                                      regex: ^(getLogger|pino|createLogger|winston\.createLogger|bunyan\.createLogger)\(
+                  - kind: new_expression
+                  - kind: await_expression
+                  - kind: arguments
+                    not:
+                      inside:
+                        kind: call_expression
+                        has:
+                          field: function
+                          any:
+                          - kind: member_expression
+                            regex: ^console\.(log|info|warn|error|debug|trace)$
+                          - kind: identifier
+                            regex: ^getLogger$
+                          - kind: member_expression
+                            regex: ^getLogger\(\)\.(info|warn|error|debug|trace|log)$
+                          - kind: member_expression
+                            regex: ^\w+\.(info|warn|error|debug|trace|log|fatal)$
+                            has:
+                              field: object
+                              kind: identifier
+                              pattern:
+                                context: $LG()
+                                selector: identifier
+                              inside:
+                                stopBy: end
+                                kind: program
+                                has:
+                                  stopBy: end
+                                  any:
+                                  - kind: import_statement
+                                    all:
+                                    - has:
+                                        field: source
+                                        kind: string
+                                        regex: ^['\"](pino|winston|bunyan|log4js|loglevel|signale|consola)(/|['\"])
+                                    - has:
+                                        stopBy: end
+                                        kind: identifier
+                                        pattern:
+                                          context: $LG()
+                                          selector: identifier
+                                  - kind: variable_declarator
+                                    all:
+                                    - has:
+                                        field: name
+                                        kind: identifier
+                                        pattern:
+                                          context: $LG()
+                                          selector: identifier
+                                    - has:
+                                        field: value
+                                        kind: call_expression
+                                        regex: ^(getLogger|pino|createLogger|winston\.createLogger|bunyan\.createLogger)\(
+                    has:
+                      stopBy: end
+                      any:
+                      - kind: identifier
+                      - kind: member_expression
+                      - kind: shorthand_property_identifier
+                      - kind: template_substitution
+                      - kind: spread_element
+              has:
+                field: name
+                kind: identifier
+                pattern:
+                  context: $H()
+                  selector: identifier
+            - kind: variable_declarator
+              all:
+              - has:
+                  field: name
+                  kind: identifier
+                  pattern:
+                    context: $H()
+                    selector: identifier
+              - has:
+                  field: value
+                  any:
+                  - kind: arrow_function
+                  - kind: function_expression
+                  not:
+                    has:
+                      stopBy: end
+                      any:
+                      - kind: subscript_expression
+                      - kind: call_expression
+                        not:
+                          has:
+                            field: function
+                            any:
+                            - kind: member_expression
+                              regex: ^\w+\.(json|send|end|sendStatus|status|set|setHeader|header|type|contentType|location|redirect)$
+                              has:
+                                field: object
+                                kind: identifier
+                                pattern:
+                                  context: $RS()
+                                  selector: identifier
+                                inside:
+                                  stopBy: end
+                                  any:
+                                  - kind: function_declaration
+                                  - kind: arrow_function
+                                  - kind: function_expression
+                                  has:
+                                    field: parameters
+                                    has:
+                                      stopBy: end
+                                      kind: identifier
+                                      pattern:
+                                        context: $RS()
+                                        selector: identifier
+                            - kind: member_expression
+                              regex: ^\w+\.status\([^()]*\)\.(json|send|end|type|set|contentType)$
+                              has:
+                                field: object
+                                kind: call_expression
+                                has:
+                                  field: function
+                                  kind: member_expression
+                                  has:
+                                    field: object
+                                    kind: identifier
+                                    pattern:
+                                      context: $RS()
+                                      selector: identifier
+                                    inside:
+                                      stopBy: end
+                                      any:
+                                      - kind: function_declaration
+                                      - kind: arrow_function
+                                      - kind: function_expression
+                                      has:
+                                        field: parameters
+                                        has:
+                                          stopBy: end
+                                          kind: identifier
+                                          pattern:
+                                            context: $RS()
+                                            selector: identifier
+                            - kind: member_expression
+                              regex: ^console\.(log|info|warn|error|debug|trace)$
+                            - kind: identifier
+                              regex: ^getLogger$
+                            - kind: member_expression
+                              regex: ^getLogger\(\)\.(info|warn|error|debug|trace|log)$
+                            - kind: member_expression
+                              regex: ^\w+\.(info|warn|error|debug|trace|log|fatal)$
+                              has:
+                                field: object
+                                kind: identifier
+                                pattern:
+                                  context: $LG()
+                                  selector: identifier
+                                inside:
+                                  stopBy: end
+                                  kind: program
+                                  has:
+                                    stopBy: end
+                                    any:
+                                    - kind: import_statement
+                                      all:
+                                      - has:
+                                          field: source
+                                          kind: string
+                                          regex: ^['\"](pino|winston|bunyan|log4js|loglevel|signale|consola)(/|['\"])
+                                      - has:
+                                          stopBy: end
+                                          kind: identifier
+                                          pattern:
+                                            context: $LG()
+                                            selector: identifier
+                                    - kind: variable_declarator
+                                      all:
+                                      - has:
+                                          field: name
+                                          kind: identifier
+                                          pattern:
+                                            context: $LG()
+                                            selector: identifier
+                                      - has:
+                                          field: value
+                                          kind: call_expression
+                                          regex: ^(getLogger|pino|createLogger|winston\.createLogger|bunyan\.createLogger)\(
+                      - kind: new_expression
+                      - kind: await_expression
+                      - kind: arguments
+                        not:
+                          inside:
+                            kind: call_expression
+                            has:
+                              field: function
+                              any:
+                              - kind: member_expression
+                                regex: ^console\.(log|info|warn|error|debug|trace)$
+                              - kind: identifier
+                                regex: ^getLogger$
+                              - kind: member_expression
+                                regex: ^getLogger\(\)\.(info|warn|error|debug|trace|log)$
+                              - kind: member_expression
+                                regex: ^\w+\.(info|warn|error|debug|trace|log|fatal)$
+                                has:
+                                  field: object
+                                  kind: identifier
+                                  pattern:
+                                    context: $LG()
+                                    selector: identifier
+                                  inside:
+                                    stopBy: end
+                                    kind: program
+                                    has:
+                                      stopBy: end
+                                      any:
+                                      - kind: import_statement
+                                        all:
+                                        - has:
+                                            field: source
+                                            kind: string
+                                            regex: ^['\"](pino|winston|bunyan|log4js|loglevel|signale|consola)(/|['\"])
+                                        - has:
+                                            stopBy: end
+                                            kind: identifier
+                                            pattern:
+                                              context: $LG()
+                                              selector: identifier
+                                      - kind: variable_declarator
+                                        all:
+                                        - has:
+                                            field: name
+                                            kind: identifier
+                                            pattern:
+                                              context: $LG()
+                                              selector: identifier
+                                        - has:
+                                            field: value
+                                            kind: call_expression
+                                            regex: ^(getLogger|pino|createLogger|winston\.createLogger|bunyan\.createLogger)\(
+                        has:
+                          stopBy: end
+                          any:
+                          - kind: identifier
+                          - kind: member_expression
+                          - kind: shorthand_property_identifier
+                          - kind: template_substitution
+                          - kind: spread_element
+control:
+  kind: call_expression
+  regex: ^$
+min_engine: 0.39.0
+---
+# The twin of route-named. When the handler passed by name is a function of this file that answers (res.json,
+# res.send, res.status) with no caller read in its body, its absence is visible: no twin, and the item fails.
+id: authz-every-handler.javascript-express.auth-unobserved-named
+practice_id: authz-every-handler
+language: javascript
+frameworks:
+- express
+kind: evidence
+rule:
+  kind: call_expression
+  all:
+  - has:
+      field: function
+      kind: member_expression
+      has:
+        field: property
+        kind: property_identifier
+        regex: ^(get|post|put|patch|delete|all)$
+  - has:
+      field: arguments
+      kind: arguments
+      all:
+      - has:
+          any:
+          - kind: string
+            regex: ^['"`]/[^'"`]*:[A-Za-z_]
+          - kind: array
+            has:
+              kind: string
+              regex: ^['"`]/[^'"`]*:[A-Za-z_]
+      - has:
+          any:
+          - kind: identifier
+          - kind: member_expression
+      - not:
+          has:
+            any:
+            - kind: arrow_function
+            - kind: function_expression
+            - kind: call_expression
+              has:
+                field: arguments
+                kind: arguments
+                has:
+                  any:
+                  - kind: arrow_function
+                  - kind: function_expression
+  - not:
+      has:
+        field: arguments
+        kind: arguments
+        has:
+          kind: identifier
+          pattern:
+            context: $H()
+            selector: identifier
+          inside:
+            stopBy: end
+            kind: program
+            has:
+              stopBy: end
+              any:
+              - kind: function_declaration
+                regex: \bres\.(json|send|status|sendStatus|end|render|redirect)\(
+                not:
+                  has:
+                    stopBy: end
+                    any:
+                    - kind: member_expression
+                      regex: ^(req|request)\.(user|auth|session)$
+                    - kind: call_expression
+                      has:
+                        field: function
+                        kind: identifier
+                        regex: ^(getUser|getCurrentUser|getServerSession|auth|requireUser|requireAuth|currentUser|getSession|getAuth|getToken|getIronSession)$|^verify\w*Token$
+                    - kind: call_expression
+                      has:
+                        field: function
+                        kind: member_expression
+                        regex: \.(getUser|getSession|verifyIdToken|verifySessionCookie|getClaims)$|^jwt\.verify$
+                    - kind: call_expression
+                      any:
+                      - pattern: $R.status(401)
+                      - pattern: $R.status(403)
+                      - pattern: $R.sendStatus(401)
+                      - pattern: $R.sendStatus(403)
+                    - kind: throw_statement
+                      has:
+                        stopBy: end
+                        kind: new_expression
+                        any:
+                        - has:
+                            field: constructor
+                            kind: identifier
+                            regex: ^(Unauthori[sz]ed|Forbidden)\w*$
+                        - has:
+                            field: arguments
+                            kind: arguments
+                            has:
+                              kind: number
+                              regex: ^40[13]$
+                    - kind: call_expression
+                      has:
+                        field: function
+                        kind: identifier
+                        regex: ^(validate|verify|check)\w*(Link|Token|Signature|Passcode|Access|Secret)\w*$
+                      inside:
+                        stopBy: end
+                        kind: statement_block
+                        has:
+                          stopBy: end
+                          kind: if_statement
+                          has:
+                            field: consequence
+                            any:
+                            - kind: return_statement
+                            - has:
+                                stopBy: end
+                                kind: return_statement
+                has:
+                  field: name
+                  kind: identifier
+                  pattern:
+                    context: $H()
+                    selector: identifier
+              - kind: variable_declarator
+                regex: \bres\.(json|send|status|sendStatus|end|render|redirect)\(
+                not:
+                  has:
+                    stopBy: end
+                    any:
+                    - kind: member_expression
+                      regex: ^(req|request)\.(user|auth|session)$
+                    - kind: call_expression
+                      has:
+                        field: function
+                        kind: identifier
+                        regex: ^(getUser|getCurrentUser|getServerSession|auth|requireUser|requireAuth|currentUser|getSession|getAuth|getToken|getIronSession)$|^verify\w*Token$
+                    - kind: call_expression
+                      has:
+                        field: function
+                        kind: member_expression
+                        regex: \.(getUser|getSession|verifyIdToken|verifySessionCookie|getClaims)$|^jwt\.verify$
+                    - kind: call_expression
+                      any:
+                      - pattern: $R.status(401)
+                      - pattern: $R.status(403)
+                      - pattern: $R.sendStatus(401)
+                      - pattern: $R.sendStatus(403)
+                    - kind: throw_statement
+                      has:
+                        stopBy: end
+                        kind: new_expression
+                        any:
+                        - has:
+                            field: constructor
+                            kind: identifier
+                            regex: ^(Unauthori[sz]ed|Forbidden)\w*$
+                        - has:
+                            field: arguments
+                            kind: arguments
+                            has:
+                              kind: number
+                              regex: ^40[13]$
+                    - kind: call_expression
+                      has:
+                        field: function
+                        kind: identifier
+                        regex: ^(validate|verify|check)\w*(Link|Token|Signature|Passcode|Access|Secret)\w*$
+                      inside:
+                        stopBy: end
+                        kind: statement_block
+                        has:
+                          stopBy: end
+                          kind: if_statement
+                          has:
+                            field: consequence
+                            any:
+                            - kind: return_statement
+                            - has:
+                                stopBy: end
+                                kind: return_statement
+                all:
+                - has:
+                    field: name
+                    kind: identifier
+                    pattern:
+                      context: $H()
+                      selector: identifier
+                - has:
+                    field: value
+                    any:
+                    - kind: arrow_function
+                    - kind: function_expression
+  - not:
+      all:
+      - any:
+        - pattern: $R.$M($A, $H)
+        - pattern: $R.$M($A, $B, $H)
+        - pattern: $R.$M($A, $B, $C, $H)
+        - pattern: $R.$M($A, $B, $C, $D, $H)
+      - inside:
+          stopBy: end
+          kind: program
+          has:
+            stopBy: end
+            any:
+            - kind: function_declaration
+              not:
+                has:
+                  stopBy: end
+                  any:
+                  - kind: subscript_expression
+                  - kind: call_expression
+                    not:
+                      has:
+                        field: function
+                        any:
+                        - kind: member_expression
+                          regex: ^\w+\.(json|send|end|sendStatus|status|set|setHeader|header|type|contentType|location|redirect)$
+                          has:
+                            field: object
+                            kind: identifier
+                            pattern:
+                              context: $RS()
+                              selector: identifier
+                            inside:
+                              stopBy: end
+                              any:
+                              - kind: function_declaration
+                              - kind: arrow_function
+                              - kind: function_expression
+                              has:
+                                field: parameters
+                                has:
+                                  stopBy: end
+                                  kind: identifier
+                                  pattern:
+                                    context: $RS()
+                                    selector: identifier
+                        - kind: member_expression
+                          regex: ^\w+\.status\([^()]*\)\.(json|send|end|type|set|contentType)$
+                          has:
+                            field: object
+                            kind: call_expression
+                            has:
+                              field: function
+                              kind: member_expression
+                              has:
+                                field: object
+                                kind: identifier
+                                pattern:
+                                  context: $RS()
+                                  selector: identifier
+                                inside:
+                                  stopBy: end
+                                  any:
+                                  - kind: function_declaration
+                                  - kind: arrow_function
+                                  - kind: function_expression
+                                  has:
+                                    field: parameters
+                                    has:
+                                      stopBy: end
+                                      kind: identifier
+                                      pattern:
+                                        context: $RS()
+                                        selector: identifier
+                        - kind: member_expression
+                          regex: ^console\.(log|info|warn|error|debug|trace)$
+                        - kind: identifier
+                          regex: ^getLogger$
+                        - kind: member_expression
+                          regex: ^getLogger\(\)\.(info|warn|error|debug|trace|log)$
+                        - kind: member_expression
+                          regex: ^\w+\.(info|warn|error|debug|trace|log|fatal)$
+                          has:
+                            field: object
+                            kind: identifier
+                            pattern:
+                              context: $LG()
+                              selector: identifier
+                            inside:
+                              stopBy: end
+                              kind: program
+                              has:
+                                stopBy: end
+                                any:
+                                - kind: import_statement
+                                  all:
+                                  - has:
+                                      field: source
+                                      kind: string
+                                      regex: ^['\"](pino|winston|bunyan|log4js|loglevel|signale|consola)(/|['\"])
+                                  - has:
+                                      stopBy: end
+                                      kind: identifier
+                                      pattern:
+                                        context: $LG()
+                                        selector: identifier
+                                - kind: variable_declarator
+                                  all:
+                                  - has:
+                                      field: name
+                                      kind: identifier
+                                      pattern:
+                                        context: $LG()
+                                        selector: identifier
+                                  - has:
+                                      field: value
+                                      kind: call_expression
+                                      regex: ^(getLogger|pino|createLogger|winston\.createLogger|bunyan\.createLogger)\(
+                  - kind: new_expression
+                  - kind: await_expression
+                  - kind: arguments
+                    not:
+                      inside:
+                        kind: call_expression
+                        has:
+                          field: function
+                          any:
+                          - kind: member_expression
+                            regex: ^console\.(log|info|warn|error|debug|trace)$
+                          - kind: identifier
+                            regex: ^getLogger$
+                          - kind: member_expression
+                            regex: ^getLogger\(\)\.(info|warn|error|debug|trace|log)$
+                          - kind: member_expression
+                            regex: ^\w+\.(info|warn|error|debug|trace|log|fatal)$
+                            has:
+                              field: object
+                              kind: identifier
+                              pattern:
+                                context: $LG()
+                                selector: identifier
+                              inside:
+                                stopBy: end
+                                kind: program
+                                has:
+                                  stopBy: end
+                                  any:
+                                  - kind: import_statement
+                                    all:
+                                    - has:
+                                        field: source
+                                        kind: string
+                                        regex: ^['\"](pino|winston|bunyan|log4js|loglevel|signale|consola)(/|['\"])
+                                    - has:
+                                        stopBy: end
+                                        kind: identifier
+                                        pattern:
+                                          context: $LG()
+                                          selector: identifier
+                                  - kind: variable_declarator
+                                    all:
+                                    - has:
+                                        field: name
+                                        kind: identifier
+                                        pattern:
+                                          context: $LG()
+                                          selector: identifier
+                                    - has:
+                                        field: value
+                                        kind: call_expression
+                                        regex: ^(getLogger|pino|createLogger|winston\.createLogger|bunyan\.createLogger)\(
+                    has:
+                      stopBy: end
+                      any:
+                      - kind: identifier
+                      - kind: member_expression
+                      - kind: shorthand_property_identifier
+                      - kind: template_substitution
+                      - kind: spread_element
+              has:
+                field: name
+                kind: identifier
+                pattern:
+                  context: $H()
+                  selector: identifier
+            - kind: variable_declarator
+              all:
+              - has:
+                  field: name
+                  kind: identifier
+                  pattern:
+                    context: $H()
+                    selector: identifier
+              - has:
+                  field: value
+                  any:
+                  - kind: arrow_function
+                  - kind: function_expression
+                  not:
+                    has:
+                      stopBy: end
+                      any:
+                      - kind: subscript_expression
+                      - kind: call_expression
+                        not:
+                          has:
+                            field: function
+                            any:
+                            - kind: member_expression
+                              regex: ^\w+\.(json|send|end|sendStatus|status|set|setHeader|header|type|contentType|location|redirect)$
+                              has:
+                                field: object
+                                kind: identifier
+                                pattern:
+                                  context: $RS()
+                                  selector: identifier
+                                inside:
+                                  stopBy: end
+                                  any:
+                                  - kind: function_declaration
+                                  - kind: arrow_function
+                                  - kind: function_expression
+                                  has:
+                                    field: parameters
+                                    has:
+                                      stopBy: end
+                                      kind: identifier
+                                      pattern:
+                                        context: $RS()
+                                        selector: identifier
+                            - kind: member_expression
+                              regex: ^\w+\.status\([^()]*\)\.(json|send|end|type|set|contentType)$
+                              has:
+                                field: object
+                                kind: call_expression
+                                has:
+                                  field: function
+                                  kind: member_expression
+                                  has:
+                                    field: object
+                                    kind: identifier
+                                    pattern:
+                                      context: $RS()
+                                      selector: identifier
+                                    inside:
+                                      stopBy: end
+                                      any:
+                                      - kind: function_declaration
+                                      - kind: arrow_function
+                                      - kind: function_expression
+                                      has:
+                                        field: parameters
+                                        has:
+                                          stopBy: end
+                                          kind: identifier
+                                          pattern:
+                                            context: $RS()
+                                            selector: identifier
+                            - kind: member_expression
+                              regex: ^console\.(log|info|warn|error|debug|trace)$
+                            - kind: identifier
+                              regex: ^getLogger$
+                            - kind: member_expression
+                              regex: ^getLogger\(\)\.(info|warn|error|debug|trace|log)$
+                            - kind: member_expression
+                              regex: ^\w+\.(info|warn|error|debug|trace|log|fatal)$
+                              has:
+                                field: object
+                                kind: identifier
+                                pattern:
+                                  context: $LG()
+                                  selector: identifier
+                                inside:
+                                  stopBy: end
+                                  kind: program
+                                  has:
+                                    stopBy: end
+                                    any:
+                                    - kind: import_statement
+                                      all:
+                                      - has:
+                                          field: source
+                                          kind: string
+                                          regex: ^['\"](pino|winston|bunyan|log4js|loglevel|signale|consola)(/|['\"])
+                                      - has:
+                                          stopBy: end
+                                          kind: identifier
+                                          pattern:
+                                            context: $LG()
+                                            selector: identifier
+                                    - kind: variable_declarator
+                                      all:
+                                      - has:
+                                          field: name
+                                          kind: identifier
+                                          pattern:
+                                            context: $LG()
+                                            selector: identifier
+                                      - has:
+                                          field: value
+                                          kind: call_expression
+                                          regex: ^(getLogger|pino|createLogger|winston\.createLogger|bunyan\.createLogger)\(
+                      - kind: new_expression
+                      - kind: await_expression
+                      - kind: arguments
+                        not:
+                          inside:
+                            kind: call_expression
+                            has:
+                              field: function
+                              any:
+                              - kind: member_expression
+                                regex: ^console\.(log|info|warn|error|debug|trace)$
+                              - kind: identifier
+                                regex: ^getLogger$
+                              - kind: member_expression
+                                regex: ^getLogger\(\)\.(info|warn|error|debug|trace|log)$
+                              - kind: member_expression
+                                regex: ^\w+\.(info|warn|error|debug|trace|log|fatal)$
+                                has:
+                                  field: object
+                                  kind: identifier
+                                  pattern:
+                                    context: $LG()
+                                    selector: identifier
+                                  inside:
+                                    stopBy: end
+                                    kind: program
+                                    has:
+                                      stopBy: end
+                                      any:
+                                      - kind: import_statement
+                                        all:
+                                        - has:
+                                            field: source
+                                            kind: string
+                                            regex: ^['\"](pino|winston|bunyan|log4js|loglevel|signale|consola)(/|['\"])
+                                        - has:
+                                            stopBy: end
+                                            kind: identifier
+                                            pattern:
+                                              context: $LG()
+                                              selector: identifier
+                                      - kind: variable_declarator
+                                        all:
+                                        - has:
+                                            field: name
+                                            kind: identifier
+                                            pattern:
+                                              context: $LG()
+                                              selector: identifier
+                                        - has:
+                                            field: value
+                                            kind: call_expression
+                                            regex: ^(getLogger|pino|createLogger|winston\.createLogger|bunyan\.createLogger)\(
+                        has:
+                          stopBy: end
+                          any:
+                          - kind: identifier
+                          - kind: member_expression
+                          - kind: shorthand_property_identifier
+                          - kind: template_substitution
+                          - kind: spread_element
+min_engine: 0.39.0
+---
+# A caller read through a project helper taking nothing or only the request or context
+# (getAuthenticatedContext(), requireUser(req), getCurrentUser()): a resemblance of the control, never the
+# control (getAuth and currentUser are judged by the control). On the handler it holds that handler's item
+# for a person (needs_review). A member call (supabase.auth.getSession()) or a lookup taking an id is never one.
+id: authz-every-handler.javascript-express.auth-unobserved-context
+practice_id: authz-every-handler
+language: javascript
+frameworks:
+- express
+kind: evidence
+rule:
+  kind: call_expression
+  all:
+  - not:
+      inside:
+        stopBy: end
+        any:
+        - kind: function_declaration
+          inside:
+            kind: statement_block
+        - any:
+          - kind: arrow_function
+          - kind: function_expression
+          inside:
+            kind: variable_declarator
+            inside:
+              any:
+              - kind: lexical_declaration
+              - kind: variable_declaration
+              inside:
+                kind: statement_block
+  - has:
+      field: function
+      kind: identifier
+      regex: '^(get|require|load|ensure|assert|verify)((Authenticated|Auth|Current|Session|Request|SignedIn|LoggedIn)(User|Session|Context|Ctx|Caller|Principal|Claims|Identity|Account)|(User|Session|Caller|Principal|Claims|Identity|Account))(Context|Info|Id|OrThrow)?$'
+  - has:
+      field: arguments
+      kind: arguments
+      regex: '^\(\s*(req|request|ctx|c)?\s*\)$'
+min_engine: 0.39.0
+---
+# A guard at the handler's top level checking that a request header differs from a secret from the
+# environment (!== or !=, a name with SECRET, TOKEN or KEY) and returning or throwing when it does: a machine
+# holding the secret called, not which user. It holds that handler's item for a person (needs_review). An
+# equality test (=== or ==) with data returned inside is no guard: it holds nothing.
+id: authz-every-handler.javascript-express.auth-unobserved-secret
+practice_id: authz-every-handler
+language: javascript
+frameworks:
+- express
+kind: evidence
+rule:
+  kind: if_statement
+  all:
+  - not:
+      inside:
+        stopBy: end
+        any:
+        - kind: function_declaration
+          inside:
+            kind: statement_block
+        - any:
+          - kind: arrow_function
+          - kind: function_expression
+          inside:
+            kind: variable_declarator
+            inside:
+              any:
+              - kind: lexical_declaration
+              - kind: variable_declaration
+              inside:
+                kind: statement_block
+  - has:
+      field: condition
+      has:
+        stopBy: end
+        all:
+        - any:
+          - pattern: '$A !== $B'
+          - pattern: '$A != $B'
+        - has:
+            stopBy: end
+            any:
+            - kind: member_expression
+              regex: '\.headers\b'
+            - kind: call_expression
+              regex: '^(req|request)\.(get|header)\('
+        - has:
+            stopBy: end
+            kind: member_expression
+            regex: '^process\.env\.[A-Z0-9_]*(SECRET|TOKEN|KEY)[A-Z0-9_]*$'
+  - has:
+      field: consequence
+      any:
+      - kind: return_statement
+      - kind: throw_statement
+      - kind: statement_block
+        has:
+          any:
+          - kind: return_statement
+          - kind: throw_statement
+  - inside:
+      kind: statement_block
+      inside:
+        any:
+        - kind: function_declaration
+        - kind: arrow_function
+        - kind: function_expression
+        - kind: method_definition
+min_engine: 0.39.0
+---
+# The handler hands the request itself to a delegate or to project code: a function called by name that no
+# package import or require binds (handleSubscription(req, res), handler(req, ctx)), a method of this
+# (this.service.run(req)), or a method of an object a relative or project-path import or require binds, or an
+# instance of such a class (controller.show(req, res), topicService.follow(req)). The caller check may live
+# there, so its absence isn't visible here: it holds that handler's item for a person (needs_review). Not it,
+# so the absence stays visible and the item fails: a library helper (a name a package import or require binds:
+# express-validator, request-ip, express-rate-limit, multer), a known non-auth consumer by name (validationResult,
+# matchedData, getClientIp, rateLimit, a limiter), a logger or console (any receiver ending in logger or log), a
+# response, a method of an object nothing in the file binds (audit.record(req)), or the request's fields.
+id: authz-every-handler.javascript-express.auth-unobserved-passes
+practice_id: authz-every-handler
+language: javascript
+frameworks:
+- express
+kind: evidence
+rule:
+  kind: call_expression
+  all:
+  - has:
+      field: arguments
+      kind: arguments
+      has:
+        kind: identifier
+        regex: ^(req|request)$
+  - not:
+      has:
+        field: function
+        kind: member_expression
+        regex: (^|\.)(console|\w*[lL]ogger|log|Log|res|response|reply)\.\w+$
+  - not:
+      has:
+        field: function
+        kind: identifier
+        regex: ^(getServerSession|getAuth|getToken|getIronSession|validateRequest|getKindeServerSession)$
+  - not:
+      has:
+        field: function
+        any:
+        - kind: identifier
+          regex: ^(validationResult|matchedData|checkSchema|checkExact|getClientIp|clientIp|getIp|requestIp|ipKeyGenerator|rateLimit|rateLimiter|limiter|slowDown|throttle|cors|helmet|multer|formidable|busboy|structuredClone|setTimeout|setInterval|setImmediate|queueMicrotask|Boolean|String|Number|Array|Object|Promise|Symbol|JSON|encodeURIComponent|decodeURIComponent|require|parseInt|parseFloat)$
+        - kind: member_expression
+          has:
+            field: property
+            kind: property_identifier
+            regex: ^(validationResult|matchedData|checkSchema|checkExact|getClientIp|clientIp|getIp|ipKeyGenerator|rateLimit|rateLimiter|limiter|consume|slowDown|throttle)$
+  - not:
+      inside:
+        stopBy: end
+        any:
+        - kind: function_declaration
+          inside:
+            kind: statement_block
+        - any:
+          - kind: arrow_function
+          - kind: function_expression
+          inside:
+            kind: variable_declarator
+            inside:
+              any:
+              - kind: lexical_declaration
+              - kind: variable_declaration
+              inside:
+                kind: statement_block
+  - any:
+    - all:
+      - has:
+          field: function
+          kind: identifier
+          pattern:
+            context: $F()
+            selector: identifier
+      - not:
+          inside:
+            stopBy: end
+            kind: program
+            has:
+              stopBy: end
+              any:
+              - kind: import_statement
+                all:
+                - not:
+                    has:
+                      field: source
+                      kind: string
+                      regex: ^['"](\.{1,2}/|@/|~/|#|src/)
+                - has:
+                    stopBy: end
+                    kind: identifier
+                    pattern:
+                      context: $F()
+                      selector: identifier
+              - kind: variable_declarator
+                all:
+                - has:
+                    field: value
+                    any:
+                    - kind: call_expression
+                      regex: ^require\(
+                    - kind: member_expression
+                      regex: ^require\(
+                - not:
+                    has:
+                      field: value
+                      any:
+                      - kind: call_expression
+                        regex: ^require\(['"](\.{1,2}/|@/|~/|#|src/)
+                      - kind: member_expression
+                        regex: ^require\(['"](\.{1,2}/|@/|~/|#|src/)
+                - has:
+                    field: name
+                    any:
+                    - kind: identifier
+                      pattern:
+                        context: $F()
+                        selector: identifier
+                    - kind: object_pattern
+                      any:
+                      - pattern:
+                          context: const { $F } = x
+                          selector: object_pattern
+                      - pattern:
+                          context: const { $$$A, $F } = x
+                          selector: object_pattern
+                      - pattern:
+                          context: const { $F, $$$B } = x
+                          selector: object_pattern
+                      - pattern:
+                          context: const { $$$A, $F, $$$B } = x
+                          selector: object_pattern
+                      - has:
+                          kind: pair_pattern
+                          has:
+                            field: value
+                            kind: identifier
+                            pattern:
+                              context: $F()
+                              selector: identifier
+      - any:
+        - not:
+            inside:
+              stopBy: end
+              kind: program
+              has:
+                stopBy: end
+                any:
+                - kind: function_declaration
+                  has:
+                    field: name
+                    kind: identifier
+                    pattern:
+                      context: $F()
+                      selector: identifier
+                - kind: variable_declarator
+                  all:
+                  - has:
+                      field: name
+                      kind: identifier
+                      pattern:
+                        context: $F()
+                        selector: identifier
+                  - has:
+                      field: value
+                      any:
+                      - kind: arrow_function
+                      - kind: function_expression
+        - inside:
+            stopBy: end
+            kind: program
+            has:
+              stopBy: end
+              any:
+              - kind: function_declaration
+                all:
+                - has:
+                    field: name
+                    kind: identifier
+                    pattern:
+                      context: $F()
+                      selector: identifier
+                - has:
+                    stopBy: end
+                    any:
+                    - kind: member_expression
+                      regex: ^(req|request)\.(user|auth|session)$
+                    - kind: call_expression
+                      has:
+                        field: function
+                        kind: identifier
+                        regex: ^(getUser|getCurrentUser|getServerSession|auth|requireUser|requireAuth|currentUser|getSession|getAuth|getToken|getIronSession)$|^verify\w*Token$
+                    - kind: call_expression
+                      has:
+                        field: function
+                        kind: member_expression
+                        regex: \.(getUser|getSession|verifyIdToken|verifySessionCookie|getClaims)$|^jwt\.verify$
+                    - kind: call_expression
+                      any:
+                      - pattern: $R.status(401)
+                      - pattern: $R.status(403)
+                      - pattern: $R.sendStatus(401)
+                      - pattern: $R.sendStatus(403)
+                    - kind: throw_statement
+                      has:
+                        stopBy: end
+                        kind: new_expression
+                        any:
+                        - has:
+                            field: constructor
+                            kind: identifier
+                            regex: ^(Unauthori[sz]ed|Forbidden)\w*$
+                        - has:
+                            field: arguments
+                            kind: arguments
+                            has:
+                              kind: number
+                              regex: ^40[13]$
+                    - kind: call_expression
+                      has:
+                        field: function
+                        kind: identifier
+                        regex: ^(validate|verify|check)\w*(Link|Token|Signature|Passcode|Access|Secret)\w*$
+                      inside:
+                        stopBy: end
+                        kind: statement_block
+                        has:
+                          stopBy: end
+                          kind: if_statement
+                          has:
+                            field: consequence
+                            any:
+                            - kind: return_statement
+                            - has:
+                                stopBy: end
+                                kind: return_statement
+              - kind: variable_declarator
+                all:
+                - has:
+                    field: name
+                    kind: identifier
+                    pattern:
+                      context: $F()
+                      selector: identifier
+                - has:
+                    field: value
+                    any:
+                    - kind: arrow_function
+                    - kind: function_expression
+                - has:
+                    stopBy: end
+                    any:
+                    - kind: member_expression
+                      regex: ^(req|request)\.(user|auth|session)$
+                    - kind: call_expression
+                      has:
+                        field: function
+                        kind: identifier
+                        regex: ^(getUser|getCurrentUser|getServerSession|auth|requireUser|requireAuth|currentUser|getSession|getAuth|getToken|getIronSession)$|^verify\w*Token$
+                    - kind: call_expression
+                      has:
+                        field: function
+                        kind: member_expression
+                        regex: \.(getUser|getSession|verifyIdToken|verifySessionCookie|getClaims)$|^jwt\.verify$
+                    - kind: call_expression
+                      any:
+                      - pattern: $R.status(401)
+                      - pattern: $R.status(403)
+                      - pattern: $R.sendStatus(401)
+                      - pattern: $R.sendStatus(403)
+                    - kind: throw_statement
+                      has:
+                        stopBy: end
+                        kind: new_expression
+                        any:
+                        - has:
+                            field: constructor
+                            kind: identifier
+                            regex: ^(Unauthori[sz]ed|Forbidden)\w*$
+                        - has:
+                            field: arguments
+                            kind: arguments
+                            has:
+                              kind: number
+                              regex: ^40[13]$
+                    - kind: call_expression
+                      has:
+                        field: function
+                        kind: identifier
+                        regex: ^(validate|verify|check)\w*(Link|Token|Signature|Passcode|Access|Secret)\w*$
+                      inside:
+                        stopBy: end
+                        kind: statement_block
+                        has:
+                          stopBy: end
+                          kind: if_statement
+                          has:
+                            field: consequence
+                            any:
+                            - kind: return_statement
+                            - has:
+                                stopBy: end
+                                kind: return_statement
+    - has:
+        field: function
+        kind: member_expression
+        regex: ^this\.
+    - all:
+      - has:
+          field: function
+          kind: member_expression
+          has:
+            field: object
+            any:
+            - kind: identifier
+              pattern:
+                context: $O()
+                selector: identifier
+            - kind: member_expression
+              has:
+                field: object
+                kind: identifier
+                pattern:
+                  context: $O()
+                  selector: identifier
+      - inside:
+          stopBy: end
+          kind: program
+          has:
+            stopBy: end
+            any:
+            - kind: import_statement
+              all:
+              - has:
+                  field: source
+                  kind: string
+                  regex: ^['"](\.{1,2}/|@/|~/|#|src/)
+              - has:
+                  stopBy: end
+                  kind: identifier
+                  pattern:
+                    context: $O()
+                    selector: identifier
+            - kind: variable_declarator
+              all:
+              - has:
+                  field: value
+                  any:
+                  - kind: call_expression
+                    regex: ^require\(['"](\.{1,2}/|@/|~/|#|src/)
+                  - kind: member_expression
+                    regex: ^require\(['"](\.{1,2}/|@/|~/|#|src/)
+              - has:
+                  field: name
+                  any:
+                  - kind: identifier
+                    pattern:
+                      context: $O()
+                      selector: identifier
+                  - kind: object_pattern
+                    any:
+                    - pattern:
+                        context: const { $O } = x
+                        selector: object_pattern
+                    - pattern:
+                        context: const { $$$A, $O } = x
+                        selector: object_pattern
+                    - pattern:
+                        context: const { $O, $$$B } = x
+                        selector: object_pattern
+                    - pattern:
+                        context: const { $$$A, $O, $$$B } = x
+                        selector: object_pattern
+            - kind: variable_declarator
+              all:
+              - has:
+                  field: name
+                  kind: identifier
+                  pattern:
+                    context: $O()
+                    selector: identifier
+              - has:
+                  field: value
+                  kind: new_expression
+                  has:
+                    field: constructor
+                    kind: identifier
+                    pattern:
+                      context: new $C()
+                      selector: identifier
+              - inside:
+                  stopBy: end
+                  kind: program
+                  has:
+                    stopBy: end
+                    any:
+                    - kind: import_statement
+                      all:
+                      - has:
+                          field: source
+                          kind: string
+                          regex: ^['"](\.{1,2}/|@/|~/|#|src/)
+                      - has:
+                          stopBy: end
+                          kind: identifier
+                          pattern:
+                            context: new $C()
+                            selector: identifier
+                    - kind: variable_declarator
+                      all:
+                      - has:
+                          field: value
+                          any:
+                          - kind: call_expression
+                            regex: ^require\(['"](\.{1,2}/|@/|~/|#|src/)
+                          - kind: member_expression
+                            regex: ^require\(['"](\.{1,2}/|@/|~/|#|src/)
+                      - has:
+                          field: name
+                          any:
+                          - kind: identifier
+                            pattern:
+                              context: new $C()
+                              selector: identifier
+                          - kind: object_pattern
+                            any:
+                            - pattern:
+                                context: const { $C } = x
+                                selector: object_pattern
+                            - pattern:
+                                context: const { $$$A, $C } = x
+                                selector: object_pattern
+                            - pattern:
+                                context: const { $C, $$$B } = x
+                                selector: object_pattern
+                            - pattern:
+                                context: const { $$$A, $C, $$$B } = x
+                                selector: object_pattern
+min_engine: 0.39.0
+---
+# Express routes with no route parameter whose inline handler takes a record or session identifier from the
+# request (req.query.sessionId, req.body.patientId, const { id } = req.params) or hands the request to a data or
+# publish call, and makes a call other than to the response, console, a logger or validation: one item each,
+# with the route's control. A route with neither identifier input nor such a call is no item (no-data rule).
+id: authz-every-handler.javascript-express.route-input
+practice_id: authz-every-handler
+language: javascript
+frameworks:
+- express
+kind: items
+rule:
+  kind: call_expression
+  all:
+  - has:
+      field: function
+      kind: member_expression
+      has:
+        field: property
+        kind: property_identifier
+        regex: ^(get|post|put|patch|delete|all)$
+  - has:
+      field: arguments
+      kind: arguments
+      all:
+      - has:
+          kind: string
+          regex: ^['\"`]/
+      - not:
+          has:
+            any:
+            - kind: string
+              regex: ^['\"`]/[^'\"`]*:[A-Za-z_]
+            - kind: array
+      - has:
+          any:
+          - kind: arrow_function
+          - kind: function_expression
+          all:
+          - has:
+              stopBy: end
+              any:
+              - kind: member_expression
+                regex: ^(req|request)\.(query|body|params)(\?)?\.(\w*(Id|ID|Ids|Uuid|UUID)|id|ids|uuid|_id)$
+              - kind: subscript_expression
+                regex: ^(req|request)\.(query|body|params)\[['\"](\w*(Id|ID|Ids|Uuid|UUID)|id|ids|uuid|_id)['\"]\]$
+              - kind: variable_declarator
+                all:
+                - has:
+                    field: name
+                    kind: object_pattern
+                    has:
+                      stopBy: end
+                      any:
+                      - kind: shorthand_property_identifier_pattern
+                        regex: ^(\w*(Id|ID|Ids|Uuid|UUID)|id|ids|uuid|_id)$
+                      - kind: property_identifier
+                        regex: ^(\w*(Id|ID|Ids|Uuid|UUID)|id|ids|uuid|_id)$
+                - has:
+                    field: value
+                    kind: member_expression
+                    regex: ^(req|request)\.(query|body|params)$
+              - kind: call_expression
+                all:
+                - has:
+                    field: arguments
+                    kind: arguments
+                    has:
+                      kind: identifier
+                      regex: ^(req|request)$
+                - has:
+                    field: function
+                    kind: member_expression
+                    has:
+                      field: property
+                      kind: property_identifier
+                      regex: ^(find\w*|query|get\w*|insert\w*|update\w*|delete\w*|remove\w*|upsert\w*|create\w*|save|publish|emit|enqueue)$
+          - has:
+              stopBy: end
+              kind: call_expression
+              not:
+                has:
+                  field: function
+                  any:
+                  - kind: member_expression
+                    regex: ^(res|response|reply|console|JSON|Math|Object|Array|Number|String)\b|^\w+\.(isEmpty|array|log|info|warn|error|debug)$
+                  - kind: identifier
+                    regex: ^(validationResult|matchedData|next|String|Number|Boolean|parseInt|parseFloat|encodeURIComponent|decodeURIComponent|getLogger)$
+control:
+  has:
+    field: arguments
+    kind: arguments
+    has:
+      any:
+      - kind: arrow_function
+      - kind: function_expression
+      has:
+        stopBy: end
+        any:
+        - kind: member_expression
+          regex: ^(req|request)\.(user|auth|session\.(user|userId|user_id|uid|passport))\b
+          not:
+            any:
+            - inside:
+                any:
+                - kind: assignment_expression
+                - kind: augmented_assignment_expression
+                field: left
+            - inside:
+                kind: member_expression
+                inside:
+                  any:
+                  - kind: assignment_expression
+                  - kind: augmented_assignment_expression
+                  field: left
+        - kind: member_expression
+          regex: ^res\.locals\.(user|auth|session|claims)\b
+          not:
+            any:
+            - inside:
+                any:
+                - kind: assignment_expression
+                - kind: augmented_assignment_expression
+                field: left
+            - inside:
+                kind: member_expression
+                inside:
+                  any:
+                  - kind: assignment_expression
+                  - kind: augmented_assignment_expression
+                  field: left
+        - kind: call_expression
+          pattern: getAuth($$$)
+          has:
+            field: arguments
+            kind: arguments
+            regex: ^\(\s*[^)\s]
+          not:
+            inside:
+              kind: program
+              stopBy: end
+              has:
+                kind: import_statement
+                regex: '[''"]firebase-admin(/[a-z-]+)?[''"]'
+        - pattern: $C.auth.getUser($$$)
+      all:
+      - any:
+        - precedes:
+            not:
+              precedes:
+                any:
+                - kind: comment
+                - not:
+                    kind: comment
+        - precedes:
+            precedes:
+              not:
+                precedes:
+                  any:
+                  - kind: comment
+                  - not:
+                      kind: comment
+min_engine: 0.39.0
+---
+# A route-input handler (no route parameter) that makes no call of its own beyond the publish, the response's own
+# methods (res.json, res.status(...).send and the like; never res.locals), console or a logger, validation or JSON
+# helpers, or a pure top-level function of this file (no call, new, indexing or member access in its body, and no
+# import of the same name), and publishes request data (a request member, or a name the handler binds from one)
+# through the local name of a project import (publish from '../pubsub', or its alias): the message goes to a project
+# consumer that may tie it to the caller. It holds that handler's item for a person (needs_review). A name the
+# handler shadows (a variable, parameter or function), a package import, a route with a parameter, or any other call
+# in the handler (a data read or write of its own) holds nothing.
+id: authz-every-handler.javascript-express.auth-unobserved-publish
+practice_id: authz-every-handler
+language: javascript
+frameworks:
+- express
+kind: evidence
+rule:
+  kind: call_expression
+  all:
+  - not:
+      inside:
+        stopBy: end
+        any:
+        - kind: function_declaration
+          inside:
+            kind: statement_block
+        - any:
+          - kind: arrow_function
+          - kind: function_expression
+          inside:
+            kind: variable_declarator
+            inside:
+              any:
+              - kind: lexical_declaration
+              - kind: variable_declaration
+              inside:
+                kind: statement_block
+  - has:
+      field: function
+      kind: identifier
+      regex: ^(publish|emit|enqueue|dispatch|sendMessage|postMessage|queueMessage)$
+      pattern:
+        context: $F()
+        selector: identifier
+  - inside:
+      stopBy: end
+      kind: program
+      has:
+        stopBy: end
+        kind: import_statement
+        all:
+        - has:
+            field: source
+            kind: string
+            regex: ^['\"](\.{1,2}/|@/|~/|#|src/)
+        - has:
+            stopBy: end
+            any:
+            - kind: import_specifier
+              has:
+                field: alias
+                kind: identifier
+                pattern:
+                  context: $F()
+                  selector: identifier
+            - kind: import_specifier
+              not:
+                has:
+                  field: alias
+                  kind: identifier
+              has:
+                field: name
+                kind: identifier
+                pattern:
+                  context: $F()
+                  selector: identifier
+            - kind: import_clause
+              has:
+                kind: identifier
+                pattern:
+                  context: $F()
+                  selector: identifier
+  - inside:
+      stopBy: end
+      any:
+      - kind: arrow_function
+      - kind: function_expression
+      inside:
+        kind: arguments
+        inside:
+          kind: call_expression
+          all:
+          - has:
+              field: function
+              kind: member_expression
+              has:
+                field: property
+                kind: property_identifier
+                regex: ^(get|post|put|patch|delete|all)$
+          - has:
+              field: arguments
+              kind: arguments
+              all:
+              - has:
+                  kind: string
+                  regex: ^['\"`]/
+              - not:
+                  has:
+                    any:
+                    - kind: string
+                      regex: ^['\"`]/[^'\"`]*:[A-Za-z_]
+                    - kind: array
+      all:
+      - not:
+          has:
+            stopBy: end
+            kind: call_expression
+            not:
+              has:
+                field: function
+                any:
+                - kind: identifier
+                  pattern:
+                    context: $F()
+                    selector: identifier
+                - kind: member_expression
+                  regex: ^(res|response|reply)(\.(json|send|status|sendStatus|end|set|header|type|redirect|cookie|clearCookie|render|format|location|vary|append|attachment|download|sendFile|links|code)\([^()]*\))*\.(json|send|status|sendStatus|end|set|header|type|redirect|cookie|clearCookie|render|format|location|vary|append|attachment|download|sendFile|links|code)$
+                - kind: member_expression
+                  regex: ^(console|JSON|Math|Object|Array|Number|String|Date)\.\w+$
+                - kind: member_expression
+                  regex: \.(isEmpty|array|isUUID|withMessage)$
+                - kind: member_expression
+                  regex: ^(getLogger\(\)|\w*[lL]ogger)\.(info|warn|error|debug|trace|log|fatal)$
+                - kind: identifier
+                  regex: ^(validationResult|matchedData|String|Number|Boolean|parseInt|parseFloat|encodeURIComponent|decodeURIComponent|getLogger)$
+                - kind: identifier
+                  pattern:
+                    context: $G()
+                    selector: identifier
+                  inside:
+                    stopBy: end
+                    kind: program
+                    all:
+                    - has:
+                        any:
+                        - kind: function_declaration
+                          has:
+                            field: name
+                            kind: identifier
+                            pattern:
+                              context: $G()
+                              selector: identifier
+                          not:
+                            has:
+                              field: body
+                              has:
+                                stopBy: end
+                                any:
+                                - kind: call_expression
+                                - kind: subscript_expression
+                                - kind: member_expression
+                                - kind: new_expression
+                        - kind: export_statement
+                          has:
+                            kind: function_declaration
+                            has:
+                              field: name
+                              kind: identifier
+                              pattern:
+                                context: $G()
+                                selector: identifier
+                            not:
+                              has:
+                                field: body
+                                has:
+                                  stopBy: end
+                                  any:
+                                  - kind: call_expression
+                                  - kind: subscript_expression
+                                  - kind: member_expression
+                                  - kind: new_expression
+                    - not:
+                        has:
+                          kind: import_statement
+                          has:
+                            stopBy: end
+                            kind: identifier
+                            pattern:
+                              context: $G()
+                              selector: identifier
+      - not:
+          has:
+            stopBy: end
+            kind: variable_declarator
+            has:
+              field: name
+              any:
+              - kind: identifier
+                pattern:
+                  context: $F()
+                  selector: identifier
+              - kind: object_pattern
+                any:
+                - pattern:
+                    context: const { $F } = x
+                    selector: object_pattern
+                - pattern:
+                    context: const { $$$A, $F } = x
+                    selector: object_pattern
+                - pattern:
+                    context: const { $F, $$$B } = x
+                    selector: object_pattern
+                - pattern:
+                    context: const { $$$A, $F, $$$B } = x
+                    selector: object_pattern
+      - not:
+          has:
+            field: parameters
+            has:
+              stopBy: end
+              kind: identifier
+              pattern:
+                context: $F()
+                selector: identifier
+      - not:
+          has:
+            stopBy: end
+            kind: function_declaration
+            has:
+              field: name
+              kind: identifier
+              pattern:
+                context: $F()
+                selector: identifier
+  - has:
+      field: arguments
+      kind: arguments
+      has:
+        stopBy: end
+        any:
+        - kind: member_expression
+          regex: ^(req|request)\b
+        - kind: identifier
+          pattern:
+            context: $V()
+            selector: identifier
+          inside:
+            stopBy: end
+            any:
+            - kind: arrow_function
+            - kind: function_expression
+            inside:
+              kind: arguments
+            has:
+              stopBy: end
+              kind: variable_declarator
+              all:
+              - has:
+                  field: name
+                  any:
+                  - kind: identifier
+                    pattern:
+                      context: $V()
+                      selector: identifier
+                  - kind: object_pattern
+                    any:
+                    - pattern:
+                        context: const { $V } = x
+                        selector: object_pattern
+                    - pattern:
+                        context: const { $$$A, $V } = x
+                        selector: object_pattern
+                    - pattern:
+                        context: const { $V, $$$B } = x
+                        selector: object_pattern
+                    - pattern:
+                        context: const { $$$A, $V, $$$B } = x
+                        selector: object_pattern
+              - has:
+                  field: value
+                  any:
+                  - kind: member_expression
+                    regex: ^(req|request)\b
+                  - has:
+                      stopBy: end
+                      kind: member_expression
+                      regex: ^(req|request)\b
+min_engine: 0.39.0

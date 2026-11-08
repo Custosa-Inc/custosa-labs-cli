@@ -1,0 +1,126 @@
+# hsts-enabled (T23 B56b). Written by scripts/gen_hsts_rules.py: edit that script,
+# never this file. The practice function reads the pieces by name: header-<form> and redirect-<form> (NAMING.md).
+
+# redirect-go: http.ListenAndServe(addr, h) whose handler is http.RedirectHandler to an https:// URL, or an inline
+# http.HandlerFunc whose only statement is http.Redirect to https://. Evidence: the redirect piece, and the server
+# counts 0.
+id: hsts-enabled.go-generic.redirect-go
+practice_id: hsts-enabled
+language: go
+frameworks:
+- generic
+kind: evidence
+rule:
+  kind: call_expression
+  pattern: http.ListenAndServe($ADDR, $H)
+  has:
+    field: arguments
+    has:
+      any:
+      - kind: call_expression
+        regex: ^http\.RedirectHandler\(\s*(\"|`)https://
+      - kind: call_expression
+        regex: ^http\.HandlerFunc\(\s*func\s*\([^)]*\)\s*\{\s*http\.Redirect\(\s*\w+\s*,\s*\w+\s*,\s*\"https://[^\"]*\"(\s*\+\s*[\w.()]+)*\s*,\s*[\w.]+\s*\)\s*\}\s*\)$
+min_engine: 0.45.3
+---
+# redirect-autocert: http.ListenAndServe(addr, m.HTTPHandler(nil)) where m is bound in the file to an
+# autocert.Manager. Evidence: the redirect piece, and the server counts 0.
+id: hsts-enabled.go-generic.redirect-autocert
+practice_id: hsts-enabled
+language: go
+frameworks:
+- generic
+kind: evidence
+rule:
+  any:
+  - kind: call_expression
+    pattern: http.ListenAndServe($ADDR, $M.HTTPHandler(nil))
+    inside:
+      stopBy: end
+      kind: source_file
+      has:
+        stopBy: end
+        kind: short_var_declaration
+        pattern: $M := &autocert.Manager{$$$}
+  - kind: call_expression
+    pattern: http.ListenAndServe($ADDR, $M.HTTPHandler(nil))
+    inside:
+      stopBy: end
+      kind: source_file
+      has:
+        stopBy: end
+        kind: var_declaration
+        pattern: var $M = &autocert.Manager{$$$}
+  - kind: call_expression
+    pattern: http.ListenAndServe($ADDR, $M.HTTPHandler(nil))
+    inside:
+      stopBy: end
+      kind: source_file
+      has:
+        stopBy: end
+        kind: assignment_statement
+        pattern: $M = &autocert.Manager{$$$}
+  - kind: call_expression
+    pattern: http.ListenAndServe($ADDR, $M.HTTPHandler(nil))
+    inside:
+      stopBy: end
+      kind: source_file
+      has:
+        stopBy: end
+        kind: short_var_declaration
+        pattern: $M := autocert.Manager{$$$}
+  - kind: call_expression
+    pattern: http.ListenAndServe($ADDR, $M.HTTPHandler(nil))
+    inside:
+      stopBy: end
+      kind: source_file
+      has:
+        stopBy: end
+        kind: var_declaration
+        pattern: var $M = autocert.Manager{$$$}
+  - kind: call_expression
+    pattern: http.ListenAndServe($ADDR, $M.HTTPHandler(nil))
+    inside:
+      stopBy: end
+      kind: source_file
+      has:
+        stopBy: end
+        kind: assignment_statement
+        pattern: $M = autocert.Manager{$$$}
+min_engine: 0.45.3
+---
+# app-construction: a call that makes an app: in JS and TS express(), require('express')(), new Koa(), new Hono(), new
+# Elysia(), fastify(), NestFactory.create, polka(), feathers(), createApp() from h3, connect() from connect; in Go
+# gin.Default(), gin.New(), echo.New(), fiber.New(), chi.NewRouter(), mux.NewRouter(), http.NewServeMux(); in Java
+# SpringApplication.run(...); in PHP Application::configure, new Illuminate\Foundation\Application,
+# AppFactory::create() and each class extending a Kernel. Evidence the function counts.
+id: hsts-enabled.go-generic.app-construction
+practice_id: hsts-enabled
+language: go
+frameworks:
+- generic
+kind: evidence
+rule:
+  kind: call_expression
+  has:
+    field: function
+    kind: selector_expression
+    regex: ^(gin\.(Default|New)|echo\.New|fiber\.New|chi\.NewRouter|mux\.NewRouter|http\.NewServeMux)$
+min_engine: 0.45.3
+---
+# app-server: a call that serves: in JS and TS createServer or createSecureServer (bare or a member), Bun.serve,
+# Deno.serve, serve() from @hono/node-server; in Go, on any receiver: ListenAndServe, ListenAndServeTLS, Serve or
+# ServeTLS (http., fasthttp., or a server value). Evidence the function counts, 0 for a redirect-only one.
+id: hsts-enabled.go-generic.app-server
+practice_id: hsts-enabled
+language: go
+frameworks:
+- generic
+kind: evidence
+rule:
+  kind: call_expression
+  has:
+    field: function
+    kind: selector_expression
+    regex: \.(ListenAndServe|ListenAndServeTLS|Serve|ServeTLS)$
+min_engine: 0.45.3

@@ -1,0 +1,116 @@
+# The tracker-script rule set (T23 design v3 2.6.2, B41; docs/b41-plan.md). Every rule is `items` whose control is
+# `kind: program`: an item node (an import, a call, an assignment, a JSX element) is never the whole file, so no item is
+# ever controlled (review-2 I-2). Where a tracker loads decides the practice's state, by its path (vendors.py).
+# The host and module lists are our own. The two tracker practices (signed-in pages, device linkage) read the same
+# rules: these files are the only copy, and no-device-linkage-in-events judges their matches too (its YAML's
+# evaluate.judges_rules_of, T27 F14; tests/core/test_tracker_rules.py).
+id: no-trackers-on-signed-in.typescript-generic.sdk-import
+practice_id: no-trackers-on-signed-in
+language: typescript
+frameworks:
+- generic
+kind: items
+rule:
+  all:
+  - kind: import_statement
+  - has:
+      field: source
+      kind: string
+      regex: '^["''](?:react-facebook-pixel|facebook-nodejs-business-sdk|react-ga4?|react-gtm-module|@next/third-parties/google|@segment/analytics-next|@segment/analytics-node|analytics-node|mixpanel-browser|mixpanel|posthog-js|posthog-node|@hotjar/browser|react-hotjar|@amplitude/analytics-browser|amplitude-js|@fullstory/browser|logrocket|logrocket-react|@microsoft/clarity|tiktok-pixel|react-linkedin-insight|@?firebase/analytics|@vercel/analytics|@datadog/browser-rum(?:-slim)?)(?:/[^"'']*)?["'']$'
+  - not:
+      kind: import_statement
+      regex: '^import\s+type\s'
+control:
+  kind: program
+min_engine: 0.39.0
+---
+id: no-trackers-on-signed-in.typescript-generic.sdk-require
+practice_id: no-trackers-on-signed-in
+language: typescript
+frameworks:
+- generic
+kind: items
+rule:
+  all:
+  - kind: call_expression
+  - has:
+      field: function
+      any:
+      - kind: identifier
+        regex: '^require$'
+      - kind: import
+  - has:
+      field: arguments
+      kind: arguments
+      has:
+        kind: string
+        regex: '^["''](?:react-facebook-pixel|facebook-nodejs-business-sdk|react-ga4?|react-gtm-module|@next/third-parties/google|@segment/analytics-next|@segment/analytics-node|analytics-node|mixpanel-browser|mixpanel|posthog-js|posthog-node|@hotjar/browser|react-hotjar|@amplitude/analytics-browser|amplitude-js|@fullstory/browser|logrocket|logrocket-react|@microsoft/clarity|tiktok-pixel|react-linkedin-insight|@?firebase/analytics|@vercel/analytics|@datadog/browser-rum(?:-slim)?)(?:/[^"'']*)?["'']$'
+control:
+  kind: program
+min_engine: 0.39.0
+---
+id: no-trackers-on-signed-in.typescript-generic.tracker-call
+practice_id: no-trackers-on-signed-in
+language: typescript
+frameworks:
+- generic
+kind: items
+rule:
+  all:
+  - kind: call_expression
+  - has:
+      field: function
+      any:
+      - kind: identifier
+        regex: '^(?:fbq|gtag|lintrk|twq|snaptr|pintrk|rdt)$'
+      - kind: member_expression
+        regex: '^(?:(?:window|\(\s*window\s+as\s+[A-Za-z_][\w.<>]*\s*\))\s*\.\s*)?(?:fbq|gtag|lintrk|twq|snaptr|pintrk|rdt|ttq\.(?:load|page|track|identify)|dataLayer\.push|analytics\.load|mixpanel\.init|posthog\.init)$'
+      - kind: subscript_expression
+        regex: '^(?:window|\(\s*window\s+as\s+[A-Za-z_][\w.<>]*\s*\))\s*\[\s*["''`](?:fbq|gtag|lintrk|twq|snaptr|pintrk|rdt)["''`]\s*\]$'
+control:
+  kind: program
+min_engine: 0.39.0
+---
+id: no-trackers-on-signed-in.typescript-generic.script-inject
+practice_id: no-trackers-on-signed-in
+language: typescript
+frameworks:
+- generic
+kind: items
+rule:
+  any:
+  - all:
+    - kind: assignment_expression
+    - has:
+        field: left
+        kind: member_expression
+        regex: '\.src$'
+    - has:
+        field: right
+        any:
+        - kind: string
+          regex: '(?i)^["''`](?:https?:)?//(?:(?:[a-z0-9-]+\.)*(?:connect\.facebook\.net|facebook\.com/tr|googletagmanager\.com|google-analytics\.com|googleadservices\.com|doubleclick\.net|analytics\.tiktok\.com|snap\.licdn\.com|px\.ads\.linkedin\.com|mxpnl\.com|clarity\.ms|bat\.bing\.com|ads-twitter\.com|sc-static\.net|pinimg\.com/ct|ct\.pinterest\.com|redditstatic\.com/ads|heapanalytics\.com|lr-ingest\.io|datadoghq-browser-agent\.com)|(?:cdn\.segment\.com|cdn\.amplitude\.com|edge\.fullstory\.com|static\.hotjar\.com|script\.hotjar\.com|[a-z]+-assets\.i\.posthog\.com|app\.posthog\.com|cdn\.logrocket\.io|va\.vercel-scripts\.com))(?:[/:?#"''`]|$)'
+        - kind: template_string
+          regex: '(?i)^["''`](?:https?:)?//(?:(?:[a-z0-9-]+\.)*(?:connect\.facebook\.net|facebook\.com/tr|googletagmanager\.com|google-analytics\.com|googleadservices\.com|doubleclick\.net|analytics\.tiktok\.com|snap\.licdn\.com|px\.ads\.linkedin\.com|mxpnl\.com|clarity\.ms|bat\.bing\.com|ads-twitter\.com|sc-static\.net|pinimg\.com/ct|ct\.pinterest\.com|redditstatic\.com/ads|heapanalytics\.com|lr-ingest\.io|datadoghq-browser-agent\.com)|(?:cdn\.segment\.com|cdn\.amplitude\.com|edge\.fullstory\.com|static\.hotjar\.com|script\.hotjar\.com|[a-z]+-assets\.i\.posthog\.com|app\.posthog\.com|cdn\.logrocket\.io|va\.vercel-scripts\.com))(?:[/:?#"''`]|$)'
+  - all:
+    - kind: call_expression
+    - has:
+        field: function
+        kind: member_expression
+        regex: '\.setAttribute$'
+    - has:
+        field: arguments
+        kind: arguments
+        all:
+        - has:
+            kind: string
+            regex: '^["'']src["'']$'
+        - has:
+            any:
+            - kind: string
+              regex: '(?i)^["''`](?:https?:)?//(?:(?:[a-z0-9-]+\.)*(?:connect\.facebook\.net|facebook\.com/tr|googletagmanager\.com|google-analytics\.com|googleadservices\.com|doubleclick\.net|analytics\.tiktok\.com|snap\.licdn\.com|px\.ads\.linkedin\.com|mxpnl\.com|clarity\.ms|bat\.bing\.com|ads-twitter\.com|sc-static\.net|pinimg\.com/ct|ct\.pinterest\.com|redditstatic\.com/ads|heapanalytics\.com|lr-ingest\.io|datadoghq-browser-agent\.com)|(?:cdn\.segment\.com|cdn\.amplitude\.com|edge\.fullstory\.com|static\.hotjar\.com|script\.hotjar\.com|[a-z]+-assets\.i\.posthog\.com|app\.posthog\.com|cdn\.logrocket\.io|va\.vercel-scripts\.com))(?:[/:?#"''`]|$)'
+            - kind: template_string
+              regex: '(?i)^["''`](?:https?:)?//(?:(?:[a-z0-9-]+\.)*(?:connect\.facebook\.net|facebook\.com/tr|googletagmanager\.com|google-analytics\.com|googleadservices\.com|doubleclick\.net|analytics\.tiktok\.com|snap\.licdn\.com|px\.ads\.linkedin\.com|mxpnl\.com|clarity\.ms|bat\.bing\.com|ads-twitter\.com|sc-static\.net|pinimg\.com/ct|ct\.pinterest\.com|redditstatic\.com/ads|heapanalytics\.com|lr-ingest\.io|datadoghq-browser-agent\.com)|(?:cdn\.segment\.com|cdn\.amplitude\.com|edge\.fullstory\.com|static\.hotjar\.com|script\.hotjar\.com|[a-z]+-assets\.i\.posthog\.com|app\.posthog\.com|cdn\.logrocket\.io|va\.vercel-scripts\.com))(?:[/:?#"''`]|$)'
+control:
+  kind: program
+min_engine: 0.39.0

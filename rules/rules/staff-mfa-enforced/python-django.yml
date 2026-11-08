@@ -1,0 +1,99 @@
+id: staff-mfa-enforced.python-django.sign-in
+practice_id: staff-mfa-enforced
+language: python
+frameworks:
+- django
+kind: items
+rule:
+  all:
+  - kind: function_definition
+  - has:
+      stopBy: end
+      kind: call
+      regex: ^([0-9A-Za-z_]+\.)*(authenticate|check_password|verify_password|checkpw)\(
+  - has:
+      stopBy: end
+      kind: call
+      regex: ^(auth_)?login\(|^django_login\(|^auth\.login\(
+control:
+  has:
+    stopBy: end
+    all:
+    - kind: call
+      regex: (?i)(verify_token|match_token|verify_totp|verify_otp|totp\.verify|TOTP\([^)]*\)\.verify|pyotp|otp_login|devices_for_user|verify_authentication_response)
+    - not:
+        inside:
+          stopBy: end
+          kind: if_statement
+          has:
+            field: condition
+            any:
+            - kind: attribute
+              regex: (?i)^\(\s*!?\s*[A-Za-z0-9_.?]*\.(otp|totp|mfaCode|mfa_code|code)\s*\)$|(mfa|otp|totp|two_?factor|2fa|tfa)_?(enabled|enrolled|active|registered|configured)|(mfa|otp|two_?factor)_?required_?for_?login|is_?mfa_?required|mfa_?required|requires_?mfa|nextLevel|has_?mfa|factors\.(length|totp)|mfa_?types|\$this->types
+            - kind: call
+              regex: (?i)^\(\s*!?\s*[A-Za-z0-9_.?]*\.(otp|totp|mfaCode|mfa_code|code)\s*\)$|(mfa|otp|totp|two_?factor|2fa|tfa)_?(enabled|enrolled|active|registered|configured)|(mfa|otp|two_?factor)_?required_?for_?login|is_?mfa_?required|mfa_?required|requires_?mfa|nextLevel|has_?mfa|factors\.(length|totp)|mfa_?types|\$this->types
+            - kind: identifier
+              regex: (?i)^\(\s*!?\s*[A-Za-z0-9_.?]*\.(otp|totp|mfaCode|mfa_code|code)\s*\)$|(mfa|otp|totp|two_?factor|2fa|tfa)_?(enabled|enrolled|active|registered|configured)|(mfa|otp|two_?factor)_?required_?for_?login|is_?mfa_?required|mfa_?required|requires_?mfa|nextLevel|has_?mfa|factors\.(length|totp)|mfa_?types|\$this->types
+            - kind: boolean_operator
+              regex: (?i)^\(\s*!?\s*[A-Za-z0-9_.?]*\.(otp|totp|mfaCode|mfa_code|code)\s*\)$|(mfa|otp|totp|two_?factor|2fa|tfa)_?(enabled|enrolled|active|registered|configured)|(mfa|otp|two_?factor)_?required_?for_?login|is_?mfa_?required|mfa_?required|requires_?mfa|nextLevel|has_?mfa|factors\.(length|totp)|mfa_?types|\$this->types
+            - kind: comparison_operator
+              regex: (?i)^\(\s*!?\s*[A-Za-z0-9_.?]*\.(otp|totp|mfaCode|mfa_code|code)\s*\)$|(mfa|otp|totp|two_?factor|2fa|tfa)_?(enabled|enrolled|active|registered|configured)|(mfa|otp|two_?factor)_?required_?for_?login|is_?mfa_?required|mfa_?required|requires_?mfa|nextLevel|has_?mfa|factors\.(length|totp)|mfa_?types|\$this->types
+min_engine: 0.39.0
+---
+id: staff-mfa-enforced.python-django.otp-admin
+practice_id: staff-mfa-enforced
+language: python
+frameworks:
+- django
+kind: evidence
+rule:
+  any:
+  - pattern: admin.site.__class__ = OTPAdminSite
+  - pattern: OTPAdminSite($$$)
+  - all:
+    - kind: decorator
+      regex: ^@otp_required(?-u:\b)
+min_engine: 0.39.0
+---
+id: staff-mfa-enforced.python-django.mfa-optional
+practice_id: staff-mfa-enforced
+language: python
+frameworks:
+- django
+kind: violation
+rule:
+  all:
+  - kind: if_statement
+  - has:
+      field: condition
+      any:
+      - kind: attribute
+        regex: (?i)^\(\s*!?\s*[A-Za-z0-9_.?]*\.(otp|totp|mfaCode|mfa_code|code)\s*\)$|(mfa|otp|totp|two_?factor|2fa|tfa)_?(enabled|enrolled|active|registered|configured)|(mfa|otp|two_?factor)_?required_?for_?login|is_?mfa_?required|mfa_?required|requires_?mfa|nextLevel|has_?mfa|factors\.(length|totp)|mfa_?types|\$this->types
+      - kind: call
+        regex: (?i)^\(\s*!?\s*[A-Za-z0-9_.?]*\.(otp|totp|mfaCode|mfa_code|code)\s*\)$|(mfa|otp|totp|two_?factor|2fa|tfa)_?(enabled|enrolled|active|registered|configured)|(mfa|otp|two_?factor)_?required_?for_?login|is_?mfa_?required|mfa_?required|requires_?mfa|nextLevel|has_?mfa|factors\.(length|totp)|mfa_?types|\$this->types
+      - kind: identifier
+        regex: (?i)^\(\s*!?\s*[A-Za-z0-9_.?]*\.(otp|totp|mfaCode|mfa_code|code)\s*\)$|(mfa|otp|totp|two_?factor|2fa|tfa)_?(enabled|enrolled|active|registered|configured)|(mfa|otp|two_?factor)_?required_?for_?login|is_?mfa_?required|mfa_?required|requires_?mfa|nextLevel|has_?mfa|factors\.(length|totp)|mfa_?types|\$this->types
+      - kind: boolean_operator
+        regex: (?i)^\(\s*!?\s*[A-Za-z0-9_.?]*\.(otp|totp|mfaCode|mfa_code|code)\s*\)$|(mfa|otp|totp|two_?factor|2fa|tfa)_?(enabled|enrolled|active|registered|configured)|(mfa|otp|two_?factor)_?required_?for_?login|is_?mfa_?required|mfa_?required|requires_?mfa|nextLevel|has_?mfa|factors\.(length|totp)|mfa_?types|\$this->types
+      - kind: comparison_operator
+        regex: (?i)^\(\s*!?\s*[A-Za-z0-9_.?]*\.(otp|totp|mfaCode|mfa_code|code)\s*\)$|(mfa|otp|totp|two_?factor|2fa|tfa)_?(enabled|enrolled|active|registered|configured)|(mfa|otp|two_?factor)_?required_?for_?login|is_?mfa_?required|mfa_?required|requires_?mfa|nextLevel|has_?mfa|factors\.(length|totp)|mfa_?types|\$this->types
+  - not:
+      has:
+        field: condition
+        any:
+        - kind: attribute
+          regex: (?i)(role|is_?staff|staff|admin|clinician|practitioner|provider|doctor|physician|nurse)
+        - kind: call
+          regex: (?i)(role|is_?staff|staff|admin|clinician|practitioner|provider|doctor|physician|nurse)
+        - kind: identifier
+          regex: (?i)(role|is_?staff|staff|admin|clinician|practitioner|provider|doctor|physician|nurse)
+        - kind: boolean_operator
+          regex: (?i)(role|is_?staff|staff|admin|clinician|practitioner|provider|doctor|physician|nurse)
+        - kind: comparison_operator
+          regex: (?i)(role|is_?staff|staff|admin|clinician|practitioner|provider|doctor|physician|nurse)
+  - has:
+      field: consequence
+      stopBy: end
+      kind: call
+      regex: (?i)(verify_token|match_token|verify_totp|verify_otp|totp\.verify|TOTP\([^)]*\)\.verify|pyotp|otp_login|devices_for_user|verify_authentication_response)
+min_engine: 0.39.0

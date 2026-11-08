@@ -1,0 +1,364 @@
+# phi-responses-not-cached (T23 B34, design v3 2.2.6, docs/b34-plan.md). Written by scripts/gen_nocache_rules.py:
+# edit that script, never this file. The rule id's last part is the form (items-handler, unobserved-header,
+# violation-shared, static-page). unobserved-header matches the items-handler node itself, so judge holds that item
+# at its own path and line.
+
+# items-handler: a route handler whose body makes a data call. The control is a literal Cache-Control value holding
+# no-store (also Symfony's setCache(['no_store' => true]); setPublic(), setSharedMaxAge() or setCache public or
+# s_maxage are shared). No control: fail, unless unobserved-header holds it. The header counts only in a response
+# write (header(), response(..., [...]), ->header or ->withHeaders on response() or $response,
+# $response->headers->set, or new Response with the header), never in Guzzle options, Http::withHeaders or
+# curl_setopt, nor in a comment. A no-store literal no write placed holds the item, never a fail.
+id: phi-responses-not-cached.php-laravel.items-handler
+practice_id: phi-responses-not-cached
+language: php
+frameworks:
+- laravel
+kind: items
+rule:
+  all:
+  - any:
+    - kind: method_declaration
+      has:
+        field: parameters
+        kind: formal_parameters
+        regex: \bRequest\s+\$
+    - any:
+      - kind: anonymous_function
+      - kind: arrow_function
+      inside:
+        kind: argument
+        inside:
+          kind: arguments
+          inside:
+            kind: scoped_call_expression
+            all:
+            - has:
+                field: scope
+                kind: name
+                regex: ^Route$
+            - has:
+                field: name
+                kind: name
+                regex: ^(get|post|put|patch|delete|any|match)$
+  - any:
+    - kind: function_definition
+      regex: ((\$(pdo|db|conn|connection|mysqli|wpdb|dbh|database)\s*->\s*\w+\s*\(|\bDB::\w+\s*\(|\b(mysqli|pg|sqlite)_\w+\s*\(|\b[A-Z]\w*::(create|insert\w*|update\w*|upsert|where\w*|find\w*|firstOrCreate|updateOrCreate|query)\s*\()|\$(this\s*->\s*)?\w*(Service|service|Repository|repository|Repo|repo)\s*->\s*\w+\s*\()
+    - kind: method_declaration
+      regex: ((\$(pdo|db|conn|connection|mysqli|wpdb|dbh|database)\s*->\s*\w+\s*\(|\bDB::\w+\s*\(|\b(mysqli|pg|sqlite)_\w+\s*\(|\b[A-Z]\w*::(create|insert\w*|update\w*|upsert|where\w*|find\w*|firstOrCreate|updateOrCreate|query)\s*\()|\$(this\s*->\s*)?\w*(Service|service|Repository|repository|Repo|repo)\s*->\s*\w+\s*\()
+    - kind: anonymous_function
+      regex: ((\$(pdo|db|conn|connection|mysqli|wpdb|dbh|database)\s*->\s*\w+\s*\(|\bDB::\w+\s*\(|\b(mysqli|pg|sqlite)_\w+\s*\(|\b[A-Z]\w*::(create|insert\w*|update\w*|upsert|where\w*|find\w*|firstOrCreate|updateOrCreate|query)\s*\()|\$(this\s*->\s*)?\w*(Service|service|Repository|repository|Repo|repo)\s*->\s*\w+\s*\()
+    - kind: arrow_function
+      regex: ((\$(pdo|db|conn|connection|mysqli|wpdb|dbh|database)\s*->\s*\w+\s*\(|\bDB::\w+\s*\(|\b(mysqli|pg|sqlite)_\w+\s*\(|\b[A-Z]\w*::(create|insert\w*|update\w*|upsert|where\w*|find\w*|firstOrCreate|updateOrCreate|query)\s*\()|\$(this\s*->\s*)?\w*(Service|service|Repository|repository|Repo|repo)\s*->\s*\w+\s*\()
+    - kind: program
+      regex: ((\$(pdo|db|conn|connection|mysqli|wpdb|dbh|database)\s*->\s*\w+\s*\(|\bDB::\w+\s*\(|\b(mysqli|pg|sqlite)_\w+\s*\(|\b[A-Z]\w*::(create|insert\w*|update\w*|upsert|where\w*|find\w*|firstOrCreate|updateOrCreate|query)\s*\()|\$(this\s*->\s*)?\w*(Service|service|Repository|repository|Repo|repo)\s*->\s*\w+\s*\()
+control:
+  any:
+  - has:
+      stopBy: end
+      any:
+      - kind: function_call_expression
+        all:
+        - has:
+            field: function
+            kind: name
+            regex: ^(header|response)$
+        - has:
+            field: arguments
+            kind: arguments
+            regex: (?is)(['"]cache-control['"]\s*(,|=>)\s*['"]|['"]cache-control\s*:)[^'"]*no-store
+      - kind: member_call_expression
+        all:
+        - has:
+            field: name
+            kind: name
+            regex: ^(header|withHeaders)$
+        - has:
+            field: object
+            any:
+            - kind: variable_name
+              regex: ^(response\s*\(|\$(this\s*->\s*)?\w*(response|Response|res|resp)$)
+            - kind: member_access_expression
+              regex: ^(response\s*\(|\$(this\s*->\s*)?\w*(response|Response|res|resp)$)
+            - kind: function_call_expression
+              regex: ^(response\s*\(|\$(this\s*->\s*)?\w*(response|Response|res|resp)$)
+            - kind: member_call_expression
+              regex: ^(response\s*\(|\$(this\s*->\s*)?\w*(response|Response|res|resp)$)
+        - has:
+            field: arguments
+            kind: arguments
+            regex: (?is)(['"]cache-control['"]\s*(,|=>)\s*['"]|['"]cache-control\s*:)[^'"]*no-store
+      - kind: member_call_expression
+        all:
+        - has:
+            field: name
+            kind: name
+            regex: ^set$
+        - has:
+            field: object
+            kind: member_access_expression
+            regex: ^\$(this\s*->\s*)?\w*(response|Response|res|resp)\s*->\s*headers$
+        - has:
+            field: arguments
+            kind: arguments
+            regex: (?is)(['"]cache-control['"]\s*(,|=>)\s*['"]|['"]cache-control\s*:)[^'"]*no-store
+      - kind: object_creation_expression
+        regex: ^new\s+\\?(\w+\\)*\w*Response\s*\(
+        all:
+        - kind: object_creation_expression
+          regex: (?is)(['"]cache-control['"]\s*(,|=>)\s*['"]|['"]cache-control\s*:)[^'"]*no-store
+        not:
+          kind: object_creation_expression
+          regex: ^new\s+\\?(\w+\\)*(GuzzleHttp|Psr7)\\
+  - has:
+      stopBy: end
+      kind: member_call_expression
+      regex: (?s)->\s*setCache\(\s*\[[^\]]*['"]no_store['"]\s*=>\s*true
+min_engine: 0.45.3
+---
+# unobserved-header: the same handler when it writes no literal Cache-Control (also Symfony's setCache(['no_store' =>
+# true]); setPublic(), setSharedMaxAge() or setCache public or s_maxage are shared). The header may be set by
+# middleware, a framework default or a CDN rule elsewhere, so the item is held for a person. The header counts only in
+# a response write (header(), response(..., [...]), ->header or ->withHeaders on response() or $response,
+# $response->headers->set, or new Response with the header), never in Guzzle options, Http::withHeaders or
+# curl_setopt, nor in a comment. A no-store literal no write placed holds the item, never a fail.
+id: phi-responses-not-cached.php-laravel.unobserved-header
+practice_id: phi-responses-not-cached
+language: php
+frameworks:
+- laravel
+kind: evidence
+rule:
+  all:
+  - any:
+    - kind: method_declaration
+      has:
+        field: parameters
+        kind: formal_parameters
+        regex: \bRequest\s+\$
+    - any:
+      - kind: anonymous_function
+      - kind: arrow_function
+      inside:
+        kind: argument
+        inside:
+          kind: arguments
+          inside:
+            kind: scoped_call_expression
+            all:
+            - has:
+                field: scope
+                kind: name
+                regex: ^Route$
+            - has:
+                field: name
+                kind: name
+                regex: ^(get|post|put|patch|delete|any|match)$
+  - any:
+    - kind: function_definition
+      regex: ((\$(pdo|db|conn|connection|mysqli|wpdb|dbh|database)\s*->\s*\w+\s*\(|\bDB::\w+\s*\(|\b(mysqli|pg|sqlite)_\w+\s*\(|\b[A-Z]\w*::(create|insert\w*|update\w*|upsert|where\w*|find\w*|firstOrCreate|updateOrCreate|query)\s*\()|\$(this\s*->\s*)?\w*(Service|service|Repository|repository|Repo|repo)\s*->\s*\w+\s*\()
+    - kind: method_declaration
+      regex: ((\$(pdo|db|conn|connection|mysqli|wpdb|dbh|database)\s*->\s*\w+\s*\(|\bDB::\w+\s*\(|\b(mysqli|pg|sqlite)_\w+\s*\(|\b[A-Z]\w*::(create|insert\w*|update\w*|upsert|where\w*|find\w*|firstOrCreate|updateOrCreate|query)\s*\()|\$(this\s*->\s*)?\w*(Service|service|Repository|repository|Repo|repo)\s*->\s*\w+\s*\()
+    - kind: anonymous_function
+      regex: ((\$(pdo|db|conn|connection|mysqli|wpdb|dbh|database)\s*->\s*\w+\s*\(|\bDB::\w+\s*\(|\b(mysqli|pg|sqlite)_\w+\s*\(|\b[A-Z]\w*::(create|insert\w*|update\w*|upsert|where\w*|find\w*|firstOrCreate|updateOrCreate|query)\s*\()|\$(this\s*->\s*)?\w*(Service|service|Repository|repository|Repo|repo)\s*->\s*\w+\s*\()
+    - kind: arrow_function
+      regex: ((\$(pdo|db|conn|connection|mysqli|wpdb|dbh|database)\s*->\s*\w+\s*\(|\bDB::\w+\s*\(|\b(mysqli|pg|sqlite)_\w+\s*\(|\b[A-Z]\w*::(create|insert\w*|update\w*|upsert|where\w*|find\w*|firstOrCreate|updateOrCreate|query)\s*\()|\$(this\s*->\s*)?\w*(Service|service|Repository|repository|Repo|repo)\s*->\s*\w+\s*\()
+    - kind: program
+      regex: ((\$(pdo|db|conn|connection|mysqli|wpdb|dbh|database)\s*->\s*\w+\s*\(|\bDB::\w+\s*\(|\b(mysqli|pg|sqlite)_\w+\s*\(|\b[A-Z]\w*::(create|insert\w*|update\w*|upsert|where\w*|find\w*|firstOrCreate|updateOrCreate|query)\s*\()|\$(this\s*->\s*)?\w*(Service|service|Repository|repository|Repo|repo)\s*->\s*\w+\s*\()
+  - any:
+    - all:
+      - not:
+          has:
+            stopBy: end
+            any:
+            - kind: function_call_expression
+              all:
+              - has:
+                  field: function
+                  kind: name
+                  regex: ^(header|response)$
+              - has:
+                  field: arguments
+                  kind: arguments
+                  regex: (?is)(['"]cache-control['"]\s*(,|=>)\s*['"]|['"]cache-control\s*:)
+            - kind: member_call_expression
+              all:
+              - has:
+                  field: name
+                  kind: name
+                  regex: ^(header|withHeaders)$
+              - has:
+                  field: object
+                  any:
+                  - kind: variable_name
+                    regex: ^(response\s*\(|\$(this\s*->\s*)?\w*(response|Response|res|resp)$)
+                  - kind: member_access_expression
+                    regex: ^(response\s*\(|\$(this\s*->\s*)?\w*(response|Response|res|resp)$)
+                  - kind: function_call_expression
+                    regex: ^(response\s*\(|\$(this\s*->\s*)?\w*(response|Response|res|resp)$)
+                  - kind: member_call_expression
+                    regex: ^(response\s*\(|\$(this\s*->\s*)?\w*(response|Response|res|resp)$)
+              - has:
+                  field: arguments
+                  kind: arguments
+                  regex: (?is)(['"]cache-control['"]\s*(,|=>)\s*['"]|['"]cache-control\s*:)
+            - kind: member_call_expression
+              all:
+              - has:
+                  field: name
+                  kind: name
+                  regex: ^set$
+              - has:
+                  field: object
+                  kind: member_access_expression
+                  regex: ^\$(this\s*->\s*)?\w*(response|Response|res|resp)\s*->\s*headers$
+              - has:
+                  field: arguments
+                  kind: arguments
+                  regex: (?is)(['"]cache-control['"]\s*(,|=>)\s*['"]|['"]cache-control\s*:)
+            - kind: object_creation_expression
+              regex: ^new\s+\\?(\w+\\)*\w*Response\s*\(
+              all:
+              - kind: object_creation_expression
+                regex: (?is)(['"]cache-control['"]\s*(,|=>)\s*['"]|['"]cache-control\s*:)
+              not:
+                kind: object_creation_expression
+                regex: ^new\s+\\?(\w+\\)*(GuzzleHttp|Psr7)\\
+      - not:
+          has:
+            stopBy: end
+            kind: member_call_expression
+            regex: ->\s*(setCache|setPublic|setPrivate|setSharedMaxAge|setMaxAge)\s*\(
+    - all:
+      - any:
+        - kind: function_definition
+          regex: (?is)(['"]cache-control['"]\s*(,|=>)\s*['"]|['"]cache-control\s*:)[^'"]*no-store
+        - kind: method_declaration
+          regex: (?is)(['"]cache-control['"]\s*(,|=>)\s*['"]|['"]cache-control\s*:)[^'"]*no-store
+        - kind: anonymous_function
+          regex: (?is)(['"]cache-control['"]\s*(,|=>)\s*['"]|['"]cache-control\s*:)[^'"]*no-store
+        - kind: arrow_function
+          regex: (?is)(['"]cache-control['"]\s*(,|=>)\s*['"]|['"]cache-control\s*:)[^'"]*no-store
+        - kind: program
+          regex: (?is)(['"]cache-control['"]\s*(,|=>)\s*['"]|['"]cache-control\s*:)[^'"]*no-store
+      - not:
+          any:
+          - has:
+              stopBy: end
+              any:
+              - kind: function_call_expression
+                all:
+                - has:
+                    field: function
+                    kind: name
+                    regex: ^(header|response)$
+                - has:
+                    field: arguments
+                    kind: arguments
+                    regex: (?is)(['"]cache-control['"]\s*(,|=>)\s*['"]|['"]cache-control\s*:)[^'"]*no-store
+              - kind: member_call_expression
+                all:
+                - has:
+                    field: name
+                    kind: name
+                    regex: ^(header|withHeaders)$
+                - has:
+                    field: object
+                    any:
+                    - kind: variable_name
+                      regex: ^(response\s*\(|\$(this\s*->\s*)?\w*(response|Response|res|resp)$)
+                    - kind: member_access_expression
+                      regex: ^(response\s*\(|\$(this\s*->\s*)?\w*(response|Response|res|resp)$)
+                    - kind: function_call_expression
+                      regex: ^(response\s*\(|\$(this\s*->\s*)?\w*(response|Response|res|resp)$)
+                    - kind: member_call_expression
+                      regex: ^(response\s*\(|\$(this\s*->\s*)?\w*(response|Response|res|resp)$)
+                - has:
+                    field: arguments
+                    kind: arguments
+                    regex: (?is)(['"]cache-control['"]\s*(,|=>)\s*['"]|['"]cache-control\s*:)[^'"]*no-store
+              - kind: member_call_expression
+                all:
+                - has:
+                    field: name
+                    kind: name
+                    regex: ^set$
+                - has:
+                    field: object
+                    kind: member_access_expression
+                    regex: ^\$(this\s*->\s*)?\w*(response|Response|res|resp)\s*->\s*headers$
+                - has:
+                    field: arguments
+                    kind: arguments
+                    regex: (?is)(['"]cache-control['"]\s*(,|=>)\s*['"]|['"]cache-control\s*:)[^'"]*no-store
+              - kind: object_creation_expression
+                regex: ^new\s+\\?(\w+\\)*\w*Response\s*\(
+                all:
+                - kind: object_creation_expression
+                  regex: (?is)(['"]cache-control['"]\s*(,|=>)\s*['"]|['"]cache-control\s*:)[^'"]*no-store
+                not:
+                  kind: object_creation_expression
+                  regex: ^new\s+\\?(\w+\\)*(GuzzleHttp|Psr7)\\
+          - has:
+              stopBy: end
+              kind: member_call_expression
+              regex: (?s)->\s*setCache\(\s*\[[^\]]*['"]no_store['"]\s*=>\s*true
+min_engine: 0.45.3
+---
+# violation-shared: a data handler in a file that holds, anywhere, a literal Cache-Control with public, s-maxage or
+# stale-while-revalidate, or the framework's shared-cache form (also Symfony's setCache(['no_store' => true]);
+# setPublic(), setSharedMaxAge() or setCache public or s_maxage are shared): a shared cache may keep it, whatever
+# middleware sends (T23-P1-C142). Fail.
+id: phi-responses-not-cached.php-laravel.violation-shared
+practice_id: phi-responses-not-cached
+language: php
+frameworks:
+- laravel
+kind: violation
+rule:
+  all:
+  - any:
+    - kind: method_declaration
+      has:
+        field: parameters
+        kind: formal_parameters
+        regex: \bRequest\s+\$
+    - any:
+      - kind: anonymous_function
+      - kind: arrow_function
+      inside:
+        kind: argument
+        inside:
+          kind: arguments
+          inside:
+            kind: scoped_call_expression
+            all:
+            - has:
+                field: scope
+                kind: name
+                regex: ^Route$
+            - has:
+                field: name
+                kind: name
+                regex: ^(get|post|put|patch|delete|any|match)$
+  - any:
+    - kind: function_definition
+      regex: ((\$(pdo|db|conn|connection|mysqli|wpdb|dbh|database)\s*->\s*\w+\s*\(|\bDB::\w+\s*\(|\b(mysqli|pg|sqlite)_\w+\s*\(|\b[A-Z]\w*::(create|insert\w*|update\w*|upsert|where\w*|find\w*|firstOrCreate|updateOrCreate|query)\s*\()|\$(this\s*->\s*)?\w*(Service|service|Repository|repository|Repo|repo)\s*->\s*\w+\s*\()
+    - kind: method_declaration
+      regex: ((\$(pdo|db|conn|connection|mysqli|wpdb|dbh|database)\s*->\s*\w+\s*\(|\bDB::\w+\s*\(|\b(mysqli|pg|sqlite)_\w+\s*\(|\b[A-Z]\w*::(create|insert\w*|update\w*|upsert|where\w*|find\w*|firstOrCreate|updateOrCreate|query)\s*\()|\$(this\s*->\s*)?\w*(Service|service|Repository|repository|Repo|repo)\s*->\s*\w+\s*\()
+    - kind: anonymous_function
+      regex: ((\$(pdo|db|conn|connection|mysqli|wpdb|dbh|database)\s*->\s*\w+\s*\(|\bDB::\w+\s*\(|\b(mysqli|pg|sqlite)_\w+\s*\(|\b[A-Z]\w*::(create|insert\w*|update\w*|upsert|where\w*|find\w*|firstOrCreate|updateOrCreate|query)\s*\()|\$(this\s*->\s*)?\w*(Service|service|Repository|repository|Repo|repo)\s*->\s*\w+\s*\()
+    - kind: arrow_function
+      regex: ((\$(pdo|db|conn|connection|mysqli|wpdb|dbh|database)\s*->\s*\w+\s*\(|\bDB::\w+\s*\(|\b(mysqli|pg|sqlite)_\w+\s*\(|\b[A-Z]\w*::(create|insert\w*|update\w*|upsert|where\w*|find\w*|firstOrCreate|updateOrCreate|query)\s*\()|\$(this\s*->\s*)?\w*(Service|service|Repository|repository|Repo|repo)\s*->\s*\w+\s*\()
+    - kind: program
+      regex: ((\$(pdo|db|conn|connection|mysqli|wpdb|dbh|database)\s*->\s*\w+\s*\(|\bDB::\w+\s*\(|\b(mysqli|pg|sqlite)_\w+\s*\(|\b[A-Z]\w*::(create|insert\w*|update\w*|upsert|where\w*|find\w*|firstOrCreate|updateOrCreate|query)\s*\()|\$(this\s*->\s*)?\w*(Service|service|Repository|repository|Repo|repo)\s*->\s*\w+\s*\()
+  - any:
+    - inside:
+        stopBy: end
+        kind: program
+        regex: (?is)(['"]cache-control['"]\s*(,|=>)\s*['"]|['"]cache-control\s*:)[^'"]*(public|s-maxage|stale-while-revalidate)
+    - inside:
+        stopBy: end
+        kind: program
+        regex: ->\s*setPublic\(|->\s*setSharedMaxAge\(|\bsetCache\(\s*\[[^\]]*['"](public['"]\s*=>\s*true|s_maxage)|\bcache\.headers:[^'"]*\b(public|s_maxage)
+min_engine: 0.45.3

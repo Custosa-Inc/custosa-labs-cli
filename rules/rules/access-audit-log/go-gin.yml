@@ -1,0 +1,92 @@
+id: access-audit-log.go-gin.read-handler
+practice_id: access-audit-log
+language: go
+frameworks:
+- gin
+kind: items
+rule:
+  all:
+  - kind: call_expression
+  - has:
+      field: function
+      kind: selector_expression
+      regex: '\.GET$'
+  - has:
+      field: arguments
+      kind: argument_list
+      has:
+        kind: interpreted_string_literal
+  - not:
+      has:
+        field: arguments
+        kind: argument_list
+        has:
+          any:
+          - kind: identifier
+            regex: '([Aa]udit|AUDIT|[Aa]ccess_?[Ll]ogs?|ACCESS_?LOGS?|[Ll]og_?[Aa]ccess|LOG_?ACCESS|[Rr]ecord_?[Aa]ccess|[Aa]ccess_?[Ee]vents?|ACCESS_?EVENTS?|[Pp]hi_?[Aa]ccess|PHI_?ACCESS|[Aa]ctivity_?[Ll]ogs?|ACTIVITY_?LOGS?)'
+          - kind: selector_expression
+            regex: '([Aa]udit|AUDIT|[Aa]ccess_?[Ll]ogs?|ACCESS_?LOGS?|[Ll]og_?[Aa]ccess|LOG_?ACCESS|[Rr]ecord_?[Aa]ccess|[Aa]ccess_?[Ee]vents?|ACCESS_?EVENTS?|[Pp]hi_?[Aa]ccess|PHI_?ACCESS|[Aa]ctivity_?[Ll]ogs?|ACTIVITY_?LOGS?)'
+          - kind: call_expression
+            regex: '^[\w.]*([Aa]udit|AUDIT|[Aa]ccess_?[Ll]ogs?|ACCESS_?LOGS?|[Ll]og_?[Aa]ccess|LOG_?ACCESS|[Rr]ecord_?[Aa]ccess|[Aa]ccess_?[Ee]vents?|ACCESS_?EVENTS?|[Pp]hi_?[Aa]ccess|PHI_?ACCESS|[Aa]ctivity_?[Ll]ogs?|ACTIVITY_?LOGS?)'
+  - pattern:
+      context: 'func f() { $R.GET($$$GA) }'
+      selector: call_expression
+  - not:
+      inside:
+        stopBy: end
+        kind: statement_list
+        any:
+        - has:
+            kind: expression_statement
+            has:
+              kind: call_expression
+              pattern:
+                context: 'func f() { $R.Use($$$UA) }'
+                selector: call_expression
+              regex: '([Aa]udit|AUDIT|[Aa]ccess_?[Ll]ogs?|ACCESS_?LOGS?|[Ll]og_?[Aa]ccess|LOG_?ACCESS|[Rr]ecord_?[Aa]ccess|[Aa]ccess_?[Ee]vents?|ACCESS_?EVENTS?|[Pp]hi_?[Aa]ccess|PHI_?ACCESS|[Aa]ctivity_?[Ll]ogs?|ACTIVITY_?LOGS?)'
+        - has:
+            kind: short_var_declaration
+            pattern:
+              context: 'func f() { $R := $P.Group($$$GG) }'
+              selector: short_var_declaration
+            regex: '([Aa]udit|AUDIT|[Aa]ccess_?[Ll]ogs?|ACCESS_?LOGS?|[Ll]og_?[Aa]ccess|LOG_?ACCESS|[Rr]ecord_?[Aa]ccess|[Aa]ccess_?[Ee]vents?|ACCESS_?EVENTS?|[Pp]hi_?[Aa]ccess|PHI_?ACCESS|[Aa]ctivity_?[Ll]ogs?|ACTIVITY_?LOGS?)'
+  - not:
+      all:
+      - has:
+          field: arguments
+          kind: argument_list
+          has:
+            kind: func_literal
+            has:
+              stopBy: end
+              kind: call_expression
+              has:
+                field: function
+                any:
+                - kind: identifier
+                  regex: '([Aa]udit|AUDIT|[Aa]ccess_?[Ll]ogs?|ACCESS_?LOGS?|[Ll]og_?[Aa]ccess|LOG_?ACCESS|[Rr]ecord_?[Aa]ccess|[Aa]ccess_?[Ee]vents?|ACCESS_?EVENTS?|[Pp]hi_?[Aa]ccess|PHI_?ACCESS|[Aa]ctivity_?[Ll]ogs?|ACTIVITY_?LOGS?)'
+                - kind: selector_expression
+                  regex: '([Aa]udit|AUDIT|[Aa]ccess_?[Ll]ogs?|ACCESS_?LOGS?|[Ll]og_?[Aa]ccess|LOG_?ACCESS|[Rr]ecord_?[Aa]ccess|[Aa]ccess_?[Ee]vents?|ACCESS_?EVENTS?|[Pp]hi_?[Aa]ccess|PHI_?ACCESS|[Aa]ctivity_?[Ll]ogs?|ACTIVITY_?LOGS?)'
+      - not: &id001
+          has:
+            field: arguments
+            kind: argument_list
+            has:
+              kind: func_literal
+              has:
+                stopBy: end
+                kind: call_expression
+                any:
+                - kind: call_expression
+                  regex: '(?-u)\.Create\(\s*&?(\w+\.)?\w*(Audit|AccessLog)\w*\s*\{'
+                - kind: call_expression
+                  regex: '\.(Exec|ExecContext)\('
+                  has:
+                    stopBy: end
+                    any:
+                    - kind: interpreted_string_literal
+                      regex: '(?i)\binsert\s+into\s+[`\x22]?(?:\w+\.)?[`\x22]?[^\s(`\x22]*(audit|access_log|access_event|phi_access|activity_log|security_event)'
+                    - kind: raw_string_literal
+                      regex: '(?i)\binsert\s+into\s+[`\x22]?(?:\w+\.)?[`\x22]?[^\s(`\x22]*(audit|access_log|access_event|phi_access|activity_log|security_event)'
+control: *id001
+min_engine: 0.45.3

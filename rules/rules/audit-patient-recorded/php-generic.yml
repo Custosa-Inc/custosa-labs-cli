@@ -1,0 +1,88 @@
+id: audit-patient-recorded.php-generic.no-log-query
+practice_id: audit-patient-recorded
+language: php
+frameworks:
+- generic
+kind: violation
+rule:
+  all:
+  - kind: function_call_expression
+  - regex: '^\\?sql(Statement|Query|Insert|StatementCdr|QueryCdr)NoLog\s*\('
+  - has:
+      field: arguments
+      kind: arguments
+      has:
+        kind: argument
+        has:
+          any:
+          - kind: string
+            regex: '(?i)\b(from|into|update|join)\s+`?(patient_data|patient_\w+|form_\w+|forms|lists|pnotes|prescriptions|documents|immunizations|form_encounter|encounter\w*|billing|history_data|insurance_data|procedure_\w+|transactions|onotes|amendments)\b'
+          - kind: encapsed_string
+            regex: '(?i)\b(from|into|update|join)\s+`?(patient_data|patient_\w+|form_\w+|forms|lists|pnotes|prescriptions|documents|immunizations|form_encounter|encounter\w*|billing|history_data|insurance_data|procedure_\w+|transactions|onotes|amendments)\b'
+min_engine: 0.45.3
+---
+id: audit-patient-recorded.php-generic.log-flag-off
+practice_id: audit-patient-recorded
+language: php
+frameworks:
+- generic
+kind: violation
+rule:
+  all:
+  - kind: array_element_initializer
+  - has:
+      kind: string
+      regex: '^[''"](log|audit|audit_log)[''"]$'
+  - has:
+      kind: boolean
+      regex: '^(?i:false)$'
+min_engine: 0.45.3
+---
+id: audit-patient-recorded.php-generic.patient-from-ui-session
+practice_id: audit-patient-recorded
+language: php
+frameworks:
+- generic
+kind: violation
+rule:
+  all:
+  - any:
+    - kind: member_call_expression
+      regex: '->\s*get\s*\(\s*[''"]pid[''"]\s*\)$'
+    - kind: subscript_expression
+      regex: '^\$_SESSION\s*\[\s*[''"]pid[''"]\s*\]$'
+    - kind: scoped_call_expression
+      regex: '^\\?\w*Session\w*::get\s*\(\s*[''"]pid[''"]\s*\)$'
+  - inside:
+      stopBy: end
+      any:
+      - kind: method_declaration
+        has:
+          field: name
+          kind: name
+          regex: '(?i)(log|audit|event)'
+      - kind: function_definition
+        has:
+          field: name
+          kind: name
+          regex: '(?i)(log|audit|event)'
+min_engine: 0.45.3
+---
+id: audit-patient-recorded.php-generic.request-handler
+practice_id: audit-patient-recorded
+language: php
+frameworks:
+- generic
+kind: evidence
+rule:
+  all:
+  - kind: anonymous_function
+  - inside:
+      kind: array_element_initializer
+      has:
+        any:
+        - kind: string
+          regex: '^[''"](GET|POST|PUT|PATCH|DELETE) /'
+        - kind: encapsed_string
+          regex: '^[''"](GET|POST|PUT|PATCH|DELETE) /'
+min_engine: 0.45.3

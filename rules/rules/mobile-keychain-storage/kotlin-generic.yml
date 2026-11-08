@@ -1,0 +1,99 @@
+# Tokens in plain mobile storage (T23 B56e). Written by scripts/gen_mobile_rules.py: don't edit.
+# The practice is capped at needs_review: a violation fails, the rest is for a person.
+id: mobile-keychain-storage.kotlin-generic.token-prefs
+practice_id: mobile-keychain-storage
+language: kotlin
+frameworks:
+- generic
+kind: violation
+rule:
+  kind: call_expression
+  all:
+  - all:
+    - has:
+        any:
+        - kind: simple_identifier
+          regex: ^(putString)$
+        - kind: navigation_expression
+          regex: \.\s*(putString)$
+    - has:
+        kind: call_suffix
+        regex: ^\(\s*"(?i:(access|refresh|id|auth|session)[_-]?token|jwt|credentials?|password)"\s*,
+  - any:
+    - has:
+        kind: navigation_expression
+        has:
+          stopBy: end
+          kind: call_expression
+          all:
+          - has:
+              any:
+              - kind: simple_identifier
+                regex: ^(getSharedPreferences|getDefaultSharedPreferences)$
+              - kind: navigation_expression
+                regex: \.\s*(getSharedPreferences|getDefaultSharedPreferences)$
+          - has:
+              kind: call_suffix
+              regex: ^\(
+    - all:
+      - inside:
+          kind: source_file
+          stopBy: end
+          has:
+            stopBy: end
+            kind: call_expression
+            all:
+            - has:
+                any:
+                - kind: simple_identifier
+                  regex: ^(getSharedPreferences|getDefaultSharedPreferences)$
+                - kind: navigation_expression
+                  regex: \.\s*(getSharedPreferences|getDefaultSharedPreferences)$
+            - has:
+                kind: call_suffix
+                regex: ^\(
+      - not:
+          inside:
+            kind: source_file
+            stopBy: end
+            has:
+              stopBy: end
+              any:
+              - kind: simple_identifier
+                regex: ^EncryptedSharedPreferences$
+              - kind: type_identifier
+                regex: ^EncryptedSharedPreferences$
+min_engine: 0.39.0
+---
+id: mobile-keychain-storage.kotlin-generic.encrypted-prefs
+practice_id: mobile-keychain-storage
+language: kotlin
+frameworks:
+- generic
+kind: evidence
+rule:
+  kind: call_expression
+  has:
+    kind: navigation_expression
+    regex: ^EncryptedSharedPreferences\s*\.\s*create$
+min_engine: 0.39.0
+---
+id: mobile-keychain-storage.kotlin-generic.keystore
+practice_id: mobile-keychain-storage
+language: kotlin
+frameworks:
+- generic
+kind: evidence
+rule:
+  kind: call_expression
+  all:
+  - has:
+      any:
+      - kind: simple_identifier
+        regex: ^(getInstance)$
+      - kind: navigation_expression
+        regex: \.\s*(getInstance)$
+  - has:
+      kind: call_suffix
+      regex: ^\(\s*"AndroidKeyStore"\s*\)$
+min_engine: 0.39.0

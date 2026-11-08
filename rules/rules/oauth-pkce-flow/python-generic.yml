@@ -1,0 +1,26 @@
+id: oauth-pkce-flow.python-generic.pkce-client
+practice_id: oauth-pkce-flow
+language: python
+frameworks:
+- generic
+kind: evidence
+rule:
+  kind: keyword_argument
+  regex: ^code_challenge_method\s*=\s*['\"]S256['\"]$
+min_engine: 0.39.0
+---
+id: oauth-pkce-flow.python-generic.implicit-flow
+practice_id: oauth-pkce-flow
+language: python
+frameworks:
+- generic
+kind: violation
+rule:
+  any:
+  - kind: keyword_argument
+    regex: ^response_type\s*=\s*['\"]token['\"]$
+  - kind: keyword_argument
+    regex: ^code_challenge_method\s*=\s*['\"]plain['\"]$
+  - kind: string
+    regex: '[?&]response_type=token\b'
+min_engine: 0.39.0

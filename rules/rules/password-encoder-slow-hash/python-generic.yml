@@ -1,0 +1,105 @@
+id: password-encoder-slow-hash.python-generic.slow-hash
+practice_id: password-encoder-slow-hash
+language: python
+frameworks: [generic]
+kind: evidence
+rule:
+  all:
+    - any:
+        - pattern: bcrypt.hashpw($$$)
+        - pattern: bcrypt.checkpw($$$)
+        - pattern: hashlib.scrypt($$$)
+        - pattern: hashlib.pbkdf2_hmac($$$)
+        - pattern: PasswordHasher($$$)
+        - pattern: argon2.PasswordHasher($$$)
+        - pattern: CryptContext($$$)
+        - pattern: passlib.context.CryptContext($$$)
+    - not:
+        has:
+          field: arguments
+          stopBy: end
+          kind: string
+          regex: '(?i)(md5|sha1_crypt|plaintext|hex_sha|ldap_(md5|sha1)|des_crypt)'
+min_engine: 0.39.0
+---
+id: password-encoder-slow-hash.python-generic.fast-hash
+practice_id: password-encoder-slow-hash
+language: python
+frameworks: [generic]
+kind: violation
+rule:
+  all:
+    - any:
+        - pattern: hashlib.md5($$$)
+        - pattern: hashlib.sha1($$$)
+        - pattern: hashlib.sha224($$$)
+        - pattern: hashlib.sha256($$$)
+        - pattern: hashlib.sha384($$$)
+        - pattern: hashlib.sha512($$$)
+        - pattern: hashlib.sha3_256($$$)
+        - pattern: hashlib.sha3_512($$$)
+        - pattern: hashlib.blake2b($$$)
+        - pattern: hashlib.new($$$)
+    - has:
+        field: arguments
+        stopBy: end
+        kind: identifier
+        regex: '(?i)^(pass|pwd|passwd|password|passphrase|(new|plain|raw|old|current|user|admin)_?pass(word)?)$'
+    - not:
+        inside:
+          stopBy: end
+          kind: function_definition
+          has:
+            stopBy: end
+            any:
+              - pattern: AES.new($$$)
+              - pattern: AESGCM($$$)
+              - pattern: Fernet($$$)
+              - pattern: Cipher($$$)
+min_engine: 0.39.0
+---
+id: password-encoder-slow-hash.python-generic.low-cost
+practice_id: password-encoder-slow-hash
+language: python
+frameworks: [generic]
+kind: violation
+rule:
+  all:
+    - pattern: bcrypt.gensalt($$$)
+    - has:
+        field: arguments
+        stopBy: end
+        kind: integer
+        regex: '^[0-9]$'
+min_engine: 0.39.0
+---
+id: password-encoder-slow-hash.python-generic.plain-compare
+practice_id: password-encoder-slow-hash
+language: python
+frameworks: [generic]
+kind: violation
+rule:
+  all:
+    - kind: comparison_operator
+    - regex: '\s(==|!=)\s'
+    - has:
+        kind: attribute
+        has:
+          field: attribute
+          kind: identifier
+          regex: '(?i)^(pass|pwd|passwd|password|passphrase|[a-z_]*_password)$'
+    - has:
+        any:
+          - kind: identifier
+            regex: '(?i)^(pass|pwd|passwd|password|passphrase|(new|plain|raw|input|given|supplied)_?pass(word)?)$'
+          - kind: subscript
+            has:
+              kind: string
+              regex: '(?i)^.(pass|pwd|passwd|password).$'
+          - kind: call
+            has:
+              kind: argument_list
+              has:
+                kind: string
+                regex: '(?i)^.(pass|pwd|passwd|password).$'
+min_engine: 0.39.0

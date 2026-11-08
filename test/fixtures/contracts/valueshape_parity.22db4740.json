@@ -1,0 +1,311 @@
+{
+ "_about": "Cases the evaluator's value screen (app/validation.py) and the inspector's (lib/inspector/valueshape.mjs) must agree on. Canonical: the evaluator owns this file; the CLI keeps a pinned copy under test/fixtures/contracts/ with the source commit noted. Synthetic, no real data. kind path_segment: a walked path, sent with ids.sentPath; kind name: a captured table name, sent with captures.computeTableName. expect kept: sent as written, and record_value_spans finds nothing. expect hashed: the inspector hashes it, the evaluator need not refuse the raw text. expect <label>: record_value_spans gives that label, and the inspector hashes it. Words: app/knowledge/value_screen_words.json.",
+ "cases": [
+  {
+   "input": "patients/john_smith_1985-03-02.json",
+   "kind": "path_segment",
+   "expect": "date_with_name",
+   "why": "T22 S3-2 leak: name and date joined by _"
+  },
+  {
+   "input": "patients/John-Smith-1985-03-02.pdf",
+   "kind": "path_segment",
+   "expect": "date_with_name",
+   "why": "T22 S3-2 leak: name and date joined by -"
+  },
+  {
+   "input": "exports/QwErTyUiOpAsDfGhJkLzXcVbNm.json",
+   "kind": "path_segment",
+   "expect": "hashed",
+   "why": "T22 S3-2 leak: a letters-only random token, hashed as a table name is (letterToken)"
+  },
+  {
+   "input": "creds/P@ssw0rd.txt",
+   "kind": "path_segment",
+   "expect": "hashed",
+   "why": "control: already hashed"
+  },
+  {
+   "input": "patients/john.doe@example.com.json",
+   "kind": "path_segment",
+   "expect": "email",
+   "why": "control: email"
+  },
+  {
+   "input": "notes/Jane Doe 1980-02-03.pdf",
+   "kind": "path_segment",
+   "expect": "date_with_name",
+   "why": "control: name and date with a space"
+  },
+  {
+   "input": "migrations/2024-01-05_add_users.sql",
+   "kind": "path_segment",
+   "expect": "kept",
+   "why": "migration: date then two common words"
+  },
+  {
+   "input": "migrations/20240105_create_patients_table.sql",
+   "kind": "path_segment",
+   "expect": "kept",
+   "why": "migration: compact date then common words"
+  },
+  {
+   "input": "db/migration/V3__add_index.sql",
+   "kind": "path_segment",
+   "expect": "kept",
+   "why": "migration: Flyway, no date"
+  },
+  {
+   "input": "database/migrations/2023_10_01_000000_create_users_table.php",
+   "kind": "path_segment",
+   "expect": "kept",
+   "why": "migration: Laravel, the words are not beside the date"
+  },
+  {
+   "input": "supabase/migrations/20240101120000_init.sql",
+   "kind": "path_segment",
+   "expect": "kept",
+   "why": "migration: a 14-digit stamp is not a date"
+  },
+  {
+   "input": "prisma/migrations/20240105123456_add_allergies/migration.sql",
+   "kind": "path_segment",
+   "expect": "kept",
+   "why": "migration: a stamp, not a date"
+  },
+  {
+   "input": "src/app/page.tsx",
+   "kind": "path_segment",
+   "expect": "kept",
+   "why": "ordinary path"
+  },
+  {
+   "input": "supabase/functions/send-email/index.ts",
+   "kind": "path_segment",
+   "expect": "kept",
+   "why": "ordinary path"
+  },
+  {
+   "input": "src/components/PatientMedicationAdministrationRecordsTable.tsx",
+   "kind": "path_segment",
+   "expect": "kept",
+   "why": "words run together are not a token"
+  },
+  {
+   "input": "patients/smith_1985-03-02.json",
+   "kind": "path_segment",
+   "expect": "kept",
+   "why": "a single name beside a date"
+  },
+  {
+   "input": "reports/1985-03-02.json",
+   "kind": "path_segment",
+   "expect": "kept",
+   "why": "a date alone"
+  },
+  {
+   "input": "exports/patients_export_2024-01-05.csv",
+   "kind": "path_segment",
+   "expect": "kept",
+   "why": "two common words beside a date"
+  },
+  {
+   "input": "backups/daily_backup_2024-01-05.sql",
+   "kind": "path_segment",
+   "expect": "kept",
+   "why": "two common words beside a date"
+  },
+  {
+   "input": "docs/release_notes_2024-01-05.md",
+   "kind": "path_segment",
+   "expect": "kept",
+   "why": "two common words beside a date"
+  },
+  {
+   "input": "patients/jane_doe_19800203.json",
+   "kind": "path_segment",
+   "expect": "date_with_name",
+   "why": "compact date"
+  },
+  {
+   "input": "patients/jane_doe_1980_02_03.json",
+   "kind": "path_segment",
+   "expect": "date_with_name",
+   "why": "date written with _"
+  },
+  {
+   "input": "patients/1980-02-03_jane_doe.json",
+   "kind": "path_segment",
+   "expect": "date_with_name",
+   "why": "date first"
+  },
+  {
+   "input": "patients/jane-doe-03-02-1980.pdf",
+   "kind": "path_segment",
+   "expect": "date_with_name",
+   "why": "month-day-year"
+  },
+  {
+   "input": "patients/JANE_DOE_02.03.1980.pdf",
+   "kind": "path_segment",
+   "expect": "date_with_name",
+   "why": "upper case, dotted date"
+  },
+  {
+   "input": "patients/patient_jane_1980-02-03.json",
+   "kind": "path_segment",
+   "expect": "kept",
+   "why": "one common word (patient) and a name: a hit needs both words outside the lists (T23-P1-C10)"
+  },
+  {
+   "input": "visits/smith_create_1985-03-02.json",
+   "kind": "path_segment",
+   "expect": "kept",
+   "why": "one common word (create) next to a name: a hit needs both words outside the lists (T23-P1-C10)"
+  },
+  {
+   "input": "patients/josé_garcía_1985-03-02.json",
+   "kind": "path_segment",
+   "expect": "date_with_name",
+   "why": "unicode name: letters are Unicode letters"
+  },
+  {
+   "input": "patients/Zoë-Ångström-1985-03-02.pdf",
+   "kind": "path_segment",
+   "expect": "date_with_name",
+   "why": "unicode name joined by -"
+  },
+  {
+   "input": "docs/résumé.pdf",
+   "kind": "path_segment",
+   "expect": "hashed",
+   "why": "unicode without a date: outside the path segment pattern, hashed, not refused"
+  },
+  {
+   "input": "john_smith_1985_03_02",
+   "kind": "name",
+   "expect": "date_with_name",
+   "why": "table name: name and date"
+  },
+  {
+   "input": "public.patients",
+   "kind": "name",
+   "expect": "kept",
+   "why": "table name: ordinary"
+  },
+  {
+   "input": "add_users_2024_01_05",
+   "kind": "name",
+   "expect": "kept",
+   "why": "table name: two common words and a date"
+  },
+  {
+   "input": "smith_19850302",
+   "kind": "name",
+   "expect": "kept",
+   "why": "table name: a single name and a date"
+  },
+  {
+   "input": "QwErTyUiOpAsDfGhJkLzXcVbNm",
+   "kind": "name",
+   "expect": "hashed",
+   "why": "table name: letters-only token (letterToken)"
+  },
+  {
+   "input": "events_20240105",
+   "kind": "name",
+   "expect": "kept",
+   "why": "table name: one word and a date"
+  },
+  {
+   "input": "1985-03-02_john_smith.pdf",
+   "kind": "path_segment",
+   "expect": "date_with_name",
+   "why": "T23-P3-C7: date first, words alone at the segment end"
+  },
+  {
+   "input": "jane-doe-03-02-1985",
+   "kind": "name",
+   "expect": "date_with_name",
+   "why": "T23-P3-C7: all joined by -, day-month-year"
+  },
+  {
+   "input": "2024-01-05_add_users.sql",
+   "kind": "path_segment",
+   "expect": "kept",
+   "why": "T23-P3-C7: migration, two file words"
+  },
+  {
+   "input": "2024-01-05_add_users_table.sql",
+   "kind": "path_segment",
+   "expect": "kept",
+   "why": "T23-P3-C7: segment guard, _table follows the words"
+  },
+  {
+   "input": "2024-01-05_users_table",
+   "kind": "name",
+   "expect": "kept",
+   "why": "T23-P3-C7: two file words"
+  },
+  {
+   "input": "20240105_add_users",
+   "kind": "name",
+   "expect": "kept",
+   "why": "T23-P3-C7: compact date, two file words"
+  },
+  {
+   "input": "V1_2024.01.05__init.sql",
+   "kind": "path_segment",
+   "expect": "kept",
+   "why": "T23-P3-C7: Flyway with a dotted date, one word"
+  },
+  {
+   "input": "backup_2024-01-05.sql",
+   "kind": "path_segment",
+   "expect": "kept",
+   "why": "T23-P3-C7: one word beside a date"
+  },
+  {
+   "input": "created_at_2024_01_05",
+   "kind": "name",
+   "expect": "kept",
+   "why": "T23-P3-C7: two common words, date with _"
+  },
+  {
+   "input": "idx_users_123456789",
+   "kind": "name",
+   "expect": "ssn",
+   "why": "control: T23-P3-C7 listed it as no hit, but nine digits in a valid SSN shape are screened today; no date, so the joined rule adds nothing"
+  },
+  {
+   "input": "report_final_2024-01-05.csv",
+   "kind": "path_segment",
+   "expect": "kept",
+   "why": "T23-P3-C7 pinned this as a misfire; report and final are file words, so it is kept"
+  },
+  {
+   "input": "Maria_Gonzalez_1962",
+   "kind": "name",
+   "expect": "kept",
+   "why": "T23-P3-C7, out of scope: a year alone is not a date here"
+  },
+  {
+   "input": "scans/x_jane_doe_1980-02-03.pdf",
+   "kind": "path_segment",
+   "expect": "kept",
+   "why": "segment guard: a third word before the pair (known gap, as P2's two-nearest-words note)"
+  },
+  {
+   "input": "patients/jane_doe1980-02-03.json",
+   "kind": "path_segment",
+   "expect": "date_with_name",
+   "why": "no separator between the pair and the date"
+  },
+  {
+   "input": "public.jane_doe_1980_02_03",
+   "kind": "name",
+   "expect": "date_with_name",
+   "why": "a dot is a segment edge: schema-qualified table name"
+  }
+ ]
+}

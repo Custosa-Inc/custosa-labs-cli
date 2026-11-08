@@ -1,0 +1,6 @@
+{
+ "name": "projects/clinic-project/locations/us-central1/buckets/phi-logs",
+ "retentionDays": 400,
+ "lifecycleState": "ACTIVE",
+ "locked": true
+}

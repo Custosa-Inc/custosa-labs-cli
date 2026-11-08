@@ -1,0 +1,113 @@
+id: staff-mfa-enforced.javascript-generic.sign-in
+practice_id: staff-mfa-enforced
+language: javascript
+frameworks:
+- generic
+kind: items
+rule:
+  all:
+  - any:
+    - kind: function_declaration
+    - kind: method_definition
+    - kind: arrow_function
+    - kind: function_expression
+  - has: &id001
+      stopBy: end
+      any:
+      - kind: call_expression
+        regex: ^(await\s+)?([0-9A-Za-z_]+\.)*((bcrypt|bcryptjs|argon2)\.(compare|compareSync|verify)|signInWithPassword|verifyPassword|checkPassword|comparePassword|validatePassword|validateUser|authenticateUser)\(
+      - kind: await_expression
+        regex: ^(await\s+)?([0-9A-Za-z_]+\.)*((bcrypt|bcryptjs|argon2)\.(compare|compareSync|verify)|signInWithPassword|verifyPassword|checkPassword|comparePassword|validatePassword|validateUser|authenticateUser)\(
+  - not:
+      has:
+        stopBy: end
+        any:
+        - kind: function_declaration
+        - kind: method_definition
+        - kind: arrow_function
+        - kind: function_expression
+        has: *id001
+control:
+  all:
+  - has:
+      stopBy: end
+      all:
+      - any:
+        - kind: call_expression
+          regex: (?i)^(await\s+)?([0-9A-Za-z_]+\.)*(((totp|otp|authenticator|speakeasy|otplib|twoFactor|mfa|tfa)[0-9A-Za-z_]*\.(verify|check|validate)[0-9A-Za-z_]*)|verify(Totp|Otp|Mfa|TwoFactor|Authenticator|Code|Token)[0-9A-Za-z_]*|challengeAndVerify|verifyAuthenticationResponse|verifyTOTP)\(
+        - kind: await_expression
+          regex: (?i)^(await\s+)?([0-9A-Za-z_]+\.)*(((totp|otp|authenticator|speakeasy|otplib|twoFactor|mfa|tfa)[0-9A-Za-z_]*\.(verify|check|validate)[0-9A-Za-z_]*)|verify(Totp|Otp|Mfa|TwoFactor|Authenticator|Code|Token)[0-9A-Za-z_]*|challengeAndVerify|verifyAuthenticationResponse|verifyTOTP)\(
+        - kind: pair
+          has:
+            field: key
+            any:
+            - kind: property_identifier
+              regex: (?i)^['\"]?(mfa_?required|requires_?mfa|mfa_?pending|mfa_?token|two_?factor_?required|otp_?required|mfa_?challenge)['\"]?$
+            - kind: string
+              regex: (?i)^['\"]?(mfa_?required|requires_?mfa|mfa_?pending|mfa_?token|two_?factor_?required|otp_?required|mfa_?challenge)['\"]?$
+      - not:
+          inside:
+            stopBy: end
+            kind: if_statement
+            has:
+              field: condition
+              kind: parenthesized_expression
+              regex: (?i)^\(\s*!?\s*[A-Za-z0-9_.?]*\.(otp|totp|mfaCode|mfa_code|code)\s*\)$|(mfa|otp|totp|two_?factor|2fa|tfa)_?(enabled|enrolled|active|registered|configured)|(mfa|otp|two_?factor)_?required_?for_?login|is_?mfa_?required|mfa_?required|requires_?mfa|nextLevel|has_?mfa|factors\.(length|totp)|mfa_?types|\$this->types
+  - not:
+      has:
+        field: body
+        kind: statement_block
+        regex: (?s)(createSession|jwt\.sign|(?-u:\b)sign\(|res\.cookie\(|cookies\(\)\.set\(|req\.login\(|session\.(user|userId)\s*=|issueSession|setSession|signIn\().*(authenticator|totp|otp|speakeasy|otplib|mfa|twoFactor|verify(Totp|Otp|Mfa|TwoFactor|Authenticator|Code|Token))
+min_engine: 0.39.0
+---
+id: staff-mfa-enforced.javascript-generic.mfa-optional
+practice_id: staff-mfa-enforced
+language: javascript
+frameworks:
+- generic
+kind: violation
+rule:
+  any:
+  - all:
+    - kind: if_statement
+    - has:
+        field: condition
+        kind: parenthesized_expression
+        regex: (?i)^\(\s*!?\s*[A-Za-z0-9_.?]*\.(otp|totp|mfaCode|mfa_code|code)\s*\)$|(mfa|otp|totp|two_?factor|2fa|tfa)_?(enabled|enrolled|active|registered|configured)|(mfa|otp|two_?factor)_?required_?for_?login|is_?mfa_?required|mfa_?required|requires_?mfa|nextLevel|has_?mfa|factors\.(length|totp)|mfa_?types|\$this->types
+    - not:
+        has:
+          field: condition
+          kind: parenthesized_expression
+          regex: (?i)(role|is_?staff|staff|admin|clinician|practitioner|provider|doctor|physician|nurse)
+    - has:
+        field: consequence
+        stopBy: end
+        any:
+        - kind: call_expression
+          regex: (?i)^(await\s+)?([0-9A-Za-z_]+\.)*(((totp|otp|authenticator|speakeasy|otplib|twoFactor|mfa|tfa)[0-9A-Za-z_]*\.(verify|check|validate)[0-9A-Za-z_]*)|verify(Totp|Otp|Mfa|TwoFactor|Authenticator|Code|Token)[0-9A-Za-z_]*|challengeAndVerify|verifyAuthenticationResponse|verifyTOTP)\(
+        - kind: await_expression
+          regex: (?i)^(await\s+)?([0-9A-Za-z_]+\.)*(((totp|otp|authenticator|speakeasy|otplib|twoFactor|mfa|tfa)[0-9A-Za-z_]*\.(verify|check|validate)[0-9A-Za-z_]*)|verify(Totp|Otp|Mfa|TwoFactor|Authenticator|Code|Token)[0-9A-Za-z_]*|challengeAndVerify|verifyAuthenticationResponse|verifyTOTP)\(
+        - kind: call_expression
+          regex: (?i)(redirect|mfa|challenge|verify)
+  - all:
+    - any:
+      - kind: function_declaration
+      - kind: method_definition
+    - has:
+        field: name
+        any:
+        - kind: identifier
+          regex: (?i)^(is_?)?mfa_?required$|^requires_?mfa$
+        - kind: property_identifier
+          regex: (?i)^(is_?)?mfa_?required$|^requires_?mfa$
+    - has:
+        field: body
+        has:
+          kind: return_statement
+          all:
+          - regex: (?i)^\(\s*!?\s*[A-Za-z0-9_.?]*\.(otp|totp|mfaCode|mfa_code|code)\s*\)$|(mfa|otp|totp|two_?factor|2fa|tfa)_?(enabled|enrolled|active|registered|configured)|(mfa|otp|two_?factor)_?required_?for_?login|is_?mfa_?required|mfa_?required|requires_?mfa|nextLevel|has_?mfa|factors\.(length|totp)|mfa_?types|\$this->types
+            kind: return_statement
+          - not:
+              kind: return_statement
+              regex: (?i)(role|is_?staff|staff|admin|clinician|practitioner|provider|doctor|physician|nurse)
+min_engine: 0.39.0

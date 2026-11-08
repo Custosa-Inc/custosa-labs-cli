@@ -1,0 +1,148 @@
+# inbound-webhooks-verified (T23 B32, design v3 2.2.2). Written by scripts/gen_webhook_rules.py: edit that script,
+# never this file. The rule id's last part is the form (items-sdk, items-hmac, violation, webhook-route,
+# replay-dedupe), which the practice function reads, since a match carries only one has_control. replay-dedupe matches
+# the items-sdk handler itself, so the function joins the two on path and line.
+
+# serverless-entry: a serverless entry point (an exported Lambda handler, Firebase https.onRequest, a Workers fetch;
+# in Go, lambda.Start). No item rule reads it. Evidence: needs_review no_rule_for_stack naming it, and no pass while
+# it is seen.
+id: inbound-webhooks-verified.javascript-generic.serverless-entry
+practice_id: inbound-webhooks-verified
+language: javascript
+frameworks:
+- generic
+kind: evidence
+rule:
+  any:
+  - kind: function_declaration
+    has:
+      field: name
+      kind: identifier
+      regex: ^handler$
+    inside:
+      kind: export_statement
+      not:
+        kind: export_statement
+        regex: ^export\s+default\b
+  - kind: variable_declarator
+    has:
+      field: name
+      kind: identifier
+      regex: ^handler$
+    inside:
+      any:
+      - kind: lexical_declaration
+      - kind: variable_declaration
+      inside:
+        kind: export_statement
+        not:
+          kind: export_statement
+          regex: ^export\s+default\b
+  - kind: assignment_expression
+    has:
+      field: left
+      kind: member_expression
+      regex: ^(module\.)?exports\.handler$
+  - kind: call_expression
+    has:
+      field: function
+      any:
+      - kind: member_expression
+        regex: (^|\.)https\.onRequest$
+      - kind: identifier
+        regex: ^onRequest$
+  - kind: method_definition
+    has:
+      field: name
+      kind: property_identifier
+      regex: ^fetch$
+    inside:
+      kind: object
+      inside:
+        kind: export_statement
+  - kind: pair
+    has:
+      field: key
+      kind: property_identifier
+      regex: ^fetch$
+    inside:
+      kind: object
+      inside:
+        kind: export_statement
+min_engine: 0.39.0
+---
+# serverless-folder: a default export in a netlify/functions or netlify/edge-functions folder (path_regex): a Netlify
+# function. Evidence: needs_review no_rule_for_stack naming it, and no pass while it is seen.
+id: inbound-webhooks-verified.javascript-generic.serverless-folder
+practice_id: inbound-webhooks-verified
+language: javascript
+frameworks:
+- generic
+kind: evidence
+rule:
+  kind: export_statement
+  regex: ^export\s+default\b
+path_regex: (^|/)netlify/(edge-)?functions/
+min_engine: 0.39.0
+---
+# server-unread: a server no inventory stem reads (B32p 9.4 fix 1): createServer not given the file's express() app,
+# Koa, Hapi, Hono, Elysia, Bun.serve, Deno.serve or Fastify; in Python a request-handler class, aiohttp or Starlette.
+# Evidence: no pass while it is seen; never an object of its own.
+id: inbound-webhooks-verified.javascript-generic.server-unread
+practice_id: inbound-webhooks-verified
+language: javascript
+frameworks:
+- generic
+kind: evidence
+rule:
+  any:
+  - kind: call_expression
+    all:
+    - has:
+        field: function
+        any:
+        - kind: member_expression
+          regex: ^\w+\.create(Secure)?Server$
+        - kind: identifier
+          regex: ^create(Secure)?Server$
+    - not:
+        any:
+        - all:
+          - pattern: $R.createServer($APP)
+          - inside:
+              kind: program
+              stopBy: end
+              has:
+                stopBy: end
+                any:
+                - pattern: const $APP = express()
+                - pattern: let $APP = express()
+                - pattern: var $APP = express()
+        - all:
+          - pattern: createServer($APP)
+          - inside:
+              kind: program
+              stopBy: end
+              has:
+                stopBy: end
+                any:
+                - pattern: const $APP = express()
+                - pattern: let $APP = express()
+                - pattern: var $APP = express()
+  - kind: new_expression
+    has:
+      field: constructor
+      any:
+      - kind: identifier
+        regex: ^(Koa|Hono|Elysia)$
+      - kind: member_expression
+        regex: ^(Hapi|hapi|http|https)\.Server$
+  - kind: call_expression
+    has:
+      field: function
+      any:
+      - kind: member_expression
+        regex: ^((Hapi|hapi)\.(server|Server)|(Bun|Deno)\.serve)$
+      - kind: identifier
+        regex: ^(fastify|Fastify)$
+min_engine: 0.39.0

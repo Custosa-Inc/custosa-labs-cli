@@ -1,0 +1,208 @@
+# CI for the custosa package: tests, npm audit, OSV-Scanner, the pack check, and a smoke install of the packed
+# tarball on Linux (and on macOS and Windows for main and release tags).
+#
+# Jobs:
+#   test             npm ci --ignore-scripts, allowlisted install scripts only, npm test, npm run test:blackbox,
+#                    the pack check, check-ruleset --self and check-shipped-sql.
+#   audit            npm audit of the production dependencies; high and above fails.
+#   osv              OSV-Scanner over npm-shrinkwrap.json.
+#   secret-scan      gitleaks on its default rules over every file, test/ included, with no allowlist. The tests
+#                    write their fake keys escaped (CONTRIBUTING.md), so any key-shaped string in the file bytes
+#                    fails here, as GitHub push protection would refuse it. --max-decode-depth 0 scans the bytes as
+#                    written: by default gitleaks decodes \uXXXX escapes and would see the escaped fake keys again.
+#                    It also checks that the JSON fixtures keep their fake keys escaped (scripts/escape-fake-keys.mjs).
+#   pack             builds the tarball once; smoke installs exactly that file.
+#   smoke            Linux x Node 20 and 22, plus macOS and Windows on main and release tags: clean install of the
+#                    tarball into an empty folder, custosa --version, a stdio tools/list round-trip and a local-only
+#                    scan of a fixture project.
+#
+# The tests that compare the CLI with the evaluator's own contracts and rule fixtures read a checkout of the private
+# evaluator (CUSTOSA_CORE_CONTRACTS, CUSTOSA_HOSTED_RULES). It is not here, so those tests skip with their reason.
+# Custosa runs them in its private CI before each release.
+#
+# The release workflow (release.yml) calls this file with workflow_call, so a tag is published only after every job
+# here passes for that exact commit. Nothing here talks to the network evaluator: the smoke runs pin
+# CUSTOSA_INSPECT_LOCAL_ONLY=1, an empty config folder and a closed loopback evaluator address.
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+  workflow_call:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.event_name }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+env:
+  NPM_CONFIG_FUND: "false"
+  NPM_CONFIG_UPDATE_NOTIFIER: "false"
+
+jobs:
+  test:
+    name: Test (Linux, Node 22)
+    runs-on: ubuntu-24.04
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: 22
+      - name: Install dependencies without running their scripts
+        run: npm ci --ignore-scripts --no-audit
+      - name: Run only the allowlisted install scripts
+        id: install
+        run: node .github/scripts/install-scripts.mjs .
+      - name: Put the runner's Postgres on PATH (the unit database tests call initdb and pg_ctl by name)
+        run: |
+          bin=$(ls -d /usr/lib/postgresql/*/bin | sort -V | tail -n 1)
+          test -x "$bin/initdb"
+          echo "$bin" >> "$GITHUB_PATH"
+      - name: Unit tests
+        # The steps after this one still run when it fails, so one run reports every problem.
+        run: npm test
+      - name: Black-box tests
+        if: ${{ !cancelled() && steps.install.outcome == 'success' }}
+        run: |
+          if node -e "process.exit(require('./package.json').scripts?.['test:blackbox'] ? 0 : 1)"; then
+            npm run test:blackbox
+          else
+            echo "no test:blackbox script; skipped"
+          fi
+      - name: Pack check (published files equal .github/pack-expected-files.txt)
+        if: ${{ !cancelled() && steps.install.outcome == 'success' }}
+        run: npm run check-pack
+      - name: Rule set verifies against its own manifest
+        if: ${{ !cancelled() && steps.install.outcome == 'success' }}
+        run: npm run check-ruleset -- --self
+      - name: Every shipped catalog query passes checkShippedSql
+        if: ${{ !cancelled() && steps.install.outcome == 'success' }}
+        run: npm run check-shipped-sql
+
+  audit:
+    name: npm audit (production dependencies)
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: 22
+      - name: npm audit (reads npm-shrinkwrap.json; nothing is installed)
+        run: npm audit --omit=dev --audit-level=high
+
+  osv:
+    name: OSV-Scanner
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Scan npm-shrinkwrap.json
+        uses: google/osv-scanner-action/osv-scanner-action@a345acffa64b0eaede81a3d9aae6141214d9c8fc # v2.6.0
+        with:
+          scan-args: |-
+            --lockfile=package-lock.json:./npm-shrinkwrap.json
+
+  secret-scan:
+    name: Secret scan (gitleaks, whole tree)
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    env:
+      GITLEAKS_VERSION: 8.30.1
+      # sha256 of gitleaks_8.30.1_linux_x64.tar.gz, from the release's gitleaks_8.30.1_checksums.txt.
+      GITLEAKS_SHA256: 551f6fc83ea457d62a0d98237cbad105af8d557003051f41f3e7ca7b3f2470eb
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Install gitleaks (release tarball, sha256 checked)
+        run: |
+          curl -fsSL --retry 3 -o "$RUNNER_TEMP/gitleaks.tar.gz" \
+            "https://github.com/gitleaks/gitleaks/releases/download/v${GITLEAKS_VERSION}/gitleaks_${GITLEAKS_VERSION}_linux_x64.tar.gz"
+          echo "${GITLEAKS_SHA256}  $RUNNER_TEMP/gitleaks.tar.gz" | sha256sum -c -
+          tar -xzf "$RUNNER_TEMP/gitleaks.tar.gz" -C "$RUNNER_TEMP" gitleaks
+      - name: Scan every file on the default rules, no allowlist
+        run: |
+          "$RUNNER_TEMP/gitleaks" dir . --no-banner --redact --exit-code 1 --max-decode-depth 0
+      - name: JSON fixtures keep their fake keys escaped
+        run: node scripts/escape-fake-keys.mjs --check test/fixtures
+
+  pack:
+    name: Pack tarball
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: 22
+      - name: Pack check
+        run: npm run check-pack
+      - name: npm pack
+        run: |
+          mkdir -p "$RUNNER_TEMP/pack"
+          npm pack --ignore-scripts --pack-destination "$RUNNER_TEMP/pack"
+          ls -l "$RUNNER_TEMP/pack"
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: custosa-tarball
+          path: ${{ runner.temp }}/pack/*.tgz
+          if-no-files-found: error
+          retention-days: 7
+
+  smoke:
+    name: Smoke (${{ matrix.os }}, Node ${{ matrix.node }})
+    needs: pack
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 30
+    strategy:
+      fail-fast: false
+      matrix:
+        # macOS and Windows runners bill at 10x and 2x: full matrix only on main and release tags (release.yml
+        # calls this file, so a tag still needs every OS to pass). Elsewhere Linux only.
+        os: ${{ fromJSON((github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/tags/v')) && '["ubuntu-24.04", "macos-15", "windows-2025"]' || '["ubuntu-24.04"]') }}
+        node: [20, 22]
+    defaults:
+      run:
+        shell: bash
+    env:
+      CUSTOSA_SMOKE_STRICT: "1"
+      # smoke.mjs also sets these for every child it starts; set here too so nothing in this job can reach an evaluator.
+      CUSTOSA_INSPECT_LOCAL_ONLY: "1"
+      CUSTOSA_EVALUATOR_URL: "http://127.0.0.1:9"
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+          sparse-checkout: .github/scripts
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: ${{ matrix.node }}
+      - uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
+        with:
+          name: custosa-tarball
+          path: ${{ runner.temp }}/tarball
+      - name: Clean install of the tarball into an empty folder (no scripts)
+        run: |
+          mkdir -p "$RUNNER_TEMP/smoke"
+          cp "$RUNNER_TEMP"/tarball/custosa-*.tgz "$RUNNER_TEMP/smoke/"
+          cd "$RUNNER_TEMP/smoke"
+          echo '{"name":"custosa-smoke","private":true}' > package.json
+          npm install --ignore-scripts --no-audit ./custosa-*.tgz
+      - name: Run only the allowlisted install scripts
+        run: node .github/scripts/install-scripts.mjs "$RUNNER_TEMP/smoke"
+      - name: Smoke (version, stdio tools/list, local-only fixture scan)
+        run: node .github/scripts/smoke.mjs "$RUNNER_TEMP/smoke"

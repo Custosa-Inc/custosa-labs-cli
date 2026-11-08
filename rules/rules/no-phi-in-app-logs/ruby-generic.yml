@@ -1,0 +1,155 @@
+id: no-phi-in-app-logs.ruby-generic.request-body
+practice_id: no-phi-in-app-logs
+language: ruby
+frameworks:
+- generic
+kind: violation
+rule:
+  all:
+  - kind: call
+  - regex: '^(Rails\.logger|logger|@logger|log)\s*\.\s*(debug|info|warn|error|fatal)\b'
+  - has:
+      field: arguments
+      kind: argument_list
+      has:
+        stopBy: end
+        any:
+        - all:
+          - kind: identifier
+          - regex: '^params$'
+          - not:
+              any:
+              - inside:
+                  kind: element_reference
+              - inside:
+                  kind: call
+                  field: receiver
+        - kind: call
+          regex: '^params\s*\.\s*(inspect|to_json|to_h|to_unsafe_h|permit!?)\b'
+        - kind: element_reference
+          regex: '^params\[\s*:?["'']?(patient|person|visit|note|notes|record|data|body|user)\b'
+        - kind: call
+          regex: '^request\s*\.\s*(raw_post|body|params|request_parameters|query_parameters)\b'
+min_engine: 0.45.3
+---
+id: no-phi-in-app-logs.ruby-generic.patient-fields
+practice_id: no-phi-in-app-logs
+language: ruby
+frameworks:
+- generic
+kind: violation
+rule:
+  all:
+  - kind: call
+  - regex: '^(Rails\.logger|logger|@logger|log)\s*\.\s*(debug|info|warn|error|fatal)\b'
+  - has:
+      field: arguments
+      kind: argument_list
+      has:
+        stopBy: end
+        any:
+        - all:
+          - kind: call
+          - regex: '\.(ssn|dob|date_of_birth|birth_date|birthdate|diagnosis|diagnoses|mrn|medical_record_number)$'
+          - not:
+              inside:
+                kind: call
+                field: receiver
+        - all:
+          - kind: call
+          - regex: '^@?(patient|current_patient)\.(name|first_name|last_name|full_name|email|phone|address|notes)$'
+          - not:
+              inside:
+                kind: call
+                field: receiver
+        - all:
+          - any:
+            - kind: identifier
+              regex: '^(patient|patients|current_patient)$'
+            - kind: instance_variable
+              regex: '^@(patient|patients|current_patient)$'
+          - not:
+              inside:
+                kind: call
+                field: receiver
+min_engine: 0.45.3
+---
+id: no-phi-in-app-logs.ruby-generic.credential
+practice_id: no-phi-in-app-logs
+language: ruby
+frameworks:
+- generic
+kind: violation
+rule:
+  all:
+  - kind: call
+  - regex: '^(Rails\.logger|logger|@logger|log)\s*\.\s*(debug|info|warn|error|fatal)\b'
+  - has:
+      field: arguments
+      kind: argument_list
+      has:
+        stopBy: end
+        any:
+        - all:
+          - kind: identifier
+          - regex: '^(password|passwd|secret|client_secret|token|access_token|refresh_token|api_key|private_key|encryption_key|database_url)$'
+          - not:
+              any:
+              - inside:
+                  kind: call
+                  field: receiver
+              - inside:
+                  kind: call
+                  field: method
+        - all:
+          - kind: call
+          - regex: '\.(password|secret|client_secret|token|access_token|refresh_token|api_key|private_key|encryption_key)$'
+          - not:
+              inside:
+                kind: call
+                field: receiver
+min_engine: 0.45.3
+---
+id: no-phi-in-app-logs.ruby-generic.debug-level
+practice_id: no-phi-in-app-logs
+language: ruby
+frameworks:
+- generic
+kind: violation
+rule:
+  all:
+  - kind: assignment
+  - has:
+      field: left
+      kind: call
+      regex: '^(config|Rails\.logger|Rails\.application\.config|config\.logger)\s*\.\s*(log_level|level)$'
+  - has:
+      field: right
+      any:
+      - kind: simple_symbol
+        regex: '^:debug$'
+      - kind: scope_resolution
+        regex: '^(::)?Logger::DEBUG$'
+min_engine: 0.45.3
+---
+id: no-phi-in-app-logs.ruby-generic.filter-parameters
+practice_id: no-phi-in-app-logs
+language: ruby
+frameworks:
+- generic
+kind: evidence
+rule:
+  all:
+  - kind: operator_assignment
+  - has:
+      field: left
+      kind: call
+      regex: '(?-u)^(config|Rails\.application\.config)\s*\.\s*filter_parameters$'
+  - has:
+      field: right
+      kind: array
+      has:
+        any:
+        - kind: simple_symbol
+        - kind: string
+min_engine: 0.45.3

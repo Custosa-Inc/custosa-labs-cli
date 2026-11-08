@@ -1,0 +1,228 @@
+# hsts-enabled (T23 B56b). Written by scripts/gen_hsts_rules.py: edit that script,
+# never this file. The practice function reads the pieces by name: header-<form> and redirect-<form> (NAMING.md).
+
+# header-rails: config.ssl_options with hsts: { expires: a year or more } in config/environments/production.rb, beside
+# config.force_ssl = true in the same file. Evidence: the header piece.
+id: hsts-enabled.ruby-rails.header-rails
+practice_id: hsts-enabled
+language: ruby
+frameworks:
+- rails
+kind: evidence
+path_regex: (^|/)config/environments/production\.rb$
+rule:
+  kind: assignment
+  regex: ^((Rails\.application\.)?config|Rails\.configuration)\.ssl_options\s*=
+  has:
+    field: right
+    kind: hash
+    has:
+      kind: pair
+      all:
+      - has:
+          field: key
+          kind: hash_key_symbol
+          regex: ^hsts$
+      - has:
+          field: value
+          kind: hash
+          has:
+            kind: pair
+            all:
+            - has:
+                field: key
+                kind: hash_key_symbol
+                regex: ^expires$
+            - has:
+                field: value
+                any:
+                - kind: call
+                  regex: ^(([1-9]\d*)\.years?|(36[5-9]|3[7-9]\d|[4-9]\d\d|[1-9]\d{3,})\.days?|(5[3-9]|[6-9]\d|[1-9]\d{2,})\.weeks?|(1[2-9]|[2-9]\d|[1-9]\d{2,})\.months?|(3153[6-9]\d{3}|315[4-9]\d{4}|31[6-9]\d{5}|3[2-9]\d{6}|[4-9]\d{7}|[1-9]\d{8,}))$
+                - kind: integer
+                  regex: ^(([1-9]\d*)\.years?|(36[5-9]|3[7-9]\d|[4-9]\d\d|[1-9]\d{3,})\.days?|(5[3-9]|[6-9]\d|[1-9]\d{2,})\.weeks?|(1[2-9]|[2-9]\d|[1-9]\d{2,})\.months?|(3153[6-9]\d{3}|315[4-9]\d{4}|31[6-9]\d{5}|3[2-9]\d{6}|[4-9]\d{7}|[1-9]\d{8,}))$
+  inside:
+    stopBy: end
+    kind: program
+    has:
+      stopBy: end
+      kind: assignment
+      regex: ^((Rails\.application\.)?config|Rails\.configuration)\.force_ssl\s*=\s*true$
+min_engine: 0.45.3
+---
+# redirect-rails: config.force_ssl = true in config/environments/production.rb or config/application.rb, with no
+# ssl_options in that file holding a redirect: key or a value that isn't a literal hash. Evidence: the redirect piece.
+id: hsts-enabled.ruby-rails.redirect-rails
+practice_id: hsts-enabled
+language: ruby
+frameworks:
+- rails
+kind: evidence
+path_regex: (^|/)config/(environments/production|application)\.rb$
+rule:
+  kind: assignment
+  regex: ^((Rails\.application\.)?config|Rails\.configuration)\.force_ssl\s*=\s*true$
+  all:
+  - not:
+      inside:
+        stopBy: end
+        kind: program
+        has:
+          stopBy: end
+          kind: assignment
+          regex: ^((Rails\.application\.)?config|Rails\.configuration)\.ssl_options\s*=
+          has:
+            field: right
+            kind: hash
+          all:
+          - has:
+              stopBy: end
+              kind: pair
+              has:
+                field: key
+                kind: hash_key_symbol
+                regex: ^redirect$
+  - not:
+      inside:
+        stopBy: end
+        kind: program
+        has:
+          stopBy: end
+          kind: assignment
+          regex: ^((Rails\.application\.)?config|Rails\.configuration)\.ssl_options\s*=
+          not:
+            has:
+              field: right
+              kind: hash
+min_engine: 0.45.3
+---
+# unread-ssl-options: config.ssl_options set to something other than a literal hash. Evidence the function reads as a
+# hold.
+id: hsts-enabled.ruby-rails.unread-ssl-options
+practice_id: hsts-enabled
+language: ruby
+frameworks:
+- rails
+kind: evidence
+rule:
+  kind: assignment
+  regex: ^((Rails\.application\.)?config|Rails\.configuration)\.ssl_options\s*=
+  not:
+    has:
+      field: right
+      kind: hash
+min_engine: 0.45.3
+---
+# rails-ssl-assign: any assignment to force_ssl or ssl_options, or the SSL middleware deleted, in any .rb file.
+# Evidence the function reads as a hold when it lies outside production.rb and application.rb.
+id: hsts-enabled.ruby-rails.rails-ssl-assign
+practice_id: hsts-enabled
+language: ruby
+frameworks:
+- rails
+kind: evidence
+rule:
+  any:
+  - kind: assignment
+    regex: ^([\w:]+\.)*(config|configuration)\.(force_ssl|ssl_options)\b
+  - kind: call
+    regex: ^([\w:]+\.)*middleware\.delete[\s(]+ActionDispatch::SSL\b
+min_engine: 0.45.3
+---
+# short-max-age: an HSTS age below a year, as a literal: helmet's maxAge, a Strict-Transport-Security value in a
+# next.config entry, a header call or vercel.json; Rails ssl_options hsts: { expires: } in production.rb or
+# application.rb; Django SECURE_HSTS_SECONDS in an allowlisted settings file; a Traefik headers middleware's
+# stsSeconds; an ingress ConfigMap's hsts-max-age. Fail.
+id: hsts-enabled.ruby-rails.short-max-age
+practice_id: hsts-enabled
+language: ruby
+frameworks:
+- rails
+kind: violation
+path_regex: (^|/)config/(environments/production|application)\.rb$
+rule:
+  kind: assignment
+  regex: ^((Rails\.application\.)?config|Rails\.configuration)\.ssl_options\s*=
+  has:
+    field: right
+    kind: hash
+    has:
+      kind: pair
+      all:
+      - has:
+          field: key
+          kind: hash_key_symbol
+          regex: ^hsts$
+      - has:
+          field: value
+          kind: hash
+          has:
+            kind: pair
+            all:
+            - has:
+                field: key
+                kind: hash_key_symbol
+                regex: ^expires$
+            - has:
+                field: value
+                any:
+                - kind: call
+                  regex: ^(\d+(\.(years?|days?|weeks?|months?|hours?|minutes?|seconds?))?)$
+                - kind: integer
+                  regex: ^(\d+(\.(years?|days?|weeks?|months?|hours?|minutes?|seconds?))?)$
+  not:
+    has:
+      field: right
+      kind: hash
+      has:
+        kind: pair
+        all:
+        - has:
+            field: key
+            kind: hash_key_symbol
+            regex: ^hsts$
+        - has:
+            field: value
+            kind: hash
+            has:
+              kind: pair
+              all:
+              - has:
+                  field: key
+                  kind: hash_key_symbol
+                  regex: ^expires$
+              - has:
+                  field: value
+                  any:
+                  - kind: call
+                    regex: ^(([1-9]\d*)\.years?|(36[5-9]|3[7-9]\d|[4-9]\d\d|[1-9]\d{3,})\.days?|(5[3-9]|[6-9]\d|[1-9]\d{2,})\.weeks?|(1[2-9]|[2-9]\d|[1-9]\d{2,})\.months?|(3153[6-9]\d{3}|315[4-9]\d{4}|31[6-9]\d{5}|3[2-9]\d{6}|[4-9]\d{7}|[1-9]\d{8,}))$
+                  - kind: integer
+                    regex: ^(([1-9]\d*)\.years?|(36[5-9]|3[7-9]\d|[4-9]\d\d|[1-9]\d{3,})\.days?|(5[3-9]|[6-9]\d|[1-9]\d{2,})\.weeks?|(1[2-9]|[2-9]\d|[1-9]\d{2,})\.months?|(3153[6-9]\d{3}|315[4-9]\d{4}|31[6-9]\d{5}|3[2-9]\d{6}|[4-9]\d{7}|[1-9]\d{8,}))$
+min_engine: 0.45.3
+---
+# hsts-off: HSTS turned off: helmet({ hsts: false }) or helmet({ strictTransportSecurity: false }); Rails ssl_options
+# hsts: false in production.rb or application.rb; Django SECURE_HSTS_SECONDS = 0 in an allowlisted settings file; a
+# Traefik headers middleware's stsSeconds: 0; hsts: "false" in an ingress ConfigMap's data. Fail.
+id: hsts-enabled.ruby-rails.hsts-off
+practice_id: hsts-enabled
+language: ruby
+frameworks:
+- rails
+kind: violation
+path_regex: (^|/)config/(environments/production|application)\.rb$
+rule:
+  kind: assignment
+  regex: ^((Rails\.application\.)?config|Rails\.configuration)\.ssl_options\s*=
+  has:
+    field: right
+    kind: hash
+    has:
+      kind: pair
+      all:
+      - has:
+          field: key
+          kind: hash_key_symbol
+          regex: ^hsts$
+      - has:
+          field: value
+          kind: 'false'
+min_engine: 0.45.3

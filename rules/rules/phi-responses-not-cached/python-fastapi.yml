@@ -1,0 +1,592 @@
+# phi-responses-not-cached (T23 B34, design v3 2.2.6, docs/b34-plan.md). Written by scripts/gen_nocache_rules.py:
+# edit that script, never this file. The rule id's last part is the form (items-handler, unobserved-header,
+# violation-shared, static-page). unobserved-header matches the items-handler node itself, so judge holds that item
+# at its own path and line.
+
+# items-handler: a route handler whose body makes a data call. The control is a literal Cache-Control value holding
+# no-store (Django: also never_cache, cache_control(no_store=True), patch_cache_control or add_never_cache_headers;
+# cache_page and cache_control(public=True) or s_maxage are shared). No control: fail, unless unobserved-header holds
+# it. The header counts only in a response write (response[...] =, response.headers[...] =, resp.headers.set, a
+# Response class or make_response given the headers, or Flask's returned tuple), never in a request sent with
+# requests, httpx or aiohttp, on a name bound from one (or from a session's get or post, or a Response imported from
+# httpx or requests), nor in a comment. A no-store literal no write placed holds the item, never a fail.
+id: phi-responses-not-cached.python-fastapi.items-handler
+practice_id: phi-responses-not-cached
+language: python
+frameworks:
+- fastapi
+kind: items
+rule:
+  all:
+  - kind: function_definition
+    inside:
+      kind: decorated_definition
+      has:
+        kind: decorator
+        regex: ^@\w+\.(get|post|put|patch|delete|api_route)\(
+  - any:
+    - kind: function_definition
+      regex: (\b(db|session|cursor|cur|conn|connection|engine)(\s*\.\s*\w+)*\s*\.\s*(execute|executemany|add|add_all|query|merge|delete|insert\w*|update\w*|scalars?|get|fetch\w*)\s*\(|\b[A-Z]\w*\.objects\b|\bget_object_or_404\s*\(|\b\w*(_service|Service|_repo|Repository|_dao|Dao|crud)\s*\.\s*\w+\s*\()
+control:
+  any:
+  - has:
+      stopBy: end
+      any:
+      - kind: assignment
+        regex: (?is)['"]cache-control['"]\s*(\]\s*=|[,:])\s*[rbuf]*['"][^'"]*no-store
+        has:
+          field: left
+          kind: subscript
+          regex: ^(res|resp|response|rv|\w+_response)(\s*\.\s*headers)?\s*\[
+        not:
+          all:
+          - has:
+              field: left
+              kind: subscript
+              has:
+                field: value
+                any:
+                - kind: identifier
+                  pattern:
+                    context: ($R)
+                    selector: identifier
+                - kind: attribute
+                  has:
+                    field: object
+                    kind: identifier
+                    pattern:
+                      context: ($R)
+                      selector: identifier
+          - inside:
+              stopBy: end
+              kind: function_definition
+              has:
+                stopBy: end
+                kind: assignment
+                all:
+                - has:
+                    field: left
+                    kind: identifier
+                    pattern:
+                      context: ($R)
+                      selector: identifier
+                - has:
+                    field: right
+                    any:
+                    - kind: call
+                      regex: ^(await\s+)?((requests|httpx|aiohttp)\s*\.|(?i:\w*session)\s*\.\s*(get|post|put|patch|delete|head|options|request)\s*\()
+                    - kind: await
+                      regex: ^(await\s+)?((requests|httpx|aiohttp)\s*\.|(?i:\w*session)\s*\.\s*(get|post|put|patch|delete|head|options|request)\s*\()
+                    - kind: call
+                      regex: ^Response\s*\(
+                      inside:
+                        stopBy: end
+                        kind: module
+                        has:
+                          kind: import_from_statement
+                          regex: ^from\s+(httpx|requests)(\.\w+)*\s+import\b[\s\S]*\bResponse\b
+      - kind: call
+        all:
+        - has:
+            field: function
+            kind: attribute
+            regex: ^(res|resp|response|rv|\w+_response)\s*\.\s*headers\s*\.\s*(set|add|setdefault|update)$
+        - has:
+            field: arguments
+            kind: argument_list
+            regex: (?is)['"]cache-control['"]\s*(\]\s*=|[,:])\s*[rbuf]*['"][^'"]*no-store
+        not:
+          all:
+          - has:
+              field: function
+              kind: attribute
+              has:
+                field: object
+                kind: attribute
+                has:
+                  field: object
+                  kind: identifier
+                  pattern:
+                    context: ($R)
+                    selector: identifier
+          - inside:
+              stopBy: end
+              kind: function_definition
+              has:
+                stopBy: end
+                kind: assignment
+                all:
+                - has:
+                    field: left
+                    kind: identifier
+                    pattern:
+                      context: ($R)
+                      selector: identifier
+                - has:
+                    field: right
+                    any:
+                    - kind: call
+                      regex: ^(await\s+)?((requests|httpx|aiohttp)\s*\.|(?i:\w*session)\s*\.\s*(get|post|put|patch|delete|head|options|request)\s*\()
+                    - kind: await
+                      regex: ^(await\s+)?((requests|httpx|aiohttp)\s*\.|(?i:\w*session)\s*\.\s*(get|post|put|patch|delete|head|options|request)\s*\()
+                    - kind: call
+                      regex: ^Response\s*\(
+                      inside:
+                        stopBy: end
+                        kind: module
+                        has:
+                          kind: import_from_statement
+                          regex: ^from\s+(httpx|requests)(\.\w+)*\s+import\b[\s\S]*\bResponse\b
+      - kind: call
+        all:
+        - has:
+            field: function
+            any:
+            - kind: identifier
+              regex: (^|\.)(\w*Response|make_response)$
+            - kind: attribute
+              regex: (^|\.)(\w*Response|make_response)$
+            not:
+              any:
+              - kind: attribute
+                regex: ^(httpx|requests|aiohttp)\b
+              - kind: identifier
+                regex: ^Response$
+                inside:
+                  stopBy: end
+                  kind: module
+                  has:
+                    kind: import_from_statement
+                    regex: ^from\s+(httpx|requests)(\.\w+)*\s+import\b[\s\S]*\bResponse\b
+        - has:
+            field: arguments
+            kind: argument_list
+            has:
+              any:
+              - kind: dictionary
+                regex: (?is)['"]cache-control['"]\s*(\]\s*=|[,:])\s*[rbuf]*['"][^'"]*no-store
+              - kind: keyword_argument
+                regex: (?is)['"]cache-control['"]\s*(\]\s*=|[,:])\s*[rbuf]*['"][^'"]*no-store
+                has:
+                  field: name
+                  kind: identifier
+                  regex: ^headers$
+      - kind: dictionary
+        regex: (?is)['"]cache-control['"]\s*(\]\s*=|[,:])\s*[rbuf]*['"][^'"]*no-store
+        inside:
+          kind: expression_list
+          inside:
+            kind: return_statement
+  - inside:
+      kind: decorated_definition
+      has:
+        kind: decorator
+        regex: ^@(\w+\.)*never_cache\b
+  - inside:
+      kind: decorated_definition
+      has:
+        kind: decorator
+        regex: (?s)^@(\w+\.)*cache_control\(.*\bno_store\s*=\s*True
+  - has:
+      stopBy: end
+      kind: call
+      regex: (?s)^(\w+\.)*patch_cache_control\(.*\bno_store\s*=\s*True
+  - has:
+      stopBy: end
+      kind: call
+      regex: ^(\w+\.)*add_never_cache_headers\(
+min_engine: 0.39.0
+---
+# unobserved-header: the same handler when it writes no literal Cache-Control (Django: also never_cache,
+# cache_control(no_store=True), patch_cache_control or add_never_cache_headers; cache_page and
+# cache_control(public=True) or s_maxage are shared). The header may be set by middleware, a framework default or a
+# CDN rule elsewhere, so the item is held for a person. The header counts only in a response write (response[...] =,
+# response.headers[...] =, resp.headers.set, a Response class or make_response given the headers, or Flask's returned
+# tuple), never in a request sent with requests, httpx or aiohttp, on a name bound from one (or from a session's get
+# or post, or a Response imported from httpx or requests), nor in a comment. A no-store literal no write placed holds
+# the item, never a fail.
+id: phi-responses-not-cached.python-fastapi.unobserved-header
+practice_id: phi-responses-not-cached
+language: python
+frameworks:
+- fastapi
+kind: evidence
+rule:
+  all:
+  - kind: function_definition
+    inside:
+      kind: decorated_definition
+      has:
+        kind: decorator
+        regex: ^@\w+\.(get|post|put|patch|delete|api_route)\(
+  - any:
+    - kind: function_definition
+      regex: (\b(db|session|cursor|cur|conn|connection|engine)(\s*\.\s*\w+)*\s*\.\s*(execute|executemany|add|add_all|query|merge|delete|insert\w*|update\w*|scalars?|get|fetch\w*)\s*\(|\b[A-Z]\w*\.objects\b|\bget_object_or_404\s*\(|\b\w*(_service|Service|_repo|Repository|_dao|Dao|crud)\s*\.\s*\w+\s*\()
+  - any:
+    - all:
+      - not:
+          has:
+            stopBy: end
+            any:
+            - kind: assignment
+              regex: (?is)['"]cache-control['"]\s*(\]\s*=|[,:])\s*[rbuf]*['"]
+              has:
+                field: left
+                kind: subscript
+                regex: ^(res|resp|response|rv|\w+_response)(\s*\.\s*headers)?\s*\[
+              not:
+                all:
+                - has:
+                    field: left
+                    kind: subscript
+                    has:
+                      field: value
+                      any:
+                      - kind: identifier
+                        pattern:
+                          context: ($R)
+                          selector: identifier
+                      - kind: attribute
+                        has:
+                          field: object
+                          kind: identifier
+                          pattern:
+                            context: ($R)
+                            selector: identifier
+                - inside:
+                    stopBy: end
+                    kind: function_definition
+                    has:
+                      stopBy: end
+                      kind: assignment
+                      all:
+                      - has:
+                          field: left
+                          kind: identifier
+                          pattern:
+                            context: ($R)
+                            selector: identifier
+                      - has:
+                          field: right
+                          any:
+                          - kind: call
+                            regex: ^(await\s+)?((requests|httpx|aiohttp)\s*\.|(?i:\w*session)\s*\.\s*(get|post|put|patch|delete|head|options|request)\s*\()
+                          - kind: await
+                            regex: ^(await\s+)?((requests|httpx|aiohttp)\s*\.|(?i:\w*session)\s*\.\s*(get|post|put|patch|delete|head|options|request)\s*\()
+                          - kind: call
+                            regex: ^Response\s*\(
+                            inside:
+                              stopBy: end
+                              kind: module
+                              has:
+                                kind: import_from_statement
+                                regex: ^from\s+(httpx|requests)(\.\w+)*\s+import\b[\s\S]*\bResponse\b
+            - kind: call
+              all:
+              - has:
+                  field: function
+                  kind: attribute
+                  regex: ^(res|resp|response|rv|\w+_response)\s*\.\s*headers\s*\.\s*(set|add|setdefault|update)$
+              - has:
+                  field: arguments
+                  kind: argument_list
+                  regex: (?is)['"]cache-control['"]\s*(\]\s*=|[,:])\s*[rbuf]*['"]
+              not:
+                all:
+                - has:
+                    field: function
+                    kind: attribute
+                    has:
+                      field: object
+                      kind: attribute
+                      has:
+                        field: object
+                        kind: identifier
+                        pattern:
+                          context: ($R)
+                          selector: identifier
+                - inside:
+                    stopBy: end
+                    kind: function_definition
+                    has:
+                      stopBy: end
+                      kind: assignment
+                      all:
+                      - has:
+                          field: left
+                          kind: identifier
+                          pattern:
+                            context: ($R)
+                            selector: identifier
+                      - has:
+                          field: right
+                          any:
+                          - kind: call
+                            regex: ^(await\s+)?((requests|httpx|aiohttp)\s*\.|(?i:\w*session)\s*\.\s*(get|post|put|patch|delete|head|options|request)\s*\()
+                          - kind: await
+                            regex: ^(await\s+)?((requests|httpx|aiohttp)\s*\.|(?i:\w*session)\s*\.\s*(get|post|put|patch|delete|head|options|request)\s*\()
+                          - kind: call
+                            regex: ^Response\s*\(
+                            inside:
+                              stopBy: end
+                              kind: module
+                              has:
+                                kind: import_from_statement
+                                regex: ^from\s+(httpx|requests)(\.\w+)*\s+import\b[\s\S]*\bResponse\b
+            - kind: call
+              all:
+              - has:
+                  field: function
+                  any:
+                  - kind: identifier
+                    regex: (^|\.)(\w*Response|make_response)$
+                  - kind: attribute
+                    regex: (^|\.)(\w*Response|make_response)$
+                  not:
+                    any:
+                    - kind: attribute
+                      regex: ^(httpx|requests|aiohttp)\b
+                    - kind: identifier
+                      regex: ^Response$
+                      inside:
+                        stopBy: end
+                        kind: module
+                        has:
+                          kind: import_from_statement
+                          regex: ^from\s+(httpx|requests)(\.\w+)*\s+import\b[\s\S]*\bResponse\b
+              - has:
+                  field: arguments
+                  kind: argument_list
+                  has:
+                    any:
+                    - kind: dictionary
+                      regex: (?is)['"]cache-control['"]\s*(\]\s*=|[,:])\s*[rbuf]*['"]
+                    - kind: keyword_argument
+                      regex: (?is)['"]cache-control['"]\s*(\]\s*=|[,:])\s*[rbuf]*['"]
+                      has:
+                        field: name
+                        kind: identifier
+                        regex: ^headers$
+            - kind: dictionary
+              regex: (?is)['"]cache-control['"]\s*(\]\s*=|[,:])\s*[rbuf]*['"]
+              inside:
+                kind: expression_list
+                inside:
+                  kind: return_statement
+      - not:
+          inside:
+            kind: decorated_definition
+            has:
+              kind: decorator
+              regex: ^@(\w+\.)*(never_cache|cache_control|cache_page)\b
+      - not:
+          has:
+            stopBy: end
+            kind: call
+            regex: ^(\w+\.)*(patch_cache_control|add_never_cache_headers)\(
+    - all:
+      - any:
+        - kind: function_definition
+          regex: (?is)['"]cache-control['"]\s*(\]\s*=|[,:])\s*[rbuf]*['"][^'"]*no-store
+      - not:
+          any:
+          - has:
+              stopBy: end
+              any:
+              - kind: assignment
+                regex: (?is)['"]cache-control['"]\s*(\]\s*=|[,:])\s*[rbuf]*['"][^'"]*no-store
+                has:
+                  field: left
+                  kind: subscript
+                  regex: ^(res|resp|response|rv|\w+_response)(\s*\.\s*headers)?\s*\[
+                not:
+                  all:
+                  - has:
+                      field: left
+                      kind: subscript
+                      has:
+                        field: value
+                        any:
+                        - kind: identifier
+                          pattern:
+                            context: ($R)
+                            selector: identifier
+                        - kind: attribute
+                          has:
+                            field: object
+                            kind: identifier
+                            pattern:
+                              context: ($R)
+                              selector: identifier
+                  - inside:
+                      stopBy: end
+                      kind: function_definition
+                      has:
+                        stopBy: end
+                        kind: assignment
+                        all:
+                        - has:
+                            field: left
+                            kind: identifier
+                            pattern:
+                              context: ($R)
+                              selector: identifier
+                        - has:
+                            field: right
+                            any:
+                            - kind: call
+                              regex: ^(await\s+)?((requests|httpx|aiohttp)\s*\.|(?i:\w*session)\s*\.\s*(get|post|put|patch|delete|head|options|request)\s*\()
+                            - kind: await
+                              regex: ^(await\s+)?((requests|httpx|aiohttp)\s*\.|(?i:\w*session)\s*\.\s*(get|post|put|patch|delete|head|options|request)\s*\()
+                            - kind: call
+                              regex: ^Response\s*\(
+                              inside:
+                                stopBy: end
+                                kind: module
+                                has:
+                                  kind: import_from_statement
+                                  regex: ^from\s+(httpx|requests)(\.\w+)*\s+import\b[\s\S]*\bResponse\b
+              - kind: call
+                all:
+                - has:
+                    field: function
+                    kind: attribute
+                    regex: ^(res|resp|response|rv|\w+_response)\s*\.\s*headers\s*\.\s*(set|add|setdefault|update)$
+                - has:
+                    field: arguments
+                    kind: argument_list
+                    regex: (?is)['"]cache-control['"]\s*(\]\s*=|[,:])\s*[rbuf]*['"][^'"]*no-store
+                not:
+                  all:
+                  - has:
+                      field: function
+                      kind: attribute
+                      has:
+                        field: object
+                        kind: attribute
+                        has:
+                          field: object
+                          kind: identifier
+                          pattern:
+                            context: ($R)
+                            selector: identifier
+                  - inside:
+                      stopBy: end
+                      kind: function_definition
+                      has:
+                        stopBy: end
+                        kind: assignment
+                        all:
+                        - has:
+                            field: left
+                            kind: identifier
+                            pattern:
+                              context: ($R)
+                              selector: identifier
+                        - has:
+                            field: right
+                            any:
+                            - kind: call
+                              regex: ^(await\s+)?((requests|httpx|aiohttp)\s*\.|(?i:\w*session)\s*\.\s*(get|post|put|patch|delete|head|options|request)\s*\()
+                            - kind: await
+                              regex: ^(await\s+)?((requests|httpx|aiohttp)\s*\.|(?i:\w*session)\s*\.\s*(get|post|put|patch|delete|head|options|request)\s*\()
+                            - kind: call
+                              regex: ^Response\s*\(
+                              inside:
+                                stopBy: end
+                                kind: module
+                                has:
+                                  kind: import_from_statement
+                                  regex: ^from\s+(httpx|requests)(\.\w+)*\s+import\b[\s\S]*\bResponse\b
+              - kind: call
+                all:
+                - has:
+                    field: function
+                    any:
+                    - kind: identifier
+                      regex: (^|\.)(\w*Response|make_response)$
+                    - kind: attribute
+                      regex: (^|\.)(\w*Response|make_response)$
+                    not:
+                      any:
+                      - kind: attribute
+                        regex: ^(httpx|requests|aiohttp)\b
+                      - kind: identifier
+                        regex: ^Response$
+                        inside:
+                          stopBy: end
+                          kind: module
+                          has:
+                            kind: import_from_statement
+                            regex: ^from\s+(httpx|requests)(\.\w+)*\s+import\b[\s\S]*\bResponse\b
+                - has:
+                    field: arguments
+                    kind: argument_list
+                    has:
+                      any:
+                      - kind: dictionary
+                        regex: (?is)['"]cache-control['"]\s*(\]\s*=|[,:])\s*[rbuf]*['"][^'"]*no-store
+                      - kind: keyword_argument
+                        regex: (?is)['"]cache-control['"]\s*(\]\s*=|[,:])\s*[rbuf]*['"][^'"]*no-store
+                        has:
+                          field: name
+                          kind: identifier
+                          regex: ^headers$
+              - kind: dictionary
+                regex: (?is)['"]cache-control['"]\s*(\]\s*=|[,:])\s*[rbuf]*['"][^'"]*no-store
+                inside:
+                  kind: expression_list
+                  inside:
+                    kind: return_statement
+          - inside:
+              kind: decorated_definition
+              has:
+                kind: decorator
+                regex: ^@(\w+\.)*never_cache\b
+          - inside:
+              kind: decorated_definition
+              has:
+                kind: decorator
+                regex: (?s)^@(\w+\.)*cache_control\(.*\bno_store\s*=\s*True
+          - has:
+              stopBy: end
+              kind: call
+              regex: (?s)^(\w+\.)*patch_cache_control\(.*\bno_store\s*=\s*True
+          - has:
+              stopBy: end
+              kind: call
+              regex: ^(\w+\.)*add_never_cache_headers\(
+min_engine: 0.39.0
+---
+# violation-shared: a data handler in a file that holds, anywhere, a literal Cache-Control with public, s-maxage or
+# stale-while-revalidate, or the framework's shared-cache form (Django: also never_cache,
+# cache_control(no_store=True), patch_cache_control or add_never_cache_headers; cache_page and
+# cache_control(public=True) or s_maxage are shared): a shared cache may keep it, whatever middleware sends
+# (T23-P1-C142). Fail.
+id: phi-responses-not-cached.python-fastapi.violation-shared
+practice_id: phi-responses-not-cached
+language: python
+frameworks:
+- fastapi
+kind: violation
+rule:
+  all:
+  - kind: function_definition
+    inside:
+      kind: decorated_definition
+      has:
+        kind: decorator
+        regex: ^@\w+\.(get|post|put|patch|delete|api_route)\(
+  - any:
+    - kind: function_definition
+      regex: (\b(db|session|cursor|cur|conn|connection|engine)(\s*\.\s*\w+)*\s*\.\s*(execute|executemany|add|add_all|query|merge|delete|insert\w*|update\w*|scalars?|get|fetch\w*)\s*\(|\b[A-Z]\w*\.objects\b|\bget_object_or_404\s*\(|\b\w*(_service|Service|_repo|Repository|_dao|Dao|crud)\s*\.\s*\w+\s*\()
+  - any:
+    - inside:
+        stopBy: end
+        kind: module
+        regex: (?is)['"]cache-control['"]\s*(\]\s*=|[,:])\s*[rbuf]*['"][^'"]*(public|s-maxage|stale-while-revalidate)
+    - inside:
+        stopBy: end
+        kind: module
+        regex: '@(\w+\.)*(method_decorator\(\s*(\w+\.)*)?cache_page\(|\b(patch_)?cache_control\([^)]*\b(public\s*=\s*True|s_maxage\s*=)|\.cache_control\s*\.\s*(public\s*=\s*True|s_maxage\s*=)'
+min_engine: 0.39.0

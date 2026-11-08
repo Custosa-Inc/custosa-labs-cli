@@ -1,0 +1,32 @@
+id: purge-deleted-rows.go-generic.purge-soft-deleted
+practice_id: purge-deleted-rows
+language: go
+frameworks:
+- generic
+kind: evidence
+rule:
+  all:
+  - kind: call_expression
+    regex: \.Unscoped\(\)[\s\S]*\.Where\(\s*\"deleted_at\s*<\s*\?\"\s*,\s*[A-Za-z_][\s\S]*\.Delete\(
+  - not:
+      kind: call_expression
+      regex: (?i)audit
+min_engine: 0.39.0
+---
+id: purge-deleted-rows.go-generic.purge-history
+practice_id: purge-deleted-rows
+language: go
+frameworks:
+- generic
+kind: evidence
+rule:
+  all:
+  - kind: call_expression
+    regex: \.(Table|Model)\(\s*(\"\w*(_history|_versions?)\"|&?\w*(History|Version)\w*\{\})[\s\S]*\.Where\([\s\S]*\.Delete\(
+  - not:
+      kind: call_expression
+      regex: (?i)audit
+  - not:
+      kind: call_expression
+      regex: \.Where\(\s*\"\s*id\s*=\s*\?\s*\"
+min_engine: 0.39.0

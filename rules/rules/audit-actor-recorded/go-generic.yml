@@ -1,0 +1,23 @@
+id: audit-actor-recorded.go-generic.pool-context
+practice_id: audit-actor-recorded
+language: go
+frameworks:
+- generic
+kind: violation
+rule:
+  all:
+  - any:
+    - kind: interpreted_string_literal
+      regex: '(?i)(?:set_config\s*\(\s*''(?:app\.(?:user_id|current_user_id|current_user|user|actor|actor_id|uid|userid|account_id|current_account_id)|request\.jwt\.claims|request\.jwt\.claim\.sub|jwt\.claims)''|\bset\s+(?:local\s+|session\s+)?(?:app\.(?:user_id|current_user_id|current_user|user|actor|actor_id|uid|userid|account_id|current_account_id)|request\.jwt\.claims|request\.jwt\.claim\.sub|jwt\.claims)\s*(?:=|to)|-c\s*(?:app\.(?:user_id|current_user_id|current_user|user|actor|actor_id|uid|userid|account_id|current_account_id)|request\.jwt\.claims|request\.jwt\.claim\.sub|jwt\.claims)\s*=)'
+    - kind: raw_string_literal
+      regex: '(?i)(?:set_config\s*\(\s*''(?:app\.(?:user_id|current_user_id|current_user|user|actor|actor_id|uid|userid|account_id|current_account_id)|request\.jwt\.claims|request\.jwt\.claim\.sub|jwt\.claims)''|\bset\s+(?:local\s+|session\s+)?(?:app\.(?:user_id|current_user_id|current_user|user|actor|actor_id|uid|userid|account_id|current_account_id)|request\.jwt\.claims|request\.jwt\.claim\.sub|jwt\.claims)\s*(?:=|to)|-c\s*(?:app\.(?:user_id|current_user_id|current_user|user|actor|actor_id|uid|userid|account_id|current_account_id)|request\.jwt\.claims|request\.jwt\.claim\.sub|jwt\.claims)\s*=)'
+  - any:
+    - inside:
+        stopBy: end
+        kind: keyed_element
+        regex: '^(AfterConnect|BeforeAcquire|ConnectHook)\s*:'
+    - inside:
+        stopBy: end
+        kind: assignment_statement
+        regex: '\.(AfterConnect|BeforeAcquire)\s*='
+min_engine: 0.45.3

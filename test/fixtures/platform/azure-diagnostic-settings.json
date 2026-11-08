@@ -1,0 +1,45 @@
+{
+ "value": [
+  {
+   "id": "/subscriptions/00000000-0000-0000-0000-00000000aaaa/resourceGroups/clinic-rg/providers/Microsoft.DBforPostgreSQL/flexibleServers/clinic-pg/providers/microsoft.insights/diagnosticSettings/to-workspace",
+   "name": "to-workspace",
+   "properties": {
+    "workspaceId": "/subscriptions/00000000-0000-0000-0000-00000000aaaa/resourceGroups/clinic-rg/providers/Microsoft.OperationalInsights/workspaces/clinic-logs",
+    "logAnalyticsDestinationType": null,
+    "logs": [
+     {
+      "category": "PostgreSQLLogs",
+      "enabled": true,
+      "retentionPolicy": {
+       "enabled": true,
+       "days": 400
+      }
+     },
+     {
+      "category": "PostgreSQLFlexSessions",
+      "enabled": false
+     }
+    ],
+    "metrics": [
+     {
+      "category": "AllMetrics",
+      "enabled": true
+     }
+    ]
+   }
+  },
+  {
+   "id": "/subscriptions/00000000-0000-0000-0000-00000000aaaa/resourceGroups/clinic-rg/providers/Microsoft.DBforPostgreSQL/flexibleServers/clinic-pg/providers/microsoft.insights/diagnosticSettings/to-storage",
+   "name": "to-storage",
+   "properties": {
+    "storageAccountId": "/subscriptions/00000000-0000-0000-0000-00000000aaaa/resourceGroups/clinic-rg/providers/Microsoft.Storage/storageAccounts/clinicaudit",
+    "logs": [
+     {
+      "categoryGroup": "allLogs",
+      "enabled": true
+     }
+    ]
+   }
+  }
+ ]
+}

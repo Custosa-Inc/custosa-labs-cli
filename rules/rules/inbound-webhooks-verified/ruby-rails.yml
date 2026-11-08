@@ -1,0 +1,959 @@
+# inbound-webhooks-verified (T23 B32, design v3 2.2.2). Written by scripts/gen_webhook_rules.py: edit that script,
+# never this file. The rule id's last part is the form (items-sdk, items-hmac, violation, webhook-route,
+# replay-dedupe), which the practice function reads, since a match carries only one has_control. replay-dedupe matches
+# the items-sdk handler itself, so the function joins the two on path and line.
+
+# items-sdk: a controller action that reads a provider signature header (by name or through request.env) or calls a
+# provider SDK's verifying parse (Stripe::Webhook.construct_event), and computes no HMAC itself. The control is the
+# SDK's verify call with the raw body read (request.body.read or raw_post), or a call the provider signs without it
+# (Twilio's form check). No control: fail. The control holds only when no data call (a data-layer receiver or ORM
+# model) comes before the verify call in the handler's text.
+id: inbound-webhooks-verified.ruby-rails.items-sdk
+practice_id: inbound-webhooks-verified
+language: ruby
+frameworks:
+- rails
+kind: items
+rule:
+  all:
+  - kind: method
+    inside:
+      kind: class
+      stopBy: end
+      has:
+        field: name
+        kind: constant
+        regex: Controller$
+  - any:
+    - has:
+        stopBy: end
+        kind: string
+        regex: (?i)^['"](stripe-signature|x-twilio-signature|svix-signature|x-hub-signature-256|x-hub-signature|webhook-signature|HTTP_STRIPE_SIGNATURE|HTTP_X_TWILIO_SIGNATURE|HTTP_SVIX_SIGNATURE|HTTP_X_HUB_SIGNATURE_256|HTTP_X_HUB_SIGNATURE|HTTP_WEBHOOK_SIGNATURE)['"]$
+    - has:
+        stopBy: end
+        any:
+        - kind: call
+          has:
+            field: method
+            kind: identifier
+            regex: ^(construct_event)$
+  - not:
+      has:
+        stopBy: end
+        kind: call
+        regex: ^OpenSSL::HMAC\.(hexdigest|digest|base64digest)\b
+control:
+  all:
+  - any:
+    - all:
+      - has:
+          stopBy: end
+          any:
+          - all:
+            - all:
+              - any:
+                - any:
+                  - kind: call
+                    has:
+                      field: method
+                      kind: identifier
+                      regex: ^(construct_event)$
+                - all:
+                  - any:
+                    - kind: call
+                      all:
+                      - has:
+                          field: receiver
+                          kind: identifier
+                          regex: (?i)^\w*(wh|webhooks?|svix|hook|validator)\w*$
+                      - has:
+                          field: method
+                          kind: identifier
+                          regex: ^(verify)$
+                  - inside:
+                      stopBy: end
+                      kind: program
+                      has:
+                        stopBy: end
+                        any:
+                        - kind: scope_resolution
+                          regex: '^(Svix)::'
+                        - kind: call
+                          regex: (?i)^require\s*\(?\s*['\"](svix)
+              - not:
+                  any:
+                  - inside:
+                      stopBy: end
+                      kind: begin
+                      has:
+                        kind: rescue
+                        not:
+                          has:
+                            kind: then
+                            has:
+                              any:
+                              - kind: return
+                              - kind: call
+                                regex: ^raise\b
+                              - kind: identifier
+                                regex: ^raise$
+                              - kind: binary
+                                regex: ^(head|render|redirect_to)\b
+                                has:
+                                  kind: return
+                  - inside:
+                      stopBy: end
+                      kind: rescue_modifier
+            - not:
+                inside:
+                  stopBy: end
+                  any:
+                  - kind: lambda
+                  - any:
+                    - kind: block
+                    - kind: do_block
+                    inside:
+                      kind: call
+                      regex: ^(lambda|proc|Proc\s*\.\s*new|(Thread|Fiber)\s*\.\s*(new|start|fork)|([\w:.]+\s*\.\s*)?define_(singleton_)?method)\b
+      - has:
+          stopBy: end
+          kind: call
+          regex: \b(body\.read|raw_post)$
+    - has:
+        stopBy: end
+        any:
+        - all:
+          - all:
+            - any:
+              - all:
+                - any:
+                  - kind: call
+                    all:
+                    - has:
+                        field: receiver
+                        kind: identifier
+                        regex: (?i)^\w*(wh|webhooks?|svix|hook|validator)\w*$
+                    - has:
+                        field: method
+                        kind: identifier
+                        regex: ^(validate)$
+                - inside:
+                    stopBy: end
+                    kind: program
+                    has:
+                      stopBy: end
+                      any:
+                      - kind: scope_resolution
+                        regex: '^(Twilio)::'
+                      - kind: call
+                        regex: (?i)^require\s*\(?\s*['\"](twilio)
+            - any:
+              - inside:
+                  field: condition
+                  any:
+                  - kind: unless
+                    has:
+                      kind: then
+                      has:
+                        any:
+                        - kind: return
+                        - kind: call
+                          regex: ^raise\b
+                        - kind: identifier
+                          regex: ^raise$
+                        - kind: binary
+                          regex: ^(head|render|redirect_to)\b
+                          has:
+                            kind: return
+                  - kind: unless_modifier
+                    has:
+                      field: body
+                      any:
+                      - kind: return
+                      - kind: call
+                        regex: ^raise\b
+                      - kind: identifier
+                        regex: ^raise$
+                      - kind: binary
+                        regex: ^(head|render|redirect_to)\b
+                        has:
+                          kind: return
+              - inside:
+                  kind: unary
+                  regex: ^(!|not\b)
+                  inside:
+                    field: condition
+                    any:
+                    - kind: if
+                      has:
+                        kind: then
+                        has:
+                          any:
+                          - kind: return
+                          - kind: call
+                            regex: ^raise\b
+                          - kind: identifier
+                            regex: ^raise$
+                          - kind: binary
+                            regex: ^(head|render|redirect_to)\b
+                            has:
+                              kind: return
+                    - kind: if_modifier
+                      has:
+                        field: body
+                        any:
+                        - kind: return
+                        - kind: call
+                          regex: ^raise\b
+                        - kind: identifier
+                          regex: ^raise$
+                        - kind: binary
+                          regex: ^(head|render|redirect_to)\b
+                          has:
+                            kind: return
+              - all:
+                - inside:
+                    kind: assignment
+                - any:
+                  - inside:
+                      stopBy: end
+                      kind: assignment
+                      pattern: $OK = $V
+                      precedes:
+                        kind: unless
+                        has:
+                          kind: then
+                          has:
+                            any:
+                            - kind: return
+                            - kind: call
+                              regex: ^raise\b
+                            - kind: identifier
+                              regex: ^raise$
+                            - kind: binary
+                              regex: ^(head|render|redirect_to)\b
+                              has:
+                                kind: return
+                        pattern: 'unless $OK
+
+                          $$$B
+
+                          end'
+                  - inside:
+                      stopBy: end
+                      kind: assignment
+                      pattern: $OK = $V
+                      precedes:
+                        kind: unless_modifier
+                        has:
+                          field: body
+                          any:
+                          - kind: return
+                          - kind: call
+                            regex: ^raise\b
+                          - kind: identifier
+                            regex: ^raise$
+                          - kind: binary
+                            regex: ^(head|render|redirect_to)\b
+                            has:
+                              kind: return
+                        pattern: $B unless $OK
+                  - inside:
+                      stopBy: end
+                      kind: assignment
+                      pattern: $OK = $V
+                      precedes:
+                        kind: if
+                        has:
+                          kind: then
+                          has:
+                            any:
+                            - kind: return
+                            - kind: call
+                              regex: ^raise\b
+                            - kind: identifier
+                              regex: ^raise$
+                            - kind: binary
+                              regex: ^(head|render|redirect_to)\b
+                              has:
+                                kind: return
+                        all:
+                        - has:
+                            field: condition
+                            kind: unary
+                            pattern: '!$OK'
+                  - inside:
+                      stopBy: end
+                      kind: assignment
+                      pattern: $OK = $V
+                      precedes:
+                        kind: if
+                        has:
+                          kind: then
+                          has:
+                            any:
+                            - kind: return
+                            - kind: call
+                              regex: ^raise\b
+                            - kind: identifier
+                              regex: ^raise$
+                            - kind: binary
+                              regex: ^(head|render|redirect_to)\b
+                              has:
+                                kind: return
+                        all:
+                        - has:
+                            field: condition
+                            kind: unary
+                            pattern: not $OK
+                  - inside:
+                      stopBy: end
+                      kind: assignment
+                      pattern: $OK = $V
+                      precedes:
+                        kind: if_modifier
+                        has:
+                          field: body
+                          any:
+                          - kind: return
+                          - kind: call
+                            regex: ^raise\b
+                          - kind: identifier
+                            regex: ^raise$
+                          - kind: binary
+                            regex: ^(head|render|redirect_to)\b
+                            has:
+                              kind: return
+                        pattern: $B if !$OK
+                  - inside:
+                      stopBy: end
+                      kind: assignment
+                      pattern: $OK = $V
+                      precedes:
+                        kind: if_modifier
+                        has:
+                          field: body
+                          any:
+                          - kind: return
+                          - kind: call
+                            regex: ^raise\b
+                          - kind: identifier
+                            regex: ^raise$
+                          - kind: binary
+                            regex: ^(head|render|redirect_to)\b
+                            has:
+                              kind: return
+                        pattern: $B if not $OK
+          - not:
+              inside:
+                stopBy: end
+                any:
+                - kind: lambda
+                - any:
+                  - kind: block
+                  - kind: do_block
+                  inside:
+                    kind: call
+                    regex: ^(lambda|proc|Proc\s*\.\s*new|(Thread|Fiber)\s*\.\s*(new|start|fork)|([\w:.]+\s*\.\s*)?define_(singleton_)?method)\b
+  - not:
+      any:
+      - kind: method
+        regex: (?s)\b[A-Z]\w*\.(create|find|find_by|find_or_create_by|where|update|update_all|insert|insert_all|upsert|upsert_all|destroy|destroy_all|delete|delete_all)\b.*\b(construct_event|validate|verify)\b
+min_engine: 0.39.0
+---
+# items-hmac: an action that reads a provider signature header and computes an HMAC itself (OpenSSL::HMAC). The
+# control is a constant-time compare (secure_compare). With it, needs_review; without, fail.
+id: inbound-webhooks-verified.ruby-rails.items-hmac
+practice_id: inbound-webhooks-verified
+language: ruby
+frameworks:
+- rails
+kind: items
+rule:
+  all:
+  - kind: method
+    inside:
+      kind: class
+      stopBy: end
+      has:
+        field: name
+        kind: constant
+        regex: Controller$
+  - has:
+      stopBy: end
+      kind: string
+      regex: (?i)^['"](stripe-signature|x-twilio-signature|svix-signature|x-hub-signature-256|x-hub-signature|webhook-signature|HTTP_STRIPE_SIGNATURE|HTTP_X_TWILIO_SIGNATURE|HTTP_SVIX_SIGNATURE|HTTP_X_HUB_SIGNATURE_256|HTTP_X_HUB_SIGNATURE|HTTP_WEBHOOK_SIGNATURE)['"]$
+  - has:
+      stopBy: end
+      kind: call
+      regex: ^OpenSSL::HMAC\.(hexdigest|digest|base64digest)\b
+control:
+  has:
+    stopBy: end
+    kind: call
+    has:
+      field: method
+      kind: identifier
+      regex: ^(secure_compare|fixed_length_secure_compare)$
+min_engine: 0.39.0
+---
+# violation: in a signature-reading action: a signature compared with == or !=, or construct_event given a tolerance.
+# Fail.
+id: inbound-webhooks-verified.ruby-rails.violation
+practice_id: inbound-webhooks-verified
+language: ruby
+frameworks:
+- rails
+kind: violation
+rule:
+  any:
+  - all:
+    - kind: binary
+      regex: (?i)sig
+    - kind: binary
+      regex: '[!=]='
+    inside:
+      stopBy: end
+      all:
+      - kind: method
+        inside:
+          kind: class
+          stopBy: end
+          has:
+            field: name
+            kind: constant
+            regex: Controller$
+      - any:
+        - has:
+            stopBy: end
+            kind: string
+            regex: (?i)^['"](stripe-signature|x-twilio-signature|svix-signature|x-hub-signature-256|x-hub-signature|webhook-signature|HTTP_STRIPE_SIGNATURE|HTTP_X_TWILIO_SIGNATURE|HTTP_SVIX_SIGNATURE|HTTP_X_HUB_SIGNATURE_256|HTTP_X_HUB_SIGNATURE|HTTP_WEBHOOK_SIGNATURE)['"]$
+        - has:
+            stopBy: end
+            any:
+            - kind: call
+              has:
+                field: method
+                kind: identifier
+                regex: ^(construct_event)$
+  - kind: call
+    inside:
+      stopBy: end
+      all:
+      - kind: method
+        inside:
+          kind: class
+          stopBy: end
+          has:
+            field: name
+            kind: constant
+            regex: Controller$
+      - any:
+        - has:
+            stopBy: end
+            kind: string
+            regex: (?i)^['"](stripe-signature|x-twilio-signature|svix-signature|x-hub-signature-256|x-hub-signature|webhook-signature|HTTP_STRIPE_SIGNATURE|HTTP_X_TWILIO_SIGNATURE|HTTP_SVIX_SIGNATURE|HTTP_X_HUB_SIGNATURE_256|HTTP_X_HUB_SIGNATURE|HTTP_WEBHOOK_SIGNATURE)['"]$
+        - has:
+            stopBy: end
+            any:
+            - kind: call
+              has:
+                field: method
+                kind: identifier
+                regex: ^(construct_event)$
+    all:
+    - has:
+        field: method
+        kind: identifier
+        regex: ^(construct_event)$
+    - has:
+        field: arguments
+        kind: argument_list
+        any:
+        - kind: argument_list
+          regex: '\btolerance:'
+        - kind: argument_list
+          regex: ^\((?:[^,()]|\((?:[^()]|\([^()]*\))*\))*,(?:[^,()]|\((?:[^()]|\([^()]*\))*\))*,(?:[^,()]|\((?:[^()]|\([^()]*\))*\))*,
+min_engine: 0.39.0
+---
+# webhook-route: a route whose path names a webhook, hook, callback or notify endpoint, or a handler (or its class,
+# controller or module) named for one, that reads no provider signature. Evidence: needs_review naming it.
+id: inbound-webhooks-verified.ruby-rails.webhook-route
+practice_id: inbound-webhooks-verified
+language: ruby
+frameworks:
+- rails
+kind: evidence
+rule:
+  all:
+  - kind: method
+    inside:
+      kind: class
+      stopBy: end
+      has:
+        field: name
+        kind: constant
+        regex: Controller$
+  - any:
+    - has:
+        field: name
+        kind: identifier
+        regex: (?i)(webhooks?|hooks?|callbacks?|notify)
+    - all:
+      - any:
+        - inside:
+            stopBy: end
+            kind: class
+            has:
+              field: name
+              any:
+              - kind: constant
+                regex: (?i)(webhooks?|hooks?|callbacks?|notify)
+              - kind: scope_resolution
+                regex: (?i)(webhooks?|hooks?|callbacks?|notify)
+        - inside:
+            stopBy: end
+            kind: module
+            has:
+              field: name
+              any:
+              - kind: constant
+                regex: (?i)(webhooks?|hooks?|callbacks?|notify)
+              - kind: scope_resolution
+                regex: (?i)(webhooks?|hooks?|callbacks?|notify)
+      - not:
+          has:
+            field: name
+            kind: identifier
+            regex: ^(index|show|new|edit)$
+  - not:
+      any:
+      - has:
+          stopBy: end
+          kind: string
+          regex: (?i)^['"](stripe-signature|x-twilio-signature|svix-signature|x-hub-signature-256|x-hub-signature|webhook-signature|HTTP_STRIPE_SIGNATURE|HTTP_X_TWILIO_SIGNATURE|HTTP_SVIX_SIGNATURE|HTTP_X_HUB_SIGNATURE_256|HTTP_X_HUB_SIGNATURE|HTTP_WEBHOOK_SIGNATURE)['"]$
+      - has:
+          stopBy: end
+          any:
+          - kind: call
+            has:
+              field: method
+              kind: identifier
+              regex: ^(construct_event)$
+min_engine: 0.39.0
+---
+# webhook-folder: a handler that reads no provider signature, in a file whose path has a webhook or webhooks folder,
+# or is named webhook (path_regex). Evidence: needs_review naming it.
+id: inbound-webhooks-verified.ruby-rails.webhook-folder
+practice_id: inbound-webhooks-verified
+language: ruby
+frameworks:
+- rails
+kind: evidence
+rule:
+  all:
+  - kind: method
+    inside:
+      kind: class
+      stopBy: end
+      has:
+        field: name
+        kind: constant
+        regex: Controller$
+  - not:
+      any:
+      - has:
+          stopBy: end
+          kind: string
+          regex: (?i)^['"](stripe-signature|x-twilio-signature|svix-signature|x-hub-signature-256|x-hub-signature|webhook-signature|HTTP_STRIPE_SIGNATURE|HTTP_X_TWILIO_SIGNATURE|HTTP_SVIX_SIGNATURE|HTTP_X_HUB_SIGNATURE_256|HTTP_X_HUB_SIGNATURE|HTTP_WEBHOOK_SIGNATURE)['"]$
+      - has:
+          stopBy: end
+          any:
+          - kind: call
+            has:
+              field: method
+              kind: identifier
+              regex: ^(construct_event)$
+  - not:
+      has:
+        field: name
+        kind: identifier
+        regex: ^(index|show|new|edit)$
+path_regex: (^|/)(([Ww]eb)?[Hh]ooks?|[Cc]allbacks?)(/|\.[a-z]+$)
+min_engine: 0.39.0
+---
+# entry: an entry point that can take a request body (B32p E): in the routes block, a post, put, patch or match route,
+# or resources or resource; and any controller action that reads params or the request's input. Evidence for the pass,
+# which needs every entry verified or user-gated; never an object of its own.
+id: inbound-webhooks-verified.ruby-rails.entry
+practice_id: inbound-webhooks-verified
+language: ruby
+frameworks:
+- rails
+kind: evidence
+rule:
+  any:
+  - kind: call
+    regex: ^(post|put|patch|match|resources|resource)\b
+    inside:
+      stopBy: end
+      kind: call
+      regex: ^Rails\s*\.\s*application\s*\.\s*routes\s*\.\s*draw\b
+    has:
+      field: method
+      kind: identifier
+      regex: ^(post|put|patch|match|resources|resource)$
+  - kind: method
+    inside:
+      kind: class
+      stopBy: end
+      has:
+        field: name
+        kind: constant
+        regex: Controller$
+    regex: (\bparams\b|\brequest\s*\.\s*(body|raw_post|params|parameters|query_parameters|request_parameters|POST|GET|query_string)\b)
+min_engine: 0.39.0
+---
+# route-unread: a route registration the inventory can't place (B32p C2): in the routes block, a path that is no
+# literal (a name, a constant, an interpolated string), or a mount, draw, namespace or scope. Evidence: no pass while
+# it is seen; never an object of its own.
+id: inbound-webhooks-verified.ruby-rails.route-unread
+practice_id: inbound-webhooks-verified
+language: ruby
+frameworks:
+- rails
+kind: evidence
+rule:
+  any:
+  - all:
+    - kind: call
+      regex: ^(get|post|put|patch|delete|match)\b
+      inside:
+        stopBy: end
+        kind: call
+        regex: ^Rails\s*\.\s*application\s*\.\s*routes\s*\.\s*draw\b
+      has:
+        field: method
+        kind: identifier
+        regex: ^(get|post|put|patch|delete|match)$
+    - has:
+        field: arguments
+        kind: argument_list
+        regex: (?s)^\(?\s*([a-z_]\w*\s*(,|$)|[A-Z]\w*(::\w+)*\s*(,|$)|\"[^\"]*#\{)
+  - kind: call
+    regex: ^(mount|draw|namespace|scope)\b
+    inside:
+      stopBy: end
+      kind: call
+      regex: ^Rails\s*\.\s*application\s*\.\s*routes\s*\.\s*draw\b
+    has:
+      field: method
+      kind: identifier
+      regex: ^(mount|draw|namespace|scope)$
+min_engine: 0.39.0
+---
+# replay-dedupe: an items-sdk handler (the same match, so the same path and line) that rejects a repeated event: a
+# data call inserting the event id with ON CONFLICT, INSERT IGNORE, ON DUPLICATE KEY, upsert, onConflict or the like,
+# whose result is tested right after (or in the condition) by an if that returns or throws; or a try around an insert
+# of the event id whose catch names a unique violation (23505, 1062, P2002, IntegrityError, RecordNotUnique,
+# DuplicateKey) and returns. No data call may come before it. A table name or a log line alone never counts. Evidence:
+# with the SDK control, it allows the pass once Q6 is ruled.
+id: inbound-webhooks-verified.ruby-rails.replay-dedupe
+practice_id: inbound-webhooks-verified
+language: ruby
+frameworks:
+- rails
+kind: evidence
+rule:
+  all:
+  - kind: method
+    inside:
+      kind: class
+      stopBy: end
+      has:
+        field: name
+        kind: constant
+        regex: Controller$
+  - any:
+    - has:
+        stopBy: end
+        kind: string
+        regex: (?i)^['"](stripe-signature|x-twilio-signature|svix-signature|x-hub-signature-256|x-hub-signature|webhook-signature|HTTP_STRIPE_SIGNATURE|HTTP_X_TWILIO_SIGNATURE|HTTP_SVIX_SIGNATURE|HTTP_X_HUB_SIGNATURE_256|HTTP_X_HUB_SIGNATURE|HTTP_WEBHOOK_SIGNATURE)['"]$
+    - has:
+        stopBy: end
+        any:
+        - kind: call
+          has:
+            field: method
+            kind: identifier
+            regex: ^(construct_event)$
+  - not:
+      has:
+        stopBy: end
+        kind: call
+        regex: ^OpenSSL::HMAC\.(hexdigest|digest|base64digest)\b
+  - has:
+      stopBy: end
+      any:
+      - all:
+        - any:
+          - all:
+            - kind: call
+              regex: (?i)(\bON\s+CONFLICT\b|\bINSERT\s+IGNORE\b|\bON\s+DUPLICATE\s+KEY\b|\bon_?conflict|\bupsert|\binsert_?or_?ignore|\bignore_?duplicates|\bskip_?duplicates|\bunique_by\b)
+            - kind: call
+              regex: (?i)(\b(event|evt)\s*(\?\.|\.|->)\s*(id\b|getId\(\))|\b(event|evt)\s*\[\s*:?['\"]?id['\"]?\s*\]|\bevent_?id\b)
+            - kind: call
+              has:
+                field: method
+                kind: identifier
+                regex: (?i)(^|\.)(insert|create|save|add|put|persist|exec|execute|query|update|upsert|run|raw|sql|on_?conflict|ignore|merge)\w*[!?]?$
+        - any:
+          - inside:
+              stopBy: end
+              any:
+              - kind: assignment
+              precedes:
+                any:
+                - kind: unless
+                  has:
+                    kind: then
+                    has:
+                      any:
+                      - kind: return
+                      - kind: call
+                        regex: ^raise\b
+                      - kind: identifier
+                        regex: ^raise$
+                      - kind: binary
+                        regex: ^(head|render|redirect_to)\b
+                        has:
+                          kind: return
+                - kind: if
+                  has:
+                    kind: then
+                    has:
+                      any:
+                      - kind: return
+                      - kind: call
+                        regex: ^raise\b
+                      - kind: identifier
+                        regex: ^raise$
+                      - kind: binary
+                        regex: ^(head|render|redirect_to)\b
+                        has:
+                          kind: return
+                - kind: unless_modifier
+                  has:
+                    field: body
+                    any:
+                    - kind: return
+                    - kind: call
+                      regex: ^raise\b
+                    - kind: identifier
+                      regex: ^raise$
+                    - kind: binary
+                      regex: ^(head|render|redirect_to)\b
+                      has:
+                        kind: return
+                - kind: if_modifier
+                  has:
+                    field: body
+                    any:
+                    - kind: return
+                    - kind: call
+                      regex: ^raise\b
+                    - kind: identifier
+                      regex: ^raise$
+                    - kind: binary
+                      regex: ^(head|render|redirect_to)\b
+                      has:
+                        kind: return
+      - kind: begin
+        all:
+        - has:
+            kind: rescue
+            regex: (?is)(\b23505\b|\b1062\b|ER_DUP_ENTRY|\bP2002\b|unique_?violation|UniqueConstraintViolation|IntegrityError|RecordNotUnique|DuplicateKey|SQLIntegrityConstraintViolation|duplicate key).{0,160}?\breturn\b
+        - has:
+            stopBy: end
+            any:
+            - all:
+              - kind: call
+                regex: (?i)\b(insert|create|save|add|put|persist|exec|execute|query|update)\w*\s*[!?]?\s*\(
+              - kind: call
+                regex: (?i)(\b(event|evt)\s*(\?\.|\.|->)\s*(id\b|getId\(\))|\b(event|evt)\s*\[\s*:?['\"]?id['\"]?\s*\]|\bevent_?id\b)
+            not:
+              inside:
+                stopBy: end
+                kind: rescue
+      - kind: body_statement
+        inside:
+          kind: method
+        all:
+        - has:
+            kind: rescue
+            regex: (?i)(\b23505\b|\b1062\b|ER_DUP_ENTRY|\bP2002\b|unique_?violation|UniqueConstraintViolation|IntegrityError|RecordNotUnique|DuplicateKey|SQLIntegrityConstraintViolation|duplicate key)
+        - has:
+            stopBy: end
+            any:
+            - all:
+              - kind: call
+                regex: (?i)\b(insert|create|save|add|put|persist|exec|execute|query|update)\w*\s*[!?]?\s*\(
+              - kind: call
+                regex: (?i)(\b(event|evt)\s*(\?\.|\.|->)\s*(id\b|getId\(\))|\b(event|evt)\s*\[\s*:?['\"]?id['\"]?\s*\]|\bevent_?id\b)
+            not:
+              inside:
+                stopBy: end
+                kind: rescue
+  - not:
+      any:
+      - kind: method
+        regex: (?s)\b[A-Z]\w*\.(create|find|find_by|find_or_create_by|where|update|update_all|insert|insert_all|upsert|upsert_all|destroy|destroy_all|delete|delete_all)\b.*\b[A-Z]\w*\.(create|find|find_by|find_or_create_by|where|update|update_all|insert|insert_all|upsert|upsert_all|destroy|destroy_all|delete|delete_all)\b.{0,400}?((\bON\s+CONFLICT\b|\bINSERT\s+IGNORE\b|\bON\s+DUPLICATE\s+KEY\b|\bon_?conflict|\bupsert|\binsert_?or_?ignore|\bignore_?duplicates|\bskip_?duplicates|\bunique_by\b))
+min_engine: 0.39.0
+---
+# payload-before-verify: an items-sdk handler (the same match, so the same path and line) whose text has a helper (a
+# bare call, or one on self, this or $this) given the body, event or payload, then later a verify call (B32p 5.2).
+# Evidence: no pass while it is seen, until the stem reads what the helper does; never an object of its own.
+id: inbound-webhooks-verified.ruby-rails.payload-before-verify
+practice_id: inbound-webhooks-verified
+language: ruby
+frameworks:
+- rails
+kind: evidence
+rule:
+  all:
+  - all:
+    - kind: method
+      inside:
+        kind: class
+        stopBy: end
+        has:
+          field: name
+          kind: constant
+          regex: Controller$
+    - any:
+      - has:
+          stopBy: end
+          kind: string
+          regex: (?i)^['"](stripe-signature|x-twilio-signature|svix-signature|x-hub-signature-256|x-hub-signature|webhook-signature|HTTP_STRIPE_SIGNATURE|HTTP_X_TWILIO_SIGNATURE|HTTP_SVIX_SIGNATURE|HTTP_X_HUB_SIGNATURE_256|HTTP_X_HUB_SIGNATURE|HTTP_WEBHOOK_SIGNATURE)['"]$
+      - has:
+          stopBy: end
+          any:
+          - kind: call
+            has:
+              field: method
+              kind: identifier
+              regex: ^(construct_event)$
+    - not:
+        has:
+          stopBy: end
+          kind: call
+          regex: ^OpenSSL::HMAC\.(hexdigest|digest|base64digest)\b
+  - any:
+    - kind: method
+      regex: (?s)(\n[ \t]*|=\s*|[(,]\s*|\b(return|await|yield|go|defer)\s+)(self\s*\.\s*)?[a-z_]\w*[!?]?\s*\(\s*((body|event|evt|payload|data|params|request\s*\.\s*(body|raw_post))\b).*\b(construct_event|validate|verify)\b
+min_engine: 0.39.0
+---
+# header-unread: a request header read by a name that is no literal: a variable, a member or a constant (B32p C6), so
+# it can't be checked against the providers' signature headers. Evidence: no pass while it is seen; never an object of
+# its own.
+id: inbound-webhooks-verified.ruby-rails.header-unread
+practice_id: inbound-webhooks-verified
+language: ruby
+frameworks:
+- rails
+kind: evidence
+rule:
+  any:
+  - kind: element_reference
+    regex: ^request\s*\.\s*(headers|env)\s*\[\s*[A-Za-z_@]
+  - kind: call
+    regex: ^request\s*\.\s*headers\s*\.\s*fetch\s*\(\s*[A-Za-z_@]
+min_engine: 0.39.0
+---
+# session-gate: an entry handler whose first statement (or the one right after a first declaration of the lookup) is
+# an if that negates a user-session lookup from a known auth library alone and returns or throws (B32p 9.2). Evidence:
+# the entry is user-gated for the pass; never an object of its own.
+id: inbound-webhooks-verified.ruby-rails.session-gate
+practice_id: inbound-webhooks-verified
+language: ruby
+frameworks:
+- rails
+kind: evidence
+rule:
+  all:
+  - any:
+    - kind: call
+      regex: ^authenticate_[a-z_]+!$
+    - kind: unless_modifier
+      has:
+        field: body
+        any:
+        - kind: return
+        - kind: call
+          regex: ^raise\b
+        - kind: identifier
+          regex: ^raise$
+        - kind: binary
+          regex: ^(head|render|redirect_to)\b
+          has:
+            kind: return
+      regex: \bunless\s+(user_signed_in\?|current_user)\s*$
+  - inside:
+      kind: body_statement
+      inside:
+        kind: method
+  - any:
+    - not:
+        follows:
+          stopBy: neighbor
+          any:
+          - any:
+            - kind: comment
+          - not:
+              any:
+              - kind: comment
+    - follows:
+        stopBy: neighbor
+        all:
+        - any:
+          - kind: comment
+        - any:
+          - not:
+              follows:
+                stopBy: neighbor
+                any:
+                - any:
+                  - kind: comment
+                - not:
+                    any:
+                    - kind: comment
+          - follows:
+              stopBy: neighbor
+              all:
+              - any:
+                - kind: comment
+              - any:
+                - not:
+                    follows:
+                      stopBy: neighbor
+                      any:
+                      - any:
+                        - kind: comment
+                      - not:
+                          any:
+                          - kind: comment
+                - follows:
+                    stopBy: neighbor
+                    all:
+                    - any:
+                      - kind: comment
+                    - not:
+                        follows:
+                          stopBy: neighbor
+                          any:
+                          - any:
+                            - kind: comment
+                          - not:
+                              any:
+                              - kind: comment
+min_engine: 0.39.0

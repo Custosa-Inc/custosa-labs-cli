@@ -1,0 +1,46 @@
+id: clinical-record-integrity.python-generic.tryton-model
+practice_id: clinical-record-integrity
+language: python
+frameworks:
+- generic
+kind: items
+rule:
+  all:
+  - kind: class_definition
+  - has:
+      field: superclasses
+      kind: argument_list
+      regex: \bModelSQL\b
+control:
+  any:
+  - has:
+      field: body
+      has:
+        any:
+        - kind: expression_statement
+          regex: ^_history\s*=\s*True$
+        - kind: decorated_definition
+          regex: ^_history\s*=\s*True$
+        - kind: function_definition
+          regex: ^_history\s*=\s*True$
+  - has:
+      field: body
+      has:
+        any:
+        - kind: expression_statement
+          regex: (?s)def\s+(write|delete)\s*\(\s*cls.*(signed|done|validated|finali[sz]ed|locked|completed|closed|approved)
+        - kind: decorated_definition
+          regex: (?s)def\s+(write|delete)\s*\(\s*cls.*(signed|done|validated|finali[sz]ed|locked|completed|closed|approved)
+        - kind: function_definition
+          regex: (?s)def\s+(write|delete)\s*\(\s*cls.*(signed|done|validated|finali[sz]ed|locked|completed|closed|approved)
+  - has:
+      field: body
+      has:
+        any:
+        - kind: expression_statement
+          regex: (?s)fields\.\w+\(.*['\"]readonly['\"]\s*:\s*Eval\(\s*['\"](state|signed\w*)['\"]\s*\)\s*(==|\.in_\(|!=).*(signed|done|validated|finali[sz]ed|locked|completed|closed|approved)
+        - kind: decorated_definition
+          regex: (?s)fields\.\w+\(.*['\"]readonly['\"]\s*:\s*Eval\(\s*['\"](state|signed\w*)['\"]\s*\)\s*(==|\.in_\(|!=).*(signed|done|validated|finali[sz]ed|locked|completed|closed|approved)
+        - kind: function_definition
+          regex: (?s)fields\.\w+\(.*['\"]readonly['\"]\s*:\s*Eval\(\s*['\"](state|signed\w*)['\"]\s*\)\s*(==|\.in_\(|!=).*(signed|done|validated|finali[sz]ed|locked|completed|closed|approved)
+min_engine: 0.39.0

@@ -1,0 +1,28 @@
+id: column-encryption-highly-sensitive.php-generic.app-encryption
+practice_id: column-encryption-highly-sensitive
+language: php
+frameworks:
+- generic
+kind: evidence
+rule:
+  any:
+  - kind: function_call_expression
+    regex: (?i)^openssl_encrypt\([^,]+,\s*['\"](aes-(128|192|256)-gcm|chacha20-poly1305)['\"]
+  - kind: function_call_expression
+    regex: ^sodium_crypto_(secretbox|aead_\w+_encrypt)\(
+  - kind: scoped_call_expression
+    regex: ^Crypt::encrypt(String)?\(
+  - kind: array_element_initializer
+    regex: ^['\"]\w+['\"]\s*=>\s*['\"]encrypted(:\w+)?['\"]$
+min_engine: 0.39.0
+---
+id: column-encryption-highly-sensitive.php-generic.weak-cipher
+practice_id: column-encryption-highly-sensitive
+language: php
+frameworks:
+- generic
+kind: violation
+rule:
+  kind: function_call_expression
+  regex: (?i)^openssl_encrypt\([^,]+,\s*['\"](\w+-\d*-?ecb|aes-\d+-ecb|des[\w-]*|rc4|bf[\w-]*)['\"]
+min_engine: 0.39.0

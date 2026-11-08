@@ -1,0 +1,191 @@
+id: write-fields-allowlisted.php-generic.body-into-write
+practice_id: write-fields-allowlisted
+language: php
+frameworks:
+- generic
+kind: violation
+rule:
+  any:
+  - all:
+    - &id001
+      any:
+      - kind: member_call_expression
+        has:
+          field: name
+          kind: name
+          regex: ^(insert|update|create|save|store|post|put|patch|replace|upsert|sqlInsert|buildInsertColumns|buildUpdateColumns|fill|forceFill|forceCreate|updateOrCreate|firstOrCreate)$
+      - kind: scoped_call_expression
+        has:
+          field: name
+          kind: name
+          regex: ^(insert|update|create|save|store|post|put|patch|replace|upsert|sqlInsert|buildInsertColumns|buildUpdateColumns|fill|forceFill|forceCreate|updateOrCreate|firstOrCreate)$
+      - kind: function_call_expression
+        has:
+          field: function
+          kind: name
+          regex: ^(insert|update|create|save|store|post|put|patch|replace|upsert|sqlInsert|buildInsertColumns|buildUpdateColumns|fill|forceFill|forceCreate|updateOrCreate|firstOrCreate)$
+    - has:
+        field: arguments
+        has:
+          kind: argument
+          has:
+            any:
+            - kind: variable_name
+              regex: ^\$_(POST|REQUEST|GET)$
+            - kind: function_call_expression
+              regex: php://input
+            - kind: cast_expression
+              regex: php://input|\$_(POST|REQUEST)
+            - kind: member_call_expression
+              regex: ^\$(request|req)->(all|input|post|json|getParsedBody|toArray)\(\)$
+  - all:
+    - *id001
+    - has:
+        field: arguments
+        has:
+          kind: argument
+          has:
+            pattern:
+              context: <?php f($D);
+              selector: variable_name
+            inside:
+              stopBy: end
+              any:
+              - kind: function_definition
+              - kind: method_declaration
+              - kind: anonymous_function
+              - kind: arrow_function
+              has:
+                stopBy: end
+                all:
+                - pattern:
+                    context: <?php $D = $X;
+                    selector: assignment_expression
+                - has:
+                    field: right
+                    any:
+                    - kind: cast_expression
+                      regex: php://input|\$_(POST|REQUEST)
+                    - kind: function_call_expression
+                      regex: php://input|\$_(POST|REQUEST)
+                    - kind: variable_name
+                      regex: ^\$_(POST|REQUEST)$
+                    - kind: member_call_expression
+                      regex: ^\$(request|req)->(all|input|post|json|getParsedBody|toArray)\(\)$
+min_engine: 0.39.0
+---
+id: write-fields-allowlisted.php-generic.denylist
+practice_id: write-fields-allowlisted
+language: php
+frameworks:
+- generic
+kind: violation
+rule:
+  any:
+  - all:
+    - kind: unset_statement
+    - has:
+        kind: subscript_expression
+        all:
+        - has:
+            kind: string
+        - has:
+            kind: variable_name
+            regex: (?i)^\$(data|body|input|vals|values|fields|post|payload|attributes|attrs|record|row|update|updates|changes|patient|params_to_save|_POST|_REQUEST)$
+  - all:
+    - kind: member_call_expression
+      regex: ^\$(request|req|input)->except\(
+  - all:
+    - kind: function_call_expression
+      regex: ^(array_diff_key|Arr::except)\(
+  - all:
+    - kind: scoped_call_expression
+      regex: ^Arr::except\(
+min_engine: 0.39.0
+---
+id: write-fields-allowlisted.php-generic.identity-from-request
+practice_id: write-fields-allowlisted
+language: php
+frameworks:
+- generic
+kind: violation
+rule:
+  all:
+  - kind: array_element_initializer
+    regex: ^\S+\s*=>
+  - has:
+      kind: string
+      regex: (?i)^['\"](user|user_?id|owner_?id|tenant_?id|org_?id|organi[sz]ation_?id|account_?id|clinic_?id|facility_?id|provider_?id|providerID|created_?by|updated_?by|author_?id|role|roles|role_?id|is_?admin|is_?staff)['\"]$
+  - has:
+      any:
+      - kind: member_call_expression
+        regex: ^\$(request|req|_POST|_REQUEST|_GET|data|input|body)\b
+      - kind: member_access_expression
+        regex: ^\$(request|req|_POST|_REQUEST|_GET|data|input|body)\b
+      - kind: subscript_expression
+        regex: ^\$(request|req|_POST|_REQUEST|_GET|data|input|body)\b
+  - inside:
+      stopBy: end
+      any:
+      - kind: member_call_expression
+        has:
+          field: name
+          kind: name
+          regex: ^(insert|update|create|save|store|post|put|patch|replace|upsert|sqlInsert|buildInsertColumns|buildUpdateColumns|fill|forceFill|forceCreate|updateOrCreate|firstOrCreate)$
+      - kind: scoped_call_expression
+        has:
+          field: name
+          kind: name
+          regex: ^(insert|update|create|save|store|post|put|patch|replace|upsert|sqlInsert|buildInsertColumns|buildUpdateColumns|fill|forceFill|forceCreate|updateOrCreate|firstOrCreate)$
+      - kind: function_call_expression
+        has:
+          field: function
+          kind: name
+          regex: ^(insert|update|create|save|store|post|put|patch|replace|upsert|sqlInsert|buildInsertColumns|buildUpdateColumns|fill|forceFill|forceCreate|updateOrCreate|firstOrCreate)$
+min_engine: 0.39.0
+---
+id: write-fields-allowlisted.php-generic.identity-field
+practice_id: write-fields-allowlisted
+language: php
+frameworks:
+- generic
+kind: items
+rule:
+  all:
+  - kind: array_element_initializer
+    regex: ^\S+\s*=>
+  - has:
+      kind: string
+      regex: (?i)^['\"](user|user_?id|owner_?id|tenant_?id|org_?id|organi[sz]ation_?id|account_?id|clinic_?id|facility_?id|provider_?id|providerID|created_?by|updated_?by|author_?id|role|roles|role_?id|is_?admin|is_?staff)['\"]$
+  - inside:
+      stopBy: end
+      any:
+      - kind: member_call_expression
+        has:
+          field: name
+          kind: name
+          regex: ^(insert|update|create|save|store|post|put|patch|replace|upsert|sqlInsert|buildInsertColumns|buildUpdateColumns|fill|forceFill|forceCreate|updateOrCreate|firstOrCreate)$
+      - kind: scoped_call_expression
+        has:
+          field: name
+          kind: name
+          regex: ^(insert|update|create|save|store|post|put|patch|replace|upsert|sqlInsert|buildInsertColumns|buildUpdateColumns|fill|forceFill|forceCreate|updateOrCreate|firstOrCreate)$
+      - kind: function_call_expression
+        has:
+          field: function
+          kind: name
+          regex: ^(insert|update|create|save|store|post|put|patch|replace|upsert|sqlInsert|buildInsertColumns|buildUpdateColumns|fill|forceFill|forceCreate|updateOrCreate|firstOrCreate)$
+control:
+  has:
+    any:
+    - kind: scoped_call_expression
+      regex: ^(Auth::(id|user)\(\)|auth\(\)->(id|user)\(\)|\$request->user\(\)|\$_SESSION\[|\$this->session|\$session|SessionUtil::|\$this->user\b)
+    - kind: function_call_expression
+      regex: ^(Auth::(id|user)\(\)|auth\(\)->(id|user)\(\)|\$request->user\(\)|\$_SESSION\[|\$this->session|\$session|SessionUtil::|\$this->user\b)
+    - kind: member_call_expression
+      regex: ^(Auth::(id|user)\(\)|auth\(\)->(id|user)\(\)|\$request->user\(\)|\$_SESSION\[|\$this->session|\$session|SessionUtil::|\$this->user\b)
+    - kind: member_access_expression
+      regex: ^(Auth::(id|user)\(\)|auth\(\)->(id|user)\(\)|\$request->user\(\)|\$_SESSION\[|\$this->session|\$session|SessionUtil::|\$this->user\b)
+    - kind: subscript_expression
+      regex: ^(Auth::(id|user)\(\)|auth\(\)->(id|user)\(\)|\$request->user\(\)|\$_SESSION\[|\$this->session|\$session|SessionUtil::|\$this->user\b)
+min_engine: 0.39.0
