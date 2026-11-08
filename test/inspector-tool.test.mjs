@@ -855,6 +855,22 @@ test("a document with too many catalog tables is never sent, and says why", asyn
   } finally { await s.close(); }
 });
 
+// T28-P1-C4: on fullhp the agent read "run the check through to the end" as "the check is the audit" and missed
+// issues outside it. Both texts say what the check covers, what it doesn't, and that the agent's own review goes on.
+test("the instructions and the description say what the check covers, what it doesn't, and that the agent's review goes on", () => {
+  const flat = (text) => text.replace(/\s+/g, " ");
+  for (const text of [flat(INSTRUCTIONS), flat(DESCRIPTION)]) {
+    assert.match(text, /covers the data side: the schema, database settings, row-level security and roles, sign-in and session settings, and the code paths that read, write, log or send patient data/);
+    assert.match(text, /doesn't cover app-wide security beyond that \(such as HTTP headers other than HSTS\), business logic, app features such as a patient's record export or an accounting of disclosures, or how an AI feature answers people/);
+  }
+  assert.match(flat(INSTRUCTIONS), /Your own review of the rest of the app goes on alongside the check: the check never stands in for it\./);
+  assert.match(flat(DESCRIPTION), /It never stands in for the assistant's own review of the rest of the app\./);
+  // near the top, so a client that shortens long server instructions still shows it
+  assert.ok(INSTRUCTIONS.indexOf("Scope:") > 0 && INSTRUCTIONS.indexOf("Scope:") < 400, "the scope statement opens the instructions");
+  // the agent's findings from outside the check are shown beside the check's list, as its own
+  assert.match(flat(INSTRUCTIONS), /not your own summary of them; findings from your own review go beside them, marked as yours\./);
+});
+
 test("the server instructions say fixes come only when the person asks", () => {
   assert.match(INSTRUCTIONS, /^Make fixes only after the person asks for them\.$/m);
 });
