@@ -99,6 +99,12 @@ export const requireStaff = async (roles) => {
   "src/app/api/missing/route.ts": route('import { requireAuth } from "@/lib/nowhere";', 'requireAuth(["Admin"])'),
   "src/app/api/noexport/route.ts": route('import { requireOther } from "@/lib/guard";', 'requireOther(["Admin"])'),
   "src/app/api/package/route.ts": route('import { requireAuth } from "some-auth-package";', 'requireAuth(["Admin"])'),
+  // P2's shape (T28-P2-C13): a helper re-exported through a barrel is followed through it to its function.
+  "src/lib/index.ts": 'export { requireAuth as requireUser } from "./guard";\nexport { requireAuth } from "./gone";\n',
+  "src/lib/all.ts": 'export * from "./guard";\n',
+  "src/app/api/barrel/route.ts": route('import { requireUser } from "@/lib";', 'requireUser(["Admin"])'),
+  "src/app/api/star/route.ts": route('import { requireStaff } from "@/lib/all";', 'requireStaff(["Admin"])'),
+  "src/app/api/barrel-gone/route.ts": route('import { requireAuth } from "@/lib";', 'requireAuth(["Admin"])'),
   "src/app/api/direct/route.ts": `import { auth } from "@/lib/nowhere";
 import { requireAuth } from "@/lib/nowhere";
 export async function GET(req) {
@@ -176,4 +182,14 @@ test("a handler that already has its control keeps no follow_import evidence, ev
   const res = await run();
   assert.equal(item(res, "src/app/api/direct/route.ts").has_control, true);
   assert.deepEqual(held(res, "src/app/api/direct/route.ts"), []);
+});
+
+test("a helper re-exported through a barrel (named or star) is followed to its function; a re-export of a missing file is held", { skip: !engineAvailable() }, async () => {
+  const res = await run();
+  for (const path of ["src/app/api/barrel/route.ts", "src/app/api/star/route.ts"]) {
+    assert.equal(item(res, path).has_control, true, path);
+    assert.deepEqual(held(res, path), [], path);
+  }
+  assert.equal(item(res, "src/app/api/barrel-gone/route.ts").has_control, false);
+  assert.equal(held(res, "src/app/api/barrel-gone/route.ts").length, 1);
 });
