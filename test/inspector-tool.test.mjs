@@ -860,9 +860,10 @@ test("a document with too many catalog tables is never sent, and says why", asyn
 test("the instructions and the description say what the check covers, what it doesn't, and that the agent's review goes on", () => {
   const flat = (text) => text.replace(/\s+/g, " ");
   for (const text of [flat(INSTRUCTIONS), flat(DESCRIPTION)]) {
-    assert.match(text, /covers the data side: the schema, database settings, row-level security and roles, sign-in and session settings, and the code paths that read, write, log or send patient data/);
+    assert.match(text, /covers the data side: the schema, database settings, row-level security and roles, sign-in and session settings, and the code paths that read, write, log or send patient data, plus secrets in the code or the client bundle, dependency scanning and MFA on platform accounts/);
     assert.match(text, /doesn't cover app-wide security beyond that \(such as HTTP headers other than HSTS\), business logic, app features such as a patient's record export or an accounting of disclosures, or how an AI feature answers people/);
   }
+  // T28-P3-C16: four shipped practices are app-wide; the text names them so the agent doesn't read them as outside
   assert.match(flat(INSTRUCTIONS), /Your own review of the rest of the app goes on alongside the check: the check never stands in for it\./);
   assert.match(flat(DESCRIPTION), /It never stands in for the assistant's own review of the rest of the app\./);
   // near the top, so a client that shortens long server instructions still shows it
