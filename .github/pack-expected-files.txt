@@ -28,6 +28,7 @@ lib/inspector/environment.mjs
 lib/inspector/factdoc.mjs
 lib/inspector/factor.mjs
 lib/inspector/files.mjs
+lib/inspector/followimport.mjs
 lib/inspector/frameworks.mjs
 lib/inspector/gitread.mjs
 lib/inspector/helpers.mjs

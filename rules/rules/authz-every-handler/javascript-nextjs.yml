@@ -896,6 +896,50 @@ rule:
       regex: '^\(\s*(req|request|ctx|c)?\s*\)$'
 min_engine: 0.39.0
 ---
+# T28-P1-C5: a call by a bare name at the handler's top level taking nothing, the request or context, or literal
+# roles (requireAuth(["Admin"]), requireUser(req)), followed one import hop by the inspector (follow_import). A name
+# the file imports from a local module (relative, @/ or ~/) whose exported function loads the signed-in user (the
+# items' control) gives the handler's item its control; one whose function doesn't is dropped, so the item still
+# fails; one the inspector can't resolve (no file walked there, no such function export) stays here and holds the
+# handler's item for a person (needs_review), never a fail or a pass. A package import, a name the file declares and
+# a global are never followed and never kept. Only a handler with an item lacking its control is followed.
+id: authz-every-handler.javascript-nextjs.auth-unobserved-import
+practice_id: authz-every-handler
+language: javascript
+frameworks:
+- nextjs
+kind: evidence
+follow_import: true
+rule:
+  kind: call_expression
+  all:
+  - not:
+      inside:
+        stopBy: end
+        any:
+        - kind: function_declaration
+          inside:
+            kind: statement_block
+        - any:
+          - kind: arrow_function
+          - kind: function_expression
+          inside:
+            kind: variable_declarator
+            inside:
+              any:
+              - kind: lexical_declaration
+              - kind: variable_declaration
+              inside:
+                kind: statement_block
+  - has:
+      field: function
+      kind: identifier
+  - has:
+      field: arguments
+      kind: arguments
+      regex: '^\(\s*(?:(?:req|request|ctx|c)\s*(?:,\s*)?)?(?:\[\s*(?:(?:"[^"\n]*"|''[^''\n]*'')\s*,?\s*)*\]|"[^"\n]*"|''[^''\n]*'')?\s*\)$'
+min_engine: 0.39.0
+---
 # A guard at the handler's top level checking that a request header differs from a secret from the
 # environment (!== or !=, a name with SECRET, TOKEN or KEY) and returning or throwing when it does: a machine
 # holding the secret called, not which user. It holds that handler's item for a person (needs_review). An
