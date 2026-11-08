@@ -127,7 +127,10 @@ function main(argv) {
     process.stderr.write(`the source rule set doesn't match its manifest (rebuild it there first):\n  ${problems.join("\n  ")}\n`);
     return 1;
   }
-  if (!RULES_DIR.endsWith(`${sep}cli${sep}rules`)) throw new Error(`refusing to replace ${RULES_DIR}`);
+  // The package's own rules/ only (since the repo split the package root is the repository root, not cli/).
+  let own = false;
+  try { own = JSON.parse(readFileSync(join(RULES_DIR, "..", "package.json"), "utf8")).name === "custosa"; } catch { own = false; }
+  if (!RULES_DIR.endsWith(`${sep}rules`) || !own) throw new Error(`refusing to replace ${RULES_DIR}`);
   rmSync(RULES_DIR, { recursive: true, force: true });
   for (const f of manifest.files) {
     const to = join(RULES_DIR, ...f.path.split("/"));
