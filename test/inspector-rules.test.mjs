@@ -544,18 +544,23 @@ test("the between-rules soft limit is the worker's CPU time: a first rule that u
   const job = { path: "src/slow.js", lang: "javascript", text, ruleIds: [slow.id, consolePhi.id] };
   let closed = null;
   try {
+    // With room for both, both rules run. This first run also warms the thread: a fresh worker's first file pays a
+    // fixed start-up (about 10 ms of CPU on P2) before its first rule, which doesn't shrink with the walk. On a fast
+    // runner softMs fell under it, and the file ended late before the first rule ran (T28-P1-C8, run 42477518240).
+    const whole = await pool.run({ ...job, softMs: 3_600_000 }, 3_600_000);
+    assert.equal(whole.done.late, false);
+    assert.deepEqual(whole.found.map((m) => [m.rule_id, m.line_start]), [[slow.id, 1202], [slow.id, 1203], [consolePhi.id, 1203]]);
+    const thread = pool.worker;
     const cut = await pool.run({ ...job, softMs }, 3_600_000);
     assert.equal(cut.killed, false);
     assert.equal(cut.crashed, false);
     assert.equal(cut.done.late, true, "the second rule is not started past softMs");
     assert.deepEqual(cut.found.map((m) => [m.rule_id, m.line_start]), [[slow.id, 1202], [slow.id, 1203]], "the first rule's matches are kept");
-    // (runRules lists a late file time_limit and keeps its violations, as after a kill, but the thread lives on.) With
-    // room for both, the second rule runs, in the same thread.
-    const thread = pool.worker;
-    const whole = await pool.run({ ...job, softMs: 3_600_000 }, 3_600_000);
-    assert.equal(whole.done.late, false);
+    // (runRules lists a late file time_limit and keeps its violations, as after a kill, but the thread lives on.)
+    const again = await pool.run({ ...job, softMs: 3_600_000 }, 3_600_000);
+    assert.equal(again.done.late, false);
     assert.equal(pool.worker, thread, "no kill: the worker that stopped early is the one that runs the next file");
-    assert.deepEqual(whole.found.map((m) => [m.rule_id, m.line_start]), [[slow.id, 1202], [slow.id, 1203], [consolePhi.id, 1203]]);
+    assert.deepEqual(again.found, whole.found);
   } finally {
     closed = await pool.close(); // even when an assertion fails: a live thread would keep the test run from ending
   }
