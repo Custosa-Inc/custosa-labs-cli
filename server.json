@@ -3,7 +3,7 @@
   "name": "com.custosa/phi-schema-check",
   "title": "PHI Schema Check",
   "description": "Checks how a health app handles patient data in its schema, code and settings. Pay per use.",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "websiteUrl": "https://custosa.com/labs/setup",
   "repository": {
     "url": "https://github.com/Custosa-Inc/custosa-labs-cli",
@@ -23,7 +23,7 @@
       "registryType": "npm",
       "registryBaseUrl": "https://registry.npmjs.org",
       "identifier": "custosa",
-      "version": "0.1.1",
+      "version": "0.1.2",
       "runtimeHint": "npx",
       "transport": {
         "type": "stdio"

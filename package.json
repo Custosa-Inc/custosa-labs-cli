@@ -1,6 +1,6 @@
 {
   "name": "custosa",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "description": "The Custosa Labs CLI. Adds PHI Schema Check, its first product, to Claude Code, Codex, Cursor, VS Code, Antigravity and Gemini CLI with one command.",
   "type": "module",
   "bin": {
