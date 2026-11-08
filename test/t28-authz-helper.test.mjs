@@ -99,6 +99,14 @@ export const requireStaff = async (roles) => {
   "src/app/api/missing/route.ts": route('import { requireAuth } from "@/lib/nowhere";', 'requireAuth(["Admin"])'),
   "src/app/api/noexport/route.ts": route('import { requireOther } from "@/lib/guard";', 'requireOther(["Admin"])'),
   "src/app/api/package/route.ts": route('import { requireAuth } from "some-auth-package";', 'requireAuth(["Admin"])'),
+  "src/app/api/direct/route.ts": `import { auth } from "@/lib/nowhere";
+import { requireAuth } from "@/lib/nowhere";
+export async function GET(req) {
+  const session = await auth();
+  await requireAuth();
+  return Response.json({});
+}
+`,
 };
 
 async function run() {
@@ -162,4 +170,10 @@ test("a package import is not followed: its evidence is dropped and the item is 
   assert.deepEqual(held(res, "src/app/api/package/route.ts"), []);
   // the helpers' own files hold no handler, so nothing of theirs is held either
   assert.deepEqual(res.matches.filter((m) => m.path.startsWith("src/lib/")), []);
+});
+
+test("a handler that already has its control keeps no follow_import evidence, even for a call that doesn't resolve", { skip: !engineAvailable() }, async () => {
+  const res = await run();
+  assert.equal(item(res, "src/app/api/direct/route.ts").has_control, true);
+  assert.deepEqual(held(res, "src/app/api/direct/route.ts"), []);
 });
