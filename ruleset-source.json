@@ -1,6 +1,6 @@
 {
-  "ruleset_id": "2026-11-07.bde7fe90",
-  "content_sha256": "bde7fe90eae3bbd0e13ad2193e71d52e3f453a8527b98aeed118c036ba9d7619",
-  "manifest_sha256": "e255aecdf957c9c0b4563d35f2cb95e67bcd55442e4cfff25c7b80d8e7a6dfdd",
-  "source": "custosa-v1 products/developer-checks/hosted-core/app/knowledge"
+  "ruleset_id": "2026-11-08.b07874c6",
+  "content_sha256": "b07874c63d9b2b93c07298f92b882e1b4b0e6126cd1db2e1ba2725b199aeb8f4",
+  "manifest_sha256": "49318ac54628005d1c810308af3d95529ca2ea4ac30f1e22ed565d1d4ddf1e2e",
+  "source": "the evaluator's app/knowledge"
 }
