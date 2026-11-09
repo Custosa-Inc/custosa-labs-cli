@@ -1,5 +1,5 @@
 {
-  "ruleset_id": "2026-11-09.e88986a8",
+  "ruleset_id": "2026-11-09.76525a02",
   "min_engine": "0.45.3",
   "files": [
     {
@@ -501,6 +501,38 @@
     {
       "path": "rules/column-encryption-highly-sensitive/typescript-generic.yml",
       "sha256": "44f061fee87ca255ae69cc003fe1e276d9746ff5bb8d4193a23e31d259f68c83"
+    },
+    {
+      "path": "rules/db-tls-enforced/go-generic.yml",
+      "sha256": "950cfed08cf14713d5f4c6055877ce316ed6d7fdc3a6a3b480ca0ade8343771a"
+    },
+    {
+      "path": "rules/db-tls-enforced/java-generic.yml",
+      "sha256": "b4e25239ae213d67b16a100a06fc8f0360ffc02e67c559a68ea59d2e7bd17838"
+    },
+    {
+      "path": "rules/db-tls-enforced/javascript-generic.yml",
+      "sha256": "9cecfe9854f1dcc546118c16828f1457153c82393e8d6c5120aa9d4907a40622"
+    },
+    {
+      "path": "rules/db-tls-enforced/php-generic.yml",
+      "sha256": "8abb8045d6eaba9df505d0fe31661cedc02a22739cb9a2a8a99687eedf8874a8"
+    },
+    {
+      "path": "rules/db-tls-enforced/python-generic.yml",
+      "sha256": "9fe4e8dc1556255e33a9dfa6bd90c6dc47252a647b0cd4c3e543c9d8cbf3fe60"
+    },
+    {
+      "path": "rules/db-tls-enforced/ruby-generic.yml",
+      "sha256": "dd2361958521ee5475dbc20a2939292e3524dd2fc6df2d17bb9ba7222195d78f"
+    },
+    {
+      "path": "rules/db-tls-enforced/tsx-generic.yml",
+      "sha256": "4fe1734ca36b06104d5f818fedee0d396180b076bbcccba04bd546ac35e95ddb"
+    },
+    {
+      "path": "rules/db-tls-enforced/typescript-generic.yml",
+      "sha256": "9c292e4e35e8e78905f6534bdd2fe3b9ca11b7535d05faf78fbb2e4afcc36c7d"
     },
     {
       "path": "rules/dependency-scanning-ci/json-generic.yml",

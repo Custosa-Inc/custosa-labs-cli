@@ -1,0 +1,95 @@
+# T29 (T29-P1-C5 item 7, E-5): the client side of db-tls-enforced, which had no rule. The practice's "client-verified"
+# mechanism: every connection string in the code uses sslmode=verify-full, or require where the platform enforces TLS.
+# A Postgres connection string literal (psycopg, SQLAlchemy, asyncpg) with sslmode disable, allow or prefer.
+id: db-tls-enforced.python-generic.tls-off-url
+practice_id: db-tls-enforced
+language: python
+frameworks:
+- generic
+kind: violation
+rule:
+  kind: string
+  regex: '(?i)^[rbuf]*["'']{1,3}postgres(ql)?(\+\w+)?://[^"'']*[?&]sslmode=(disable|allow|prefer)\b'
+min_engine: 0.39.0
+---
+# sslmode="disable" (or allow, prefer) as a keyword (psycopg and psycopg2 connect, or a SQLAlchemy connect_args), or
+# ssl=False on asyncpg's connect or create_pool. ssl=False on any other call is left alone.
+id: db-tls-enforced.python-generic.tls-off-option
+practice_id: db-tls-enforced
+language: python
+frameworks:
+- generic
+kind: violation
+rule:
+  kind: keyword_argument
+  any:
+  - all:
+    - has:
+        field: name
+        kind: identifier
+        regex: '^sslmode$'
+    - has:
+        field: value
+        kind: string
+        regex: '(?i)^[rbu]*["''](disable|allow|prefer)["'']$'
+  - all:
+    - has:
+        field: name
+        kind: identifier
+        regex: '^ssl$'
+    - has:
+        field: value
+        kind: 'false'
+    - inside:
+        kind: argument_list
+        inside:
+          kind: call
+          has:
+            field: function
+            kind: attribute
+            regex: '^asyncpg\.(connect|create_pool)$'
+min_engine: 0.39.0
+---
+# T29-P1-C6: the client's TLS mode taken from an environment value the check can't read: sslmode= whose value reads
+# os.environ or os.getenv (or a bare environ or getenv), ssl= reading one on asyncpg's connect or create_pool, or an
+# f-string connection string whose sslmode is interpolated. The practice reports unknown and asks
+# (assistant_answer_needed), never a pass, while it is there. A bare connection string from the environment is not
+# this: the server side settles enforcement.
+id: db-tls-enforced.python-generic.tls-from-env
+practice_id: db-tls-enforced
+language: python
+frameworks:
+- generic
+kind: evidence
+rule:
+  any:
+  - kind: string
+    regex: '(?i)^[rbu]*f[rbu]*["'']{1,3}postgres(ql)?(\+\w+)?://[^"'']*[?&]sslmode=\{'
+  - kind: keyword_argument
+    all:
+    - has:
+        field: name
+        kind: identifier
+        regex: '^(sslmode|ssl)$'
+    - has:
+        field: value
+        stopBy: end
+        any:
+        - kind: attribute
+          regex: '^(os\.)?(environ|getenv)\b'
+        - kind: identifier
+          regex: '^(environ|getenv)$'
+    - any:
+      - has:
+          field: name
+          kind: identifier
+          regex: '^sslmode$'
+      - inside:
+          kind: argument_list
+          inside:
+            kind: call
+            has:
+              field: function
+              kind: attribute
+              regex: '^asyncpg\.(connect|create_pool)$'
+min_engine: 0.39.0

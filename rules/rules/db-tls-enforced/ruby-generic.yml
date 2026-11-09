@@ -1,0 +1,29 @@
+# T29 item 7 (E-5), the other stacks: a Postgres connection URL literal with sslmode disable, allow or prefer, or
+# sslmode: "disable" (allow, prefer) as an option (PG.connect, ActiveRecord establish_connection).
+id: db-tls-enforced.ruby-generic.tls-off-url
+practice_id: db-tls-enforced
+language: ruby
+frameworks:
+- generic
+kind: violation
+rule:
+  any:
+  - kind: string
+    regex: '(?i)^["'']postgres(ql)?://[^"'']*[?&]sslmode=(disable|allow|prefer)\b'
+  - kind: pair
+    all:
+    - has:
+        field: key
+        any:
+        - kind: hash_key_symbol
+          regex: '^sslmode$'
+        - kind: simple_symbol
+          regex: '^:sslmode$'
+    - has:
+        field: value
+        any:
+        - kind: string
+          regex: '(?i)^["''](disable|allow|prefer)["'']$'
+        - kind: simple_symbol
+          regex: '(?i)^:(disable|allow|prefer)$'
+min_engine: 0.39.0
