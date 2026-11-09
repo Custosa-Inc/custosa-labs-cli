@@ -4,9 +4,11 @@
 # at its own path and line.
 
 # items-handler: a route handler whose body makes a data call. The control is a literal Cache-Control value holding
-# no-store (also Symfony's setCache(['no_store' => true]); setPublic(), setSharedMaxAge() or setCache public or
-# s_maxage are shared). No control: fail, unless unobserved-header holds it. The header counts only in a response
-# write (header(), response(..., [...]), ->header or ->withHeaders on response() or $response,
+# no-store (on Node, or private: T29-P1-C9) (also Symfony's setCache(['no_store' => true]); setPublic(),
+# setSharedMaxAge() or setCache public or s_maxage are shared). No control: fail, unless unobserved-header holds it.
+# On Next.js only a GET or HEAD route handler and getServerSideProps are one: a POST, PUT, PATCH or DELETE reply, a
+# Server Action's included, isn't stored by a shared cache by default (T29-P1-C9). The header counts only in a
+# response write (header(), response(..., [...]), ->header or ->withHeaders on response() or $response,
 # $response->headers->set, or new Response with the header), never in Guzzle options, Http::withHeaders or
 # curl_setopt, nor in a comment. A no-store literal no write placed holds the item, never a fail.
 id: phi-responses-not-cached.php-laravel.items-handler

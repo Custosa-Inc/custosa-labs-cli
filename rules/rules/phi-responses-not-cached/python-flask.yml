@@ -4,12 +4,15 @@
 # at its own path and line.
 
 # items-handler: a route handler whose body makes a data call. The control is a literal Cache-Control value holding
-# no-store (Django: also never_cache, cache_control(no_store=True), patch_cache_control or add_never_cache_headers;
-# cache_page and cache_control(public=True) or s_maxage are shared). No control: fail, unless unobserved-header holds
-# it. The header counts only in a response write (response[...] =, response.headers[...] =, resp.headers.set, a
-# Response class or make_response given the headers, or Flask's returned tuple), never in a request sent with
-# requests, httpx or aiohttp, on a name bound from one (or from a session's get or post, or a Response imported from
-# httpx or requests), nor in a comment. A no-store literal no write placed holds the item, never a fail.
+# no-store (on Node, or private: T29-P1-C9) (Django: also never_cache, cache_control(no_store=True),
+# patch_cache_control or add_never_cache_headers; cache_page and cache_control(public=True) or s_maxage are shared).
+# No control: fail, unless unobserved-header holds it. On Next.js only a GET or HEAD route handler and
+# getServerSideProps are one: a POST, PUT, PATCH or DELETE reply, a Server Action's included, isn't stored by a shared
+# cache by default (T29-P1-C9). The header counts only in a response write (response[...] =, response.headers[...] =,
+# resp.headers.set, a Response class or make_response given the headers, or Flask's returned tuple), never in a
+# request sent with requests, httpx or aiohttp, on a name bound from one (or from a session's get or post, or a
+# Response imported from httpx or requests), nor in a comment. A no-store literal no write placed holds the item,
+# never a fail.
 id: phi-responses-not-cached.python-flask.items-handler
 practice_id: phi-responses-not-cached
 language: python

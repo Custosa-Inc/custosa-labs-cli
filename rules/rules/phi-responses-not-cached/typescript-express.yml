@@ -4,9 +4,11 @@
 # at its own path and line.
 
 # items-handler: a route handler whose body makes a data call. The control is a literal Cache-Control value holding
-# no-store. No control: fail, unless unobserved-header holds it. The header counts only in a response write (res.set,
-# setHeader, header, writeHead, headers.set, NextResponse or new Response, a name bound from one of those, or a
-# Headers object passed to one), never in a request sent with fetch or axios or on its result, nor in a comment.
+# no-store (on Node, or private: T29-P1-C9). No control: fail, unless unobserved-header holds it. On Next.js only a
+# GET or HEAD route handler and getServerSideProps are one: a POST, PUT, PATCH or DELETE reply, a Server Action's
+# included, isn't stored by a shared cache by default (T29-P1-C9). The header counts only in a response write
+# (res.set, setHeader, header, writeHead, headers.set, NextResponse or new Response, a name bound from one of those,
+# or a Headers object passed to one), never in a request sent with fetch or axios or on its result, nor in a comment.
 id: phi-responses-not-cached.typescript-express.items-handler
 practice_id: phi-responses-not-cached
 language: typescript
@@ -144,7 +146,7 @@ control:
     stopBy: end
     any:
     - kind: call_expression
-      regex: (?is)['"`]cache-control['"`]\s*[,:]\s*['"`][^'"`]*no-store
+      regex: (?is)['"`]cache-control['"`]\s*[,:]\s*['"`][^'"`]*(no-store|private)
       has:
         field: function
         any:
@@ -183,13 +185,13 @@ control:
                   - kind: await_expression
                     regex: ^(await\s+)?(fetch|axios)\b
     - kind: new_expression
-      regex: (?is)['"`]cache-control['"`]\s*[,:]\s*['"`][^'"`]*no-store
+      regex: (?is)['"`]cache-control['"`]\s*[,:]\s*['"`][^'"`]*(no-store|private)
       has:
         field: constructor
         kind: identifier
         regex: ^(NextResponse|Response)$
     - kind: call_expression
-      regex: (?is)['"`]cache-control['"`]\s*[,:]\s*['"`][^'"`]*no-store
+      regex: (?is)['"`]cache-control['"`]\s*[,:]\s*['"`][^'"`]*(no-store|private)
       all:
       - any:
         - pattern: $R.headers.set($$$A)
@@ -230,7 +232,7 @@ control:
                 - kind: await_expression
                   regex: ^(new\s+)?(NextResponse|Response)\b
     - kind: new_expression
-      regex: (?is)['"`]cache-control['"`]\s*[,:]\s*['"`][^'"`]*no-store
+      regex: (?is)['"`]cache-control['"`]\s*[,:]\s*['"`][^'"`]*(no-store|private)
       all:
       - has:
           field: constructor

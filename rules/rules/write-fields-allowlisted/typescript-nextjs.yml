@@ -74,10 +74,23 @@ control:
             stopBy: end
             kind: spread_element
             not:
-              has: &id001
-                any:
-                - pattern: $SCHEMA.parse($$$)
-                - pattern: $SCHEMA.parseAsync($$$)
+              any:
+              - has: &id001
+                  any:
+                  - pattern: $SCHEMA.parse($$$)
+                  - pattern: $SCHEMA.parseAsync($$$)
+              - has:  # ...(cond && { field }): named fields written only when cond holds (T29-P1-C9, C13)
+                  kind: parenthesized_expression
+                  has:
+                    kind: binary_expression
+                    regex: (?s)&&\s*\{.*\}$
+                    has:
+                      field: right
+                      kind: object
+                      not:
+                        has:
+                          stopBy: end
+                          kind: spread_element
     - not:
         has:
           field: arguments
@@ -826,8 +839,11 @@ control:
         regex: ^(await\s+)?(auth\.uid|getUserId|getCurrentUserId|requireUser|getServerSession|currentUserId)\(
       - kind: await_expression
         regex: ^(await\s+)?(auth\.uid|getUserId|getCurrentUserId|requireUser|getServerSession|currentUserId)\(
+      # a literal or an enum member is not from the request (T29-P1-C9, C13)
       - kind: string
-        regex: ^['\"](patient|staff|clinician|viewer|member|user)['\"]$
+        regex: ^['\"][A-Za-z][A-Za-z0-9_ -]{0,39}['\"]$
+      - kind: member_expression
+        regex: ^(\$Enums\.)?([A-Z][A-Za-z0-9_]*)?(Role|Status|Type|Kind|Level|Permission)s?\.[A-Za-z_][A-Za-z0-9_]*$
 min_engine: 0.39.0
 ---
 id: write-fields-allowlisted.typescript-nextjs.schema-passthrough

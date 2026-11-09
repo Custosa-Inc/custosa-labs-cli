@@ -4,9 +4,10 @@
 # at its own path and line.
 
 # items-handler: a route handler whose body makes a data call. The control is a literal Cache-Control value holding
-# no-store (also no_store or cache_control[:no_store] = true; expires_in or fresh_when with public: true,
-# http_cache_forever or cache_control[:public] = true are shared). No control: fail, unless unobserved-header holds
-# it.
+# no-store (on Node, or private: T29-P1-C9) (also no_store or cache_control[:no_store] = true; expires_in or
+# fresh_when with public: true, http_cache_forever or cache_control[:public] = true are shared). No control: fail,
+# unless unobserved-header holds it. On Next.js only a GET or HEAD route handler and getServerSideProps are one: a
+# POST, PUT, PATCH or DELETE reply, a Server Action's included, isn't stored by a shared cache by default (T29-P1-C9).
 id: phi-responses-not-cached.ruby-rails.items-handler
 practice_id: phi-responses-not-cached
 language: ruby

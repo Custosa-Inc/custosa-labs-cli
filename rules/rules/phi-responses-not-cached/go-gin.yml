@@ -4,7 +4,9 @@
 # at its own path and line.
 
 # items-handler: a route handler whose body makes a data call. The control is a literal Cache-Control value holding
-# no-store. No control: fail, unless unobserved-header holds it. The header counts only in a response write
+# no-store (on Node, or private: T29-P1-C9). No control: fail, unless unobserved-header holds it. On Next.js only a
+# GET or HEAD route handler and getServerSideProps are one: a POST, PUT, PATCH or DELETE reply, a Server Action's
+# included, isn't stored by a shared cache by default (T29-P1-C9). The header counts only in a response write
 # (w.Header().Set or .Add, the w.Header() map, or gin's c.Header), never on a request's Header field or gin's c.Set,
 # nor in a comment. A no-store literal no write placed holds the item, never a fail.
 id: phi-responses-not-cached.go-gin.items-handler
