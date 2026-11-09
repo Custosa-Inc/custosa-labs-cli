@@ -48,3 +48,55 @@ control:
           - kind: call
             regex: '^load_and_authorize_resource\b'
 min_engine: 0.39.0
+---
+# T29 (T29-P1-C5, synthesis item 8): a controller method that rules.action would fail, guarded by project code this
+# file can't see into: a call in it by a name that checks the caller's right to the record
+# (authorize_patient_access!(@patient), ensure_note_owner!; a verb such as check, verify, ensure, require, assert,
+# authorize or enforce joined to owner, access, permission, user, caller, principal, identity, policy, tenant, member
+# or can_view), or a before_action in its class naming such a method (before_action :ensure_note_owner!; its only: and
+# except: lists aren't read). It holds the method's item for a person (needs_review), never a pass.
+# before_action :authenticate_user! says signed in only, so it never matches.
+id: authz-every-handler.ruby-rails.auth-unobserved-helper
+practice_id: authz-every-handler
+language: ruby
+frameworks:
+- rails
+kind: evidence
+rule:
+  kind: method
+  all:
+  - inside:
+      kind: class
+      stopBy: end
+      has:
+        field: name
+        kind: constant
+        regex: 'Controller$'
+  - has:
+      stopBy: end
+      kind: element_reference
+      regex: '^params\[\s*:(id|\w+_id)\s*\]'
+  - any:
+    - has:
+        stopBy: end
+        kind: identifier
+        regex: '(?i)^(check|verify|ensure|require|assert|authori[sz]e|enforce|load_current)_\w*(owner|access|permission|user|caller|principal|identity|polic(y|ies)|tenant|member|can_(view|read|edit|update|delete))\w*[!?]?$'
+    - inside:
+        kind: class
+        stopBy: end
+        has:
+          kind: body_statement
+          has:
+            kind: call
+            all:
+            - has:
+                field: method
+                kind: identifier
+                regex: '^(before_action|prepend_before_action)$'
+            - has:
+                field: arguments
+                kind: argument_list
+                has:
+                  kind: simple_symbol
+                  regex: '(?i)^:(check|verify|ensure|require|assert|authori[sz]e|enforce|load_current)_\w*(owner|access|permission|user|caller|principal|identity|polic(y|ies)|tenant|member|can_(view|read|edit|update|delete))\w*[!?]?$'
+min_engine: 0.39.0

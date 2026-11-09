@@ -62,3 +62,66 @@ control:
         kind: annotation
         regex: '^@(PreAuthorize|PostAuthorize)\(.*(principal|authentication|hasPermission|#)'
 min_engine: 0.39.0
+---
+# T29 (T29-P1-C5, synthesis item 8): a mapped method that rules.mapping would fail, guarded by project code this file
+# can't see into: a call in its body by a name that checks the caller's right to the record
+# (accessService.checkPatientAccess(id), verifyOwner(id), SecurityUtils.getCurrentUser(); a verb such as check,
+# verify, ensure, require, assert, authorize or enforce joined to owner, access, permission, user, caller, principal,
+# identity, policy, tenant, member or canView), or an annotation of the project's naming ownership, access, a
+# permission, authorization or a policy (@CheckOwnership). It holds the method's item for a person (needs_review),
+# never a pass. @PreAuthorize and @PostAuthorize are read by the item's control, so a role rule there still fails;
+# @Secured and @RolesAllowed are role rules and never match.
+id: authz-every-handler.java-spring.auth-unobserved-helper
+practice_id: authz-every-handler
+language: java
+frameworks:
+- spring
+kind: evidence
+rule:
+  kind: method_declaration
+  all:
+  - has:
+      kind: modifiers
+      has:
+        any:
+        - kind: annotation
+          regex: '^@(Get|Post|Put|Patch|Delete|Request)Mapping\b'
+        - kind: marker_annotation
+          regex: '^@(Get|Post|Put|Patch|Delete|Request)Mapping\b'
+  - has:
+      kind: formal_parameters
+      has:
+        kind: formal_parameter
+        has:
+          kind: modifiers
+          has:
+            any:
+            - kind: annotation
+              regex: '^@PathVariable\b'
+            - kind: marker_annotation
+              regex: '^@PathVariable\b'
+  - any:
+    - has:
+        kind: block
+        has:
+          stopBy: end
+          kind: method_invocation
+          has:
+            field: name
+            kind: identifier
+            regex: '(?i)^(check|verify|ensure|require|assert|authori[sz]e|enforce|getCurrent|loadCurrent)\w*(owner|access|permission|user|caller|principal|identity|polic(y|ies)|tenant|member|canView|canRead|canEdit)\w*$'
+    - has:
+        kind: modifiers
+        has:
+          any:
+          - kind: annotation
+            regex: '(?i)^@\w*(owner|access|permission|authori[sz]|polic)'
+            not:
+              kind: annotation
+              regex: '^@(PreAuthorize|PostAuthorize|Secured|RolesAllowed|PathVariable)\b'
+          - kind: marker_annotation
+            regex: '(?i)^@\w*(owner|access|permission|authori[sz]|polic)'
+            not:
+              kind: marker_annotation
+              regex: '^@(PreAuthorize|PostAuthorize|Secured|RolesAllowed|PathVariable)\b'
+min_engine: 0.39.0

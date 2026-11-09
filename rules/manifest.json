@@ -1,5 +1,5 @@
 {
-  "ruleset_id": "2026-11-08.b07874c6",
+  "ruleset_id": "2026-11-09.23340b9f",
   "min_engine": "0.45.3",
   "files": [
     {
@@ -392,7 +392,7 @@
     },
     {
       "path": "rules/authz-every-handler/java-spring.yml",
-      "sha256": "358b67e42078ddb63a7a76690dd70f59b964ef0a597dae7fe36bbd0e25baf955"
+      "sha256": "e2f49b0acda4ab50eec457d65958fd36536bf6d3d2f77654f1d8d9b8f665e67e"
     },
     {
       "path": "rules/authz-every-handler/javascript-express.yml",
@@ -404,27 +404,27 @@
     },
     {
       "path": "rules/authz-every-handler/kotlin-spring.yml",
-      "sha256": "38fed0156841fe59f14a589aebad855b128ce796f32185c8f34dbd20a5505a74"
+      "sha256": "0ef1831ed3e6d3713a1ee7c6f77d31f19ed8c7de34302a557cfe25f811cb3396"
     },
     {
       "path": "rules/authz-every-handler/php-generic.yml",
-      "sha256": "42391a593358884aca6b0f011524e0eb70cc67ff5b187094dba810b3d34966d4"
+      "sha256": "2f6d688933b1a33ad9e0cfe1237d2fd07b53870f2f125b5f37e34695ac97f81f"
     },
     {
       "path": "rules/authz-every-handler/python-django.yml",
-      "sha256": "8f4b2548bd3d3eec9565039d76dde7cfe32d75937f0d4f996f7d19d61427cccf"
+      "sha256": "7aa08c29e0fd067a94d777a31a98a2e73a6acf072dd40397162a4a6e77afe27c"
     },
     {
       "path": "rules/authz-every-handler/python-fastapi.yml",
-      "sha256": "fd3a97e967d86777727b955b1d194c898ca1bd3c956835bebdaebc70d220912e"
+      "sha256": "d4676747bd474d2efce8dec6ea06cd1beefa21bf7f97e3a61f01b42ef3ce00b6"
     },
     {
       "path": "rules/authz-every-handler/python-flask.yml",
-      "sha256": "6a33eca4a0612fde3f5c7b0febaf84b2d3f82dd3863e4e1cb45e99c446148ddf"
+      "sha256": "7dc9e5c270fd7d1098d1add53ca9551abacc844368bb251128e8bf874f75b641"
     },
     {
       "path": "rules/authz-every-handler/ruby-rails.yml",
-      "sha256": "8f12c5cae2ed44aa105314b2d310dbb73ee7a13e032c115b43d85524f12ced34"
+      "sha256": "941495d28242486d3804cdd3358c1fd6e25f97e4cbee8851752aed57b73a1be5"
     },
     {
       "path": "rules/authz-every-handler/tsx-nextjs.yml",

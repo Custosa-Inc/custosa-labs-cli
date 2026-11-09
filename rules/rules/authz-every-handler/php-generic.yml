@@ -35,3 +35,48 @@ control:
       - kind: member_call_expression
         regex: '->(getRequestUser\w*|getRequestUserUUID\w*)\('
 min_engine: 0.39.0
+---
+# T29 (T29-P1-C5, synthesis item 8): a route that rules.route would fail, whose closure calls project code this file
+# can't see into by a name that checks the caller's right to the record (checkPatientAccess($pid),
+# $this->guard->verifyOwner($id), Access::ensurePatientAccess($pid); a verb such as check, verify, ensure, require,
+# assert, authorize or enforce joined to owner, access, permission, user, caller, principal, identity, policy, tenant,
+# member or canView). It holds the route's item for a person (needs_review), never a pass. RestConfig's
+# authorization_check and AclMain::aclCheckCore are role (ACL) checks and never match.
+id: authz-every-handler.php-generic.auth-unobserved-helper
+practice_id: authz-every-handler
+language: php
+frameworks:
+- generic
+kind: evidence
+rule:
+  kind: array_element_initializer
+  all:
+  - has:
+      any:
+      - kind: encapsed_string
+        regex: '^[''\"](GET|POST|PUT|PATCH|DELETE) /[^''\"]*:\w'
+      - kind: string
+        regex: '^[''\"](GET|POST|PUT|PATCH|DELETE) /[^''\"]*:\w'
+  - has:
+      any:
+      - kind: anonymous_function
+      - kind: arrow_function
+      has:
+        stopBy: end
+        any:
+        - kind: function_call_expression
+          has:
+            field: function
+            kind: name
+            regex: '(?i)^(check|verify|ensure|require|assert|authori[sz]e|enforce|getCurrent|get_current)_?\w*(owner|access|permission|user|caller|principal|identity|polic(y|ies)|tenant|member|canView|can_view)\w*$'
+        - kind: member_call_expression
+          has:
+            field: name
+            kind: name
+            regex: '(?i)^(check|verify|ensure|require|assert|authori[sz]e|enforce|getCurrent|get_current)_?\w*(owner|access|permission|user|caller|principal|identity|polic(y|ies)|tenant|member|canView|can_view)\w*$'
+        - kind: scoped_call_expression
+          has:
+            field: name
+            kind: name
+            regex: '(?i)^(check|verify|ensure|require|assert|authori[sz]e|enforce|getCurrent|get_current)_?\w*(owner|access|permission|user|caller|principal|identity|polic(y|ies)|tenant|member|canView|can_view)\w*$'
+min_engine: 0.39.0
