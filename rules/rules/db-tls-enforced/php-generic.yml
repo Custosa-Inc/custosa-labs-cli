@@ -1,0 +1,15 @@
+# T29 item 7 (E-5), the other stacks: a Postgres PDO DSN (pgsql:...;sslmode=disable) or connection URL literal with
+# sslmode disable, allow or prefer.
+id: db-tls-enforced.php-generic.tls-off-url
+practice_id: db-tls-enforced
+language: php
+frameworks:
+- generic
+kind: violation
+rule:
+  any:
+  - kind: string
+    regex: '(?i)^["''](pgsql:[^"'']*[;:]|postgres(ql)?://[^"'']*[?&])sslmode=(disable|allow|prefer)\b'
+  - kind: encapsed_string
+    regex: '(?i)^["''](pgsql:[^"'']*[;:]|postgres(ql)?://[^"'']*[?&])sslmode=(disable|allow|prefer)\b'
+min_engine: 0.39.0

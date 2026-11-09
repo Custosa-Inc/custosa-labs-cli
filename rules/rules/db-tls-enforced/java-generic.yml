@@ -1,0 +1,11 @@
+# T29 item 7 (E-5), the other stacks: a JDBC Postgres URL literal with sslmode disable, allow or prefer, or ssl=false.
+id: db-tls-enforced.java-generic.tls-off-url
+practice_id: db-tls-enforced
+language: java
+frameworks:
+- generic
+kind: violation
+rule:
+  kind: string_literal
+  regex: '(?i)^"jdbc:postgresql://[^"]*[?&](sslmode=(disable|allow|prefer)|ssl=false)\b'
+min_engine: 0.39.0

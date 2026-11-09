@@ -1,0 +1,15 @@
+# T29 item 7 (E-5), the other stacks: a Postgres connection string literal with sslmode disable, allow or prefer, as a
+# URL (postgres://...?sslmode=disable) or as lib/pq and pgx key/value pairs ("host=db sslmode=disable").
+id: db-tls-enforced.go-generic.tls-off-url
+practice_id: db-tls-enforced
+language: go
+frameworks:
+- generic
+kind: violation
+rule:
+  any:
+  - kind: interpreted_string_literal
+    regex: '(?i)^"(postgres(ql)?://[^"]*[?&]sslmode=(disable|allow|prefer)\b|[^"]*\b(host|dbname|user)=[^"]*\bsslmode=(disable|allow|prefer)\b|[^"]*\bsslmode=(disable|allow|prefer)\b[^"]*\b(host|dbname|user)=)'
+  - kind: raw_string_literal
+    regex: '(?i)^`(postgres(ql)?://[^`]*[?&]sslmode=(disable|allow|prefer)\b|[^`]*\b(host|dbname|user)=[^`]*\bsslmode=(disable|allow|prefer)\b|[^`]*\bsslmode=(disable|allow|prefer)\b[^`]*\b(host|dbname|user)=)'
+min_engine: 0.39.0
