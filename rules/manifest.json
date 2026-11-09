@@ -1,5 +1,5 @@
 {
-  "ruleset_id": "2026-11-08.b07874c6",
+  "ruleset_id": "2026-11-09.431e253a",
   "min_engine": "0.45.3",
   "files": [
     {
@@ -501,6 +501,18 @@
     {
       "path": "rules/column-encryption-highly-sensitive/typescript-generic.yml",
       "sha256": "44f061fee87ca255ae69cc003fe1e276d9746ff5bb8d4193a23e31d259f68c83"
+    },
+    {
+      "path": "rules/db-tls-enforced/javascript-generic.yml",
+      "sha256": "9cecfe9854f1dcc546118c16828f1457153c82393e8d6c5120aa9d4907a40622"
+    },
+    {
+      "path": "rules/db-tls-enforced/python-generic.yml",
+      "sha256": "9fe4e8dc1556255e33a9dfa6bd90c6dc47252a647b0cd4c3e543c9d8cbf3fe60"
+    },
+    {
+      "path": "rules/db-tls-enforced/typescript-generic.yml",
+      "sha256": "9c292e4e35e8e78905f6534bdd2fe3b9ca11b7535d05faf78fbb2e4afcc36c7d"
     },
     {
       "path": "rules/dependency-scanning-ci/json-generic.yml",
