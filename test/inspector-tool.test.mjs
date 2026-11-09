@@ -859,7 +859,9 @@ test("a document with too many catalog tables is never sent, and says why", asyn
 // issues outside it. Both texts say what the check covers, what it doesn't, and that the agent's own review goes on.
 test("the instructions and the description say what the check covers, what it doesn't, and that the agent's review goes on", () => {
   const flat = (text) => text.replace(/\s+/g, " ");
-  for (const text of [flat(INSTRUCTIONS), flat(DESCRIPTION)]) {
+  // T29-P1-C7 (brief rank 8): both load on every turn, so the full scope is in the description and the instructions
+  // point to it, naming what is out
+  for (const text of [flat(DESCRIPTION)]) {
     assert.match(text, /covers the data side: the schema, database settings, row-level security and roles, sign-in and session settings, and the code paths that read, write, log or send patient data, plus secrets in the code or the client bundle, dependency scanning and MFA on platform accounts/);
     assert.match(text, /doesn't cover app-wide security beyond that \(such as HTTP headers other than HSTS\), business logic, app features such as a patient's record export or an accounting of disclosures, or how an AI feature answers people/);
   }
@@ -868,10 +870,10 @@ test("the instructions and the description say what the check covers, what it do
   assert.match(flat(DESCRIPTION), /It never stands in for the assistant's own review of the rest of the app\./);
   // near the top, so a client that shortens long server instructions still shows it
   assert.ok(INSTRUCTIONS.indexOf("Scope:") > 0 && INSTRUCTIONS.indexOf("Scope:") < 400, "the scope statement opens the instructions");
+  assert.match(flat(INSTRUCTIONS), /Scope: as check_schema's description says\./);
   // the agent's findings from outside the check are shown beside the check's list, as its own
-  assert.match(flat(INSTRUCTIONS), /not your own summary of them; findings from your own review go beside them, marked as yours\./);
+  assert.match(flat(INSTRUCTIONS), /findings from your own review go beside the check's, marked as yours\./);
 });
 
-test("the server instructions say fixes come only when the person asks", () => {
-  assert.match(INSTRUCTIONS, /^Make fixes only after the person asks for them\.$/m);
-});
+// T27 D10's "Make fixes only after the person asks for them." is gone: the owner's yes in T29-P1-C7 (brief rank 2) puts
+// consent with the person and the harness, and test/t29-interface-text.test.mjs checks no line gates on the person.
