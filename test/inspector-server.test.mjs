@@ -103,7 +103,7 @@ test("inspect --stdio: handshake, exactly check_schema, the sign-in message, the
   assert.equal(list.result.tools[0].outputSchema.type, "object");
   const props = Object.keys(list.result.tools[0].inputSchema.properties);
   for (const key of ["goal", "session", "answers", "decisions"]) assert.ok(props.includes(key), key); // decisions: the person's
-  assert.deepEqual(Object.keys(list.result.tools[2].inputSchema.properties), ["goal", "session", "page", "resend"]); // TU1: pages are get_result_page's
+  assert.deepEqual(Object.keys(list.result.tools[2].inputSchema.properties), ["goal", "session", "page", "resend", "target"]); // TU1: pages are get_result_page's; target (T29-P1-C6, C10)
   for (const key of ["tables", "fields", "json_schema", "verified", "verified_file", "changed_files", "app"]) assert.ok(!props.includes(key), key);
 
   const ok = await s.call({ goal: "check", session: "ps_abcdefghijklmnopqrstuv", answers: [
