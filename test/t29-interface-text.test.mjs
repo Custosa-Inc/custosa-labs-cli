@@ -43,3 +43,52 @@ test("goal fix takes a finding of the assistant's own, by practice and file loca
   assert.match(ids.description, /practice_id@path:line/);
   assert.match("authz-every-handler@app/api/notes/[id]/route.ts:12", new RegExp(ids.items.pattern));
 });
+
+// T29-P3-C17 low 2: an own finding names a file this check walked, or it is refused here, uncharged, and nothing is sent.
+// A check finding's own id (its path as the check sent it) still passes; a range runs forward.
+test("goal fix: an own finding on a file the check did not walk is refused before anything is sent", async () => {
+  const { mkdirSync, mkdtempSync, readFileSync, realpathSync, writeFileSync } = await import("node:fs");
+  const { tmpdir } = await import("node:os");
+  const { join } = await import("node:path");
+  const { fileURLToPath } = await import("node:url");
+  const { makeRunCheck, TOOL_ERRORS } = await import("../lib/inspector/tool.mjs");
+  const { writeToken } = await import("../lib/inspector/auth.mjs");
+  const { loadRules } = await import("../lib/inspector/rules.mjs");
+  const { hashed } = await import("../lib/inspector/ids.mjs");
+  const { buildFactDocuments } = await import("../lib/inspector/factdoc.mjs");
+  const { EVALUATE_OK, stub } = await import("./stub-evaluator.mjs");
+  const temp = (prefix) => realpathSync(mkdtempSync(join(tmpdir(), prefix)));
+  const root = temp("t29-own-");
+  for (const [p, t] of Object.entries({ "src/db.ts": "export const a = 1;\nexport const b = 2;\n", "odd dir/a.ts": "x\ny\n", ".env": "A=1\n" })) {
+    mkdirSync(join(root, p, ".."), { recursive: true }); writeFileSync(join(root, p), t);
+  }
+  const configDir = join(temp("t29-own-cfg-"), "custosa");
+  const s = await stub(() => ({ status: 200, json: { ...EVALUATE_OK, goal: "fix" } }));
+  writeToken(`phisc_${"t".repeat(43)}`, { configDir, host: new URL(s.url).origin });
+  const ruleset = { id: "2026-10-20.0123abcd", rules: loadRules(fileURLToPath(new URL("./fixtures/rules/", import.meta.url))), queries: [] };
+  const runCheck = makeRunCheck({
+    configDir, localOnly: false,
+    buildOptions: { ruleset,
+      collectCatalog: async () => ({ status: "not_run", count: 0, reason: "service_missing", preflight: null, queries: [] }),
+      collectPlatform: async () => ({ provider: null, status: "not_run", reason: "no_token", settings: {} }) },
+    evaluatorUrl: () => ({ url: s.url, origin: new URL(s.url).origin }), clientOptions: { sleep: async () => {} },
+    build: (roots, opts) => buildFactDocuments(roots, opts),
+  });
+  try {
+    for (const ids of [["authz-every-handler@src/missing.ts:3"], ["rls-forced@public.patients", "authz-every-handler@src/db.ts:2-1"],
+      ["authz-every-handler@~/src/db.ts:1"], ["authz-every-handler@odd dir/a.ts:1"]]) {
+      const out = await runCheck({ goal: "fix", finding_ids: ids }, { roots: [root] });
+      assert.equal(out.error, "finding_ids_refused", ids.join());
+      assert.equal(out.local, true);
+      assert.match(out.next_step, /finding_ids\[[01]\] \((not_walked|range_backwards)\)/);
+      for (const id of ids) assert.ok(!out.next_step.includes(id.split("@")[1]), "the refusal never repeats the path");
+    }
+    assert.equal(s.calls.length, 0, "a refused fix sends nothing and is charged nothing");
+    const key = readFileSync(join(configDir, "install.key"));
+    const ok = ["rls-forced@public.patients", "authz-every-handler@src/db.ts:1-2", `authz-every-handler@${hashed(key, "odd dir")}/a.ts:2`,
+      "no-committed-secrets@.env:1"];
+    await runCheck({ goal: "fix", finding_ids: ok }, { roots: [root] });
+    assert.equal(s.calls.length, 1);
+    assert.deepEqual(s.calls[0].body.finding_ids, ok);
+  } finally { await s.close(); }
+});
