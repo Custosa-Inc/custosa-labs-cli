@@ -1,5 +1,5 @@
 {
-  "ruleset_id": "2026-11-09.0a7ac512",
+  "ruleset_id": "2026-11-09.3f5d862e",
   "min_engine": "0.45.3",
   "files": [
     {
@@ -392,7 +392,7 @@
     },
     {
       "path": "rules/authz-every-handler/java-spring.yml",
-      "sha256": "358b67e42078ddb63a7a76690dd70f59b964ef0a597dae7fe36bbd0e25baf955"
+      "sha256": "e2f49b0acda4ab50eec457d65958fd36536bf6d3d2f77654f1d8d9b8f665e67e"
     },
     {
       "path": "rules/authz-every-handler/javascript-express.yml",
@@ -404,27 +404,27 @@
     },
     {
       "path": "rules/authz-every-handler/kotlin-spring.yml",
-      "sha256": "38fed0156841fe59f14a589aebad855b128ce796f32185c8f34dbd20a5505a74"
+      "sha256": "0ef1831ed3e6d3713a1ee7c6f77d31f19ed8c7de34302a557cfe25f811cb3396"
     },
     {
       "path": "rules/authz-every-handler/php-generic.yml",
-      "sha256": "42391a593358884aca6b0f011524e0eb70cc67ff5b187094dba810b3d34966d4"
+      "sha256": "2f6d688933b1a33ad9e0cfe1237d2fd07b53870f2f125b5f37e34695ac97f81f"
     },
     {
       "path": "rules/authz-every-handler/python-django.yml",
-      "sha256": "8f4b2548bd3d3eec9565039d76dde7cfe32d75937f0d4f996f7d19d61427cccf"
+      "sha256": "7aa08c29e0fd067a94d777a31a98a2e73a6acf072dd40397162a4a6e77afe27c"
     },
     {
       "path": "rules/authz-every-handler/python-fastapi.yml",
-      "sha256": "fd3a97e967d86777727b955b1d194c898ca1bd3c956835bebdaebc70d220912e"
+      "sha256": "d4676747bd474d2efce8dec6ea06cd1beefa21bf7f97e3a61f01b42ef3ce00b6"
     },
     {
       "path": "rules/authz-every-handler/python-flask.yml",
-      "sha256": "6a33eca4a0612fde3f5c7b0febaf84b2d3f82dd3863e4e1cb45e99c446148ddf"
+      "sha256": "7dc9e5c270fd7d1098d1add53ca9551abacc844368bb251128e8bf874f75b641"
     },
     {
       "path": "rules/authz-every-handler/ruby-rails.yml",
-      "sha256": "8f12c5cae2ed44aa105314b2d310dbb73ee7a13e032c115b43d85524f12ced34"
+      "sha256": "941495d28242486d3804cdd3358c1fd6e25f97e4cbee8851752aed57b73a1be5"
     },
     {
       "path": "rules/authz-every-handler/tsx-nextjs.yml",
@@ -455,12 +455,20 @@
       "sha256": "2886631418d8c63a97e55e039cd2e649e7a4e8b3cf5834b8b69d116aec0ff3ba"
     },
     {
+      "path": "rules/break-glass-access/tsx-generic.yml",
+      "sha256": "70d5cf2106c7874cdf729ad11cc94f7eeee3a09285ea6db22c29a7f81ec33817"
+    },
+    {
       "path": "rules/break-glass-access/typescript-generic.yml",
       "sha256": "159a09fbaebd6e961372a861236783b7116bfdec60373c1abdd9e8eaacf3a898"
     },
     {
       "path": "rules/clinical-record-integrity/java-spring.yml",
       "sha256": "b072755760fc35b5b9f15c273b57d145e3fc7a32cfde911edb349e7d7a109518"
+    },
+    {
+      "path": "rules/clinical-record-integrity/javascript-generic.yml",
+      "sha256": "9910d6fb481f7933e128fe9f4ddad15e22f62065d1be8973953f728d25eb86cc"
     },
     {
       "path": "rules/clinical-record-integrity/python-django.yml",
@@ -473,6 +481,14 @@
     {
       "path": "rules/clinical-record-integrity/ruby-rails.yml",
       "sha256": "ea6a59a1ae2335b7f6d96ff1bd78c7bebffa7606805a89454f97770785d26d61"
+    },
+    {
+      "path": "rules/clinical-record-integrity/tsx-generic.yml",
+      "sha256": "62ea3bf09e6e0f17c049f0385f16d82053f16a4981861a41392f53a6da734509"
+    },
+    {
+      "path": "rules/clinical-record-integrity/typescript-generic.yml",
+      "sha256": "2d25ac44d0a4dffa8491a6580757de3bca1d917f9e27470f610ea66d8a602d86"
     },
     {
       "path": "rules/column-encryption-highly-sensitive/go-generic.yml",
@@ -1193,6 +1209,10 @@
     {
       "path": "rules/purge-deleted-rows/ruby-rails.yml",
       "sha256": "4e022eab29f32332921a019ade50939ba8a6ac0fa73df05dc808f9f950af17ef"
+    },
+    {
+      "path": "rules/purge-deleted-rows/tsx-generic.yml",
+      "sha256": "ee13a1f521c2d5a9e17d762db28ebf932dd696057f497bbe855b6503c531390c"
     },
     {
       "path": "rules/purge-deleted-rows/typescript-generic.yml",

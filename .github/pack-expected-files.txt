@@ -180,11 +180,15 @@ rules/rules/authz-every-handler/typescript-nextjs.yml
 rules/rules/break-glass-access/javascript-generic.yml
 rules/rules/break-glass-access/php-generic.yml
 rules/rules/break-glass-access/python-generic.yml
+rules/rules/break-glass-access/tsx-generic.yml
 rules/rules/break-glass-access/typescript-generic.yml
 rules/rules/clinical-record-integrity/java-spring.yml
+rules/rules/clinical-record-integrity/javascript-generic.yml
 rules/rules/clinical-record-integrity/python-django.yml
 rules/rules/clinical-record-integrity/python-generic.yml
 rules/rules/clinical-record-integrity/ruby-rails.yml
+rules/rules/clinical-record-integrity/tsx-generic.yml
+rules/rules/clinical-record-integrity/typescript-generic.yml
 rules/rules/column-encryption-highly-sensitive/go-generic.yml
 rules/rules/column-encryption-highly-sensitive/java-generic.yml
 rules/rules/column-encryption-highly-sensitive/javascript-generic.yml
@@ -365,6 +369,7 @@ rules/rules/purge-deleted-rows/javascript-generic.yml
 rules/rules/purge-deleted-rows/php-laravel.yml
 rules/rules/purge-deleted-rows/python-generic.yml
 rules/rules/purge-deleted-rows/ruby-rails.yml
+rules/rules/purge-deleted-rows/tsx-generic.yml
 rules/rules/purge-deleted-rows/typescript-generic.yml
 rules/rules/rag-retrieval-scoped/go-generic.yml
 rules/rules/rag-retrieval-scoped/java-generic.yml

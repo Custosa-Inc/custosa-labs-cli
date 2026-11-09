@@ -1,0 +1,62 @@
+id: clinical-record-integrity.tsx-generic.hard-delete
+practice_id: clinical-record-integrity
+language: tsx
+frameworks:
+- generic
+kind: items
+rule:
+  any:
+  - all:
+    - kind: call_expression
+    - has:
+        field: function
+        kind: member_expression
+        regex: ^(this\.)?(prisma|db|tx|trx|client|prismaClient|\w*[pP]risma\w*)\.\w+\.(delete|deleteMany)$
+    - not:
+        has:
+          field: arguments
+          kind: arguments
+          regex: '\b(deleted_?[aA]t|deletedAt|discarded_?[aA]t|archived_?[aA]t)\s*:\s*\{\s*(lt|lte)\s*:'
+  - all:
+    - pattern: $DB.delete($TABLE).where($$$W)
+    - has:
+        field: function
+        kind: member_expression
+        has:
+          field: object
+          kind: call_expression
+          has:
+            field: function
+            kind: member_expression
+            regex: ^(this\.)?(db|tx|trx|database|\w*[dD]b)\.delete$
+  - pattern: $C.from($TABLE).delete($$$A)
+  - all:
+    - kind: call_expression
+    - has:
+        field: arguments
+        any:
+        - kind: arguments
+          regex: (?i)^\(\s*['\"`]\s*delete\s+from\s+
+        - kind: template_string
+          regex: (?i)^`\s*delete\s+from\s+
+    - not:
+        has:
+          field: arguments
+          any:
+          - kind: arguments
+            regex: (?i)deleted_?at\s*<
+          - kind: template_string
+            regex: (?i)deleted_?at\s*<
+control:
+  inside:
+    stopBy: end
+    any:
+    - kind: function_declaration
+      regex: (?s)(History|Versions?|Revisions?|Archive|history|versions?|revisions?|archive)\w*\.(create|createMany|insert)\(|\.insert\(\s*\w*(History|Versions?|Revisions?|history|versions?|revisions?)\b|from\(\s*['\"`]\w*_(history|versions?|revisions?|archive)['\"`]\s*\)\s*\.insert\(|(?i)insert\s+into\s+\w*_(history|versions?|revisions?|archive)\b
+    - kind: method_definition
+      regex: (?s)(History|Versions?|Revisions?|Archive|history|versions?|revisions?|archive)\w*\.(create|createMany|insert)\(|\.insert\(\s*\w*(History|Versions?|Revisions?|history|versions?|revisions?)\b|from\(\s*['\"`]\w*_(history|versions?|revisions?|archive)['\"`]\s*\)\s*\.insert\(|(?i)insert\s+into\s+\w*_(history|versions?|revisions?|archive)\b
+    - kind: arrow_function
+      regex: (?s)(History|Versions?|Revisions?|Archive|history|versions?|revisions?|archive)\w*\.(create|createMany|insert)\(|\.insert\(\s*\w*(History|Versions?|Revisions?|history|versions?|revisions?)\b|from\(\s*['\"`]\w*_(history|versions?|revisions?|archive)['\"`]\s*\)\s*\.insert\(|(?i)insert\s+into\s+\w*_(history|versions?|revisions?|archive)\b
+    - kind: function_expression
+      regex: (?s)(History|Versions?|Revisions?|Archive|history|versions?|revisions?|archive)\w*\.(create|createMany|insert)\(|\.insert\(\s*\w*(History|Versions?|Revisions?|history|versions?|revisions?)\b|from\(\s*['\"`]\w*_(history|versions?|revisions?|archive)['\"`]\s*\)\s*\.insert\(|(?i)insert\s+into\s+\w*_(history|versions?|revisions?|archive)\b
+min_engine: 0.39.0

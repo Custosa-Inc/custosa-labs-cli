@@ -51,3 +51,54 @@ control:
         kind: annotation
         regex: '^@(PreAuthorize|PostAuthorize)\(.*(principal|authentication|hasPermission|#)'
 min_engine: 0.39.0
+---
+# T29 (T29-P1-C5, synthesis item 8): java-spring.auth-unobserved-helper in Kotlin: a mapped function that rules.mapping
+# would fail, with a call in its body by a name that checks the caller's right to the record, or an annotation of the
+# project's naming ownership, access, a permission, authorization or a policy (@RequireOwner). It holds the
+# function's item for a person (needs_review), never a pass.
+id: authz-every-handler.kotlin-spring.auth-unobserved-helper
+practice_id: authz-every-handler
+language: kotlin
+frameworks:
+- spring
+kind: evidence
+rule:
+  kind: function_declaration
+  all:
+  - has:
+      kind: modifiers
+      has:
+        kind: annotation
+        regex: '^@(Get|Post|Put|Patch|Delete|Request)Mapping\b'
+  - has:
+      kind: function_value_parameters
+      has:
+        kind: parameter_modifiers
+        has:
+          kind: annotation
+          regex: '^@PathVariable\b'
+  - any:
+    - has:
+        kind: function_body
+        has:
+          stopBy: end
+          kind: call_expression
+          has:
+            any:
+            - kind: simple_identifier
+              regex: '(?i)^(check|verify|ensure|require|assert|authori[sz]e|enforce|getCurrent|loadCurrent)\w*(owner|access|permission|user|caller|principal|identity|polic(y|ies)|tenant|member|canView|canRead|canEdit)\w*$'
+            - kind: navigation_expression
+              has:
+                kind: navigation_suffix
+                has:
+                  kind: simple_identifier
+                  regex: '(?i)^(check|verify|ensure|require|assert|authori[sz]e|enforce|getCurrent|loadCurrent)\w*(owner|access|permission|user|caller|principal|identity|polic(y|ies)|tenant|member|canView|canRead|canEdit)\w*$'
+    - has:
+        kind: modifiers
+        has:
+          kind: annotation
+          regex: '(?i)^@\w*(owner|access|permission|authori[sz]|polic)'
+          not:
+            kind: annotation
+            regex: '^@(PreAuthorize|PostAuthorize|Secured|RolesAllowed|PathVariable)\b'
+min_engine: 0.39.0

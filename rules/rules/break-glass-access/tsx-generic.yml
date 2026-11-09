@@ -1,0 +1,900 @@
+id: break-glass-access.tsx-generic.grant-path
+practice_id: break-glass-access
+language: tsx
+frameworks:
+- generic
+kind: items
+rule:
+  all:
+  - all:
+    - all:
+      - any:
+        - kind: function_declaration
+        - kind: method_definition
+        - kind: arrow_function
+        - kind: function_expression
+      - has:
+          field: body
+          has:
+            any:
+            - kind: lexical_declaration
+              regex: (?i)((break_?glass|emergency_?access|emergency_?grant)[0-9A-Za-z_]*['\"]?\)?\s*\.?\s*(create|insert|add|grant|upsert)[0-9A-Za-z_]*\(|insert\s+into\s+[0-9A-Za-z_]*(break_?glass|emergency)[0-9A-Za-z_]*|from\(\s*['\"][0-9A-Za-z_]*(break_?glass|emergency)[0-9A-Za-z_]*['\"]\s*\)\s*\.insert\(|(add|assign|grant)[0-9A-Za-z_]*\([^)]*['\"]\s*break_?glass|['\"]?(break_?glass|emergency_?access)[0-9A-Za-z_]*['\"]?\s*(=|:|=>)\s*(true|True|1)(?-u:\b))
+            - kind: variable_declaration
+              regex: (?i)((break_?glass|emergency_?access|emergency_?grant)[0-9A-Za-z_]*['\"]?\)?\s*\.?\s*(create|insert|add|grant|upsert)[0-9A-Za-z_]*\(|insert\s+into\s+[0-9A-Za-z_]*(break_?glass|emergency)[0-9A-Za-z_]*|from\(\s*['\"][0-9A-Za-z_]*(break_?glass|emergency)[0-9A-Za-z_]*['\"]\s*\)\s*\.insert\(|(add|assign|grant)[0-9A-Za-z_]*\([^)]*['\"]\s*break_?glass|['\"]?(break_?glass|emergency_?access)[0-9A-Za-z_]*['\"]?\s*(=|:|=>)\s*(true|True|1)(?-u:\b))
+            - kind: expression_statement
+              regex: (?i)((break_?glass|emergency_?access|emergency_?grant)[0-9A-Za-z_]*['\"]?\)?\s*\.?\s*(create|insert|add|grant|upsert)[0-9A-Za-z_]*\(|insert\s+into\s+[0-9A-Za-z_]*(break_?glass|emergency)[0-9A-Za-z_]*|from\(\s*['\"][0-9A-Za-z_]*(break_?glass|emergency)[0-9A-Za-z_]*['\"]\s*\)\s*\.insert\(|(add|assign|grant)[0-9A-Za-z_]*\([^)]*['\"]\s*break_?glass|['\"]?(break_?glass|emergency_?access)[0-9A-Za-z_]*['\"]?\s*(=|:|=>)\s*(true|True|1)(?-u:\b))
+            - kind: return_statement
+              regex: (?i)((break_?glass|emergency_?access|emergency_?grant)[0-9A-Za-z_]*['\"]?\)?\s*\.?\s*(create|insert|add|grant|upsert)[0-9A-Za-z_]*\(|insert\s+into\s+[0-9A-Za-z_]*(break_?glass|emergency)[0-9A-Za-z_]*|from\(\s*['\"][0-9A-Za-z_]*(break_?glass|emergency)[0-9A-Za-z_]*['\"]\s*\)\s*\.insert\(|(add|assign|grant)[0-9A-Za-z_]*\([^)]*['\"]\s*break_?glass|['\"]?(break_?glass|emergency_?access)[0-9A-Za-z_]*['\"]?\s*(=|:|=>)\s*(true|True|1)(?-u:\b))
+            - kind: if_statement
+              regex: (?i)((break_?glass|emergency_?access|emergency_?grant)[0-9A-Za-z_]*['\"]?\)?\s*\.?\s*(create|insert|add|grant|upsert)[0-9A-Za-z_]*\(|insert\s+into\s+[0-9A-Za-z_]*(break_?glass|emergency)[0-9A-Za-z_]*|from\(\s*['\"][0-9A-Za-z_]*(break_?glass|emergency)[0-9A-Za-z_]*['\"]\s*\)\s*\.insert\(|(add|assign|grant)[0-9A-Za-z_]*\([^)]*['\"]\s*break_?glass|['\"]?(break_?glass|emergency_?access)[0-9A-Za-z_]*['\"]?\s*(=|:|=>)\s*(true|True|1)(?-u:\b))
+            - kind: try_statement
+              regex: (?i)((break_?glass|emergency_?access|emergency_?grant)[0-9A-Za-z_]*['\"]?\)?\s*\.?\s*(create|insert|add|grant|upsert)[0-9A-Za-z_]*\(|insert\s+into\s+[0-9A-Za-z_]*(break_?glass|emergency)[0-9A-Za-z_]*|from\(\s*['\"][0-9A-Za-z_]*(break_?glass|emergency)[0-9A-Za-z_]*['\"]\s*\)\s*\.insert\(|(add|assign|grant)[0-9A-Za-z_]*\([^)]*['\"]\s*break_?glass|['\"]?(break_?glass|emergency_?access)[0-9A-Za-z_]*['\"]?\s*(=|:|=>)\s*(true|True|1)(?-u:\b))
+            - kind: for_statement
+              regex: (?i)((break_?glass|emergency_?access|emergency_?grant)[0-9A-Za-z_]*['\"]?\)?\s*\.?\s*(create|insert|add|grant|upsert)[0-9A-Za-z_]*\(|insert\s+into\s+[0-9A-Za-z_]*(break_?glass|emergency)[0-9A-Za-z_]*|from\(\s*['\"][0-9A-Za-z_]*(break_?glass|emergency)[0-9A-Za-z_]*['\"]\s*\)\s*\.insert\(|(add|assign|grant)[0-9A-Za-z_]*\([^)]*['\"]\s*break_?glass|['\"]?(break_?glass|emergency_?access)[0-9A-Za-z_]*['\"]?\s*(=|:|=>)\s*(true|True|1)(?-u:\b))
+            - kind: for_in_statement
+              regex: (?i)((break_?glass|emergency_?access|emergency_?grant)[0-9A-Za-z_]*['\"]?\)?\s*\.?\s*(create|insert|add|grant|upsert)[0-9A-Za-z_]*\(|insert\s+into\s+[0-9A-Za-z_]*(break_?glass|emergency)[0-9A-Za-z_]*|from\(\s*['\"][0-9A-Za-z_]*(break_?glass|emergency)[0-9A-Za-z_]*['\"]\s*\)\s*\.insert\(|(add|assign|grant)[0-9A-Za-z_]*\([^)]*['\"]\s*break_?glass|['\"]?(break_?glass|emergency_?access)[0-9A-Za-z_]*['\"]?\s*(=|:|=>)\s*(true|True|1)(?-u:\b))
+            - kind: while_statement
+              regex: (?i)((break_?glass|emergency_?access|emergency_?grant)[0-9A-Za-z_]*['\"]?\)?\s*\.?\s*(create|insert|add|grant|upsert)[0-9A-Za-z_]*\(|insert\s+into\s+[0-9A-Za-z_]*(break_?glass|emergency)[0-9A-Za-z_]*|from\(\s*['\"][0-9A-Za-z_]*(break_?glass|emergency)[0-9A-Za-z_]*['\"]\s*\)\s*\.insert\(|(add|assign|grant)[0-9A-Za-z_]*\([^)]*['\"]\s*break_?glass|['\"]?(break_?glass|emergency_?access)[0-9A-Za-z_]*['\"]?\s*(=|:|=>)\s*(true|True|1)(?-u:\b))
+            - kind: switch_statement
+              regex: (?i)((break_?glass|emergency_?access|emergency_?grant)[0-9A-Za-z_]*['\"]?\)?\s*\.?\s*(create|insert|add|grant|upsert)[0-9A-Za-z_]*\(|insert\s+into\s+[0-9A-Za-z_]*(break_?glass|emergency)[0-9A-Za-z_]*|from\(\s*['\"][0-9A-Za-z_]*(break_?glass|emergency)[0-9A-Za-z_]*['\"]\s*\)\s*\.insert\(|(add|assign|grant)[0-9A-Za-z_]*\([^)]*['\"]\s*break_?glass|['\"]?(break_?glass|emergency_?access)[0-9A-Za-z_]*['\"]?\s*(=|:|=>)\s*(true|True|1)(?-u:\b))
+            - kind: throw_statement
+              regex: (?i)((break_?glass|emergency_?access|emergency_?grant)[0-9A-Za-z_]*['\"]?\)?\s*\.?\s*(create|insert|add|grant|upsert)[0-9A-Za-z_]*\(|insert\s+into\s+[0-9A-Za-z_]*(break_?glass|emergency)[0-9A-Za-z_]*|from\(\s*['\"][0-9A-Za-z_]*(break_?glass|emergency)[0-9A-Za-z_]*['\"]\s*\)\s*\.insert\(|(add|assign|grant)[0-9A-Za-z_]*\([^)]*['\"]\s*break_?glass|['\"]?(break_?glass|emergency_?access)[0-9A-Za-z_]*['\"]?\s*(=|:|=>)\s*(true|True|1)(?-u:\b))
+    - not:
+        all:
+        - has:
+            field: body
+            has:
+              stopBy: end
+              any:
+              - all:
+                - kind: call_expression
+                  regex: (?i)^[A-Za-z0-9_$.>:-]*(break_?glass|emergency_?access|emergency_?grant)[A-Za-z0-9_$.>:-]*(\.|->|::)(create|insert|add|grant|upsert)[A-Za-z0-9_]*\(|(?i)^[A-Za-z0-9_$.>:-]*from\(\s*[\'"][A-Za-z0-9_]*(break_?glass|emergency)[A-Za-z0-9_]*[\'"]\s*\)\s*\.insert\(
+                - has:
+                    stopBy: end
+                    any:
+                    - all:
+                      - kind: pair
+                        regex: '(?i)^[\''"]?reason[\''"]?\s*:'
+                      - not:
+                          kind: pair
+                          regex: (?i):\s*(null|undefined|\'\'|""|true|false)$
+                      - not:
+                          kind: pair
+                          regex: :[\s\S]*(?-u:\b)([nN][uU][lL][lL]|[uU][nN][dD][eE][fF][iI][nN][eE][dD])(?-u:\b)
+                      - not:
+                          inside:
+                            stopBy: end
+                            kind: pair
+                            regex: '^(select|include|where|orderBy|returning|omit)\s*:'
+                    - all:
+                      - kind: shorthand_property_identifier
+                        regex: (?i)^reason$
+                      - not:
+                          inside:
+                            stopBy: end
+                            kind: pair
+                            regex: '^(select|include|where|orderBy|returning|omit)\s*:'
+                - has:
+                    stopBy: end
+                    any:
+                    - all:
+                      - kind: pair
+                        regex: '(?i)^[\''"]?(expires?_?at|expiry|valid_?until|ends_?at)[\''"]?\s*:'
+                      - not:
+                          kind: pair
+                          regex: (?i):\s*(null|undefined|\'\'|""|true|false)$
+                      - not:
+                          kind: pair
+                          regex: :[\s\S]*(?-u:\b)([nN][uU][lL][lL]|[uU][nN][dD][eE][fF][iI][nN][eE][dD])(?-u:\b)
+                      - not:
+                          inside:
+                            stopBy: end
+                            kind: pair
+                            regex: '^(select|include|where|orderBy|returning|omit)\s*:'
+                    - all:
+                      - kind: shorthand_property_identifier
+                        regex: (?i)^(expires?_?at|expiry|valid_?until|ends_?at)$
+                      - not:
+                          inside:
+                            stopBy: end
+                            kind: pair
+                            regex: '^(select|include|where|orderBy|returning|omit)\s*:'
+                - not:
+                    has:
+                      stopBy: end
+                      any:
+                      - all:
+                        - kind: pair
+                          regex: (?is)^['"]?(expires?_?at|expiry|valid_?until|ends_?at)['"]?\s*:\s*((new Date\(\s*)?Date\.now\(\s*\)\s*\+\s*(\(\s*)?(([1-9][0-9]?|[1-9][0-9][0-9]|1[0-3][0-9][0-9]|14[0-3][0-9]|1440)\s*\*\s*1000\s*\*\s*60|([1-9][0-9]?|[1-9][0-9][0-9]|1[0-3][0-9][0-9]|14[0-3][0-9]|1440)\s*\*\s*60000|([1-9][0-9]?|[1-9][0-9][0-9]|1[0-3][0-9][0-9]|14[0-3][0-9]|1440)\s*\*\s*60\s*\*\s*1000|([1-9][0-9]{0,3}|[1-7][0-9]{4}|8[0-5][0-9]{3}|86[0-3][0-9][0-9]|86400)\s*\*\s*1000|([1-9][0-9]{0,6}|[1-7][0-9]{7}|8[0-5][0-9]{6}|86[0-3][0-9]{5}|86400000)|([1-9]|1[0-9]|2[0-4])\s*\*\s*1000\s*\*\s*3600|([1-9]|1[0-9]|2[0-4])\s*\*\s*1000\s*\*\s*60\s*\*\s*60|([1-9]|1[0-9]|2[0-4])\s*\*\s*3600000|([1-9]|1[0-9]|2[0-4])\s*\*\s*3600\s*\*\s*1000|([1-9]|1[0-9]|2[0-4])\s*\*\s*60000\s*\*\s*60|([1-9]|1[0-9]|2[0-4])\s*\*\s*60\s*\*\s*1000\s*\*\s*60|([1-9]|1[0-9]|2[0-4])\s*\*\s*60\s*\*\s*60000|([1-9]|1[0-9]|2[0-4])\s*\*\s*60\s*\*\s*60\s*\*\s*1000|1000\s*\*\s*([1-9][0-9]?|[1-9][0-9][0-9]|1[0-3][0-9][0-9]|14[0-3][0-9]|1440)\s*\*\s*60|1000\s*\*\s*([1-9][0-9]{0,3}|[1-7][0-9]{4}|8[0-5][0-9]{3}|86[0-3][0-9][0-9]|86400)|1000\s*\*\s*([1-9]|1[0-9]|2[0-4])\s*\*\s*3600|1000\s*\*\s*([1-9]|1[0-9]|2[0-4])\s*\*\s*60\s*\*\s*60|1000\s*\*\s*3600\s*\*\s*([1-9]|1[0-9]|2[0-4])|1000\s*\*\s*60\s*\*\s*([1-9][0-9]?|[1-9][0-9][0-9]|1[0-3][0-9][0-9]|14[0-3][0-9]|1440)|1000\s*\*\s*60\s*\*\s*([1-9]|1[0-9]|2[0-4])\s*\*\s*60|1000\s*\*\s*60\s*\*\s*60\s*\*\s*([1-9]|1[0-9]|2[0-4])|3600000\s*\*\s*([1-9]|1[0-9]|2[0-4])|3600\s*\*\s*([1-9]|1[0-9]|2[0-4])\s*\*\s*1000|3600\s*\*\s*1000\s*\*\s*([1-9]|1[0-9]|2[0-4])|60000\s*\*\s*([1-9][0-9]?|[1-9][0-9][0-9]|1[0-3][0-9][0-9]|14[0-3][0-9]|1440)|60000\s*\*\s*([1-9]|1[0-9]|2[0-4])\s*\*\s*60|60000\s*\*\s*60\s*\*\s*([1-9]|1[0-9]|2[0-4])|60\s*\*\s*([1-9][0-9]?|[1-9][0-9][0-9]|1[0-3][0-9][0-9]|14[0-3][0-9]|1440)\s*\*\s*1000|60\s*\*\s*([1-9]|1[0-9]|2[0-4])\s*\*\s*1000\s*\*\s*60|60\s*\*\s*([1-9]|1[0-9]|2[0-4])\s*\*\s*60000|60\s*\*\s*([1-9]|1[0-9]|2[0-4])\s*\*\s*60\s*\*\s*1000|60\s*\*\s*1000\s*\*\s*([1-9][0-9]?|[1-9][0-9][0-9]|1[0-3][0-9][0-9]|14[0-3][0-9]|1440)|60\s*\*\s*1000\s*\*\s*([1-9]|1[0-9]|2[0-4])\s*\*\s*60|60\s*\*\s*1000\s*\*\s*60\s*\*\s*([1-9]|1[0-9]|2[0-4])|60\s*\*\s*60000\s*\*\s*([1-9]|1[0-9]|2[0-4])|60\s*\*\s*60\s*\*\s*([1-9]|1[0-9]|2[0-4])\s*\*\s*1000|60\s*\*\s*60\s*\*\s*1000\s*\*\s*([1-9]|1[0-9]|2[0-4]))(\s*\))?(\s*\))?|addHours\(\s*(new Date\(\s*\)|Date\.now\(\s*\)|new Date\(\s*Date\.now\(\s*\)\s*\)|now)\s*,\s*([1-9]|1[0-9]|2[0-4])\s*\)|addMinutes\(\s*(new Date\(\s*\)|Date\.now\(\s*\)|new Date\(\s*Date\.now\(\s*\)\s*\)|now)\s*,\s*([1-9][0-9]?|[1-9][0-9][0-9]|1[0-3][0-9][0-9]|14[0-3][0-9]|1440)\s*\)|addSeconds\(\s*(new Date\(\s*\)|Date\.now\(\s*\)|new Date\(\s*Date\.now\(\s*\)\s*\)|now)\s*,\s*([1-9][0-9]{0,3}|[1-7][0-9]{4}|8[0-5][0-9]{3}|86[0-3][0-9][0-9]|86400)\s*\)|addDays\(\s*(new Date\(\s*\)|Date\.now\(\s*\)|new Date\(\s*Date\.now\(\s*\)\s*\)|now)\s*,\s*1\s*\)|[A-Za-z_$][A-Za-z0-9_$.()]*\.(add|plus)Hours\(\s*([1-9]|1[0-9]|2[0-4])\s*\)|[A-Za-z_$][A-Za-z0-9_$.()]*\.(add|plus)Minutes\(\s*([1-9][0-9]?|[1-9][0-9][0-9]|1[0-3][0-9][0-9]|14[0-3][0-9]|1440)\s*\)|(dayjs|moment)\(\s*\)\.add\(\s*(([1-9]|1[0-9]|2[0-4])\s*,\s*['"](hours?|h)['"]|([1-9][0-9]?|[1-9][0-9][0-9]|1[0-3][0-9][0-9]|14[0-3][0-9]|1440)\s*,\s*['"](minutes?|m)['"])\s*\)|DateTime\.now\(\s*\)\.plus\(\s*\{\s*(hours\s*:\s*([1-9]|1[0-9]|2[0-4])|minutes\s*:\s*([1-9][0-9]?|[1-9][0-9][0-9]|1[0-3][0-9][0-9]|14[0-3][0-9]|1440))\s*\}\s*\))\s*$
+                        - not:
+                            inside:
+                              stopBy: end
+                              kind: pair
+                              regex: '^(select|include|where|orderBy|returning|omit)\s*:'
+                      - all:
+                        - any:
+                          - all:
+                            - kind: pair
+                              regex: '(?i)^[''"]?(expires?_?at|expiry|valid_?until|ends_?at)[''"]?\s*:'
+                            - has:
+                                field: value
+                                kind: identifier
+                                pattern:
+                                  context: $N.x;
+                                  selector: identifier
+                          - kind: shorthand_property_identifier
+                            regex: (?i)^(expires?_?at|expiry|valid_?until|ends_?at)$
+                            pattern:
+                              context: ({ $N })
+                              selector: shorthand_property_identifier
+                        - inside:
+                            stopBy: end
+                            all:
+                            - any:
+                              - kind: function_declaration
+                              - kind: method_definition
+                              - kind: arrow_function
+                              - kind: function_expression
+                            - has:
+                                stopBy: end
+                                kind: lexical_declaration
+                                regex: ^const\s
+                                has:
+                                  kind: variable_declarator
+                                  all:
+                                  - pattern:
+                                      context: const $N = $V
+                                      selector: variable_declarator
+                                  - has:
+                                      field: value
+                                      any:
+                                      - kind: new_expression
+                                        regex: (?s)^((new Date\(\s*)?Date\.now\(\s*\)\s*\+\s*(\(\s*)?(([1-9][0-9]?|[1-9][0-9][0-9]|1[0-3][0-9][0-9]|14[0-3][0-9]|1440)\s*\*\s*1000\s*\*\s*60|([1-9][0-9]?|[1-9][0-9][0-9]|1[0-3][0-9][0-9]|14[0-3][0-9]|1440)\s*\*\s*60000|([1-9][0-9]?|[1-9][0-9][0-9]|1[0-3][0-9][0-9]|14[0-3][0-9]|1440)\s*\*\s*60\s*\*\s*1000|([1-9][0-9]{0,3}|[1-7][0-9]{4}|8[0-5][0-9]{3}|86[0-3][0-9][0-9]|86400)\s*\*\s*1000|([1-9][0-9]{0,6}|[1-7][0-9]{7}|8[0-5][0-9]{6}|86[0-3][0-9]{5}|86400000)|([1-9]|1[0-9]|2[0-4])\s*\*\s*1000\s*\*\s*3600|([1-9]|1[0-9]|2[0-4])\s*\*\s*1000\s*\*\s*60\s*\*\s*60|([1-9]|1[0-9]|2[0-4])\s*\*\s*3600000|([1-9]|1[0-9]|2[0-4])\s*\*\s*3600\s*\*\s*1000|([1-9]|1[0-9]|2[0-4])\s*\*\s*60000\s*\*\s*60|([1-9]|1[0-9]|2[0-4])\s*\*\s*60\s*\*\s*1000\s*\*\s*60|([1-9]|1[0-9]|2[0-4])\s*\*\s*60\s*\*\s*60000|([1-9]|1[0-9]|2[0-4])\s*\*\s*60\s*\*\s*60\s*\*\s*1000|1000\s*\*\s*([1-9][0-9]?|[1-9][0-9][0-9]|1[0-3][0-9][0-9]|14[0-3][0-9]|1440)\s*\*\s*60|1000\s*\*\s*([1-9][0-9]{0,3}|[1-7][0-9]{4}|8[0-5][0-9]{3}|86[0-3][0-9][0-9]|86400)|1000\s*\*\s*([1-9]|1[0-9]|2[0-4])\s*\*\s*3600|1000\s*\*\s*([1-9]|1[0-9]|2[0-4])\s*\*\s*60\s*\*\s*60|1000\s*\*\s*3600\s*\*\s*([1-9]|1[0-9]|2[0-4])|1000\s*\*\s*60\s*\*\s*([1-9][0-9]?|[1-9][0-9][0-9]|1[0-3][0-9][0-9]|14[0-3][0-9]|1440)|1000\s*\*\s*60\s*\*\s*([1-9]|1[0-9]|2[0-4])\s*\*\s*60|1000\s*\*\s*60\s*\*\s*60\s*\*\s*([1-9]|1[0-9]|2[0-4])|3600000\s*\*\s*([1-9]|1[0-9]|2[0-4])|3600\s*\*\s*([1-9]|1[0-9]|2[0-4])\s*\*\s*1000|3600\s*\*\s*1000\s*\*\s*([1-9]|1[0-9]|2[0-4])|60000\s*\*\s*([1-9][0-9]?|[1-9][0-9][0-9]|1[0-3][0-9][0-9]|14[0-3][0-9]|1440)|60000\s*\*\s*([1-9]|1[0-9]|2[0-4])\s*\*\s*60|60000\s*\*\s*60\s*\*\s*([1-9]|1[0-9]|2[0-4])|60\s*\*\s*([1-9][0-9]?|[1-9][0-9][0-9]|1[0-3][0-9][0-9]|14[0-3][0-9]|1440)\s*\*\s*1000|60\s*\*\s*([1-9]|1[0-9]|2[0-4])\s*\*\s*1000\s*\*\s*60|60\s*\*\s*([1-9]|1[0-9]|2[0-4])\s*\*\s*60000|60\s*\*\s*([1-9]|1[0-9]|2[0-4])\s*\*\s*60\s*\*\s*1000|60\s*\*\s*1000\s*\*\s*([1-9][0-9]?|[1-9][0-9][0-9]|1[0-3][0-9][0-9]|14[0-3][0-9]|1440)|60\s*\*\s*1000\s*\*\s*([1-9]|1[0-9]|2[0-4])\s*\*\s*60|60\s*\*\s*1000\s*\*\s*60\s*\*\s*([1-9]|1[0-9]|2[0-4])|60\s*\*\s*60000\s*\*\s*([1-9]|1[0-9]|2[0-4])|60\s*\*\s*60\s*\*\s*([1-9]|1[0-9]|2[0-4])\s*\*\s*1000|60\s*\*\s*60\s*\*\s*1000\s*\*\s*([1-9]|1[0-9]|2[0-4]))(\s*\))?(\s*\))?|addHours\(\s*(new Date\(\s*\)|Date\.now\(\s*\)|new Date\(\s*Date\.now\(\s*\)\s*\)|now)\s*,\s*([1-9]|1[0-9]|2[0-4])\s*\)|addMinutes\(\s*(new Date\(\s*\)|Date\.now\(\s*\)|new Date\(\s*Date\.now\(\s*\)\s*\)|now)\s*,\s*([1-9][0-9]?|[1-9][0-9][0-9]|1[0-3][0-9][0-9]|14[0-3][0-9]|1440)\s*\)|addSeconds\(\s*(new Date\(\s*\)|Date\.now\(\s*\)|new Date\(\s*Date\.now\(\s*\)\s*\)|now)\s*,\s*([1-9][0-9]{0,3}|[1-7][0-9]{4}|8[0-5][0-9]{3}|86[0-3][0-9][0-9]|86400)\s*\)|addDays\(\s*(new Date\(\s*\)|Date\.now\(\s*\)|new Date\(\s*Date\.now\(\s*\)\s*\)|now)\s*,\s*1\s*\)|[A-Za-z_$][A-Za-z0-9_$.()]*\.(add|plus)Hours\(\s*([1-9]|1[0-9]|2[0-4])\s*\)|[A-Za-z_$][A-Za-z0-9_$.()]*\.(add|plus)Minutes\(\s*([1-9][0-9]?|[1-9][0-9][0-9]|1[0-3][0-9][0-9]|14[0-3][0-9]|1440)\s*\)|(dayjs|moment)\(\s*\)\.add\(\s*(([1-9]|1[0-9]|2[0-4])\s*,\s*['"](hours?|h)['"]|([1-9][0-9]?|[1-9][0-9][0-9]|1[0-3][0-9][0-9]|14[0-3][0-9]|1440)\s*,\s*['"](minutes?|m)['"])\s*\)|DateTime\.now\(\s*\)\.plus\(\s*\{\s*(hours\s*:\s*([1-9]|1[0-9]|2[0-4])|minutes\s*:\s*([1-9][0-9]?|[1-9][0-9][0-9]|1[0-3][0-9][0-9]|14[0-3][0-9]|1440))\s*\}\s*\))\s*$
+                                      - kind: call_expression
+                                        regex: (?s)^((new Date\(\s*)?Date\.now\(\s*\)\s*\+\s*(\(\s*)?(([1-9][0-9]?|[1-9][0-9][0-9]|1[0-3][0-9][0-9]|14[0-3][0-9]|1440)\s*\*\s*1000\s*\*\s*60|([1-9][0-9]?|[1-9][0-9][0-9]|1[0-3][0-9][0-9]|14[0-3][0-9]|1440)\s*\*\s*60000|([1-9][0-9]?|[1-9][0-9][0-9]|1[0-3][0-9][0-9]|14[0-3][0-9]|1440)\s*\*\s*60\s*\*\s*1000|([1-9][0-9]{0,3}|[1-7][0-9]{4}|8[0-5][0-9]{3}|86[0-3][0-9][0-9]|86400)\s*\*\s*1000|([1-9][0-9]{0,6}|[1-7][0-9]{7}|8[0-5][0-9]{6}|86[0-3][0-9]{5}|86400000)|([1-9]|1[0-9]|2[0-4])\s*\*\s*1000\s*\*\s*3600|([1-9]|1[0-9]|2[0-4])\s*\*\s*1000\s*\*\s*60\s*\*\s*60|([1-9]|1[0-9]|2[0-4])\s*\*\s*3600000|([1-9]|1[0-9]|2[0-4])\s*\*\s*3600\s*\*\s*1000|([1-9]|1[0-9]|2[0-4])\s*\*\s*60000\s*\*\s*60|([1-9]|1[0-9]|2[0-4])\s*\*\s*60\s*\*\s*1000\s*\*\s*60|([1-9]|1[0-9]|2[0-4])\s*\*\s*60\s*\*\s*60000|([1-9]|1[0-9]|2[0-4])\s*\*\s*60\s*\*\s*60\s*\*\s*1000|1000\s*\*\s*([1-9][0-9]?|[1-9][0-9][0-9]|1[0-3][0-9][0-9]|14[0-3][0-9]|1440)\s*\*\s*60|1000\s*\*\s*([1-9][0-9]{0,3}|[1-7][0-9]{4}|8[0-5][0-9]{3}|86[0-3][0-9][0-9]|86400)|1000\s*\*\s*([1-9]|1[0-9]|2[0-4])\s*\*\s*3600|1000\s*\*\s*([1-9]|1[0-9]|2[0-4])\s*\*\s*60\s*\*\s*60|1000\s*\*\s*3600\s*\*\s*([1-9]|1[0-9]|2[0-4])|1000\s*\*\s*60\s*\*\s*([1-9][0-9]?|[1-9][0-9][0-9]|1[0-3][0-9][0-9]|14[0-3][0-9]|1440)|1000\s*\*\s*60\s*\*\s*([1-9]|1[0-9]|2[0-4])\s*\*\s*60|1000\s*\*\s*60\s*\*\s*60\s*\*\s*([1-9]|1[0-9]|2[0-4])|3600000\s*\*\s*([1-9]|1[0-9]|2[0-4])|3600\s*\*\s*([1-9]|1[0-9]|2[0-4])\s*\*\s*1000|3600\s*\*\s*1000\s*\*\s*([1-9]|1[0-9]|2[0-4])|60000\s*\*\s*([1-9][0-9]?|[1-9][0-9][0-9]|1[0-3][0-9][0-9]|14[0-3][0-9]|1440)|60000\s*\*\s*([1-9]|1[0-9]|2[0-4])\s*\*\s*60|60000\s*\*\s*60\s*\*\s*([1-9]|1[0-9]|2[0-4])|60\s*\*\s*([1-9][0-9]?|[1-9][0-9][0-9]|1[0-3][0-9][0-9]|14[0-3][0-9]|1440)\s*\*\s*1000|60\s*\*\s*([1-9]|1[0-9]|2[0-4])\s*\*\s*1000\s*\*\s*60|60\s*\*\s*([1-9]|1[0-9]|2[0-4])\s*\*\s*60000|60\s*\*\s*([1-9]|1[0-9]|2[0-4])\s*\*\s*60\s*\*\s*1000|60\s*\*\s*1000\s*\*\s*([1-9][0-9]?|[1-9][0-9][0-9]|1[0-3][0-9][0-9]|14[0-3][0-9]|1440)|60\s*\*\s*1000\s*\*\s*([1-9]|1[0-9]|2[0-4])\s*\*\s*60|60\s*\*\s*1000\s*\*\s*60\s*\*\s*([1-9]|1[0-9]|2[0-4])|60\s*\*\s*60000\s*\*\s*([1-9]|1[0-9]|2[0-4])|60\s*\*\s*60\s*\*\s*([1-9]|1[0-9]|2[0-4])\s*\*\s*1000|60\s*\*\s*60\s*\*\s*1000\s*\*\s*([1-9]|1[0-9]|2[0-4]))(\s*\))?(\s*\))?|addHours\(\s*(new Date\(\s*\)|Date\.now\(\s*\)|new Date\(\s*Date\.now\(\s*\)\s*\)|now)\s*,\s*([1-9]|1[0-9]|2[0-4])\s*\)|addMinutes\(\s*(new Date\(\s*\)|Date\.now\(\s*\)|new Date\(\s*Date\.now\(\s*\)\s*\)|now)\s*,\s*([1-9][0-9]?|[1-9][0-9][0-9]|1[0-3][0-9][0-9]|14[0-3][0-9]|1440)\s*\)|addSeconds\(\s*(new Date\(\s*\)|Date\.now\(\s*\)|new Date\(\s*Date\.now\(\s*\)\s*\)|now)\s*,\s*([1-9][0-9]{0,3}|[1-7][0-9]{4}|8[0-5][0-9]{3}|86[0-3][0-9][0-9]|86400)\s*\)|addDays\(\s*(new Date\(\s*\)|Date\.now\(\s*\)|new Date\(\s*Date\.now\(\s*\)\s*\)|now)\s*,\s*1\s*\)|[A-Za-z_$][A-Za-z0-9_$.()]*\.(add|plus)Hours\(\s*([1-9]|1[0-9]|2[0-4])\s*\)|[A-Za-z_$][A-Za-z0-9_$.()]*\.(add|plus)Minutes\(\s*([1-9][0-9]?|[1-9][0-9][0-9]|1[0-3][0-9][0-9]|14[0-3][0-9]|1440)\s*\)|(dayjs|moment)\(\s*\)\.add\(\s*(([1-9]|1[0-9]|2[0-4])\s*,\s*['"](hours?|h)['"]|([1-9][0-9]?|[1-9][0-9][0-9]|1[0-3][0-9][0-9]|14[0-3][0-9]|1440)\s*,\s*['"](minutes?|m)['"])\s*\)|DateTime\.now\(\s*\)\.plus\(\s*\{\s*(hours\s*:\s*([1-9]|1[0-9]|2[0-4])|minutes\s*:\s*([1-9][0-9]?|[1-9][0-9][0-9]|1[0-3][0-9][0-9]|14[0-3][0-9]|1440))\s*\}\s*\))\s*$
+                                      - kind: binary_expression
+                                        regex: (?s)^((new Date\(\s*)?Date\.now\(\s*\)\s*\+\s*(\(\s*)?(([1-9][0-9]?|[1-9][0-9][0-9]|1[0-3][0-9][0-9]|14[0-3][0-9]|1440)\s*\*\s*1000\s*\*\s*60|([1-9][0-9]?|[1-9][0-9][0-9]|1[0-3][0-9][0-9]|14[0-3][0-9]|1440)\s*\*\s*60000|([1-9][0-9]?|[1-9][0-9][0-9]|1[0-3][0-9][0-9]|14[0-3][0-9]|1440)\s*\*\s*60\s*\*\s*1000|([1-9][0-9]{0,3}|[1-7][0-9]{4}|8[0-5][0-9]{3}|86[0-3][0-9][0-9]|86400)\s*\*\s*1000|([1-9][0-9]{0,6}|[1-7][0-9]{7}|8[0-5][0-9]{6}|86[0-3][0-9]{5}|86400000)|([1-9]|1[0-9]|2[0-4])\s*\*\s*1000\s*\*\s*3600|([1-9]|1[0-9]|2[0-4])\s*\*\s*1000\s*\*\s*60\s*\*\s*60|([1-9]|1[0-9]|2[0-4])\s*\*\s*3600000|([1-9]|1[0-9]|2[0-4])\s*\*\s*3600\s*\*\s*1000|([1-9]|1[0-9]|2[0-4])\s*\*\s*60000\s*\*\s*60|([1-9]|1[0-9]|2[0-4])\s*\*\s*60\s*\*\s*1000\s*\*\s*60|([1-9]|1[0-9]|2[0-4])\s*\*\s*60\s*\*\s*60000|([1-9]|1[0-9]|2[0-4])\s*\*\s*60\s*\*\s*60\s*\*\s*1000|1000\s*\*\s*([1-9][0-9]?|[1-9][0-9][0-9]|1[0-3][0-9][0-9]|14[0-3][0-9]|1440)\s*\*\s*60|1000\s*\*\s*([1-9][0-9]{0,3}|[1-7][0-9]{4}|8[0-5][0-9]{3}|86[0-3][0-9][0-9]|86400)|1000\s*\*\s*([1-9]|1[0-9]|2[0-4])\s*\*\s*3600|1000\s*\*\s*([1-9]|1[0-9]|2[0-4])\s*\*\s*60\s*\*\s*60|1000\s*\*\s*3600\s*\*\s*([1-9]|1[0-9]|2[0-4])|1000\s*\*\s*60\s*\*\s*([1-9][0-9]?|[1-9][0-9][0-9]|1[0-3][0-9][0-9]|14[0-3][0-9]|1440)|1000\s*\*\s*60\s*\*\s*([1-9]|1[0-9]|2[0-4])\s*\*\s*60|1000\s*\*\s*60\s*\*\s*60\s*\*\s*([1-9]|1[0-9]|2[0-4])|3600000\s*\*\s*([1-9]|1[0-9]|2[0-4])|3600\s*\*\s*([1-9]|1[0-9]|2[0-4])\s*\*\s*1000|3600\s*\*\s*1000\s*\*\s*([1-9]|1[0-9]|2[0-4])|60000\s*\*\s*([1-9][0-9]?|[1-9][0-9][0-9]|1[0-3][0-9][0-9]|14[0-3][0-9]|1440)|60000\s*\*\s*([1-9]|1[0-9]|2[0-4])\s*\*\s*60|60000\s*\*\s*60\s*\*\s*([1-9]|1[0-9]|2[0-4])|60\s*\*\s*([1-9][0-9]?|[1-9][0-9][0-9]|1[0-3][0-9][0-9]|14[0-3][0-9]|1440)\s*\*\s*1000|60\s*\*\s*([1-9]|1[0-9]|2[0-4])\s*\*\s*1000\s*\*\s*60|60\s*\*\s*([1-9]|1[0-9]|2[0-4])\s*\*\s*60000|60\s*\*\s*([1-9]|1[0-9]|2[0-4])\s*\*\s*60\s*\*\s*1000|60\s*\*\s*1000\s*\*\s*([1-9][0-9]?|[1-9][0-9][0-9]|1[0-3][0-9][0-9]|14[0-3][0-9]|1440)|60\s*\*\s*1000\s*\*\s*([1-9]|1[0-9]|2[0-4])\s*\*\s*60|60\s*\*\s*1000\s*\*\s*60\s*\*\s*([1-9]|1[0-9]|2[0-4])|60\s*\*\s*60000\s*\*\s*([1-9]|1[0-9]|2[0-4])|60\s*\*\s*60\s*\*\s*([1-9]|1[0-9]|2[0-4])\s*\*\s*1000|60\s*\*\s*60\s*\*\s*1000\s*\*\s*([1-9]|1[0-9]|2[0-4]))(\s*\))?(\s*\))?|addHours\(\s*(new Date\(\s*\)|Date\.now\(\s*\)|new Date\(\s*Date\.now\(\s*\)\s*\)|now)\s*,\s*([1-9]|1[0-9]|2[0-4])\s*\)|addMinutes\(\s*(new Date\(\s*\)|Date\.now\(\s*\)|new Date\(\s*Date\.now\(\s*\)\s*\)|now)\s*,\s*([1-9][0-9]?|[1-9][0-9][0-9]|1[0-3][0-9][0-9]|14[0-3][0-9]|1440)\s*\)|addSeconds\(\s*(new Date\(\s*\)|Date\.now\(\s*\)|new Date\(\s*Date\.now\(\s*\)\s*\)|now)\s*,\s*([1-9][0-9]{0,3}|[1-7][0-9]{4}|8[0-5][0-9]{3}|86[0-3][0-9][0-9]|86400)\s*\)|addDays\(\s*(new Date\(\s*\)|Date\.now\(\s*\)|new Date\(\s*Date\.now\(\s*\)\s*\)|now)\s*,\s*1\s*\)|[A-Za-z_$][A-Za-z0-9_$.()]*\.(add|plus)Hours\(\s*([1-9]|1[0-9]|2[0-4])\s*\)|[A-Za-z_$][A-Za-z0-9_$.()]*\.(add|plus)Minutes\(\s*([1-9][0-9]?|[1-9][0-9][0-9]|1[0-3][0-9][0-9]|14[0-3][0-9]|1440)\s*\)|(dayjs|moment)\(\s*\)\.add\(\s*(([1-9]|1[0-9]|2[0-4])\s*,\s*['"](hours?|h)['"]|([1-9][0-9]?|[1-9][0-9][0-9]|1[0-3][0-9][0-9]|14[0-3][0-9]|1440)\s*,\s*['"](minutes?|m)['"])\s*\)|DateTime\.now\(\s*\)\.plus\(\s*\{\s*(hours\s*:\s*([1-9]|1[0-9]|2[0-4])|minutes\s*:\s*([1-9][0-9]?|[1-9][0-9][0-9]|1[0-3][0-9][0-9]|14[0-3][0-9]|1440))\s*\}\s*\))\s*$
+                        - not:
+                            inside:
+                              stopBy: end
+                              kind: pair
+                              regex: '^(select|include|where|orderBy|returning|omit)\s*:'
+              - all:
+                - kind: call_expression
+                  regex: (?is)insert\s+into\s+[A-Za-z0-9_]*(break_?glass|emergency)[A-Za-z0-9_]*\s*\([^)]*(?-u:\b)reason(?-u:\b)
+                - regex: (?is)insert\s+into\s+[A-Za-z0-9_]*(break_?glass|emergency)[A-Za-z0-9_]*\s*\([^)]*(?-u:\b)(expires?_?at|expiry|valid_?until|ends_?at)(?-u:\b)
+                - not:
+                    kind: call_expression
+                    regex: (?is)values\s*\([^)]*(?-u:\b)null(?-u:\b)
+                - not:
+                    has:
+                      stopBy: end
+                      any:
+                      - kind: string
+                        regex: (?is)values\s*\([^;]*((now\(\)|current_timestamp)\s*\+\s*interval\s*(\'(([1-9]|1[0-9]|2[0-4])\s*hours?|([1-9][0-9]?|[1-9][0-9][0-9]|1[0-3][0-9][0-9]|14[0-3][0-9]|1440)\s*minutes?|1\s*day)\'|([1-9]|1[0-9]|2[0-4])\s+hour|([1-9][0-9]?|[1-9][0-9][0-9]|1[0-3][0-9][0-9]|14[0-3][0-9]|1440)\s+minute)|date_add\(\s*now\(\)\s*,\s*interval\s+(([1-9]|1[0-9]|2[0-4])\s+hour|([1-9][0-9]?|[1-9][0-9][0-9]|1[0-3][0-9][0-9]|14[0-3][0-9]|1440)\s+minute)\s*\)|datetime\(\s*\'now\'\s*,\s*\'\+(([1-9]|1[0-9]|2[0-4])\s*hours?|([1-9][0-9]?|[1-9][0-9][0-9]|1[0-3][0-9][0-9]|14[0-3][0-9]|1440)\s*minutes?)\'\s*\))\s*[,)]
+                      - kind: template_string
+                        regex: (?is)values\s*\([^;]*((now\(\)|current_timestamp)\s*\+\s*interval\s*(\'(([1-9]|1[0-9]|2[0-4])\s*hours?|([1-9][0-9]?|[1-9][0-9][0-9]|1[0-3][0-9][0-9]|14[0-3][0-9]|1440)\s*minutes?|1\s*day)\'|([1-9]|1[0-9]|2[0-4])\s+hour|([1-9][0-9]?|[1-9][0-9][0-9]|1[0-3][0-9][0-9]|14[0-3][0-9]|1440)\s+minute)|date_add\(\s*now\(\)\s*,\s*interval\s+(([1-9]|1[0-9]|2[0-4])\s+hour|([1-9][0-9]?|[1-9][0-9][0-9]|1[0-3][0-9][0-9]|14[0-3][0-9]|1440)\s+minute)\s*\)|datetime\(\s*\'now\'\s*,\s*\'\+(([1-9]|1[0-9]|2[0-4])\s*hours?|([1-9][0-9]?|[1-9][0-9][0-9]|1[0-3][0-9][0-9]|14[0-3][0-9]|1440)\s*minutes?)\'\s*\))\s*[,)]
+        - not:
+            has:
+              field: body
+              has:
+                any:
+                - kind: lexical_declaration
+                  regex: (?is)(?-u:\b)reason['\"]?\s*(:|=>|=)\s*(null|undefined|None|''|\"\")([^0-9A-Za-z_]|$)
+                - kind: variable_declaration
+                  regex: (?is)(?-u:\b)reason['\"]?\s*(:|=>|=)\s*(null|undefined|None|''|\"\")([^0-9A-Za-z_]|$)
+                - kind: expression_statement
+                  regex: (?is)(?-u:\b)reason['\"]?\s*(:|=>|=)\s*(null|undefined|None|''|\"\")([^0-9A-Za-z_]|$)
+                - kind: return_statement
+                  regex: (?is)(?-u:\b)reason['\"]?\s*(:|=>|=)\s*(null|undefined|None|''|\"\")([^0-9A-Za-z_]|$)
+                - kind: if_statement
+                  regex: (?is)(?-u:\b)reason['\"]?\s*(:|=>|=)\s*(null|undefined|None|''|\"\")([^0-9A-Za-z_]|$)
+                - kind: try_statement
+                  regex: (?is)(?-u:\b)reason['\"]?\s*(:|=>|=)\s*(null|undefined|None|''|\"\")([^0-9A-Za-z_]|$)
+                - kind: for_statement
+                  regex: (?is)(?-u:\b)reason['\"]?\s*(:|=>|=)\s*(null|undefined|None|''|\"\")([^0-9A-Za-z_]|$)
+                - kind: for_in_statement
+                  regex: (?is)(?-u:\b)reason['\"]?\s*(:|=>|=)\s*(null|undefined|None|''|\"\")([^0-9A-Za-z_]|$)
+                - kind: while_statement
+                  regex: (?is)(?-u:\b)reason['\"]?\s*(:|=>|=)\s*(null|undefined|None|''|\"\")([^0-9A-Za-z_]|$)
+                - kind: switch_statement
+                  regex: (?is)(?-u:\b)reason['\"]?\s*(:|=>|=)\s*(null|undefined|None|''|\"\")([^0-9A-Za-z_]|$)
+                - kind: throw_statement
+                  regex: (?is)(?-u:\b)reason['\"]?\s*(:|=>|=)\s*(null|undefined|None|''|\"\")([^0-9A-Za-z_]|$)
+        - not:
+            has:
+              field: body
+              has:
+                any:
+                - kind: lexical_declaration
+                  regex: (?is)(?-u:\b)(expires?_?at|expiry|valid_?until|ends_?at)['\"]?\s*(:|=>|=)\s*(null|undefined|None)([^0-9A-Za-z_]|$)
+                - kind: variable_declaration
+                  regex: (?is)(?-u:\b)(expires?_?at|expiry|valid_?until|ends_?at)['\"]?\s*(:|=>|=)\s*(null|undefined|None)([^0-9A-Za-z_]|$)
+                - kind: expression_statement
+                  regex: (?is)(?-u:\b)(expires?_?at|expiry|valid_?until|ends_?at)['\"]?\s*(:|=>|=)\s*(null|undefined|None)([^0-9A-Za-z_]|$)
+                - kind: return_statement
+                  regex: (?is)(?-u:\b)(expires?_?at|expiry|valid_?until|ends_?at)['\"]?\s*(:|=>|=)\s*(null|undefined|None)([^0-9A-Za-z_]|$)
+                - kind: if_statement
+                  regex: (?is)(?-u:\b)(expires?_?at|expiry|valid_?until|ends_?at)['\"]?\s*(:|=>|=)\s*(null|undefined|None)([^0-9A-Za-z_]|$)
+                - kind: try_statement
+                  regex: (?is)(?-u:\b)(expires?_?at|expiry|valid_?until|ends_?at)['\"]?\s*(:|=>|=)\s*(null|undefined|None)([^0-9A-Za-z_]|$)
+                - kind: for_statement
+                  regex: (?is)(?-u:\b)(expires?_?at|expiry|valid_?until|ends_?at)['\"]?\s*(:|=>|=)\s*(null|undefined|None)([^0-9A-Za-z_]|$)
+                - kind: for_in_statement
+                  regex: (?is)(?-u:\b)(expires?_?at|expiry|valid_?until|ends_?at)['\"]?\s*(:|=>|=)\s*(null|undefined|None)([^0-9A-Za-z_]|$)
+                - kind: while_statement
+                  regex: (?is)(?-u:\b)(expires?_?at|expiry|valid_?until|ends_?at)['\"]?\s*(:|=>|=)\s*(null|undefined|None)([^0-9A-Za-z_]|$)
+                - kind: switch_statement
+                  regex: (?is)(?-u:\b)(expires?_?at|expiry|valid_?until|ends_?at)['\"]?\s*(:|=>|=)\s*(null|undefined|None)([^0-9A-Za-z_]|$)
+                - kind: throw_statement
+                  regex: (?is)(?-u:\b)(expires?_?at|expiry|valid_?until|ends_?at)['\"]?\s*(:|=>|=)\s*(null|undefined|None)([^0-9A-Za-z_]|$)
+        - has:
+            field: body
+            has:
+              any:
+              - kind: lexical_declaration
+                regex: (?i)^(await\s+)?(\$?[0-9A-Za-z_]+(\.|->|::))*(notify[0-9A-Za-z_]*|alert[0-9A-Za-z_]*|page[0-9A-Za-z_]*|send[0-9A-Za-z_]*(alert|notification|mail|email|sms|page)[0-9A-Za-z_]*|send_?mail|mail)\s*\(
+              - kind: variable_declaration
+                regex: (?i)^(await\s+)?(\$?[0-9A-Za-z_]+(\.|->|::))*(notify[0-9A-Za-z_]*|alert[0-9A-Za-z_]*|page[0-9A-Za-z_]*|send[0-9A-Za-z_]*(alert|notification|mail|email|sms|page)[0-9A-Za-z_]*|send_?mail|mail)\s*\(
+              - kind: expression_statement
+                regex: (?i)^(await\s+)?(\$?[0-9A-Za-z_]+(\.|->|::))*(notify[0-9A-Za-z_]*|alert[0-9A-Za-z_]*|page[0-9A-Za-z_]*|send[0-9A-Za-z_]*(alert|notification|mail|email|sms|page)[0-9A-Za-z_]*|send_?mail|mail)\s*\(
+              - kind: return_statement
+                regex: (?i)^(await\s+)?(\$?[0-9A-Za-z_]+(\.|->|::))*(notify[0-9A-Za-z_]*|alert[0-9A-Za-z_]*|page[0-9A-Za-z_]*|send[0-9A-Za-z_]*(alert|notification|mail|email|sms|page)[0-9A-Za-z_]*|send_?mail|mail)\s*\(
+              - kind: if_statement
+                regex: (?i)^(await\s+)?(\$?[0-9A-Za-z_]+(\.|->|::))*(notify[0-9A-Za-z_]*|alert[0-9A-Za-z_]*|page[0-9A-Za-z_]*|send[0-9A-Za-z_]*(alert|notification|mail|email|sms|page)[0-9A-Za-z_]*|send_?mail|mail)\s*\(
+              - kind: try_statement
+                regex: (?i)^(await\s+)?(\$?[0-9A-Za-z_]+(\.|->|::))*(notify[0-9A-Za-z_]*|alert[0-9A-Za-z_]*|page[0-9A-Za-z_]*|send[0-9A-Za-z_]*(alert|notification|mail|email|sms|page)[0-9A-Za-z_]*|send_?mail|mail)\s*\(
+              - kind: for_statement
+                regex: (?i)^(await\s+)?(\$?[0-9A-Za-z_]+(\.|->|::))*(notify[0-9A-Za-z_]*|alert[0-9A-Za-z_]*|page[0-9A-Za-z_]*|send[0-9A-Za-z_]*(alert|notification|mail|email|sms|page)[0-9A-Za-z_]*|send_?mail|mail)\s*\(
+              - kind: for_in_statement
+                regex: (?i)^(await\s+)?(\$?[0-9A-Za-z_]+(\.|->|::))*(notify[0-9A-Za-z_]*|alert[0-9A-Za-z_]*|page[0-9A-Za-z_]*|send[0-9A-Za-z_]*(alert|notification|mail|email|sms|page)[0-9A-Za-z_]*|send_?mail|mail)\s*\(
+              - kind: while_statement
+                regex: (?i)^(await\s+)?(\$?[0-9A-Za-z_]+(\.|->|::))*(notify[0-9A-Za-z_]*|alert[0-9A-Za-z_]*|page[0-9A-Za-z_]*|send[0-9A-Za-z_]*(alert|notification|mail|email|sms|page)[0-9A-Za-z_]*|send_?mail|mail)\s*\(
+              - kind: switch_statement
+                regex: (?i)^(await\s+)?(\$?[0-9A-Za-z_]+(\.|->|::))*(notify[0-9A-Za-z_]*|alert[0-9A-Za-z_]*|page[0-9A-Za-z_]*|send[0-9A-Za-z_]*(alert|notification|mail|email|sms|page)[0-9A-Za-z_]*|send_?mail|mail)\s*\(
+              - kind: throw_statement
+                regex: (?i)^(await\s+)?(\$?[0-9A-Za-z_]+(\.|->|::))*(notify[0-9A-Za-z_]*|alert[0-9A-Za-z_]*|page[0-9A-Za-z_]*|send[0-9A-Za-z_]*(alert|notification|mail|email|sms|page)[0-9A-Za-z_]*|send_?mail|mail)\s*\(
+        - has:
+            field: body
+            has:
+              any:
+              - kind: lexical_declaration
+                regex: (?i)\.(audit[0-9A-Za-z_]*|access_?log[0-9A-Za-z_]*)\.(create|insert|add)[0-9A-Za-z_]*\(|(?-u:\b)(Audit[0-9A-Za-z_]*|AccessLog[0-9A-Za-z_]*)\.(objects\.)?create\(|from\(\s*['\"][0-9A-Za-z_]*audit[0-9A-Za-z_]*['\"]\s*\)\s*\.insert\(|insert\s+into\s+[0-9A-Za-z_]*(audit|log)[0-9A-Za-z_]*|->newEvent\(
+              - kind: variable_declaration
+                regex: (?i)\.(audit[0-9A-Za-z_]*|access_?log[0-9A-Za-z_]*)\.(create|insert|add)[0-9A-Za-z_]*\(|(?-u:\b)(Audit[0-9A-Za-z_]*|AccessLog[0-9A-Za-z_]*)\.(objects\.)?create\(|from\(\s*['\"][0-9A-Za-z_]*audit[0-9A-Za-z_]*['\"]\s*\)\s*\.insert\(|insert\s+into\s+[0-9A-Za-z_]*(audit|log)[0-9A-Za-z_]*|->newEvent\(
+              - kind: expression_statement
+                regex: (?i)\.(audit[0-9A-Za-z_]*|access_?log[0-9A-Za-z_]*)\.(create|insert|add)[0-9A-Za-z_]*\(|(?-u:\b)(Audit[0-9A-Za-z_]*|AccessLog[0-9A-Za-z_]*)\.(objects\.)?create\(|from\(\s*['\"][0-9A-Za-z_]*audit[0-9A-Za-z_]*['\"]\s*\)\s*\.insert\(|insert\s+into\s+[0-9A-Za-z_]*(audit|log)[0-9A-Za-z_]*|->newEvent\(
+              - kind: return_statement
+                regex: (?i)\.(audit[0-9A-Za-z_]*|access_?log[0-9A-Za-z_]*)\.(create|insert|add)[0-9A-Za-z_]*\(|(?-u:\b)(Audit[0-9A-Za-z_]*|AccessLog[0-9A-Za-z_]*)\.(objects\.)?create\(|from\(\s*['\"][0-9A-Za-z_]*audit[0-9A-Za-z_]*['\"]\s*\)\s*\.insert\(|insert\s+into\s+[0-9A-Za-z_]*(audit|log)[0-9A-Za-z_]*|->newEvent\(
+              - kind: if_statement
+                regex: (?i)\.(audit[0-9A-Za-z_]*|access_?log[0-9A-Za-z_]*)\.(create|insert|add)[0-9A-Za-z_]*\(|(?-u:\b)(Audit[0-9A-Za-z_]*|AccessLog[0-9A-Za-z_]*)\.(objects\.)?create\(|from\(\s*['\"][0-9A-Za-z_]*audit[0-9A-Za-z_]*['\"]\s*\)\s*\.insert\(|insert\s+into\s+[0-9A-Za-z_]*(audit|log)[0-9A-Za-z_]*|->newEvent\(
+              - kind: try_statement
+                regex: (?i)\.(audit[0-9A-Za-z_]*|access_?log[0-9A-Za-z_]*)\.(create|insert|add)[0-9A-Za-z_]*\(|(?-u:\b)(Audit[0-9A-Za-z_]*|AccessLog[0-9A-Za-z_]*)\.(objects\.)?create\(|from\(\s*['\"][0-9A-Za-z_]*audit[0-9A-Za-z_]*['\"]\s*\)\s*\.insert\(|insert\s+into\s+[0-9A-Za-z_]*(audit|log)[0-9A-Za-z_]*|->newEvent\(
+              - kind: for_statement
+                regex: (?i)\.(audit[0-9A-Za-z_]*|access_?log[0-9A-Za-z_]*)\.(create|insert|add)[0-9A-Za-z_]*\(|(?-u:\b)(Audit[0-9A-Za-z_]*|AccessLog[0-9A-Za-z_]*)\.(objects\.)?create\(|from\(\s*['\"][0-9A-Za-z_]*audit[0-9A-Za-z_]*['\"]\s*\)\s*\.insert\(|insert\s+into\s+[0-9A-Za-z_]*(audit|log)[0-9A-Za-z_]*|->newEvent\(
+              - kind: for_in_statement
+                regex: (?i)\.(audit[0-9A-Za-z_]*|access_?log[0-9A-Za-z_]*)\.(create|insert|add)[0-9A-Za-z_]*\(|(?-u:\b)(Audit[0-9A-Za-z_]*|AccessLog[0-9A-Za-z_]*)\.(objects\.)?create\(|from\(\s*['\"][0-9A-Za-z_]*audit[0-9A-Za-z_]*['\"]\s*\)\s*\.insert\(|insert\s+into\s+[0-9A-Za-z_]*(audit|log)[0-9A-Za-z_]*|->newEvent\(
+              - kind: while_statement
+                regex: (?i)\.(audit[0-9A-Za-z_]*|access_?log[0-9A-Za-z_]*)\.(create|insert|add)[0-9A-Za-z_]*\(|(?-u:\b)(Audit[0-9A-Za-z_]*|AccessLog[0-9A-Za-z_]*)\.(objects\.)?create\(|from\(\s*['\"][0-9A-Za-z_]*audit[0-9A-Za-z_]*['\"]\s*\)\s*\.insert\(|insert\s+into\s+[0-9A-Za-z_]*(audit|log)[0-9A-Za-z_]*|->newEvent\(
+              - kind: switch_statement
+                regex: (?i)\.(audit[0-9A-Za-z_]*|access_?log[0-9A-Za-z_]*)\.(create|insert|add)[0-9A-Za-z_]*\(|(?-u:\b)(Audit[0-9A-Za-z_]*|AccessLog[0-9A-Za-z_]*)\.(objects\.)?create\(|from\(\s*['\"][0-9A-Za-z_]*audit[0-9A-Za-z_]*['\"]\s*\)\s*\.insert\(|insert\s+into\s+[0-9A-Za-z_]*(audit|log)[0-9A-Za-z_]*|->newEvent\(
+              - kind: throw_statement
+                regex: (?i)\.(audit[0-9A-Za-z_]*|access_?log[0-9A-Za-z_]*)\.(create|insert|add)[0-9A-Za-z_]*\(|(?-u:\b)(Audit[0-9A-Za-z_]*|AccessLog[0-9A-Za-z_]*)\.(objects\.)?create\(|from\(\s*['\"][0-9A-Za-z_]*audit[0-9A-Za-z_]*['\"]\s*\)\s*\.insert\(|insert\s+into\s+[0-9A-Za-z_]*(audit|log)[0-9A-Za-z_]*|->newEvent\(
+  - not:
+      has:
+        stopBy: end
+        any:
+        - all:
+          - kind: call_expression
+            regex: ^BreakGlass[A-Za-z0-9_]*(\.|::)[A-Za-z_][A-Za-z0-9_]*\(
+          - not:
+              kind: call_expression
+              regex: ^BreakGlass[A-Za-z0-9_]*(\.|::)(create|insert|upsert)[A-Za-z]*\(
+control:
+  all:
+  - has:
+      field: body
+      has:
+        stopBy: end
+        any:
+        - all:
+          - kind: call_expression
+            regex: (?i)^[A-Za-z0-9_$.>:-]*(break_?glass|emergency_?access|emergency_?grant)[A-Za-z0-9_$.>:-]*(\.|->|::)(create|insert|add|grant|upsert)[A-Za-z0-9_]*\(|(?i)^[A-Za-z0-9_$.>:-]*from\(\s*[\'"][A-Za-z0-9_]*(break_?glass|emergency)[A-Za-z0-9_]*[\'"]\s*\)\s*\.insert\(
+          - has:
+              stopBy: end
+              any:
+              - all:
+                - kind: pair
+                  regex: '(?i)^[\''"]?reason[\''"]?\s*:'
+                - not:
+                    kind: pair
+                    regex: (?i):\s*(null|undefined|\'\'|""|true|false)$
+                - not:
+                    kind: pair
+                    regex: :[\s\S]*(?-u:\b)([nN][uU][lL][lL]|[uU][nN][dD][eE][fF][iI][nN][eE][dD])(?-u:\b)
+                - not:
+                    inside:
+                      stopBy: end
+                      kind: pair
+                      regex: '^(select|include|where|orderBy|returning|omit)\s*:'
+              - all:
+                - kind: shorthand_property_identifier
+                  regex: (?i)^reason$
+                - not:
+                    inside:
+                      stopBy: end
+                      kind: pair
+                      regex: '^(select|include|where|orderBy|returning|omit)\s*:'
+          - has:
+              stopBy: end
+              any:
+              - all:
+                - kind: pair
+                  regex: (?is)^['"]?(expires?_?at|expiry|valid_?until|ends_?at)['"]?\s*:\s*((new Date\(\s*)?Date\.now\(\s*\)\s*\+\s*(\(\s*)?(([1-9][0-9]?|[1-9][0-9][0-9]|1[0-3][0-9][0-9]|14[0-3][0-9]|1440)\s*\*\s*1000\s*\*\s*60|([1-9][0-9]?|[1-9][0-9][0-9]|1[0-3][0-9][0-9]|14[0-3][0-9]|1440)\s*\*\s*60000|([1-9][0-9]?|[1-9][0-9][0-9]|1[0-3][0-9][0-9]|14[0-3][0-9]|1440)\s*\*\s*60\s*\*\s*1000|([1-9][0-9]{0,3}|[1-7][0-9]{4}|8[0-5][0-9]{3}|86[0-3][0-9][0-9]|86400)\s*\*\s*1000|([1-9][0-9]{0,6}|[1-7][0-9]{7}|8[0-5][0-9]{6}|86[0-3][0-9]{5}|86400000)|([1-9]|1[0-9]|2[0-4])\s*\*\s*1000\s*\*\s*3600|([1-9]|1[0-9]|2[0-4])\s*\*\s*1000\s*\*\s*60\s*\*\s*60|([1-9]|1[0-9]|2[0-4])\s*\*\s*3600000|([1-9]|1[0-9]|2[0-4])\s*\*\s*3600\s*\*\s*1000|([1-9]|1[0-9]|2[0-4])\s*\*\s*60000\s*\*\s*60|([1-9]|1[0-9]|2[0-4])\s*\*\s*60\s*\*\s*1000\s*\*\s*60|([1-9]|1[0-9]|2[0-4])\s*\*\s*60\s*\*\s*60000|([1-9]|1[0-9]|2[0-4])\s*\*\s*60\s*\*\s*60\s*\*\s*1000|1000\s*\*\s*([1-9][0-9]?|[1-9][0-9][0-9]|1[0-3][0-9][0-9]|14[0-3][0-9]|1440)\s*\*\s*60|1000\s*\*\s*([1-9][0-9]{0,3}|[1-7][0-9]{4}|8[0-5][0-9]{3}|86[0-3][0-9][0-9]|86400)|1000\s*\*\s*([1-9]|1[0-9]|2[0-4])\s*\*\s*3600|1000\s*\*\s*([1-9]|1[0-9]|2[0-4])\s*\*\s*60\s*\*\s*60|1000\s*\*\s*3600\s*\*\s*([1-9]|1[0-9]|2[0-4])|1000\s*\*\s*60\s*\*\s*([1-9][0-9]?|[1-9][0-9][0-9]|1[0-3][0-9][0-9]|14[0-3][0-9]|1440)|1000\s*\*\s*60\s*\*\s*([1-9]|1[0-9]|2[0-4])\s*\*\s*60|1000\s*\*\s*60\s*\*\s*60\s*\*\s*([1-9]|1[0-9]|2[0-4])|3600000\s*\*\s*([1-9]|1[0-9]|2[0-4])|3600\s*\*\s*([1-9]|1[0-9]|2[0-4])\s*\*\s*1000|3600\s*\*\s*1000\s*\*\s*([1-9]|1[0-9]|2[0-4])|60000\s*\*\s*([1-9][0-9]?|[1-9][0-9][0-9]|1[0-3][0-9][0-9]|14[0-3][0-9]|1440)|60000\s*\*\s*([1-9]|1[0-9]|2[0-4])\s*\*\s*60|60000\s*\*\s*60\s*\*\s*([1-9]|1[0-9]|2[0-4])|60\s*\*\s*([1-9][0-9]?|[1-9][0-9][0-9]|1[0-3][0-9][0-9]|14[0-3][0-9]|1440)\s*\*\s*1000|60\s*\*\s*([1-9]|1[0-9]|2[0-4])\s*\*\s*1000\s*\*\s*60|60\s*\*\s*([1-9]|1[0-9]|2[0-4])\s*\*\s*60000|60\s*\*\s*([1-9]|1[0-9]|2[0-4])\s*\*\s*60\s*\*\s*1000|60\s*\*\s*1000\s*\*\s*([1-9][0-9]?|[1-9][0-9][0-9]|1[0-3][0-9][0-9]|14[0-3][0-9]|1440)|60\s*\*\s*1000\s*\*\s*([1-9]|1[0-9]|2[0-4])\s*\*\s*60|60\s*\*\s*1000\s*\*\s*60\s*\*\s*([1-9]|1[0-9]|2[0-4])|60\s*\*\s*60000\s*\*\s*([1-9]|1[0-9]|2[0-4])|60\s*\*\s*60\s*\*\s*([1-9]|1[0-9]|2[0-4])\s*\*\s*1000|60\s*\*\s*60\s*\*\s*1000\s*\*\s*([1-9]|1[0-9]|2[0-4]))(\s*\))?(\s*\))?|addHours\(\s*(new Date\(\s*\)|Date\.now\(\s*\)|new Date\(\s*Date\.now\(\s*\)\s*\)|now)\s*,\s*([1-9]|1[0-9]|2[0-4])\s*\)|addMinutes\(\s*(new Date\(\s*\)|Date\.now\(\s*\)|new Date\(\s*Date\.now\(\s*\)\s*\)|now)\s*,\s*([1-9][0-9]?|[1-9][0-9][0-9]|1[0-3][0-9][0-9]|14[0-3][0-9]|1440)\s*\)|addSeconds\(\s*(new Date\(\s*\)|Date\.now\(\s*\)|new Date\(\s*Date\.now\(\s*\)\s*\)|now)\s*,\s*([1-9][0-9]{0,3}|[1-7][0-9]{4}|8[0-5][0-9]{3}|86[0-3][0-9][0-9]|86400)\s*\)|addDays\(\s*(new Date\(\s*\)|Date\.now\(\s*\)|new Date\(\s*Date\.now\(\s*\)\s*\)|now)\s*,\s*1\s*\)|[A-Za-z_$][A-Za-z0-9_$.()]*\.(add|plus)Hours\(\s*([1-9]|1[0-9]|2[0-4])\s*\)|[A-Za-z_$][A-Za-z0-9_$.()]*\.(add|plus)Minutes\(\s*([1-9][0-9]?|[1-9][0-9][0-9]|1[0-3][0-9][0-9]|14[0-3][0-9]|1440)\s*\)|(dayjs|moment)\(\s*\)\.add\(\s*(([1-9]|1[0-9]|2[0-4])\s*,\s*['"](hours?|h)['"]|([1-9][0-9]?|[1-9][0-9][0-9]|1[0-3][0-9][0-9]|14[0-3][0-9]|1440)\s*,\s*['"](minutes?|m)['"])\s*\)|DateTime\.now\(\s*\)\.plus\(\s*\{\s*(hours\s*:\s*([1-9]|1[0-9]|2[0-4])|minutes\s*:\s*([1-9][0-9]?|[1-9][0-9][0-9]|1[0-3][0-9][0-9]|14[0-3][0-9]|1440))\s*\}\s*\))\s*$
+                - not:
+                    inside:
+                      stopBy: end
+                      kind: pair
+                      regex: '^(select|include|where|orderBy|returning|omit)\s*:'
+              - all:
+                - any:
+                  - all:
+                    - kind: pair
+                      regex: '(?i)^[''"]?(expires?_?at|expiry|valid_?until|ends_?at)[''"]?\s*:'
+                    - has:
+                        field: value
+                        kind: identifier
+                        pattern:
+                          context: $N.x;
+                          selector: identifier
+                  - kind: shorthand_property_identifier
+                    regex: (?i)^(expires?_?at|expiry|valid_?until|ends_?at)$
+                    pattern:
+                      context: ({ $N })
+                      selector: shorthand_property_identifier
+                - inside:
+                    stopBy: end
+                    all:
+                    - any:
+                      - kind: function_declaration
+                      - kind: method_definition
+                      - kind: arrow_function
+                      - kind: function_expression
+                    - has:
+                        stopBy: end
+                        kind: lexical_declaration
+                        regex: ^const\s
+                        has:
+                          kind: variable_declarator
+                          all:
+                          - pattern:
+                              context: const $N = $V
+                              selector: variable_declarator
+                          - has:
+                              field: value
+                              any:
+                              - kind: new_expression
+                                regex: (?s)^((new Date\(\s*)?Date\.now\(\s*\)\s*\+\s*(\(\s*)?(([1-9][0-9]?|[1-9][0-9][0-9]|1[0-3][0-9][0-9]|14[0-3][0-9]|1440)\s*\*\s*1000\s*\*\s*60|([1-9][0-9]?|[1-9][0-9][0-9]|1[0-3][0-9][0-9]|14[0-3][0-9]|1440)\s*\*\s*60000|([1-9][0-9]?|[1-9][0-9][0-9]|1[0-3][0-9][0-9]|14[0-3][0-9]|1440)\s*\*\s*60\s*\*\s*1000|([1-9][0-9]{0,3}|[1-7][0-9]{4}|8[0-5][0-9]{3}|86[0-3][0-9][0-9]|86400)\s*\*\s*1000|([1-9][0-9]{0,6}|[1-7][0-9]{7}|8[0-5][0-9]{6}|86[0-3][0-9]{5}|86400000)|([1-9]|1[0-9]|2[0-4])\s*\*\s*1000\s*\*\s*3600|([1-9]|1[0-9]|2[0-4])\s*\*\s*1000\s*\*\s*60\s*\*\s*60|([1-9]|1[0-9]|2[0-4])\s*\*\s*3600000|([1-9]|1[0-9]|2[0-4])\s*\*\s*3600\s*\*\s*1000|([1-9]|1[0-9]|2[0-4])\s*\*\s*60000\s*\*\s*60|([1-9]|1[0-9]|2[0-4])\s*\*\s*60\s*\*\s*1000\s*\*\s*60|([1-9]|1[0-9]|2[0-4])\s*\*\s*60\s*\*\s*60000|([1-9]|1[0-9]|2[0-4])\s*\*\s*60\s*\*\s*60\s*\*\s*1000|1000\s*\*\s*([1-9][0-9]?|[1-9][0-9][0-9]|1[0-3][0-9][0-9]|14[0-3][0-9]|1440)\s*\*\s*60|1000\s*\*\s*([1-9][0-9]{0,3}|[1-7][0-9]{4}|8[0-5][0-9]{3}|86[0-3][0-9][0-9]|86400)|1000\s*\*\s*([1-9]|1[0-9]|2[0-4])\s*\*\s*3600|1000\s*\*\s*([1-9]|1[0-9]|2[0-4])\s*\*\s*60\s*\*\s*60|1000\s*\*\s*3600\s*\*\s*([1-9]|1[0-9]|2[0-4])|1000\s*\*\s*60\s*\*\s*([1-9][0-9]?|[1-9][0-9][0-9]|1[0-3][0-9][0-9]|14[0-3][0-9]|1440)|1000\s*\*\s*60\s*\*\s*([1-9]|1[0-9]|2[0-4])\s*\*\s*60|1000\s*\*\s*60\s*\*\s*60\s*\*\s*([1-9]|1[0-9]|2[0-4])|3600000\s*\*\s*([1-9]|1[0-9]|2[0-4])|3600\s*\*\s*([1-9]|1[0-9]|2[0-4])\s*\*\s*1000|3600\s*\*\s*1000\s*\*\s*([1-9]|1[0-9]|2[0-4])|60000\s*\*\s*([1-9][0-9]?|[1-9][0-9][0-9]|1[0-3][0-9][0-9]|14[0-3][0-9]|1440)|60000\s*\*\s*([1-9]|1[0-9]|2[0-4])\s*\*\s*60|60000\s*\*\s*60\s*\*\s*([1-9]|1[0-9]|2[0-4])|60\s*\*\s*([1-9][0-9]?|[1-9][0-9][0-9]|1[0-3][0-9][0-9]|14[0-3][0-9]|1440)\s*\*\s*1000|60\s*\*\s*([1-9]|1[0-9]|2[0-4])\s*\*\s*1000\s*\*\s*60|60\s*\*\s*([1-9]|1[0-9]|2[0-4])\s*\*\s*60000|60\s*\*\s*([1-9]|1[0-9]|2[0-4])\s*\*\s*60\s*\*\s*1000|60\s*\*\s*1000\s*\*\s*([1-9][0-9]?|[1-9][0-9][0-9]|1[0-3][0-9][0-9]|14[0-3][0-9]|1440)|60\s*\*\s*1000\s*\*\s*([1-9]|1[0-9]|2[0-4])\s*\*\s*60|60\s*\*\s*1000\s*\*\s*60\s*\*\s*([1-9]|1[0-9]|2[0-4])|60\s*\*\s*60000\s*\*\s*([1-9]|1[0-9]|2[0-4])|60\s*\*\s*60\s*\*\s*([1-9]|1[0-9]|2[0-4])\s*\*\s*1000|60\s*\*\s*60\s*\*\s*1000\s*\*\s*([1-9]|1[0-9]|2[0-4]))(\s*\))?(\s*\))?|addHours\(\s*(new Date\(\s*\)|Date\.now\(\s*\)|new Date\(\s*Date\.now\(\s*\)\s*\)|now)\s*,\s*([1-9]|1[0-9]|2[0-4])\s*\)|addMinutes\(\s*(new Date\(\s*\)|Date\.now\(\s*\)|new Date\(\s*Date\.now\(\s*\)\s*\)|now)\s*,\s*([1-9][0-9]?|[1-9][0-9][0-9]|1[0-3][0-9][0-9]|14[0-3][0-9]|1440)\s*\)|addSeconds\(\s*(new Date\(\s*\)|Date\.now\(\s*\)|new Date\(\s*Date\.now\(\s*\)\s*\)|now)\s*,\s*([1-9][0-9]{0,3}|[1-7][0-9]{4}|8[0-5][0-9]{3}|86[0-3][0-9][0-9]|86400)\s*\)|addDays\(\s*(new Date\(\s*\)|Date\.now\(\s*\)|new Date\(\s*Date\.now\(\s*\)\s*\)|now)\s*,\s*1\s*\)|[A-Za-z_$][A-Za-z0-9_$.()]*\.(add|plus)Hours\(\s*([1-9]|1[0-9]|2[0-4])\s*\)|[A-Za-z_$][A-Za-z0-9_$.()]*\.(add|plus)Minutes\(\s*([1-9][0-9]?|[1-9][0-9][0-9]|1[0-3][0-9][0-9]|14[0-3][0-9]|1440)\s*\)|(dayjs|moment)\(\s*\)\.add\(\s*(([1-9]|1[0-9]|2[0-4])\s*,\s*['"](hours?|h)['"]|([1-9][0-9]?|[1-9][0-9][0-9]|1[0-3][0-9][0-9]|14[0-3][0-9]|1440)\s*,\s*['"](minutes?|m)['"])\s*\)|DateTime\.now\(\s*\)\.plus\(\s*\{\s*(hours\s*:\s*([1-9]|1[0-9]|2[0-4])|minutes\s*:\s*([1-9][0-9]?|[1-9][0-9][0-9]|1[0-3][0-9][0-9]|14[0-3][0-9]|1440))\s*\}\s*\))\s*$
+                              - kind: call_expression
+                                regex: (?s)^((new Date\(\s*)?Date\.now\(\s*\)\s*\+\s*(\(\s*)?(([1-9][0-9]?|[1-9][0-9][0-9]|1[0-3][0-9][0-9]|14[0-3][0-9]|1440)\s*\*\s*1000\s*\*\s*60|([1-9][0-9]?|[1-9][0-9][0-9]|1[0-3][0-9][0-9]|14[0-3][0-9]|1440)\s*\*\s*60000|([1-9][0-9]?|[1-9][0-9][0-9]|1[0-3][0-9][0-9]|14[0-3][0-9]|1440)\s*\*\s*60\s*\*\s*1000|([1-9][0-9]{0,3}|[1-7][0-9]{4}|8[0-5][0-9]{3}|86[0-3][0-9][0-9]|86400)\s*\*\s*1000|([1-9][0-9]{0,6}|[1-7][0-9]{7}|8[0-5][0-9]{6}|86[0-3][0-9]{5}|86400000)|([1-9]|1[0-9]|2[0-4])\s*\*\s*1000\s*\*\s*3600|([1-9]|1[0-9]|2[0-4])\s*\*\s*1000\s*\*\s*60\s*\*\s*60|([1-9]|1[0-9]|2[0-4])\s*\*\s*3600000|([1-9]|1[0-9]|2[0-4])\s*\*\s*3600\s*\*\s*1000|([1-9]|1[0-9]|2[0-4])\s*\*\s*60000\s*\*\s*60|([1-9]|1[0-9]|2[0-4])\s*\*\s*60\s*\*\s*1000\s*\*\s*60|([1-9]|1[0-9]|2[0-4])\s*\*\s*60\s*\*\s*60000|([1-9]|1[0-9]|2[0-4])\s*\*\s*60\s*\*\s*60\s*\*\s*1000|1000\s*\*\s*([1-9][0-9]?|[1-9][0-9][0-9]|1[0-3][0-9][0-9]|14[0-3][0-9]|1440)\s*\*\s*60|1000\s*\*\s*([1-9][0-9]{0,3}|[1-7][0-9]{4}|8[0-5][0-9]{3}|86[0-3][0-9][0-9]|86400)|1000\s*\*\s*([1-9]|1[0-9]|2[0-4])\s*\*\s*3600|1000\s*\*\s*([1-9]|1[0-9]|2[0-4])\s*\*\s*60\s*\*\s*60|1000\s*\*\s*3600\s*\*\s*([1-9]|1[0-9]|2[0-4])|1000\s*\*\s*60\s*\*\s*([1-9][0-9]?|[1-9][0-9][0-9]|1[0-3][0-9][0-9]|14[0-3][0-9]|1440)|1000\s*\*\s*60\s*\*\s*([1-9]|1[0-9]|2[0-4])\s*\*\s*60|1000\s*\*\s*60\s*\*\s*60\s*\*\s*([1-9]|1[0-9]|2[0-4])|3600000\s*\*\s*([1-9]|1[0-9]|2[0-4])|3600\s*\*\s*([1-9]|1[0-9]|2[0-4])\s*\*\s*1000|3600\s*\*\s*1000\s*\*\s*([1-9]|1[0-9]|2[0-4])|60000\s*\*\s*([1-9][0-9]?|[1-9][0-9][0-9]|1[0-3][0-9][0-9]|14[0-3][0-9]|1440)|60000\s*\*\s*([1-9]|1[0-9]|2[0-4])\s*\*\s*60|60000\s*\*\s*60\s*\*\s*([1-9]|1[0-9]|2[0-4])|60\s*\*\s*([1-9][0-9]?|[1-9][0-9][0-9]|1[0-3][0-9][0-9]|14[0-3][0-9]|1440)\s*\*\s*1000|60\s*\*\s*([1-9]|1[0-9]|2[0-4])\s*\*\s*1000\s*\*\s*60|60\s*\*\s*([1-9]|1[0-9]|2[0-4])\s*\*\s*60000|60\s*\*\s*([1-9]|1[0-9]|2[0-4])\s*\*\s*60\s*\*\s*1000|60\s*\*\s*1000\s*\*\s*([1-9][0-9]?|[1-9][0-9][0-9]|1[0-3][0-9][0-9]|14[0-3][0-9]|1440)|60\s*\*\s*1000\s*\*\s*([1-9]|1[0-9]|2[0-4])\s*\*\s*60|60\s*\*\s*1000\s*\*\s*60\s*\*\s*([1-9]|1[0-9]|2[0-4])|60\s*\*\s*60000\s*\*\s*([1-9]|1[0-9]|2[0-4])|60\s*\*\s*60\s*\*\s*([1-9]|1[0-9]|2[0-4])\s*\*\s*1000|60\s*\*\s*60\s*\*\s*1000\s*\*\s*([1-9]|1[0-9]|2[0-4]))(\s*\))?(\s*\))?|addHours\(\s*(new Date\(\s*\)|Date\.now\(\s*\)|new Date\(\s*Date\.now\(\s*\)\s*\)|now)\s*,\s*([1-9]|1[0-9]|2[0-4])\s*\)|addMinutes\(\s*(new Date\(\s*\)|Date\.now\(\s*\)|new Date\(\s*Date\.now\(\s*\)\s*\)|now)\s*,\s*([1-9][0-9]?|[1-9][0-9][0-9]|1[0-3][0-9][0-9]|14[0-3][0-9]|1440)\s*\)|addSeconds\(\s*(new Date\(\s*\)|Date\.now\(\s*\)|new Date\(\s*Date\.now\(\s*\)\s*\)|now)\s*,\s*([1-9][0-9]{0,3}|[1-7][0-9]{4}|8[0-5][0-9]{3}|86[0-3][0-9][0-9]|86400)\s*\)|addDays\(\s*(new Date\(\s*\)|Date\.now\(\s*\)|new Date\(\s*Date\.now\(\s*\)\s*\)|now)\s*,\s*1\s*\)|[A-Za-z_$][A-Za-z0-9_$.()]*\.(add|plus)Hours\(\s*([1-9]|1[0-9]|2[0-4])\s*\)|[A-Za-z_$][A-Za-z0-9_$.()]*\.(add|plus)Minutes\(\s*([1-9][0-9]?|[1-9][0-9][0-9]|1[0-3][0-9][0-9]|14[0-3][0-9]|1440)\s*\)|(dayjs|moment)\(\s*\)\.add\(\s*(([1-9]|1[0-9]|2[0-4])\s*,\s*['"](hours?|h)['"]|([1-9][0-9]?|[1-9][0-9][0-9]|1[0-3][0-9][0-9]|14[0-3][0-9]|1440)\s*,\s*['"](minutes?|m)['"])\s*\)|DateTime\.now\(\s*\)\.plus\(\s*\{\s*(hours\s*:\s*([1-9]|1[0-9]|2[0-4])|minutes\s*:\s*([1-9][0-9]?|[1-9][0-9][0-9]|1[0-3][0-9][0-9]|14[0-3][0-9]|1440))\s*\}\s*\))\s*$
+                              - kind: binary_expression
+                                regex: (?s)^((new Date\(\s*)?Date\.now\(\s*\)\s*\+\s*(\(\s*)?(([1-9][0-9]?|[1-9][0-9][0-9]|1[0-3][0-9][0-9]|14[0-3][0-9]|1440)\s*\*\s*1000\s*\*\s*60|([1-9][0-9]?|[1-9][0-9][0-9]|1[0-3][0-9][0-9]|14[0-3][0-9]|1440)\s*\*\s*60000|([1-9][0-9]?|[1-9][0-9][0-9]|1[0-3][0-9][0-9]|14[0-3][0-9]|1440)\s*\*\s*60\s*\*\s*1000|([1-9][0-9]{0,3}|[1-7][0-9]{4}|8[0-5][0-9]{3}|86[0-3][0-9][0-9]|86400)\s*\*\s*1000|([1-9][0-9]{0,6}|[1-7][0-9]{7}|8[0-5][0-9]{6}|86[0-3][0-9]{5}|86400000)|([1-9]|1[0-9]|2[0-4])\s*\*\s*1000\s*\*\s*3600|([1-9]|1[0-9]|2[0-4])\s*\*\s*1000\s*\*\s*60\s*\*\s*60|([1-9]|1[0-9]|2[0-4])\s*\*\s*3600000|([1-9]|1[0-9]|2[0-4])\s*\*\s*3600\s*\*\s*1000|([1-9]|1[0-9]|2[0-4])\s*\*\s*60000\s*\*\s*60|([1-9]|1[0-9]|2[0-4])\s*\*\s*60\s*\*\s*1000\s*\*\s*60|([1-9]|1[0-9]|2[0-4])\s*\*\s*60\s*\*\s*60000|([1-9]|1[0-9]|2[0-4])\s*\*\s*60\s*\*\s*60\s*\*\s*1000|1000\s*\*\s*([1-9][0-9]?|[1-9][0-9][0-9]|1[0-3][0-9][0-9]|14[0-3][0-9]|1440)\s*\*\s*60|1000\s*\*\s*([1-9][0-9]{0,3}|[1-7][0-9]{4}|8[0-5][0-9]{3}|86[0-3][0-9][0-9]|86400)|1000\s*\*\s*([1-9]|1[0-9]|2[0-4])\s*\*\s*3600|1000\s*\*\s*([1-9]|1[0-9]|2[0-4])\s*\*\s*60\s*\*\s*60|1000\s*\*\s*3600\s*\*\s*([1-9]|1[0-9]|2[0-4])|1000\s*\*\s*60\s*\*\s*([1-9][0-9]?|[1-9][0-9][0-9]|1[0-3][0-9][0-9]|14[0-3][0-9]|1440)|1000\s*\*\s*60\s*\*\s*([1-9]|1[0-9]|2[0-4])\s*\*\s*60|1000\s*\*\s*60\s*\*\s*60\s*\*\s*([1-9]|1[0-9]|2[0-4])|3600000\s*\*\s*([1-9]|1[0-9]|2[0-4])|3600\s*\*\s*([1-9]|1[0-9]|2[0-4])\s*\*\s*1000|3600\s*\*\s*1000\s*\*\s*([1-9]|1[0-9]|2[0-4])|60000\s*\*\s*([1-9][0-9]?|[1-9][0-9][0-9]|1[0-3][0-9][0-9]|14[0-3][0-9]|1440)|60000\s*\*\s*([1-9]|1[0-9]|2[0-4])\s*\*\s*60|60000\s*\*\s*60\s*\*\s*([1-9]|1[0-9]|2[0-4])|60\s*\*\s*([1-9][0-9]?|[1-9][0-9][0-9]|1[0-3][0-9][0-9]|14[0-3][0-9]|1440)\s*\*\s*1000|60\s*\*\s*([1-9]|1[0-9]|2[0-4])\s*\*\s*1000\s*\*\s*60|60\s*\*\s*([1-9]|1[0-9]|2[0-4])\s*\*\s*60000|60\s*\*\s*([1-9]|1[0-9]|2[0-4])\s*\*\s*60\s*\*\s*1000|60\s*\*\s*1000\s*\*\s*([1-9][0-9]?|[1-9][0-9][0-9]|1[0-3][0-9][0-9]|14[0-3][0-9]|1440)|60\s*\*\s*1000\s*\*\s*([1-9]|1[0-9]|2[0-4])\s*\*\s*60|60\s*\*\s*1000\s*\*\s*60\s*\*\s*([1-9]|1[0-9]|2[0-4])|60\s*\*\s*60000\s*\*\s*([1-9]|1[0-9]|2[0-4])|60\s*\*\s*60\s*\*\s*([1-9]|1[0-9]|2[0-4])\s*\*\s*1000|60\s*\*\s*60\s*\*\s*1000\s*\*\s*([1-9]|1[0-9]|2[0-4]))(\s*\))?(\s*\))?|addHours\(\s*(new Date\(\s*\)|Date\.now\(\s*\)|new Date\(\s*Date\.now\(\s*\)\s*\)|now)\s*,\s*([1-9]|1[0-9]|2[0-4])\s*\)|addMinutes\(\s*(new Date\(\s*\)|Date\.now\(\s*\)|new Date\(\s*Date\.now\(\s*\)\s*\)|now)\s*,\s*([1-9][0-9]?|[1-9][0-9][0-9]|1[0-3][0-9][0-9]|14[0-3][0-9]|1440)\s*\)|addSeconds\(\s*(new Date\(\s*\)|Date\.now\(\s*\)|new Date\(\s*Date\.now\(\s*\)\s*\)|now)\s*,\s*([1-9][0-9]{0,3}|[1-7][0-9]{4}|8[0-5][0-9]{3}|86[0-3][0-9][0-9]|86400)\s*\)|addDays\(\s*(new Date\(\s*\)|Date\.now\(\s*\)|new Date\(\s*Date\.now\(\s*\)\s*\)|now)\s*,\s*1\s*\)|[A-Za-z_$][A-Za-z0-9_$.()]*\.(add|plus)Hours\(\s*([1-9]|1[0-9]|2[0-4])\s*\)|[A-Za-z_$][A-Za-z0-9_$.()]*\.(add|plus)Minutes\(\s*([1-9][0-9]?|[1-9][0-9][0-9]|1[0-3][0-9][0-9]|14[0-3][0-9]|1440)\s*\)|(dayjs|moment)\(\s*\)\.add\(\s*(([1-9]|1[0-9]|2[0-4])\s*,\s*['"](hours?|h)['"]|([1-9][0-9]?|[1-9][0-9][0-9]|1[0-3][0-9][0-9]|14[0-3][0-9]|1440)\s*,\s*['"](minutes?|m)['"])\s*\)|DateTime\.now\(\s*\)\.plus\(\s*\{\s*(hours\s*:\s*([1-9]|1[0-9]|2[0-4])|minutes\s*:\s*([1-9][0-9]?|[1-9][0-9][0-9]|1[0-3][0-9][0-9]|14[0-3][0-9]|1440))\s*\}\s*\))\s*$
+                - not:
+                    inside:
+                      stopBy: end
+                      kind: pair
+                      regex: '^(select|include|where|orderBy|returning|omit)\s*:'
+        - all:
+          - kind: call_expression
+            regex: (?is)insert\s+into\s+[A-Za-z0-9_]*(break_?glass|emergency)[A-Za-z0-9_]*\s*\([^)]*(?-u:\b)reason(?-u:\b)
+          - regex: (?is)insert\s+into\s+[A-Za-z0-9_]*(break_?glass|emergency)[A-Za-z0-9_]*\s*\([^)]*(?-u:\b)(expires?_?at|expiry|valid_?until|ends_?at)(?-u:\b)
+          - not:
+              kind: call_expression
+              regex: (?is)values\s*\([^)]*(?-u:\b)null(?-u:\b)
+          - has:
+              stopBy: end
+              any:
+              - kind: string
+                regex: (?is)values\s*\([^;]*((now\(\)|current_timestamp)\s*\+\s*interval\s*(\'(([1-9]|1[0-9]|2[0-4])\s*hours?|([1-9][0-9]?|[1-9][0-9][0-9]|1[0-3][0-9][0-9]|14[0-3][0-9]|1440)\s*minutes?|1\s*day)\'|([1-9]|1[0-9]|2[0-4])\s+hour|([1-9][0-9]?|[1-9][0-9][0-9]|1[0-3][0-9][0-9]|14[0-3][0-9]|1440)\s+minute)|date_add\(\s*now\(\)\s*,\s*interval\s+(([1-9]|1[0-9]|2[0-4])\s+hour|([1-9][0-9]?|[1-9][0-9][0-9]|1[0-3][0-9][0-9]|14[0-3][0-9]|1440)\s+minute)\s*\)|datetime\(\s*\'now\'\s*,\s*\'\+(([1-9]|1[0-9]|2[0-4])\s*hours?|([1-9][0-9]?|[1-9][0-9][0-9]|1[0-3][0-9][0-9]|14[0-3][0-9]|1440)\s*minutes?)\'\s*\))\s*[,)]
+              - kind: template_string
+                regex: (?is)values\s*\([^;]*((now\(\)|current_timestamp)\s*\+\s*interval\s*(\'(([1-9]|1[0-9]|2[0-4])\s*hours?|([1-9][0-9]?|[1-9][0-9][0-9]|1[0-3][0-9][0-9]|14[0-3][0-9]|1440)\s*minutes?|1\s*day)\'|([1-9]|1[0-9]|2[0-4])\s+hour|([1-9][0-9]?|[1-9][0-9][0-9]|1[0-3][0-9][0-9]|14[0-3][0-9]|1440)\s+minute)|date_add\(\s*now\(\)\s*,\s*interval\s+(([1-9]|1[0-9]|2[0-4])\s+hour|([1-9][0-9]?|[1-9][0-9][0-9]|1[0-3][0-9][0-9]|14[0-3][0-9]|1440)\s+minute)\s*\)|datetime\(\s*\'now\'\s*,\s*\'\+(([1-9]|1[0-9]|2[0-4])\s*hours?|([1-9][0-9]?|[1-9][0-9][0-9]|1[0-3][0-9][0-9]|14[0-3][0-9]|1440)\s*minutes?)\'\s*\))\s*[,)]
+  - not:
+      has:
+        field: body
+        has:
+          any:
+          - kind: lexical_declaration
+            regex: (?is)(?-u:\b)reason['\"]?\s*(:|=>|=)\s*(null|undefined|None|''|\"\")([^0-9A-Za-z_]|$)
+          - kind: variable_declaration
+            regex: (?is)(?-u:\b)reason['\"]?\s*(:|=>|=)\s*(null|undefined|None|''|\"\")([^0-9A-Za-z_]|$)
+          - kind: expression_statement
+            regex: (?is)(?-u:\b)reason['\"]?\s*(:|=>|=)\s*(null|undefined|None|''|\"\")([^0-9A-Za-z_]|$)
+          - kind: return_statement
+            regex: (?is)(?-u:\b)reason['\"]?\s*(:|=>|=)\s*(null|undefined|None|''|\"\")([^0-9A-Za-z_]|$)
+          - kind: if_statement
+            regex: (?is)(?-u:\b)reason['\"]?\s*(:|=>|=)\s*(null|undefined|None|''|\"\")([^0-9A-Za-z_]|$)
+          - kind: try_statement
+            regex: (?is)(?-u:\b)reason['\"]?\s*(:|=>|=)\s*(null|undefined|None|''|\"\")([^0-9A-Za-z_]|$)
+          - kind: for_statement
+            regex: (?is)(?-u:\b)reason['\"]?\s*(:|=>|=)\s*(null|undefined|None|''|\"\")([^0-9A-Za-z_]|$)
+          - kind: for_in_statement
+            regex: (?is)(?-u:\b)reason['\"]?\s*(:|=>|=)\s*(null|undefined|None|''|\"\")([^0-9A-Za-z_]|$)
+          - kind: while_statement
+            regex: (?is)(?-u:\b)reason['\"]?\s*(:|=>|=)\s*(null|undefined|None|''|\"\")([^0-9A-Za-z_]|$)
+          - kind: switch_statement
+            regex: (?is)(?-u:\b)reason['\"]?\s*(:|=>|=)\s*(null|undefined|None|''|\"\")([^0-9A-Za-z_]|$)
+          - kind: throw_statement
+            regex: (?is)(?-u:\b)reason['\"]?\s*(:|=>|=)\s*(null|undefined|None|''|\"\")([^0-9A-Za-z_]|$)
+  - not:
+      has:
+        field: body
+        has:
+          any:
+          - kind: lexical_declaration
+            regex: (?is)(?-u:\b)(expires?_?at|expiry|valid_?until|ends_?at)['\"]?\s*(:|=>|=)\s*(null|undefined|None)([^0-9A-Za-z_]|$)
+          - kind: variable_declaration
+            regex: (?is)(?-u:\b)(expires?_?at|expiry|valid_?until|ends_?at)['\"]?\s*(:|=>|=)\s*(null|undefined|None)([^0-9A-Za-z_]|$)
+          - kind: expression_statement
+            regex: (?is)(?-u:\b)(expires?_?at|expiry|valid_?until|ends_?at)['\"]?\s*(:|=>|=)\s*(null|undefined|None)([^0-9A-Za-z_]|$)
+          - kind: return_statement
+            regex: (?is)(?-u:\b)(expires?_?at|expiry|valid_?until|ends_?at)['\"]?\s*(:|=>|=)\s*(null|undefined|None)([^0-9A-Za-z_]|$)
+          - kind: if_statement
+            regex: (?is)(?-u:\b)(expires?_?at|expiry|valid_?until|ends_?at)['\"]?\s*(:|=>|=)\s*(null|undefined|None)([^0-9A-Za-z_]|$)
+          - kind: try_statement
+            regex: (?is)(?-u:\b)(expires?_?at|expiry|valid_?until|ends_?at)['\"]?\s*(:|=>|=)\s*(null|undefined|None)([^0-9A-Za-z_]|$)
+          - kind: for_statement
+            regex: (?is)(?-u:\b)(expires?_?at|expiry|valid_?until|ends_?at)['\"]?\s*(:|=>|=)\s*(null|undefined|None)([^0-9A-Za-z_]|$)
+          - kind: for_in_statement
+            regex: (?is)(?-u:\b)(expires?_?at|expiry|valid_?until|ends_?at)['\"]?\s*(:|=>|=)\s*(null|undefined|None)([^0-9A-Za-z_]|$)
+          - kind: while_statement
+            regex: (?is)(?-u:\b)(expires?_?at|expiry|valid_?until|ends_?at)['\"]?\s*(:|=>|=)\s*(null|undefined|None)([^0-9A-Za-z_]|$)
+          - kind: switch_statement
+            regex: (?is)(?-u:\b)(expires?_?at|expiry|valid_?until|ends_?at)['\"]?\s*(:|=>|=)\s*(null|undefined|None)([^0-9A-Za-z_]|$)
+          - kind: throw_statement
+            regex: (?is)(?-u:\b)(expires?_?at|expiry|valid_?until|ends_?at)['\"]?\s*(:|=>|=)\s*(null|undefined|None)([^0-9A-Za-z_]|$)
+  - has:
+      field: body
+      has:
+        any:
+        - kind: lexical_declaration
+          regex: (?i)^(await\s+)?(\$?[0-9A-Za-z_]+(\.|->|::))*(notify[0-9A-Za-z_]*|alert[0-9A-Za-z_]*|page[0-9A-Za-z_]*|send[0-9A-Za-z_]*(alert|notification|mail|email|sms|page)[0-9A-Za-z_]*|send_?mail|mail)\s*\(
+        - kind: variable_declaration
+          regex: (?i)^(await\s+)?(\$?[0-9A-Za-z_]+(\.|->|::))*(notify[0-9A-Za-z_]*|alert[0-9A-Za-z_]*|page[0-9A-Za-z_]*|send[0-9A-Za-z_]*(alert|notification|mail|email|sms|page)[0-9A-Za-z_]*|send_?mail|mail)\s*\(
+        - kind: expression_statement
+          regex: (?i)^(await\s+)?(\$?[0-9A-Za-z_]+(\.|->|::))*(notify[0-9A-Za-z_]*|alert[0-9A-Za-z_]*|page[0-9A-Za-z_]*|send[0-9A-Za-z_]*(alert|notification|mail|email|sms|page)[0-9A-Za-z_]*|send_?mail|mail)\s*\(
+        - kind: return_statement
+          regex: (?i)^(await\s+)?(\$?[0-9A-Za-z_]+(\.|->|::))*(notify[0-9A-Za-z_]*|alert[0-9A-Za-z_]*|page[0-9A-Za-z_]*|send[0-9A-Za-z_]*(alert|notification|mail|email|sms|page)[0-9A-Za-z_]*|send_?mail|mail)\s*\(
+        - kind: if_statement
+          regex: (?i)^(await\s+)?(\$?[0-9A-Za-z_]+(\.|->|::))*(notify[0-9A-Za-z_]*|alert[0-9A-Za-z_]*|page[0-9A-Za-z_]*|send[0-9A-Za-z_]*(alert|notification|mail|email|sms|page)[0-9A-Za-z_]*|send_?mail|mail)\s*\(
+        - kind: try_statement
+          regex: (?i)^(await\s+)?(\$?[0-9A-Za-z_]+(\.|->|::))*(notify[0-9A-Za-z_]*|alert[0-9A-Za-z_]*|page[0-9A-Za-z_]*|send[0-9A-Za-z_]*(alert|notification|mail|email|sms|page)[0-9A-Za-z_]*|send_?mail|mail)\s*\(
+        - kind: for_statement
+          regex: (?i)^(await\s+)?(\$?[0-9A-Za-z_]+(\.|->|::))*(notify[0-9A-Za-z_]*|alert[0-9A-Za-z_]*|page[0-9A-Za-z_]*|send[0-9A-Za-z_]*(alert|notification|mail|email|sms|page)[0-9A-Za-z_]*|send_?mail|mail)\s*\(
+        - kind: for_in_statement
+          regex: (?i)^(await\s+)?(\$?[0-9A-Za-z_]+(\.|->|::))*(notify[0-9A-Za-z_]*|alert[0-9A-Za-z_]*|page[0-9A-Za-z_]*|send[0-9A-Za-z_]*(alert|notification|mail|email|sms|page)[0-9A-Za-z_]*|send_?mail|mail)\s*\(
+        - kind: while_statement
+          regex: (?i)^(await\s+)?(\$?[0-9A-Za-z_]+(\.|->|::))*(notify[0-9A-Za-z_]*|alert[0-9A-Za-z_]*|page[0-9A-Za-z_]*|send[0-9A-Za-z_]*(alert|notification|mail|email|sms|page)[0-9A-Za-z_]*|send_?mail|mail)\s*\(
+        - kind: switch_statement
+          regex: (?i)^(await\s+)?(\$?[0-9A-Za-z_]+(\.|->|::))*(notify[0-9A-Za-z_]*|alert[0-9A-Za-z_]*|page[0-9A-Za-z_]*|send[0-9A-Za-z_]*(alert|notification|mail|email|sms|page)[0-9A-Za-z_]*|send_?mail|mail)\s*\(
+        - kind: throw_statement
+          regex: (?i)^(await\s+)?(\$?[0-9A-Za-z_]+(\.|->|::))*(notify[0-9A-Za-z_]*|alert[0-9A-Za-z_]*|page[0-9A-Za-z_]*|send[0-9A-Za-z_]*(alert|notification|mail|email|sms|page)[0-9A-Za-z_]*|send_?mail|mail)\s*\(
+  - has:
+      field: body
+      has:
+        any:
+        - kind: lexical_declaration
+          regex: (?i)\.(audit[0-9A-Za-z_]*|access_?log[0-9A-Za-z_]*)\.(create|insert|add)[0-9A-Za-z_]*\(|(?-u:\b)(Audit[0-9A-Za-z_]*|AccessLog[0-9A-Za-z_]*)\.(objects\.)?create\(|from\(\s*['\"][0-9A-Za-z_]*audit[0-9A-Za-z_]*['\"]\s*\)\s*\.insert\(|insert\s+into\s+[0-9A-Za-z_]*(audit|log)[0-9A-Za-z_]*|->newEvent\(
+        - kind: variable_declaration
+          regex: (?i)\.(audit[0-9A-Za-z_]*|access_?log[0-9A-Za-z_]*)\.(create|insert|add)[0-9A-Za-z_]*\(|(?-u:\b)(Audit[0-9A-Za-z_]*|AccessLog[0-9A-Za-z_]*)\.(objects\.)?create\(|from\(\s*['\"][0-9A-Za-z_]*audit[0-9A-Za-z_]*['\"]\s*\)\s*\.insert\(|insert\s+into\s+[0-9A-Za-z_]*(audit|log)[0-9A-Za-z_]*|->newEvent\(
+        - kind: expression_statement
+          regex: (?i)\.(audit[0-9A-Za-z_]*|access_?log[0-9A-Za-z_]*)\.(create|insert|add)[0-9A-Za-z_]*\(|(?-u:\b)(Audit[0-9A-Za-z_]*|AccessLog[0-9A-Za-z_]*)\.(objects\.)?create\(|from\(\s*['\"][0-9A-Za-z_]*audit[0-9A-Za-z_]*['\"]\s*\)\s*\.insert\(|insert\s+into\s+[0-9A-Za-z_]*(audit|log)[0-9A-Za-z_]*|->newEvent\(
+        - kind: return_statement
+          regex: (?i)\.(audit[0-9A-Za-z_]*|access_?log[0-9A-Za-z_]*)\.(create|insert|add)[0-9A-Za-z_]*\(|(?-u:\b)(Audit[0-9A-Za-z_]*|AccessLog[0-9A-Za-z_]*)\.(objects\.)?create\(|from\(\s*['\"][0-9A-Za-z_]*audit[0-9A-Za-z_]*['\"]\s*\)\s*\.insert\(|insert\s+into\s+[0-9A-Za-z_]*(audit|log)[0-9A-Za-z_]*|->newEvent\(
+        - kind: if_statement
+          regex: (?i)\.(audit[0-9A-Za-z_]*|access_?log[0-9A-Za-z_]*)\.(create|insert|add)[0-9A-Za-z_]*\(|(?-u:\b)(Audit[0-9A-Za-z_]*|AccessLog[0-9A-Za-z_]*)\.(objects\.)?create\(|from\(\s*['\"][0-9A-Za-z_]*audit[0-9A-Za-z_]*['\"]\s*\)\s*\.insert\(|insert\s+into\s+[0-9A-Za-z_]*(audit|log)[0-9A-Za-z_]*|->newEvent\(
+        - kind: try_statement
+          regex: (?i)\.(audit[0-9A-Za-z_]*|access_?log[0-9A-Za-z_]*)\.(create|insert|add)[0-9A-Za-z_]*\(|(?-u:\b)(Audit[0-9A-Za-z_]*|AccessLog[0-9A-Za-z_]*)\.(objects\.)?create\(|from\(\s*['\"][0-9A-Za-z_]*audit[0-9A-Za-z_]*['\"]\s*\)\s*\.insert\(|insert\s+into\s+[0-9A-Za-z_]*(audit|log)[0-9A-Za-z_]*|->newEvent\(
+        - kind: for_statement
+          regex: (?i)\.(audit[0-9A-Za-z_]*|access_?log[0-9A-Za-z_]*)\.(create|insert|add)[0-9A-Za-z_]*\(|(?-u:\b)(Audit[0-9A-Za-z_]*|AccessLog[0-9A-Za-z_]*)\.(objects\.)?create\(|from\(\s*['\"][0-9A-Za-z_]*audit[0-9A-Za-z_]*['\"]\s*\)\s*\.insert\(|insert\s+into\s+[0-9A-Za-z_]*(audit|log)[0-9A-Za-z_]*|->newEvent\(
+        - kind: for_in_statement
+          regex: (?i)\.(audit[0-9A-Za-z_]*|access_?log[0-9A-Za-z_]*)\.(create|insert|add)[0-9A-Za-z_]*\(|(?-u:\b)(Audit[0-9A-Za-z_]*|AccessLog[0-9A-Za-z_]*)\.(objects\.)?create\(|from\(\s*['\"][0-9A-Za-z_]*audit[0-9A-Za-z_]*['\"]\s*\)\s*\.insert\(|insert\s+into\s+[0-9A-Za-z_]*(audit|log)[0-9A-Za-z_]*|->newEvent\(
+        - kind: while_statement
+          regex: (?i)\.(audit[0-9A-Za-z_]*|access_?log[0-9A-Za-z_]*)\.(create|insert|add)[0-9A-Za-z_]*\(|(?-u:\b)(Audit[0-9A-Za-z_]*|AccessLog[0-9A-Za-z_]*)\.(objects\.)?create\(|from\(\s*['\"][0-9A-Za-z_]*audit[0-9A-Za-z_]*['\"]\s*\)\s*\.insert\(|insert\s+into\s+[0-9A-Za-z_]*(audit|log)[0-9A-Za-z_]*|->newEvent\(
+        - kind: switch_statement
+          regex: (?i)\.(audit[0-9A-Za-z_]*|access_?log[0-9A-Za-z_]*)\.(create|insert|add)[0-9A-Za-z_]*\(|(?-u:\b)(Audit[0-9A-Za-z_]*|AccessLog[0-9A-Za-z_]*)\.(objects\.)?create\(|from\(\s*['\"][0-9A-Za-z_]*audit[0-9A-Za-z_]*['\"]\s*\)\s*\.insert\(|insert\s+into\s+[0-9A-Za-z_]*(audit|log)[0-9A-Za-z_]*|->newEvent\(
+        - kind: throw_statement
+          regex: (?i)\.(audit[0-9A-Za-z_]*|access_?log[0-9A-Za-z_]*)\.(create|insert|add)[0-9A-Za-z_]*\(|(?-u:\b)(Audit[0-9A-Za-z_]*|AccessLog[0-9A-Za-z_]*)\.(objects\.)?create\(|from\(\s*['\"][0-9A-Za-z_]*audit[0-9A-Za-z_]*['\"]\s*\)\s*\.insert\(|insert\s+into\s+[0-9A-Za-z_]*(audit|log)[0-9A-Za-z_]*|->newEvent\(
+min_engine: 0.39.0
+---
+id: break-glass-access.tsx-generic.grant-hand-check
+practice_id: break-glass-access
+language: tsx
+frameworks:
+- generic
+kind: evidence
+rule:
+  any:
+  - all:
+    - all:
+      - any:
+        - kind: function_declaration
+        - kind: method_definition
+        - kind: arrow_function
+        - kind: function_expression
+      - has:
+          field: body
+          has:
+            any:
+            - kind: lexical_declaration
+              regex: (?i)((break_?glass|emergency_?access|emergency_?grant)[0-9A-Za-z_]*['\"]?\)?\s*\.?\s*(create|insert|add|grant|upsert)[0-9A-Za-z_]*\(|insert\s+into\s+[0-9A-Za-z_]*(break_?glass|emergency)[0-9A-Za-z_]*|from\(\s*['\"][0-9A-Za-z_]*(break_?glass|emergency)[0-9A-Za-z_]*['\"]\s*\)\s*\.insert\(|(add|assign|grant)[0-9A-Za-z_]*\([^)]*['\"]\s*break_?glass|['\"]?(break_?glass|emergency_?access)[0-9A-Za-z_]*['\"]?\s*(=|:|=>)\s*(true|True|1)(?-u:\b))
+            - kind: variable_declaration
+              regex: (?i)((break_?glass|emergency_?access|emergency_?grant)[0-9A-Za-z_]*['\"]?\)?\s*\.?\s*(create|insert|add|grant|upsert)[0-9A-Za-z_]*\(|insert\s+into\s+[0-9A-Za-z_]*(break_?glass|emergency)[0-9A-Za-z_]*|from\(\s*['\"][0-9A-Za-z_]*(break_?glass|emergency)[0-9A-Za-z_]*['\"]\s*\)\s*\.insert\(|(add|assign|grant)[0-9A-Za-z_]*\([^)]*['\"]\s*break_?glass|['\"]?(break_?glass|emergency_?access)[0-9A-Za-z_]*['\"]?\s*(=|:|=>)\s*(true|True|1)(?-u:\b))
+            - kind: expression_statement
+              regex: (?i)((break_?glass|emergency_?access|emergency_?grant)[0-9A-Za-z_]*['\"]?\)?\s*\.?\s*(create|insert|add|grant|upsert)[0-9A-Za-z_]*\(|insert\s+into\s+[0-9A-Za-z_]*(break_?glass|emergency)[0-9A-Za-z_]*|from\(\s*['\"][0-9A-Za-z_]*(break_?glass|emergency)[0-9A-Za-z_]*['\"]\s*\)\s*\.insert\(|(add|assign|grant)[0-9A-Za-z_]*\([^)]*['\"]\s*break_?glass|['\"]?(break_?glass|emergency_?access)[0-9A-Za-z_]*['\"]?\s*(=|:|=>)\s*(true|True|1)(?-u:\b))
+            - kind: return_statement
+              regex: (?i)((break_?glass|emergency_?access|emergency_?grant)[0-9A-Za-z_]*['\"]?\)?\s*\.?\s*(create|insert|add|grant|upsert)[0-9A-Za-z_]*\(|insert\s+into\s+[0-9A-Za-z_]*(break_?glass|emergency)[0-9A-Za-z_]*|from\(\s*['\"][0-9A-Za-z_]*(break_?glass|emergency)[0-9A-Za-z_]*['\"]\s*\)\s*\.insert\(|(add|assign|grant)[0-9A-Za-z_]*\([^)]*['\"]\s*break_?glass|['\"]?(break_?glass|emergency_?access)[0-9A-Za-z_]*['\"]?\s*(=|:|=>)\s*(true|True|1)(?-u:\b))
+            - kind: if_statement
+              regex: (?i)((break_?glass|emergency_?access|emergency_?grant)[0-9A-Za-z_]*['\"]?\)?\s*\.?\s*(create|insert|add|grant|upsert)[0-9A-Za-z_]*\(|insert\s+into\s+[0-9A-Za-z_]*(break_?glass|emergency)[0-9A-Za-z_]*|from\(\s*['\"][0-9A-Za-z_]*(break_?glass|emergency)[0-9A-Za-z_]*['\"]\s*\)\s*\.insert\(|(add|assign|grant)[0-9A-Za-z_]*\([^)]*['\"]\s*break_?glass|['\"]?(break_?glass|emergency_?access)[0-9A-Za-z_]*['\"]?\s*(=|:|=>)\s*(true|True|1)(?-u:\b))
+            - kind: try_statement
+              regex: (?i)((break_?glass|emergency_?access|emergency_?grant)[0-9A-Za-z_]*['\"]?\)?\s*\.?\s*(create|insert|add|grant|upsert)[0-9A-Za-z_]*\(|insert\s+into\s+[0-9A-Za-z_]*(break_?glass|emergency)[0-9A-Za-z_]*|from\(\s*['\"][0-9A-Za-z_]*(break_?glass|emergency)[0-9A-Za-z_]*['\"]\s*\)\s*\.insert\(|(add|assign|grant)[0-9A-Za-z_]*\([^)]*['\"]\s*break_?glass|['\"]?(break_?glass|emergency_?access)[0-9A-Za-z_]*['\"]?\s*(=|:|=>)\s*(true|True|1)(?-u:\b))
+            - kind: for_statement
+              regex: (?i)((break_?glass|emergency_?access|emergency_?grant)[0-9A-Za-z_]*['\"]?\)?\s*\.?\s*(create|insert|add|grant|upsert)[0-9A-Za-z_]*\(|insert\s+into\s+[0-9A-Za-z_]*(break_?glass|emergency)[0-9A-Za-z_]*|from\(\s*['\"][0-9A-Za-z_]*(break_?glass|emergency)[0-9A-Za-z_]*['\"]\s*\)\s*\.insert\(|(add|assign|grant)[0-9A-Za-z_]*\([^)]*['\"]\s*break_?glass|['\"]?(break_?glass|emergency_?access)[0-9A-Za-z_]*['\"]?\s*(=|:|=>)\s*(true|True|1)(?-u:\b))
+            - kind: for_in_statement
+              regex: (?i)((break_?glass|emergency_?access|emergency_?grant)[0-9A-Za-z_]*['\"]?\)?\s*\.?\s*(create|insert|add|grant|upsert)[0-9A-Za-z_]*\(|insert\s+into\s+[0-9A-Za-z_]*(break_?glass|emergency)[0-9A-Za-z_]*|from\(\s*['\"][0-9A-Za-z_]*(break_?glass|emergency)[0-9A-Za-z_]*['\"]\s*\)\s*\.insert\(|(add|assign|grant)[0-9A-Za-z_]*\([^)]*['\"]\s*break_?glass|['\"]?(break_?glass|emergency_?access)[0-9A-Za-z_]*['\"]?\s*(=|:|=>)\s*(true|True|1)(?-u:\b))
+            - kind: while_statement
+              regex: (?i)((break_?glass|emergency_?access|emergency_?grant)[0-9A-Za-z_]*['\"]?\)?\s*\.?\s*(create|insert|add|grant|upsert)[0-9A-Za-z_]*\(|insert\s+into\s+[0-9A-Za-z_]*(break_?glass|emergency)[0-9A-Za-z_]*|from\(\s*['\"][0-9A-Za-z_]*(break_?glass|emergency)[0-9A-Za-z_]*['\"]\s*\)\s*\.insert\(|(add|assign|grant)[0-9A-Za-z_]*\([^)]*['\"]\s*break_?glass|['\"]?(break_?glass|emergency_?access)[0-9A-Za-z_]*['\"]?\s*(=|:|=>)\s*(true|True|1)(?-u:\b))
+            - kind: switch_statement
+              regex: (?i)((break_?glass|emergency_?access|emergency_?grant)[0-9A-Za-z_]*['\"]?\)?\s*\.?\s*(create|insert|add|grant|upsert)[0-9A-Za-z_]*\(|insert\s+into\s+[0-9A-Za-z_]*(break_?glass|emergency)[0-9A-Za-z_]*|from\(\s*['\"][0-9A-Za-z_]*(break_?glass|emergency)[0-9A-Za-z_]*['\"]\s*\)\s*\.insert\(|(add|assign|grant)[0-9A-Za-z_]*\([^)]*['\"]\s*break_?glass|['\"]?(break_?glass|emergency_?access)[0-9A-Za-z_]*['\"]?\s*(=|:|=>)\s*(true|True|1)(?-u:\b))
+            - kind: throw_statement
+              regex: (?i)((break_?glass|emergency_?access|emergency_?grant)[0-9A-Za-z_]*['\"]?\)?\s*\.?\s*(create|insert|add|grant|upsert)[0-9A-Za-z_]*\(|insert\s+into\s+[0-9A-Za-z_]*(break_?glass|emergency)[0-9A-Za-z_]*|from\(\s*['\"][0-9A-Za-z_]*(break_?glass|emergency)[0-9A-Za-z_]*['\"]\s*\)\s*\.insert\(|(add|assign|grant)[0-9A-Za-z_]*\([^)]*['\"]\s*break_?glass|['\"]?(break_?glass|emergency_?access)[0-9A-Za-z_]*['\"]?\s*(=|:|=>)\s*(true|True|1)(?-u:\b))
+    - all:
+      - has:
+          field: body
+          has:
+            stopBy: end
+            any:
+            - all:
+              - kind: call_expression
+                regex: (?i)^[A-Za-z0-9_$.>:-]*(break_?glass|emergency_?access|emergency_?grant)[A-Za-z0-9_$.>:-]*(\.|->|::)(create|insert|add|grant|upsert)[A-Za-z0-9_]*\(|(?i)^[A-Za-z0-9_$.>:-]*from\(\s*[\'"][A-Za-z0-9_]*(break_?glass|emergency)[A-Za-z0-9_]*[\'"]\s*\)\s*\.insert\(
+              - has:
+                  stopBy: end
+                  any:
+                  - all:
+                    - kind: pair
+                      regex: '(?i)^[\''"]?reason[\''"]?\s*:'
+                    - not:
+                        kind: pair
+                        regex: (?i):\s*(null|undefined|\'\'|""|true|false)$
+                    - not:
+                        kind: pair
+                        regex: :[\s\S]*(?-u:\b)([nN][uU][lL][lL]|[uU][nN][dD][eE][fF][iI][nN][eE][dD])(?-u:\b)
+                    - not:
+                        inside:
+                          stopBy: end
+                          kind: pair
+                          regex: '^(select|include|where|orderBy|returning|omit)\s*:'
+                  - all:
+                    - kind: shorthand_property_identifier
+                      regex: (?i)^reason$
+                    - not:
+                        inside:
+                          stopBy: end
+                          kind: pair
+                          regex: '^(select|include|where|orderBy|returning|omit)\s*:'
+              - has:
+                  stopBy: end
+                  any:
+                  - all:
+                    - kind: pair
+                      regex: '(?i)^[\''"]?(expires?_?at|expiry|valid_?until|ends_?at)[\''"]?\s*:'
+                    - not:
+                        kind: pair
+                        regex: (?i):\s*(null|undefined|\'\'|""|true|false)$
+                    - not:
+                        kind: pair
+                        regex: :[\s\S]*(?-u:\b)([nN][uU][lL][lL]|[uU][nN][dD][eE][fF][iI][nN][eE][dD])(?-u:\b)
+                    - not:
+                        inside:
+                          stopBy: end
+                          kind: pair
+                          regex: '^(select|include|where|orderBy|returning|omit)\s*:'
+                  - all:
+                    - kind: shorthand_property_identifier
+                      regex: (?i)^(expires?_?at|expiry|valid_?until|ends_?at)$
+                    - not:
+                        inside:
+                          stopBy: end
+                          kind: pair
+                          regex: '^(select|include|where|orderBy|returning|omit)\s*:'
+              - not:
+                  has:
+                    stopBy: end
+                    any:
+                    - all:
+                      - kind: pair
+                        regex: (?is)^['"]?(expires?_?at|expiry|valid_?until|ends_?at)['"]?\s*:\s*((new Date\(\s*)?Date\.now\(\s*\)\s*\+\s*(\(\s*)?(([1-9][0-9]?|[1-9][0-9][0-9]|1[0-3][0-9][0-9]|14[0-3][0-9]|1440)\s*\*\s*1000\s*\*\s*60|([1-9][0-9]?|[1-9][0-9][0-9]|1[0-3][0-9][0-9]|14[0-3][0-9]|1440)\s*\*\s*60000|([1-9][0-9]?|[1-9][0-9][0-9]|1[0-3][0-9][0-9]|14[0-3][0-9]|1440)\s*\*\s*60\s*\*\s*1000|([1-9][0-9]{0,3}|[1-7][0-9]{4}|8[0-5][0-9]{3}|86[0-3][0-9][0-9]|86400)\s*\*\s*1000|([1-9][0-9]{0,6}|[1-7][0-9]{7}|8[0-5][0-9]{6}|86[0-3][0-9]{5}|86400000)|([1-9]|1[0-9]|2[0-4])\s*\*\s*1000\s*\*\s*3600|([1-9]|1[0-9]|2[0-4])\s*\*\s*1000\s*\*\s*60\s*\*\s*60|([1-9]|1[0-9]|2[0-4])\s*\*\s*3600000|([1-9]|1[0-9]|2[0-4])\s*\*\s*3600\s*\*\s*1000|([1-9]|1[0-9]|2[0-4])\s*\*\s*60000\s*\*\s*60|([1-9]|1[0-9]|2[0-4])\s*\*\s*60\s*\*\s*1000\s*\*\s*60|([1-9]|1[0-9]|2[0-4])\s*\*\s*60\s*\*\s*60000|([1-9]|1[0-9]|2[0-4])\s*\*\s*60\s*\*\s*60\s*\*\s*1000|1000\s*\*\s*([1-9][0-9]?|[1-9][0-9][0-9]|1[0-3][0-9][0-9]|14[0-3][0-9]|1440)\s*\*\s*60|1000\s*\*\s*([1-9][0-9]{0,3}|[1-7][0-9]{4}|8[0-5][0-9]{3}|86[0-3][0-9][0-9]|86400)|1000\s*\*\s*([1-9]|1[0-9]|2[0-4])\s*\*\s*3600|1000\s*\*\s*([1-9]|1[0-9]|2[0-4])\s*\*\s*60\s*\*\s*60|1000\s*\*\s*3600\s*\*\s*([1-9]|1[0-9]|2[0-4])|1000\s*\*\s*60\s*\*\s*([1-9][0-9]?|[1-9][0-9][0-9]|1[0-3][0-9][0-9]|14[0-3][0-9]|1440)|1000\s*\*\s*60\s*\*\s*([1-9]|1[0-9]|2[0-4])\s*\*\s*60|1000\s*\*\s*60\s*\*\s*60\s*\*\s*([1-9]|1[0-9]|2[0-4])|3600000\s*\*\s*([1-9]|1[0-9]|2[0-4])|3600\s*\*\s*([1-9]|1[0-9]|2[0-4])\s*\*\s*1000|3600\s*\*\s*1000\s*\*\s*([1-9]|1[0-9]|2[0-4])|60000\s*\*\s*([1-9][0-9]?|[1-9][0-9][0-9]|1[0-3][0-9][0-9]|14[0-3][0-9]|1440)|60000\s*\*\s*([1-9]|1[0-9]|2[0-4])\s*\*\s*60|60000\s*\*\s*60\s*\*\s*([1-9]|1[0-9]|2[0-4])|60\s*\*\s*([1-9][0-9]?|[1-9][0-9][0-9]|1[0-3][0-9][0-9]|14[0-3][0-9]|1440)\s*\*\s*1000|60\s*\*\s*([1-9]|1[0-9]|2[0-4])\s*\*\s*1000\s*\*\s*60|60\s*\*\s*([1-9]|1[0-9]|2[0-4])\s*\*\s*60000|60\s*\*\s*([1-9]|1[0-9]|2[0-4])\s*\*\s*60\s*\*\s*1000|60\s*\*\s*1000\s*\*\s*([1-9][0-9]?|[1-9][0-9][0-9]|1[0-3][0-9][0-9]|14[0-3][0-9]|1440)|60\s*\*\s*1000\s*\*\s*([1-9]|1[0-9]|2[0-4])\s*\*\s*60|60\s*\*\s*1000\s*\*\s*60\s*\*\s*([1-9]|1[0-9]|2[0-4])|60\s*\*\s*60000\s*\*\s*([1-9]|1[0-9]|2[0-4])|60\s*\*\s*60\s*\*\s*([1-9]|1[0-9]|2[0-4])\s*\*\s*1000|60\s*\*\s*60\s*\*\s*1000\s*\*\s*([1-9]|1[0-9]|2[0-4]))(\s*\))?(\s*\))?|addHours\(\s*(new Date\(\s*\)|Date\.now\(\s*\)|new Date\(\s*Date\.now\(\s*\)\s*\)|now)\s*,\s*([1-9]|1[0-9]|2[0-4])\s*\)|addMinutes\(\s*(new Date\(\s*\)|Date\.now\(\s*\)|new Date\(\s*Date\.now\(\s*\)\s*\)|now)\s*,\s*([1-9][0-9]?|[1-9][0-9][0-9]|1[0-3][0-9][0-9]|14[0-3][0-9]|1440)\s*\)|addSeconds\(\s*(new Date\(\s*\)|Date\.now\(\s*\)|new Date\(\s*Date\.now\(\s*\)\s*\)|now)\s*,\s*([1-9][0-9]{0,3}|[1-7][0-9]{4}|8[0-5][0-9]{3}|86[0-3][0-9][0-9]|86400)\s*\)|addDays\(\s*(new Date\(\s*\)|Date\.now\(\s*\)|new Date\(\s*Date\.now\(\s*\)\s*\)|now)\s*,\s*1\s*\)|[A-Za-z_$][A-Za-z0-9_$.()]*\.(add|plus)Hours\(\s*([1-9]|1[0-9]|2[0-4])\s*\)|[A-Za-z_$][A-Za-z0-9_$.()]*\.(add|plus)Minutes\(\s*([1-9][0-9]?|[1-9][0-9][0-9]|1[0-3][0-9][0-9]|14[0-3][0-9]|1440)\s*\)|(dayjs|moment)\(\s*\)\.add\(\s*(([1-9]|1[0-9]|2[0-4])\s*,\s*['"](hours?|h)['"]|([1-9][0-9]?|[1-9][0-9][0-9]|1[0-3][0-9][0-9]|14[0-3][0-9]|1440)\s*,\s*['"](minutes?|m)['"])\s*\)|DateTime\.now\(\s*\)\.plus\(\s*\{\s*(hours\s*:\s*([1-9]|1[0-9]|2[0-4])|minutes\s*:\s*([1-9][0-9]?|[1-9][0-9][0-9]|1[0-3][0-9][0-9]|14[0-3][0-9]|1440))\s*\}\s*\))\s*$
+                      - not:
+                          inside:
+                            stopBy: end
+                            kind: pair
+                            regex: '^(select|include|where|orderBy|returning|omit)\s*:'
+                    - all:
+                      - any:
+                        - all:
+                          - kind: pair
+                            regex: '(?i)^[''"]?(expires?_?at|expiry|valid_?until|ends_?at)[''"]?\s*:'
+                          - has:
+                              field: value
+                              kind: identifier
+                              pattern:
+                                context: $N.x;
+                                selector: identifier
+                        - kind: shorthand_property_identifier
+                          regex: (?i)^(expires?_?at|expiry|valid_?until|ends_?at)$
+                          pattern:
+                            context: ({ $N })
+                            selector: shorthand_property_identifier
+                      - inside:
+                          stopBy: end
+                          all:
+                          - any:
+                            - kind: function_declaration
+                            - kind: method_definition
+                            - kind: arrow_function
+                            - kind: function_expression
+                          - has:
+                              stopBy: end
+                              kind: lexical_declaration
+                              regex: ^const\s
+                              has:
+                                kind: variable_declarator
+                                all:
+                                - pattern:
+                                    context: const $N = $V
+                                    selector: variable_declarator
+                                - has:
+                                    field: value
+                                    any:
+                                    - kind: new_expression
+                                      regex: (?s)^((new Date\(\s*)?Date\.now\(\s*\)\s*\+\s*(\(\s*)?(([1-9][0-9]?|[1-9][0-9][0-9]|1[0-3][0-9][0-9]|14[0-3][0-9]|1440)\s*\*\s*1000\s*\*\s*60|([1-9][0-9]?|[1-9][0-9][0-9]|1[0-3][0-9][0-9]|14[0-3][0-9]|1440)\s*\*\s*60000|([1-9][0-9]?|[1-9][0-9][0-9]|1[0-3][0-9][0-9]|14[0-3][0-9]|1440)\s*\*\s*60\s*\*\s*1000|([1-9][0-9]{0,3}|[1-7][0-9]{4}|8[0-5][0-9]{3}|86[0-3][0-9][0-9]|86400)\s*\*\s*1000|([1-9][0-9]{0,6}|[1-7][0-9]{7}|8[0-5][0-9]{6}|86[0-3][0-9]{5}|86400000)|([1-9]|1[0-9]|2[0-4])\s*\*\s*1000\s*\*\s*3600|([1-9]|1[0-9]|2[0-4])\s*\*\s*1000\s*\*\s*60\s*\*\s*60|([1-9]|1[0-9]|2[0-4])\s*\*\s*3600000|([1-9]|1[0-9]|2[0-4])\s*\*\s*3600\s*\*\s*1000|([1-9]|1[0-9]|2[0-4])\s*\*\s*60000\s*\*\s*60|([1-9]|1[0-9]|2[0-4])\s*\*\s*60\s*\*\s*1000\s*\*\s*60|([1-9]|1[0-9]|2[0-4])\s*\*\s*60\s*\*\s*60000|([1-9]|1[0-9]|2[0-4])\s*\*\s*60\s*\*\s*60\s*\*\s*1000|1000\s*\*\s*([1-9][0-9]?|[1-9][0-9][0-9]|1[0-3][0-9][0-9]|14[0-3][0-9]|1440)\s*\*\s*60|1000\s*\*\s*([1-9][0-9]{0,3}|[1-7][0-9]{4}|8[0-5][0-9]{3}|86[0-3][0-9][0-9]|86400)|1000\s*\*\s*([1-9]|1[0-9]|2[0-4])\s*\*\s*3600|1000\s*\*\s*([1-9]|1[0-9]|2[0-4])\s*\*\s*60\s*\*\s*60|1000\s*\*\s*3600\s*\*\s*([1-9]|1[0-9]|2[0-4])|1000\s*\*\s*60\s*\*\s*([1-9][0-9]?|[1-9][0-9][0-9]|1[0-3][0-9][0-9]|14[0-3][0-9]|1440)|1000\s*\*\s*60\s*\*\s*([1-9]|1[0-9]|2[0-4])\s*\*\s*60|1000\s*\*\s*60\s*\*\s*60\s*\*\s*([1-9]|1[0-9]|2[0-4])|3600000\s*\*\s*([1-9]|1[0-9]|2[0-4])|3600\s*\*\s*([1-9]|1[0-9]|2[0-4])\s*\*\s*1000|3600\s*\*\s*1000\s*\*\s*([1-9]|1[0-9]|2[0-4])|60000\s*\*\s*([1-9][0-9]?|[1-9][0-9][0-9]|1[0-3][0-9][0-9]|14[0-3][0-9]|1440)|60000\s*\*\s*([1-9]|1[0-9]|2[0-4])\s*\*\s*60|60000\s*\*\s*60\s*\*\s*([1-9]|1[0-9]|2[0-4])|60\s*\*\s*([1-9][0-9]?|[1-9][0-9][0-9]|1[0-3][0-9][0-9]|14[0-3][0-9]|1440)\s*\*\s*1000|60\s*\*\s*([1-9]|1[0-9]|2[0-4])\s*\*\s*1000\s*\*\s*60|60\s*\*\s*([1-9]|1[0-9]|2[0-4])\s*\*\s*60000|60\s*\*\s*([1-9]|1[0-9]|2[0-4])\s*\*\s*60\s*\*\s*1000|60\s*\*\s*1000\s*\*\s*([1-9][0-9]?|[1-9][0-9][0-9]|1[0-3][0-9][0-9]|14[0-3][0-9]|1440)|60\s*\*\s*1000\s*\*\s*([1-9]|1[0-9]|2[0-4])\s*\*\s*60|60\s*\*\s*1000\s*\*\s*60\s*\*\s*([1-9]|1[0-9]|2[0-4])|60\s*\*\s*60000\s*\*\s*([1-9]|1[0-9]|2[0-4])|60\s*\*\s*60\s*\*\s*([1-9]|1[0-9]|2[0-4])\s*\*\s*1000|60\s*\*\s*60\s*\*\s*1000\s*\*\s*([1-9]|1[0-9]|2[0-4]))(\s*\))?(\s*\))?|addHours\(\s*(new Date\(\s*\)|Date\.now\(\s*\)|new Date\(\s*Date\.now\(\s*\)\s*\)|now)\s*,\s*([1-9]|1[0-9]|2[0-4])\s*\)|addMinutes\(\s*(new Date\(\s*\)|Date\.now\(\s*\)|new Date\(\s*Date\.now\(\s*\)\s*\)|now)\s*,\s*([1-9][0-9]?|[1-9][0-9][0-9]|1[0-3][0-9][0-9]|14[0-3][0-9]|1440)\s*\)|addSeconds\(\s*(new Date\(\s*\)|Date\.now\(\s*\)|new Date\(\s*Date\.now\(\s*\)\s*\)|now)\s*,\s*([1-9][0-9]{0,3}|[1-7][0-9]{4}|8[0-5][0-9]{3}|86[0-3][0-9][0-9]|86400)\s*\)|addDays\(\s*(new Date\(\s*\)|Date\.now\(\s*\)|new Date\(\s*Date\.now\(\s*\)\s*\)|now)\s*,\s*1\s*\)|[A-Za-z_$][A-Za-z0-9_$.()]*\.(add|plus)Hours\(\s*([1-9]|1[0-9]|2[0-4])\s*\)|[A-Za-z_$][A-Za-z0-9_$.()]*\.(add|plus)Minutes\(\s*([1-9][0-9]?|[1-9][0-9][0-9]|1[0-3][0-9][0-9]|14[0-3][0-9]|1440)\s*\)|(dayjs|moment)\(\s*\)\.add\(\s*(([1-9]|1[0-9]|2[0-4])\s*,\s*['"](hours?|h)['"]|([1-9][0-9]?|[1-9][0-9][0-9]|1[0-3][0-9][0-9]|14[0-3][0-9]|1440)\s*,\s*['"](minutes?|m)['"])\s*\)|DateTime\.now\(\s*\)\.plus\(\s*\{\s*(hours\s*:\s*([1-9]|1[0-9]|2[0-4])|minutes\s*:\s*([1-9][0-9]?|[1-9][0-9][0-9]|1[0-3][0-9][0-9]|14[0-3][0-9]|1440))\s*\}\s*\))\s*$
+                                    - kind: call_expression
+                                      regex: (?s)^((new Date\(\s*)?Date\.now\(\s*\)\s*\+\s*(\(\s*)?(([1-9][0-9]?|[1-9][0-9][0-9]|1[0-3][0-9][0-9]|14[0-3][0-9]|1440)\s*\*\s*1000\s*\*\s*60|([1-9][0-9]?|[1-9][0-9][0-9]|1[0-3][0-9][0-9]|14[0-3][0-9]|1440)\s*\*\s*60000|([1-9][0-9]?|[1-9][0-9][0-9]|1[0-3][0-9][0-9]|14[0-3][0-9]|1440)\s*\*\s*60\s*\*\s*1000|([1-9][0-9]{0,3}|[1-7][0-9]{4}|8[0-5][0-9]{3}|86[0-3][0-9][0-9]|86400)\s*\*\s*1000|([1-9][0-9]{0,6}|[1-7][0-9]{7}|8[0-5][0-9]{6}|86[0-3][0-9]{5}|86400000)|([1-9]|1[0-9]|2[0-4])\s*\*\s*1000\s*\*\s*3600|([1-9]|1[0-9]|2[0-4])\s*\*\s*1000\s*\*\s*60\s*\*\s*60|([1-9]|1[0-9]|2[0-4])\s*\*\s*3600000|([1-9]|1[0-9]|2[0-4])\s*\*\s*3600\s*\*\s*1000|([1-9]|1[0-9]|2[0-4])\s*\*\s*60000\s*\*\s*60|([1-9]|1[0-9]|2[0-4])\s*\*\s*60\s*\*\s*1000\s*\*\s*60|([1-9]|1[0-9]|2[0-4])\s*\*\s*60\s*\*\s*60000|([1-9]|1[0-9]|2[0-4])\s*\*\s*60\s*\*\s*60\s*\*\s*1000|1000\s*\*\s*([1-9][0-9]?|[1-9][0-9][0-9]|1[0-3][0-9][0-9]|14[0-3][0-9]|1440)\s*\*\s*60|1000\s*\*\s*([1-9][0-9]{0,3}|[1-7][0-9]{4}|8[0-5][0-9]{3}|86[0-3][0-9][0-9]|86400)|1000\s*\*\s*([1-9]|1[0-9]|2[0-4])\s*\*\s*3600|1000\s*\*\s*([1-9]|1[0-9]|2[0-4])\s*\*\s*60\s*\*\s*60|1000\s*\*\s*3600\s*\*\s*([1-9]|1[0-9]|2[0-4])|1000\s*\*\s*60\s*\*\s*([1-9][0-9]?|[1-9][0-9][0-9]|1[0-3][0-9][0-9]|14[0-3][0-9]|1440)|1000\s*\*\s*60\s*\*\s*([1-9]|1[0-9]|2[0-4])\s*\*\s*60|1000\s*\*\s*60\s*\*\s*60\s*\*\s*([1-9]|1[0-9]|2[0-4])|3600000\s*\*\s*([1-9]|1[0-9]|2[0-4])|3600\s*\*\s*([1-9]|1[0-9]|2[0-4])\s*\*\s*1000|3600\s*\*\s*1000\s*\*\s*([1-9]|1[0-9]|2[0-4])|60000\s*\*\s*([1-9][0-9]?|[1-9][0-9][0-9]|1[0-3][0-9][0-9]|14[0-3][0-9]|1440)|60000\s*\*\s*([1-9]|1[0-9]|2[0-4])\s*\*\s*60|60000\s*\*\s*60\s*\*\s*([1-9]|1[0-9]|2[0-4])|60\s*\*\s*([1-9][0-9]?|[1-9][0-9][0-9]|1[0-3][0-9][0-9]|14[0-3][0-9]|1440)\s*\*\s*1000|60\s*\*\s*([1-9]|1[0-9]|2[0-4])\s*\*\s*1000\s*\*\s*60|60\s*\*\s*([1-9]|1[0-9]|2[0-4])\s*\*\s*60000|60\s*\*\s*([1-9]|1[0-9]|2[0-4])\s*\*\s*60\s*\*\s*1000|60\s*\*\s*1000\s*\*\s*([1-9][0-9]?|[1-9][0-9][0-9]|1[0-3][0-9][0-9]|14[0-3][0-9]|1440)|60\s*\*\s*1000\s*\*\s*([1-9]|1[0-9]|2[0-4])\s*\*\s*60|60\s*\*\s*1000\s*\*\s*60\s*\*\s*([1-9]|1[0-9]|2[0-4])|60\s*\*\s*60000\s*\*\s*([1-9]|1[0-9]|2[0-4])|60\s*\*\s*60\s*\*\s*([1-9]|1[0-9]|2[0-4])\s*\*\s*1000|60\s*\*\s*60\s*\*\s*1000\s*\*\s*([1-9]|1[0-9]|2[0-4]))(\s*\))?(\s*\))?|addHours\(\s*(new Date\(\s*\)|Date\.now\(\s*\)|new Date\(\s*Date\.now\(\s*\)\s*\)|now)\s*,\s*([1-9]|1[0-9]|2[0-4])\s*\)|addMinutes\(\s*(new Date\(\s*\)|Date\.now\(\s*\)|new Date\(\s*Date\.now\(\s*\)\s*\)|now)\s*,\s*([1-9][0-9]?|[1-9][0-9][0-9]|1[0-3][0-9][0-9]|14[0-3][0-9]|1440)\s*\)|addSeconds\(\s*(new Date\(\s*\)|Date\.now\(\s*\)|new Date\(\s*Date\.now\(\s*\)\s*\)|now)\s*,\s*([1-9][0-9]{0,3}|[1-7][0-9]{4}|8[0-5][0-9]{3}|86[0-3][0-9][0-9]|86400)\s*\)|addDays\(\s*(new Date\(\s*\)|Date\.now\(\s*\)|new Date\(\s*Date\.now\(\s*\)\s*\)|now)\s*,\s*1\s*\)|[A-Za-z_$][A-Za-z0-9_$.()]*\.(add|plus)Hours\(\s*([1-9]|1[0-9]|2[0-4])\s*\)|[A-Za-z_$][A-Za-z0-9_$.()]*\.(add|plus)Minutes\(\s*([1-9][0-9]?|[1-9][0-9][0-9]|1[0-3][0-9][0-9]|14[0-3][0-9]|1440)\s*\)|(dayjs|moment)\(\s*\)\.add\(\s*(([1-9]|1[0-9]|2[0-4])\s*,\s*['"](hours?|h)['"]|([1-9][0-9]?|[1-9][0-9][0-9]|1[0-3][0-9][0-9]|14[0-3][0-9]|1440)\s*,\s*['"](minutes?|m)['"])\s*\)|DateTime\.now\(\s*\)\.plus\(\s*\{\s*(hours\s*:\s*([1-9]|1[0-9]|2[0-4])|minutes\s*:\s*([1-9][0-9]?|[1-9][0-9][0-9]|1[0-3][0-9][0-9]|14[0-3][0-9]|1440))\s*\}\s*\))\s*$
+                                    - kind: binary_expression
+                                      regex: (?s)^((new Date\(\s*)?Date\.now\(\s*\)\s*\+\s*(\(\s*)?(([1-9][0-9]?|[1-9][0-9][0-9]|1[0-3][0-9][0-9]|14[0-3][0-9]|1440)\s*\*\s*1000\s*\*\s*60|([1-9][0-9]?|[1-9][0-9][0-9]|1[0-3][0-9][0-9]|14[0-3][0-9]|1440)\s*\*\s*60000|([1-9][0-9]?|[1-9][0-9][0-9]|1[0-3][0-9][0-9]|14[0-3][0-9]|1440)\s*\*\s*60\s*\*\s*1000|([1-9][0-9]{0,3}|[1-7][0-9]{4}|8[0-5][0-9]{3}|86[0-3][0-9][0-9]|86400)\s*\*\s*1000|([1-9][0-9]{0,6}|[1-7][0-9]{7}|8[0-5][0-9]{6}|86[0-3][0-9]{5}|86400000)|([1-9]|1[0-9]|2[0-4])\s*\*\s*1000\s*\*\s*3600|([1-9]|1[0-9]|2[0-4])\s*\*\s*1000\s*\*\s*60\s*\*\s*60|([1-9]|1[0-9]|2[0-4])\s*\*\s*3600000|([1-9]|1[0-9]|2[0-4])\s*\*\s*3600\s*\*\s*1000|([1-9]|1[0-9]|2[0-4])\s*\*\s*60000\s*\*\s*60|([1-9]|1[0-9]|2[0-4])\s*\*\s*60\s*\*\s*1000\s*\*\s*60|([1-9]|1[0-9]|2[0-4])\s*\*\s*60\s*\*\s*60000|([1-9]|1[0-9]|2[0-4])\s*\*\s*60\s*\*\s*60\s*\*\s*1000|1000\s*\*\s*([1-9][0-9]?|[1-9][0-9][0-9]|1[0-3][0-9][0-9]|14[0-3][0-9]|1440)\s*\*\s*60|1000\s*\*\s*([1-9][0-9]{0,3}|[1-7][0-9]{4}|8[0-5][0-9]{3}|86[0-3][0-9][0-9]|86400)|1000\s*\*\s*([1-9]|1[0-9]|2[0-4])\s*\*\s*3600|1000\s*\*\s*([1-9]|1[0-9]|2[0-4])\s*\*\s*60\s*\*\s*60|1000\s*\*\s*3600\s*\*\s*([1-9]|1[0-9]|2[0-4])|1000\s*\*\s*60\s*\*\s*([1-9][0-9]?|[1-9][0-9][0-9]|1[0-3][0-9][0-9]|14[0-3][0-9]|1440)|1000\s*\*\s*60\s*\*\s*([1-9]|1[0-9]|2[0-4])\s*\*\s*60|1000\s*\*\s*60\s*\*\s*60\s*\*\s*([1-9]|1[0-9]|2[0-4])|3600000\s*\*\s*([1-9]|1[0-9]|2[0-4])|3600\s*\*\s*([1-9]|1[0-9]|2[0-4])\s*\*\s*1000|3600\s*\*\s*1000\s*\*\s*([1-9]|1[0-9]|2[0-4])|60000\s*\*\s*([1-9][0-9]?|[1-9][0-9][0-9]|1[0-3][0-9][0-9]|14[0-3][0-9]|1440)|60000\s*\*\s*([1-9]|1[0-9]|2[0-4])\s*\*\s*60|60000\s*\*\s*60\s*\*\s*([1-9]|1[0-9]|2[0-4])|60\s*\*\s*([1-9][0-9]?|[1-9][0-9][0-9]|1[0-3][0-9][0-9]|14[0-3][0-9]|1440)\s*\*\s*1000|60\s*\*\s*([1-9]|1[0-9]|2[0-4])\s*\*\s*1000\s*\*\s*60|60\s*\*\s*([1-9]|1[0-9]|2[0-4])\s*\*\s*60000|60\s*\*\s*([1-9]|1[0-9]|2[0-4])\s*\*\s*60\s*\*\s*1000|60\s*\*\s*1000\s*\*\s*([1-9][0-9]?|[1-9][0-9][0-9]|1[0-3][0-9][0-9]|14[0-3][0-9]|1440)|60\s*\*\s*1000\s*\*\s*([1-9]|1[0-9]|2[0-4])\s*\*\s*60|60\s*\*\s*1000\s*\*\s*60\s*\*\s*([1-9]|1[0-9]|2[0-4])|60\s*\*\s*60000\s*\*\s*([1-9]|1[0-9]|2[0-4])|60\s*\*\s*60\s*\*\s*([1-9]|1[0-9]|2[0-4])\s*\*\s*1000|60\s*\*\s*60\s*\*\s*1000\s*\*\s*([1-9]|1[0-9]|2[0-4]))(\s*\))?(\s*\))?|addHours\(\s*(new Date\(\s*\)|Date\.now\(\s*\)|new Date\(\s*Date\.now\(\s*\)\s*\)|now)\s*,\s*([1-9]|1[0-9]|2[0-4])\s*\)|addMinutes\(\s*(new Date\(\s*\)|Date\.now\(\s*\)|new Date\(\s*Date\.now\(\s*\)\s*\)|now)\s*,\s*([1-9][0-9]?|[1-9][0-9][0-9]|1[0-3][0-9][0-9]|14[0-3][0-9]|1440)\s*\)|addSeconds\(\s*(new Date\(\s*\)|Date\.now\(\s*\)|new Date\(\s*Date\.now\(\s*\)\s*\)|now)\s*,\s*([1-9][0-9]{0,3}|[1-7][0-9]{4}|8[0-5][0-9]{3}|86[0-3][0-9][0-9]|86400)\s*\)|addDays\(\s*(new Date\(\s*\)|Date\.now\(\s*\)|new Date\(\s*Date\.now\(\s*\)\s*\)|now)\s*,\s*1\s*\)|[A-Za-z_$][A-Za-z0-9_$.()]*\.(add|plus)Hours\(\s*([1-9]|1[0-9]|2[0-4])\s*\)|[A-Za-z_$][A-Za-z0-9_$.()]*\.(add|plus)Minutes\(\s*([1-9][0-9]?|[1-9][0-9][0-9]|1[0-3][0-9][0-9]|14[0-3][0-9]|1440)\s*\)|(dayjs|moment)\(\s*\)\.add\(\s*(([1-9]|1[0-9]|2[0-4])\s*,\s*['"](hours?|h)['"]|([1-9][0-9]?|[1-9][0-9][0-9]|1[0-3][0-9][0-9]|14[0-3][0-9]|1440)\s*,\s*['"](minutes?|m)['"])\s*\)|DateTime\.now\(\s*\)\.plus\(\s*\{\s*(hours\s*:\s*([1-9]|1[0-9]|2[0-4])|minutes\s*:\s*([1-9][0-9]?|[1-9][0-9][0-9]|1[0-3][0-9][0-9]|14[0-3][0-9]|1440))\s*\}\s*\))\s*$
+                      - not:
+                          inside:
+                            stopBy: end
+                            kind: pair
+                            regex: '^(select|include|where|orderBy|returning|omit)\s*:'
+            - all:
+              - kind: call_expression
+                regex: (?is)insert\s+into\s+[A-Za-z0-9_]*(break_?glass|emergency)[A-Za-z0-9_]*\s*\([^)]*(?-u:\b)reason(?-u:\b)
+              - regex: (?is)insert\s+into\s+[A-Za-z0-9_]*(break_?glass|emergency)[A-Za-z0-9_]*\s*\([^)]*(?-u:\b)(expires?_?at|expiry|valid_?until|ends_?at)(?-u:\b)
+              - not:
+                  kind: call_expression
+                  regex: (?is)values\s*\([^)]*(?-u:\b)null(?-u:\b)
+              - not:
+                  has:
+                    stopBy: end
+                    any:
+                    - kind: string
+                      regex: (?is)values\s*\([^;]*((now\(\)|current_timestamp)\s*\+\s*interval\s*(\'(([1-9]|1[0-9]|2[0-4])\s*hours?|([1-9][0-9]?|[1-9][0-9][0-9]|1[0-3][0-9][0-9]|14[0-3][0-9]|1440)\s*minutes?|1\s*day)\'|([1-9]|1[0-9]|2[0-4])\s+hour|([1-9][0-9]?|[1-9][0-9][0-9]|1[0-3][0-9][0-9]|14[0-3][0-9]|1440)\s+minute)|date_add\(\s*now\(\)\s*,\s*interval\s+(([1-9]|1[0-9]|2[0-4])\s+hour|([1-9][0-9]?|[1-9][0-9][0-9]|1[0-3][0-9][0-9]|14[0-3][0-9]|1440)\s+minute)\s*\)|datetime\(\s*\'now\'\s*,\s*\'\+(([1-9]|1[0-9]|2[0-4])\s*hours?|([1-9][0-9]?|[1-9][0-9][0-9]|1[0-3][0-9][0-9]|14[0-3][0-9]|1440)\s*minutes?)\'\s*\))\s*[,)]
+                    - kind: template_string
+                      regex: (?is)values\s*\([^;]*((now\(\)|current_timestamp)\s*\+\s*interval\s*(\'(([1-9]|1[0-9]|2[0-4])\s*hours?|([1-9][0-9]?|[1-9][0-9][0-9]|1[0-3][0-9][0-9]|14[0-3][0-9]|1440)\s*minutes?|1\s*day)\'|([1-9]|1[0-9]|2[0-4])\s+hour|([1-9][0-9]?|[1-9][0-9][0-9]|1[0-3][0-9][0-9]|14[0-3][0-9]|1440)\s+minute)|date_add\(\s*now\(\)\s*,\s*interval\s+(([1-9]|1[0-9]|2[0-4])\s+hour|([1-9][0-9]?|[1-9][0-9][0-9]|1[0-3][0-9][0-9]|14[0-3][0-9]|1440)\s+minute)\s*\)|datetime\(\s*\'now\'\s*,\s*\'\+(([1-9]|1[0-9]|2[0-4])\s*hours?|([1-9][0-9]?|[1-9][0-9][0-9]|1[0-3][0-9][0-9]|14[0-3][0-9]|1440)\s*minutes?)\'\s*\))\s*[,)]
+      - not:
+          has:
+            field: body
+            has:
+              any:
+              - kind: lexical_declaration
+                regex: (?is)(?-u:\b)reason['\"]?\s*(:|=>|=)\s*(null|undefined|None|''|\"\")([^0-9A-Za-z_]|$)
+              - kind: variable_declaration
+                regex: (?is)(?-u:\b)reason['\"]?\s*(:|=>|=)\s*(null|undefined|None|''|\"\")([^0-9A-Za-z_]|$)
+              - kind: expression_statement
+                regex: (?is)(?-u:\b)reason['\"]?\s*(:|=>|=)\s*(null|undefined|None|''|\"\")([^0-9A-Za-z_]|$)
+              - kind: return_statement
+                regex: (?is)(?-u:\b)reason['\"]?\s*(:|=>|=)\s*(null|undefined|None|''|\"\")([^0-9A-Za-z_]|$)
+              - kind: if_statement
+                regex: (?is)(?-u:\b)reason['\"]?\s*(:|=>|=)\s*(null|undefined|None|''|\"\")([^0-9A-Za-z_]|$)
+              - kind: try_statement
+                regex: (?is)(?-u:\b)reason['\"]?\s*(:|=>|=)\s*(null|undefined|None|''|\"\")([^0-9A-Za-z_]|$)
+              - kind: for_statement
+                regex: (?is)(?-u:\b)reason['\"]?\s*(:|=>|=)\s*(null|undefined|None|''|\"\")([^0-9A-Za-z_]|$)
+              - kind: for_in_statement
+                regex: (?is)(?-u:\b)reason['\"]?\s*(:|=>|=)\s*(null|undefined|None|''|\"\")([^0-9A-Za-z_]|$)
+              - kind: while_statement
+                regex: (?is)(?-u:\b)reason['\"]?\s*(:|=>|=)\s*(null|undefined|None|''|\"\")([^0-9A-Za-z_]|$)
+              - kind: switch_statement
+                regex: (?is)(?-u:\b)reason['\"]?\s*(:|=>|=)\s*(null|undefined|None|''|\"\")([^0-9A-Za-z_]|$)
+              - kind: throw_statement
+                regex: (?is)(?-u:\b)reason['\"]?\s*(:|=>|=)\s*(null|undefined|None|''|\"\")([^0-9A-Za-z_]|$)
+      - not:
+          has:
+            field: body
+            has:
+              any:
+              - kind: lexical_declaration
+                regex: (?is)(?-u:\b)(expires?_?at|expiry|valid_?until|ends_?at)['\"]?\s*(:|=>|=)\s*(null|undefined|None)([^0-9A-Za-z_]|$)
+              - kind: variable_declaration
+                regex: (?is)(?-u:\b)(expires?_?at|expiry|valid_?until|ends_?at)['\"]?\s*(:|=>|=)\s*(null|undefined|None)([^0-9A-Za-z_]|$)
+              - kind: expression_statement
+                regex: (?is)(?-u:\b)(expires?_?at|expiry|valid_?until|ends_?at)['\"]?\s*(:|=>|=)\s*(null|undefined|None)([^0-9A-Za-z_]|$)
+              - kind: return_statement
+                regex: (?is)(?-u:\b)(expires?_?at|expiry|valid_?until|ends_?at)['\"]?\s*(:|=>|=)\s*(null|undefined|None)([^0-9A-Za-z_]|$)
+              - kind: if_statement
+                regex: (?is)(?-u:\b)(expires?_?at|expiry|valid_?until|ends_?at)['\"]?\s*(:|=>|=)\s*(null|undefined|None)([^0-9A-Za-z_]|$)
+              - kind: try_statement
+                regex: (?is)(?-u:\b)(expires?_?at|expiry|valid_?until|ends_?at)['\"]?\s*(:|=>|=)\s*(null|undefined|None)([^0-9A-Za-z_]|$)
+              - kind: for_statement
+                regex: (?is)(?-u:\b)(expires?_?at|expiry|valid_?until|ends_?at)['\"]?\s*(:|=>|=)\s*(null|undefined|None)([^0-9A-Za-z_]|$)
+              - kind: for_in_statement
+                regex: (?is)(?-u:\b)(expires?_?at|expiry|valid_?until|ends_?at)['\"]?\s*(:|=>|=)\s*(null|undefined|None)([^0-9A-Za-z_]|$)
+              - kind: while_statement
+                regex: (?is)(?-u:\b)(expires?_?at|expiry|valid_?until|ends_?at)['\"]?\s*(:|=>|=)\s*(null|undefined|None)([^0-9A-Za-z_]|$)
+              - kind: switch_statement
+                regex: (?is)(?-u:\b)(expires?_?at|expiry|valid_?until|ends_?at)['\"]?\s*(:|=>|=)\s*(null|undefined|None)([^0-9A-Za-z_]|$)
+              - kind: throw_statement
+                regex: (?is)(?-u:\b)(expires?_?at|expiry|valid_?until|ends_?at)['\"]?\s*(:|=>|=)\s*(null|undefined|None)([^0-9A-Za-z_]|$)
+      - has:
+          field: body
+          has:
+            any:
+            - kind: lexical_declaration
+              regex: (?i)^(await\s+)?(\$?[0-9A-Za-z_]+(\.|->|::))*(notify[0-9A-Za-z_]*|alert[0-9A-Za-z_]*|page[0-9A-Za-z_]*|send[0-9A-Za-z_]*(alert|notification|mail|email|sms|page)[0-9A-Za-z_]*|send_?mail|mail)\s*\(
+            - kind: variable_declaration
+              regex: (?i)^(await\s+)?(\$?[0-9A-Za-z_]+(\.|->|::))*(notify[0-9A-Za-z_]*|alert[0-9A-Za-z_]*|page[0-9A-Za-z_]*|send[0-9A-Za-z_]*(alert|notification|mail|email|sms|page)[0-9A-Za-z_]*|send_?mail|mail)\s*\(
+            - kind: expression_statement
+              regex: (?i)^(await\s+)?(\$?[0-9A-Za-z_]+(\.|->|::))*(notify[0-9A-Za-z_]*|alert[0-9A-Za-z_]*|page[0-9A-Za-z_]*|send[0-9A-Za-z_]*(alert|notification|mail|email|sms|page)[0-9A-Za-z_]*|send_?mail|mail)\s*\(
+            - kind: return_statement
+              regex: (?i)^(await\s+)?(\$?[0-9A-Za-z_]+(\.|->|::))*(notify[0-9A-Za-z_]*|alert[0-9A-Za-z_]*|page[0-9A-Za-z_]*|send[0-9A-Za-z_]*(alert|notification|mail|email|sms|page)[0-9A-Za-z_]*|send_?mail|mail)\s*\(
+            - kind: if_statement
+              regex: (?i)^(await\s+)?(\$?[0-9A-Za-z_]+(\.|->|::))*(notify[0-9A-Za-z_]*|alert[0-9A-Za-z_]*|page[0-9A-Za-z_]*|send[0-9A-Za-z_]*(alert|notification|mail|email|sms|page)[0-9A-Za-z_]*|send_?mail|mail)\s*\(
+            - kind: try_statement
+              regex: (?i)^(await\s+)?(\$?[0-9A-Za-z_]+(\.|->|::))*(notify[0-9A-Za-z_]*|alert[0-9A-Za-z_]*|page[0-9A-Za-z_]*|send[0-9A-Za-z_]*(alert|notification|mail|email|sms|page)[0-9A-Za-z_]*|send_?mail|mail)\s*\(
+            - kind: for_statement
+              regex: (?i)^(await\s+)?(\$?[0-9A-Za-z_]+(\.|->|::))*(notify[0-9A-Za-z_]*|alert[0-9A-Za-z_]*|page[0-9A-Za-z_]*|send[0-9A-Za-z_]*(alert|notification|mail|email|sms|page)[0-9A-Za-z_]*|send_?mail|mail)\s*\(
+            - kind: for_in_statement
+              regex: (?i)^(await\s+)?(\$?[0-9A-Za-z_]+(\.|->|::))*(notify[0-9A-Za-z_]*|alert[0-9A-Za-z_]*|page[0-9A-Za-z_]*|send[0-9A-Za-z_]*(alert|notification|mail|email|sms|page)[0-9A-Za-z_]*|send_?mail|mail)\s*\(
+            - kind: while_statement
+              regex: (?i)^(await\s+)?(\$?[0-9A-Za-z_]+(\.|->|::))*(notify[0-9A-Za-z_]*|alert[0-9A-Za-z_]*|page[0-9A-Za-z_]*|send[0-9A-Za-z_]*(alert|notification|mail|email|sms|page)[0-9A-Za-z_]*|send_?mail|mail)\s*\(
+            - kind: switch_statement
+              regex: (?i)^(await\s+)?(\$?[0-9A-Za-z_]+(\.|->|::))*(notify[0-9A-Za-z_]*|alert[0-9A-Za-z_]*|page[0-9A-Za-z_]*|send[0-9A-Za-z_]*(alert|notification|mail|email|sms|page)[0-9A-Za-z_]*|send_?mail|mail)\s*\(
+            - kind: throw_statement
+              regex: (?i)^(await\s+)?(\$?[0-9A-Za-z_]+(\.|->|::))*(notify[0-9A-Za-z_]*|alert[0-9A-Za-z_]*|page[0-9A-Za-z_]*|send[0-9A-Za-z_]*(alert|notification|mail|email|sms|page)[0-9A-Za-z_]*|send_?mail|mail)\s*\(
+      - has:
+          field: body
+          has:
+            any:
+            - kind: lexical_declaration
+              regex: (?i)\.(audit[0-9A-Za-z_]*|access_?log[0-9A-Za-z_]*)\.(create|insert|add)[0-9A-Za-z_]*\(|(?-u:\b)(Audit[0-9A-Za-z_]*|AccessLog[0-9A-Za-z_]*)\.(objects\.)?create\(|from\(\s*['\"][0-9A-Za-z_]*audit[0-9A-Za-z_]*['\"]\s*\)\s*\.insert\(|insert\s+into\s+[0-9A-Za-z_]*(audit|log)[0-9A-Za-z_]*|->newEvent\(
+            - kind: variable_declaration
+              regex: (?i)\.(audit[0-9A-Za-z_]*|access_?log[0-9A-Za-z_]*)\.(create|insert|add)[0-9A-Za-z_]*\(|(?-u:\b)(Audit[0-9A-Za-z_]*|AccessLog[0-9A-Za-z_]*)\.(objects\.)?create\(|from\(\s*['\"][0-9A-Za-z_]*audit[0-9A-Za-z_]*['\"]\s*\)\s*\.insert\(|insert\s+into\s+[0-9A-Za-z_]*(audit|log)[0-9A-Za-z_]*|->newEvent\(
+            - kind: expression_statement
+              regex: (?i)\.(audit[0-9A-Za-z_]*|access_?log[0-9A-Za-z_]*)\.(create|insert|add)[0-9A-Za-z_]*\(|(?-u:\b)(Audit[0-9A-Za-z_]*|AccessLog[0-9A-Za-z_]*)\.(objects\.)?create\(|from\(\s*['\"][0-9A-Za-z_]*audit[0-9A-Za-z_]*['\"]\s*\)\s*\.insert\(|insert\s+into\s+[0-9A-Za-z_]*(audit|log)[0-9A-Za-z_]*|->newEvent\(
+            - kind: return_statement
+              regex: (?i)\.(audit[0-9A-Za-z_]*|access_?log[0-9A-Za-z_]*)\.(create|insert|add)[0-9A-Za-z_]*\(|(?-u:\b)(Audit[0-9A-Za-z_]*|AccessLog[0-9A-Za-z_]*)\.(objects\.)?create\(|from\(\s*['\"][0-9A-Za-z_]*audit[0-9A-Za-z_]*['\"]\s*\)\s*\.insert\(|insert\s+into\s+[0-9A-Za-z_]*(audit|log)[0-9A-Za-z_]*|->newEvent\(
+            - kind: if_statement
+              regex: (?i)\.(audit[0-9A-Za-z_]*|access_?log[0-9A-Za-z_]*)\.(create|insert|add)[0-9A-Za-z_]*\(|(?-u:\b)(Audit[0-9A-Za-z_]*|AccessLog[0-9A-Za-z_]*)\.(objects\.)?create\(|from\(\s*['\"][0-9A-Za-z_]*audit[0-9A-Za-z_]*['\"]\s*\)\s*\.insert\(|insert\s+into\s+[0-9A-Za-z_]*(audit|log)[0-9A-Za-z_]*|->newEvent\(
+            - kind: try_statement
+              regex: (?i)\.(audit[0-9A-Za-z_]*|access_?log[0-9A-Za-z_]*)\.(create|insert|add)[0-9A-Za-z_]*\(|(?-u:\b)(Audit[0-9A-Za-z_]*|AccessLog[0-9A-Za-z_]*)\.(objects\.)?create\(|from\(\s*['\"][0-9A-Za-z_]*audit[0-9A-Za-z_]*['\"]\s*\)\s*\.insert\(|insert\s+into\s+[0-9A-Za-z_]*(audit|log)[0-9A-Za-z_]*|->newEvent\(
+            - kind: for_statement
+              regex: (?i)\.(audit[0-9A-Za-z_]*|access_?log[0-9A-Za-z_]*)\.(create|insert|add)[0-9A-Za-z_]*\(|(?-u:\b)(Audit[0-9A-Za-z_]*|AccessLog[0-9A-Za-z_]*)\.(objects\.)?create\(|from\(\s*['\"][0-9A-Za-z_]*audit[0-9A-Za-z_]*['\"]\s*\)\s*\.insert\(|insert\s+into\s+[0-9A-Za-z_]*(audit|log)[0-9A-Za-z_]*|->newEvent\(
+            - kind: for_in_statement
+              regex: (?i)\.(audit[0-9A-Za-z_]*|access_?log[0-9A-Za-z_]*)\.(create|insert|add)[0-9A-Za-z_]*\(|(?-u:\b)(Audit[0-9A-Za-z_]*|AccessLog[0-9A-Za-z_]*)\.(objects\.)?create\(|from\(\s*['\"][0-9A-Za-z_]*audit[0-9A-Za-z_]*['\"]\s*\)\s*\.insert\(|insert\s+into\s+[0-9A-Za-z_]*(audit|log)[0-9A-Za-z_]*|->newEvent\(
+            - kind: while_statement
+              regex: (?i)\.(audit[0-9A-Za-z_]*|access_?log[0-9A-Za-z_]*)\.(create|insert|add)[0-9A-Za-z_]*\(|(?-u:\b)(Audit[0-9A-Za-z_]*|AccessLog[0-9A-Za-z_]*)\.(objects\.)?create\(|from\(\s*['\"][0-9A-Za-z_]*audit[0-9A-Za-z_]*['\"]\s*\)\s*\.insert\(|insert\s+into\s+[0-9A-Za-z_]*(audit|log)[0-9A-Za-z_]*|->newEvent\(
+            - kind: switch_statement
+              regex: (?i)\.(audit[0-9A-Za-z_]*|access_?log[0-9A-Za-z_]*)\.(create|insert|add)[0-9A-Za-z_]*\(|(?-u:\b)(Audit[0-9A-Za-z_]*|AccessLog[0-9A-Za-z_]*)\.(objects\.)?create\(|from\(\s*['\"][0-9A-Za-z_]*audit[0-9A-Za-z_]*['\"]\s*\)\s*\.insert\(|insert\s+into\s+[0-9A-Za-z_]*(audit|log)[0-9A-Za-z_]*|->newEvent\(
+            - kind: throw_statement
+              regex: (?i)\.(audit[0-9A-Za-z_]*|access_?log[0-9A-Za-z_]*)\.(create|insert|add)[0-9A-Za-z_]*\(|(?-u:\b)(Audit[0-9A-Za-z_]*|AccessLog[0-9A-Za-z_]*)\.(objects\.)?create\(|from\(\s*['\"][0-9A-Za-z_]*audit[0-9A-Za-z_]*['\"]\s*\)\s*\.insert\(|insert\s+into\s+[0-9A-Za-z_]*(audit|log)[0-9A-Za-z_]*|->newEvent\(
+  - all:
+    - any:
+      - kind: function_declaration
+      - kind: method_definition
+      - kind: arrow_function
+      - kind: function_expression
+    - has:
+        stopBy: end
+        any:
+        - all:
+          - kind: call_expression
+            regex: ^BreakGlass[A-Za-z0-9_]*(\.|::)[A-Za-z_][A-Za-z0-9_]*\(
+          - not:
+              kind: call_expression
+              regex: ^BreakGlass[A-Za-z0-9_]*(\.|::)(create|insert|upsert)[A-Za-z]*\(
+min_engine: 0.39.0
+---
+id: break-glass-access.tsx-generic.honour-site
+practice_id: break-glass-access
+language: tsx
+frameworks:
+- generic
+kind: items
+rule:
+  all:
+  - any:
+    - kind: function_declaration
+    - kind: method_definition
+    - kind: arrow_function
+    - kind: function_expression
+  - has:
+      field: body
+      has:
+        any:
+        - kind: lexical_declaration
+          regex: (?i)(is_?break_?glass[0-9A-Za-z_]*\(|has_?(role|group|permission)[0-9A-Za-z_]*\([^)]*break_?glass|acl_?check[0-9A-Za-z_]*\([^)]*break_?glass|(?-u:\b)in_?group\([^)]*break_?glass|\.(break_?glass|emergency_?access)\s*(===?|&&|\)|\?)|(includes|has|contains|indexOf|some|filter|exists|in_array|any)\(\s*[^)]*[\'"]break_?glass[\'"]|[\'"]break_?glass[\'"]\s+(not\s+)?in\s)
+        - kind: variable_declaration
+          regex: (?i)(is_?break_?glass[0-9A-Za-z_]*\(|has_?(role|group|permission)[0-9A-Za-z_]*\([^)]*break_?glass|acl_?check[0-9A-Za-z_]*\([^)]*break_?glass|(?-u:\b)in_?group\([^)]*break_?glass|\.(break_?glass|emergency_?access)\s*(===?|&&|\)|\?)|(includes|has|contains|indexOf|some|filter|exists|in_array|any)\(\s*[^)]*[\'"]break_?glass[\'"]|[\'"]break_?glass[\'"]\s+(not\s+)?in\s)
+        - kind: expression_statement
+          regex: (?i)(is_?break_?glass[0-9A-Za-z_]*\(|has_?(role|group|permission)[0-9A-Za-z_]*\([^)]*break_?glass|acl_?check[0-9A-Za-z_]*\([^)]*break_?glass|(?-u:\b)in_?group\([^)]*break_?glass|\.(break_?glass|emergency_?access)\s*(===?|&&|\)|\?)|(includes|has|contains|indexOf|some|filter|exists|in_array|any)\(\s*[^)]*[\'"]break_?glass[\'"]|[\'"]break_?glass[\'"]\s+(not\s+)?in\s)
+        - kind: return_statement
+          regex: (?i)(is_?break_?glass[0-9A-Za-z_]*\(|has_?(role|group|permission)[0-9A-Za-z_]*\([^)]*break_?glass|acl_?check[0-9A-Za-z_]*\([^)]*break_?glass|(?-u:\b)in_?group\([^)]*break_?glass|\.(break_?glass|emergency_?access)\s*(===?|&&|\)|\?)|(includes|has|contains|indexOf|some|filter|exists|in_array|any)\(\s*[^)]*[\'"]break_?glass[\'"]|[\'"]break_?glass[\'"]\s+(not\s+)?in\s)
+        - kind: if_statement
+          regex: (?i)(is_?break_?glass[0-9A-Za-z_]*\(|has_?(role|group|permission)[0-9A-Za-z_]*\([^)]*break_?glass|acl_?check[0-9A-Za-z_]*\([^)]*break_?glass|(?-u:\b)in_?group\([^)]*break_?glass|\.(break_?glass|emergency_?access)\s*(===?|&&|\)|\?)|(includes|has|contains|indexOf|some|filter|exists|in_array|any)\(\s*[^)]*[\'"]break_?glass[\'"]|[\'"]break_?glass[\'"]\s+(not\s+)?in\s)
+        - kind: try_statement
+          regex: (?i)(is_?break_?glass[0-9A-Za-z_]*\(|has_?(role|group|permission)[0-9A-Za-z_]*\([^)]*break_?glass|acl_?check[0-9A-Za-z_]*\([^)]*break_?glass|(?-u:\b)in_?group\([^)]*break_?glass|\.(break_?glass|emergency_?access)\s*(===?|&&|\)|\?)|(includes|has|contains|indexOf|some|filter|exists|in_array|any)\(\s*[^)]*[\'"]break_?glass[\'"]|[\'"]break_?glass[\'"]\s+(not\s+)?in\s)
+        - kind: for_statement
+          regex: (?i)(is_?break_?glass[0-9A-Za-z_]*\(|has_?(role|group|permission)[0-9A-Za-z_]*\([^)]*break_?glass|acl_?check[0-9A-Za-z_]*\([^)]*break_?glass|(?-u:\b)in_?group\([^)]*break_?glass|\.(break_?glass|emergency_?access)\s*(===?|&&|\)|\?)|(includes|has|contains|indexOf|some|filter|exists|in_array|any)\(\s*[^)]*[\'"]break_?glass[\'"]|[\'"]break_?glass[\'"]\s+(not\s+)?in\s)
+        - kind: for_in_statement
+          regex: (?i)(is_?break_?glass[0-9A-Za-z_]*\(|has_?(role|group|permission)[0-9A-Za-z_]*\([^)]*break_?glass|acl_?check[0-9A-Za-z_]*\([^)]*break_?glass|(?-u:\b)in_?group\([^)]*break_?glass|\.(break_?glass|emergency_?access)\s*(===?|&&|\)|\?)|(includes|has|contains|indexOf|some|filter|exists|in_array|any)\(\s*[^)]*[\'"]break_?glass[\'"]|[\'"]break_?glass[\'"]\s+(not\s+)?in\s)
+        - kind: while_statement
+          regex: (?i)(is_?break_?glass[0-9A-Za-z_]*\(|has_?(role|group|permission)[0-9A-Za-z_]*\([^)]*break_?glass|acl_?check[0-9A-Za-z_]*\([^)]*break_?glass|(?-u:\b)in_?group\([^)]*break_?glass|\.(break_?glass|emergency_?access)\s*(===?|&&|\)|\?)|(includes|has|contains|indexOf|some|filter|exists|in_array|any)\(\s*[^)]*[\'"]break_?glass[\'"]|[\'"]break_?glass[\'"]\s+(not\s+)?in\s)
+        - kind: switch_statement
+          regex: (?i)(is_?break_?glass[0-9A-Za-z_]*\(|has_?(role|group|permission)[0-9A-Za-z_]*\([^)]*break_?glass|acl_?check[0-9A-Za-z_]*\([^)]*break_?glass|(?-u:\b)in_?group\([^)]*break_?glass|\.(break_?glass|emergency_?access)\s*(===?|&&|\)|\?)|(includes|has|contains|indexOf|some|filter|exists|in_array|any)\(\s*[^)]*[\'"]break_?glass[\'"]|[\'"]break_?glass[\'"]\s+(not\s+)?in\s)
+        - kind: throw_statement
+          regex: (?i)(is_?break_?glass[0-9A-Za-z_]*\(|has_?(role|group|permission)[0-9A-Za-z_]*\([^)]*break_?glass|acl_?check[0-9A-Za-z_]*\([^)]*break_?glass|(?-u:\b)in_?group\([^)]*break_?glass|\.(break_?glass|emergency_?access)\s*(===?|&&|\)|\?)|(includes|has|contains|indexOf|some|filter|exists|in_array|any)\(\s*[^)]*[\'"]break_?glass[\'"]|[\'"]break_?glass[\'"]\s+(not\s+)?in\s)
+  - not:
+      has:
+        field: body
+        has:
+          any:
+          - kind: lexical_declaration
+            regex: (?i)((break_?glass|emergency_?access|emergency_?grant)[0-9A-Za-z_]*['\"]?\)?\s*\.?\s*(create|insert|add|grant|upsert)[0-9A-Za-z_]*\(|insert\s+into\s+[0-9A-Za-z_]*(break_?glass|emergency)[0-9A-Za-z_]*|from\(\s*['\"][0-9A-Za-z_]*(break_?glass|emergency)[0-9A-Za-z_]*['\"]\s*\)\s*\.insert\(|(add|assign|grant)[0-9A-Za-z_]*\([^)]*['\"]\s*break_?glass|['\"]?(break_?glass|emergency_?access)[0-9A-Za-z_]*['\"]?\s*(=|:|=>)\s*(true|True|1)(?-u:\b))
+          - kind: variable_declaration
+            regex: (?i)((break_?glass|emergency_?access|emergency_?grant)[0-9A-Za-z_]*['\"]?\)?\s*\.?\s*(create|insert|add|grant|upsert)[0-9A-Za-z_]*\(|insert\s+into\s+[0-9A-Za-z_]*(break_?glass|emergency)[0-9A-Za-z_]*|from\(\s*['\"][0-9A-Za-z_]*(break_?glass|emergency)[0-9A-Za-z_]*['\"]\s*\)\s*\.insert\(|(add|assign|grant)[0-9A-Za-z_]*\([^)]*['\"]\s*break_?glass|['\"]?(break_?glass|emergency_?access)[0-9A-Za-z_]*['\"]?\s*(=|:|=>)\s*(true|True|1)(?-u:\b))
+          - kind: expression_statement
+            regex: (?i)((break_?glass|emergency_?access|emergency_?grant)[0-9A-Za-z_]*['\"]?\)?\s*\.?\s*(create|insert|add|grant|upsert)[0-9A-Za-z_]*\(|insert\s+into\s+[0-9A-Za-z_]*(break_?glass|emergency)[0-9A-Za-z_]*|from\(\s*['\"][0-9A-Za-z_]*(break_?glass|emergency)[0-9A-Za-z_]*['\"]\s*\)\s*\.insert\(|(add|assign|grant)[0-9A-Za-z_]*\([^)]*['\"]\s*break_?glass|['\"]?(break_?glass|emergency_?access)[0-9A-Za-z_]*['\"]?\s*(=|:|=>)\s*(true|True|1)(?-u:\b))
+          - kind: return_statement
+            regex: (?i)((break_?glass|emergency_?access|emergency_?grant)[0-9A-Za-z_]*['\"]?\)?\s*\.?\s*(create|insert|add|grant|upsert)[0-9A-Za-z_]*\(|insert\s+into\s+[0-9A-Za-z_]*(break_?glass|emergency)[0-9A-Za-z_]*|from\(\s*['\"][0-9A-Za-z_]*(break_?glass|emergency)[0-9A-Za-z_]*['\"]\s*\)\s*\.insert\(|(add|assign|grant)[0-9A-Za-z_]*\([^)]*['\"]\s*break_?glass|['\"]?(break_?glass|emergency_?access)[0-9A-Za-z_]*['\"]?\s*(=|:|=>)\s*(true|True|1)(?-u:\b))
+          - kind: if_statement
+            regex: (?i)((break_?glass|emergency_?access|emergency_?grant)[0-9A-Za-z_]*['\"]?\)?\s*\.?\s*(create|insert|add|grant|upsert)[0-9A-Za-z_]*\(|insert\s+into\s+[0-9A-Za-z_]*(break_?glass|emergency)[0-9A-Za-z_]*|from\(\s*['\"][0-9A-Za-z_]*(break_?glass|emergency)[0-9A-Za-z_]*['\"]\s*\)\s*\.insert\(|(add|assign|grant)[0-9A-Za-z_]*\([^)]*['\"]\s*break_?glass|['\"]?(break_?glass|emergency_?access)[0-9A-Za-z_]*['\"]?\s*(=|:|=>)\s*(true|True|1)(?-u:\b))
+          - kind: try_statement
+            regex: (?i)((break_?glass|emergency_?access|emergency_?grant)[0-9A-Za-z_]*['\"]?\)?\s*\.?\s*(create|insert|add|grant|upsert)[0-9A-Za-z_]*\(|insert\s+into\s+[0-9A-Za-z_]*(break_?glass|emergency)[0-9A-Za-z_]*|from\(\s*['\"][0-9A-Za-z_]*(break_?glass|emergency)[0-9A-Za-z_]*['\"]\s*\)\s*\.insert\(|(add|assign|grant)[0-9A-Za-z_]*\([^)]*['\"]\s*break_?glass|['\"]?(break_?glass|emergency_?access)[0-9A-Za-z_]*['\"]?\s*(=|:|=>)\s*(true|True|1)(?-u:\b))
+          - kind: for_statement
+            regex: (?i)((break_?glass|emergency_?access|emergency_?grant)[0-9A-Za-z_]*['\"]?\)?\s*\.?\s*(create|insert|add|grant|upsert)[0-9A-Za-z_]*\(|insert\s+into\s+[0-9A-Za-z_]*(break_?glass|emergency)[0-9A-Za-z_]*|from\(\s*['\"][0-9A-Za-z_]*(break_?glass|emergency)[0-9A-Za-z_]*['\"]\s*\)\s*\.insert\(|(add|assign|grant)[0-9A-Za-z_]*\([^)]*['\"]\s*break_?glass|['\"]?(break_?glass|emergency_?access)[0-9A-Za-z_]*['\"]?\s*(=|:|=>)\s*(true|True|1)(?-u:\b))
+          - kind: for_in_statement
+            regex: (?i)((break_?glass|emergency_?access|emergency_?grant)[0-9A-Za-z_]*['\"]?\)?\s*\.?\s*(create|insert|add|grant|upsert)[0-9A-Za-z_]*\(|insert\s+into\s+[0-9A-Za-z_]*(break_?glass|emergency)[0-9A-Za-z_]*|from\(\s*['\"][0-9A-Za-z_]*(break_?glass|emergency)[0-9A-Za-z_]*['\"]\s*\)\s*\.insert\(|(add|assign|grant)[0-9A-Za-z_]*\([^)]*['\"]\s*break_?glass|['\"]?(break_?glass|emergency_?access)[0-9A-Za-z_]*['\"]?\s*(=|:|=>)\s*(true|True|1)(?-u:\b))
+          - kind: while_statement
+            regex: (?i)((break_?glass|emergency_?access|emergency_?grant)[0-9A-Za-z_]*['\"]?\)?\s*\.?\s*(create|insert|add|grant|upsert)[0-9A-Za-z_]*\(|insert\s+into\s+[0-9A-Za-z_]*(break_?glass|emergency)[0-9A-Za-z_]*|from\(\s*['\"][0-9A-Za-z_]*(break_?glass|emergency)[0-9A-Za-z_]*['\"]\s*\)\s*\.insert\(|(add|assign|grant)[0-9A-Za-z_]*\([^)]*['\"]\s*break_?glass|['\"]?(break_?glass|emergency_?access)[0-9A-Za-z_]*['\"]?\s*(=|:|=>)\s*(true|True|1)(?-u:\b))
+          - kind: switch_statement
+            regex: (?i)((break_?glass|emergency_?access|emergency_?grant)[0-9A-Za-z_]*['\"]?\)?\s*\.?\s*(create|insert|add|grant|upsert)[0-9A-Za-z_]*\(|insert\s+into\s+[0-9A-Za-z_]*(break_?glass|emergency)[0-9A-Za-z_]*|from\(\s*['\"][0-9A-Za-z_]*(break_?glass|emergency)[0-9A-Za-z_]*['\"]\s*\)\s*\.insert\(|(add|assign|grant)[0-9A-Za-z_]*\([^)]*['\"]\s*break_?glass|['\"]?(break_?glass|emergency_?access)[0-9A-Za-z_]*['\"]?\s*(=|:|=>)\s*(true|True|1)(?-u:\b))
+          - kind: throw_statement
+            regex: (?i)((break_?glass|emergency_?access|emergency_?grant)[0-9A-Za-z_]*['\"]?\)?\s*\.?\s*(create|insert|add|grant|upsert)[0-9A-Za-z_]*\(|insert\s+into\s+[0-9A-Za-z_]*(break_?glass|emergency)[0-9A-Za-z_]*|from\(\s*['\"][0-9A-Za-z_]*(break_?glass|emergency)[0-9A-Za-z_]*['\"]\s*\)\s*\.insert\(|(add|assign|grant)[0-9A-Za-z_]*\([^)]*['\"]\s*break_?glass|['\"]?(break_?glass|emergency_?access)[0-9A-Za-z_]*['\"]?\s*(=|:|=>)\s*(true|True|1)(?-u:\b))
+control:
+  has:
+    field: body
+    has:
+      any:
+      - kind: lexical_declaration
+        regex: (?i)(expires?_?at|expiry|valid_?until|ends_?at)[0-9A-Za-z_]*\s*(\)\s*)?[<>]=?|[<>]=?\s*[0-9A-Za-z_.()$>-]*(?-u:\b)(expires?_?at|expiry|valid_?until|ends_?at)|is(After|Before)\(|expired\s*\(
+      - kind: variable_declaration
+        regex: (?i)(expires?_?at|expiry|valid_?until|ends_?at)[0-9A-Za-z_]*\s*(\)\s*)?[<>]=?|[<>]=?\s*[0-9A-Za-z_.()$>-]*(?-u:\b)(expires?_?at|expiry|valid_?until|ends_?at)|is(After|Before)\(|expired\s*\(
+      - kind: expression_statement
+        regex: (?i)(expires?_?at|expiry|valid_?until|ends_?at)[0-9A-Za-z_]*\s*(\)\s*)?[<>]=?|[<>]=?\s*[0-9A-Za-z_.()$>-]*(?-u:\b)(expires?_?at|expiry|valid_?until|ends_?at)|is(After|Before)\(|expired\s*\(
+      - kind: return_statement
+        regex: (?i)(expires?_?at|expiry|valid_?until|ends_?at)[0-9A-Za-z_]*\s*(\)\s*)?[<>]=?|[<>]=?\s*[0-9A-Za-z_.()$>-]*(?-u:\b)(expires?_?at|expiry|valid_?until|ends_?at)|is(After|Before)\(|expired\s*\(
+      - kind: if_statement
+        regex: (?i)(expires?_?at|expiry|valid_?until|ends_?at)[0-9A-Za-z_]*\s*(\)\s*)?[<>]=?|[<>]=?\s*[0-9A-Za-z_.()$>-]*(?-u:\b)(expires?_?at|expiry|valid_?until|ends_?at)|is(After|Before)\(|expired\s*\(
+      - kind: try_statement
+        regex: (?i)(expires?_?at|expiry|valid_?until|ends_?at)[0-9A-Za-z_]*\s*(\)\s*)?[<>]=?|[<>]=?\s*[0-9A-Za-z_.()$>-]*(?-u:\b)(expires?_?at|expiry|valid_?until|ends_?at)|is(After|Before)\(|expired\s*\(
+      - kind: for_statement
+        regex: (?i)(expires?_?at|expiry|valid_?until|ends_?at)[0-9A-Za-z_]*\s*(\)\s*)?[<>]=?|[<>]=?\s*[0-9A-Za-z_.()$>-]*(?-u:\b)(expires?_?at|expiry|valid_?until|ends_?at)|is(After|Before)\(|expired\s*\(
+      - kind: for_in_statement
+        regex: (?i)(expires?_?at|expiry|valid_?until|ends_?at)[0-9A-Za-z_]*\s*(\)\s*)?[<>]=?|[<>]=?\s*[0-9A-Za-z_.()$>-]*(?-u:\b)(expires?_?at|expiry|valid_?until|ends_?at)|is(After|Before)\(|expired\s*\(
+      - kind: while_statement
+        regex: (?i)(expires?_?at|expiry|valid_?until|ends_?at)[0-9A-Za-z_]*\s*(\)\s*)?[<>]=?|[<>]=?\s*[0-9A-Za-z_.()$>-]*(?-u:\b)(expires?_?at|expiry|valid_?until|ends_?at)|is(After|Before)\(|expired\s*\(
+      - kind: switch_statement
+        regex: (?i)(expires?_?at|expiry|valid_?until|ends_?at)[0-9A-Za-z_]*\s*(\)\s*)?[<>]=?|[<>]=?\s*[0-9A-Za-z_.()$>-]*(?-u:\b)(expires?_?at|expiry|valid_?until|ends_?at)|is(After|Before)\(|expired\s*\(
+      - kind: throw_statement
+        regex: (?i)(expires?_?at|expiry|valid_?until|ends_?at)[0-9A-Za-z_]*\s*(\)\s*)?[<>]=?|[<>]=?\s*[0-9A-Za-z_.()$>-]*(?-u:\b)(expires?_?at|expiry|valid_?until|ends_?at)|is(After|Before)\(|expired\s*\(
+min_engine: 0.39.0
