@@ -198,6 +198,7 @@ rules/rules/db-tls-enforced/javascript-generic.yml
 rules/rules/db-tls-enforced/php-generic.yml
 rules/rules/db-tls-enforced/python-generic.yml
 rules/rules/db-tls-enforced/ruby-generic.yml
+rules/rules/db-tls-enforced/tsx-generic.yml
 rules/rules/db-tls-enforced/typescript-generic.yml
 rules/rules/dependency-scanning-ci/json-generic.yml
 rules/rules/dependency-scanning-ci/yaml-generic.yml

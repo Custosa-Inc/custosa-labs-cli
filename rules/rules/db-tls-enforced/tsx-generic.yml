@@ -1,0 +1,123 @@
+# T29 (T29-P1-C5 item 7, E-5): the client side of db-tls-enforced, which had no rule. The practice's "client-verified"
+# mechanism: every connection string in the code uses sslmode=verify-full, or require where the platform enforces TLS.
+# A Postgres connection string literal with sslmode disable, allow or prefer (a client that may connect in plain text).
+id: db-tls-enforced.tsx-generic.tls-off-url
+practice_id: db-tls-enforced
+language: tsx
+frameworks:
+- generic
+kind: violation
+rule:
+  any:
+  - kind: string
+    regex: '(?i)^["''`]postgres(ql)?(\+\w+)?://[^"''`]*[?&]sslmode=(disable|allow|prefer)\b'
+  - kind: template_string
+    regex: '(?i)^`postgres(ql)?(\+\w+)?://[^`]*[?&]sslmode=(disable|allow|prefer)\b'
+min_engine: 0.39.0
+---
+# ssl: false on a Postgres client's options: node-postgres (new Pool or new Client, pg.Pool), postgres.js (postgres(...)),
+# or a knex or Drizzle connection object (the value of a connection key). Off everywhere else is left alone: a mail
+# transport's ssl: false is not a database connection.
+id: db-tls-enforced.tsx-generic.tls-off-option
+practice_id: db-tls-enforced
+language: tsx
+frameworks:
+- generic
+kind: violation
+rule:
+  kind: pair
+  all:
+  - has:
+      field: key
+      any:
+      - kind: property_identifier
+        regex: '^ssl$'
+      - kind: string
+        regex: '^["''`]ssl["''`]$'
+  - has:
+      field: value
+      kind: 'false'
+  - inside:
+      kind: object
+      any:
+      - inside:
+          kind: arguments
+          inside:
+            any:
+            - kind: new_expression
+              has:
+                field: constructor
+                any:
+                - kind: identifier
+                  regex: '^(Pool|Client)$'
+                - kind: member_expression
+                  regex: '^pg\.(Pool|Client)$'
+            - kind: call_expression
+              has:
+                field: function
+                kind: identifier
+                regex: '^(postgres|createPool)$'
+      - inside:
+          kind: pair
+          has:
+            field: key
+            kind: property_identifier
+            regex: '^connection$'
+min_engine: 0.39.0
+---
+# T29-P1-C6: the client's TLS mode taken from an environment value the check can't read: an ssl option whose value
+# reads process.env, on the same clients as tls-off-option, or a connection string template whose sslmode is
+# interpolated. The practice reports unknown and asks (assistant_answer_needed), never a pass, while it is there. A
+# bare connection string from the environment, with no TLS option beside it, is not this: the server side settles
+# enforcement.
+id: db-tls-enforced.tsx-generic.tls-from-env
+practice_id: db-tls-enforced
+language: tsx
+frameworks:
+- generic
+kind: evidence
+rule:
+  any:
+  - kind: template_string
+    regex: '(?i)^`postgres(ql)?(\+\w+)?://[^`]*[?&]sslmode=\$\{'
+  - kind: pair
+    all:
+    - has:
+        field: key
+        any:
+        - kind: property_identifier
+          regex: '^ssl$'
+        - kind: string
+          regex: '^["''`]ssl["''`]$'
+    - has:
+        field: value
+        stopBy: end
+        kind: member_expression
+        regex: '^process\.env\b'
+    - inside:
+        kind: object
+        any:
+        - inside:
+            kind: arguments
+            inside:
+              any:
+              - kind: new_expression
+                has:
+                  field: constructor
+                  any:
+                  - kind: identifier
+                    regex: '^(Pool|Client)$'
+                  - kind: member_expression
+                    regex: '^pg\.(Pool|Client)$'
+              - kind: call_expression
+                has:
+                  field: function
+                  kind: identifier
+                  regex: '^(postgres|createPool)$'
+        - inside:
+            kind: pair
+            has:
+              field: key
+              kind: property_identifier
+              regex: '^connection$'
+min_engine: 0.39.0

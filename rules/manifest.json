@@ -1,5 +1,5 @@
 {
-  "ruleset_id": "2026-11-09.d44ec9dd",
+  "ruleset_id": "2026-11-09.ac434b31",
   "min_engine": "0.45.3",
   "files": [
     {
@@ -525,6 +525,10 @@
     {
       "path": "rules/db-tls-enforced/ruby-generic.yml",
       "sha256": "dd2361958521ee5475dbc20a2939292e3524dd2fc6df2d17bb9ba7222195d78f"
+    },
+    {
+      "path": "rules/db-tls-enforced/tsx-generic.yml",
+      "sha256": "4fe1734ca36b06104d5f818fedee0d396180b076bbcccba04bd546ac35e95ddb"
     },
     {
       "path": "rules/db-tls-enforced/typescript-generic.yml",
