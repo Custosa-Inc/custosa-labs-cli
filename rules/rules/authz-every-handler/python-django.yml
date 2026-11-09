@@ -134,3 +134,92 @@ control:
             - kind: attribute
               regex: '^(self\.)?request\.user\.\w+\.(all|filter|get|exclude|create)$'
 min_engine: 0.39.0
+---
+# T29 (T29-P1-C5, synthesis item 8): a function view that rules.view would fail, guarded by a project helper this file
+# can't see into: a call in its body by a name that checks the caller's right to the record (python-flask's
+# auth-unobserved-helper names: check_patient_access(request, patient), assert_can_view(request, note),
+# self.check_object_permissions(request, obj)), or a decorator naming ownership, object permission, access,
+# authorization or a policy (@owner_required(Patient)). It holds the view's item for a person (needs_review), never a
+# pass. login_required, permission_required (a model permission, never which record) and user_passes_test never match.
+id: authz-every-handler.python-django.auth-unobserved-helper
+practice_id: authz-every-handler
+language: python
+frameworks:
+- django
+kind: evidence
+rule:
+  kind: function_definition
+  all:
+  - has:
+      field: parameters
+      kind: parameters
+      regex: '^\(\s*request\s*,\s*\w'
+  - not:
+      inside:
+        kind: class_definition
+        stopBy: end
+  - not:
+      has:
+        field: name
+        kind: identifier
+        regex: ^_
+  - has:
+      stopBy: end
+      kind: return_statement
+      regex: '^return\s+(render|redirect|JsonResponse|HttpResponse\w*|Response|TemplateResponse|FileResponse|StreamingHttpResponse)\b'
+  - any:
+    - has:
+        stopBy: end
+        kind: call
+        has:
+          field: function
+          any:
+          - kind: identifier
+            regex: '(?i)^(check|verify|ensure|require|assert|authori[sz]e|enforce|get_current|load_current)_\w*(owner|access|permission|user|caller|principal|identity|polic(y|ies)|tenant|member|can_(view|read|edit|update|delete))\w*$'
+          - kind: attribute
+            regex: '(?i)\.(check|verify|ensure|require|assert|authori[sz]e|enforce|get_current|load_current)_\w*(owner|access|permission|user|caller|principal|identity|polic(y|ies)|tenant|member|can_(view|read|edit|update|delete))\w*$'
+    - inside:
+        kind: decorated_definition
+        has:
+          kind: decorator
+          regex: '(?i)^@[\w.]*(owner|object_permission|access|authori[sz]|polic)\w*'
+min_engine: 0.39.0
+---
+# T29: the same for a class view or DRF method that rules.method would fail.
+id: authz-every-handler.python-django.auth-unobserved-helper-method
+practice_id: authz-every-handler
+language: python
+frameworks:
+- django
+kind: evidence
+rule:
+  kind: function_definition
+  all:
+  - has:
+      field: name
+      kind: identifier
+      regex: '^(get|post|put|patch|delete|retrieve|update|partial_update|destroy)$'
+  - has:
+      field: parameters
+      kind: parameters
+      regex: '^\(\s*self\s*,\s*request\s*,\s*\w'
+  - inside:
+      kind: class_definition
+      stopBy: end
+  - any:
+    - has:
+        stopBy: end
+        kind: call
+        has:
+          field: function
+          any:
+          - kind: identifier
+            regex: '(?i)^(check|verify|ensure|require|assert|authori[sz]e|enforce|get_current|load_current)_\w*(owner|access|permission|user|caller|principal|identity|polic(y|ies)|tenant|member|can_(view|read|edit|update|delete))\w*$'
+          - kind: attribute
+            regex: '(?i)\.(check|verify|ensure|require|assert|authori[sz]e|enforce|get_current|load_current)_\w*(owner|access|permission|user|caller|principal|identity|polic(y|ies)|tenant|member|can_(view|read|edit|update|delete))\w*$'
+    - inside:
+        kind: decorated_definition
+        has:
+          kind: decorator
+          regex: '(?i)^@[\w.]*(owner|object_permission|access|authori[sz]|polic)\w*'
+min_engine: 0.39.0
