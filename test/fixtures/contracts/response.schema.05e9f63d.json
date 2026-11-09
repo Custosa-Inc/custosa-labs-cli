@@ -4344,36 +4344,38 @@
       }
     },
     "answer": {
-      "description": "T29 item 2: page 1 of a check or verify only, the whole answer within 8,000 characters. fails names every result in state fail, one group per practice, most severe first (then by practice_id), with its object ids (sorted) and up to 3 locations; each object's full line is in findings. holds counts every result in state needs_review, unknown or error, one line per shown reason (in the reason list's order), with what to look at and up to 20 practices. Past the budget, locations go first, then object ids are cut from the largest group and cut is true; count is always exact.",
+      "description": "T29 item 2 (T29-P1-C4, C6): page 1 of a check or verify only, the whole answer within 11,000 characters. fail_count is every result in state fail, and fails holds one short record per fail (object_id, practice_id, severity, the first location of its evidence or null), most severe first, then by practice_id and object_id; each object's full line is in findings. holds counts every result in state needs_review, unknown or error, one line per shown reason (in the reason list's order), with what to look at (at most 200 characters) and up to 10 practices. read says what the check read in full (collectors, the number of catalog queries, files analysed) and not_read the collectors, queries and Edge Functions reading it could not read in full, grouped by status and reason. Past the budget, hold lines name fewer practices, then the least severe fail records are left to the findings lines, and cut is true; every count is exact.",
       "type": "object",
       "additionalProperties": false,
       "required": [
+        "fail_count",
         "fails",
         "holds",
         "cut"
       ],
       "properties": {
+        "fail_count": {
+          "type": "integer",
+          "minimum": 0
+        },
         "fails": {
           "type": "array",
-          "maxItems": 200,
+          "maxItems": 20000,
           "items": {
             "type": "object",
             "additionalProperties": false,
             "required": [
+              "object_id",
               "practice_id",
-              "title",
               "severity",
-              "count",
-              "object_ids",
-              "locations"
+              "location"
             ],
             "properties": {
+              "object_id": {
+                "$ref": "https://custosa.com/schemas/fact-document/2#/$defs/object_id"
+              },
               "practice_id": {
                 "$ref": "https://custosa.com/schemas/fact-document/2#/$defs/practice_id"
-              },
-              "title": {
-                "type": "string",
-                "maxLength": 200
               },
               "severity": {
                 "type": "string",
@@ -4384,24 +4386,15 @@
                   "low"
                 ]
               },
-              "count": {
-                "type": "integer",
-                "minimum": 1
-              },
-              "object_ids": {
-                "type": "array",
-                "minItems": 1,
-                "maxItems": 20000,
-                "items": {
-                  "$ref": "https://custosa.com/schemas/fact-document/2#/$defs/object_id"
-                }
-              },
-              "locations": {
-                "type": "array",
-                "maxItems": 3,
-                "items": {
-                  "$ref": "https://custosa.com/schemas/fact-document/2#/$defs/location"
-                }
+              "location": {
+                "anyOf": [
+                  {
+                    "$ref": "https://custosa.com/schemas/fact-document/2#/$defs/location"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
               }
             }
           }
@@ -4454,7 +4447,7 @@
               },
               "look": {
                 "type": "string",
-                "maxLength": 1000
+                "maxLength": 200
               },
               "count": {
                 "type": "integer",
@@ -4484,6 +4477,84 @@
                 "maxItems": 20,
                 "items": {
                   "$ref": "https://custosa.com/schemas/fact-document/2#/$defs/practice_id"
+                }
+              }
+            }
+          }
+        },
+        "read": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "collectors",
+            "queries",
+            "files"
+          ],
+          "properties": {
+            "collectors": {
+              "type": "array",
+              "maxItems": 20,
+              "items": {
+                "type": "string",
+                "enum": [
+                  "files",
+                  "git",
+                  "rules",
+                  "catalog",
+                  "platform",
+                  "secrets"
+                ]
+              }
+            },
+            "queries": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "files": {
+              "type": "integer",
+              "minimum": 0
+            }
+          }
+        },
+        "not_read": {
+          "type": "array",
+          "maxItems": 20,
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "status",
+              "reason",
+              "ids"
+            ],
+            "properties": {
+              "status": {
+                "type": "string",
+                "enum": [
+                  "ok",
+                  "empty",
+                  "truncated",
+                  "failed",
+                  "not_run"
+                ]
+              },
+              "reason": {
+                "anyOf": [
+                  {
+                    "$ref": "https://custosa.com/schemas/fact-document/2#/$defs/collection_reason"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              },
+              "ids": {
+                "type": "array",
+                "minItems": 1,
+                "maxItems": 100,
+                "items": {
+                  "type": "string",
+                  "pattern": "^[a-z][a-z0-9_]{0,63}$"
                 }
               }
             }
