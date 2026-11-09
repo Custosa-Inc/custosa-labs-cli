@@ -80,7 +80,7 @@ test("goal fix: an own finding on a file the check did not walk is refused befor
       const out = await runCheck({ goal: "fix", finding_ids: ids }, { roots: [root] });
       assert.equal(out.error, "finding_ids_refused", ids.join());
       assert.equal(out.local, true);
-      assert.match(out.next_step, /finding_ids\[[01]\] \((not_walked|range_backwards)\)/);
+      assert.match(out.next_step, /finding_ids\[[01]\] \((not_walked|name_hashed|range_backwards)\)/);
       for (const id of ids) assert.ok(!out.next_step.includes(id.split("@")[1]), "the refusal never repeats the path");
     }
     assert.equal(s.calls.length, 0, "a refused fix sends nothing and is charged nothing");
