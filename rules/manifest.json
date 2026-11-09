@@ -1,5 +1,5 @@
 {
-  "ruleset_id": "2026-11-09.ee5e74eb",
+  "ruleset_id": "2026-11-09.5f5a5be7",
   "min_engine": "0.45.3",
   "files": [
     {
@@ -1544,7 +1544,7 @@
     },
     {
       "path": "rules/write-fields-allowlisted/typescript-nextjs.yml",
-      "sha256": "890aa98d66bb12ca46ac742213ccbf2265f85996615f326390c777554fe2f1f4"
+      "sha256": "157ceb7beaf12f0eca71b5c5f0cfd18c492d33681bad4896c7aea5322ce3381e"
     },
     {
       "path": "value_screen_words.json",
