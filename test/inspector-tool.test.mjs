@@ -875,3 +875,20 @@ test("the instructions and the description say what the check covers, what it do
 test("the server instructions say fixes come only when the person asks", () => {
   assert.match(INSTRUCTIONS, /^Make fixes only after the person asks for them\.$/m);
 });
+
+test("T29-P1-C6: get_result_page sends a target (practice, table or file) as a fetch, and collects nothing", async () => {
+  const root = repo();
+  const { s, runCheck, builds } = await setup();
+  try {
+    const n = builds.length;
+    for (const target of [{ practice_id: "rls-forced" }, { table: "public.care_messages" }, { file: "app/api/notes/route.ts" }]) {
+      await runCheck({ goal: "check", session: "ps_abcdefghijklmnopqrstuv", target }, { roots: [root] });
+      assert.deepEqual(s.calls.at(-1).body, { goal: "check", session: "ps_abcdefghijklmnopqrstuv", target });
+    }
+    assert.equal(builds.length, n, "a target fetch builds no fact document");
+    assert.equal((await runCheck({ goal: "check", target: { table: "public.t" } }, { roots: [root] })).next_step,
+      TOOL_ERRORS.needs_session);
+  } finally {
+    await s.close();
+  }
+});
