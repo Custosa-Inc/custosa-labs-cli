@@ -1,5 +1,5 @@
 {
-  "ruleset_id": "2026-11-09.76525a02",
+  "ruleset_id": "2026-11-09.70088cca",
   "min_engine": "0.45.3",
   "files": [
     {
@@ -512,7 +512,7 @@
     },
     {
       "path": "rules/db-tls-enforced/javascript-generic.yml",
-      "sha256": "9cecfe9854f1dcc546118c16828f1457153c82393e8d6c5120aa9d4907a40622"
+      "sha256": "808897b3b77cc100e7984d8eec23ebd5a166efb5280a8823429f513745b9a809"
     },
     {
       "path": "rules/db-tls-enforced/php-generic.yml",
@@ -520,7 +520,7 @@
     },
     {
       "path": "rules/db-tls-enforced/python-generic.yml",
-      "sha256": "9fe4e8dc1556255e33a9dfa6bd90c6dc47252a647b0cd4c3e543c9d8cbf3fe60"
+      "sha256": "748b078d9f1386ae398133b65ee7f4163be9a4cbf0fe0862e2b17741e839948a"
     },
     {
       "path": "rules/db-tls-enforced/ruby-generic.yml",
@@ -528,11 +528,11 @@
     },
     {
       "path": "rules/db-tls-enforced/tsx-generic.yml",
-      "sha256": "4fe1734ca36b06104d5f818fedee0d396180b076bbcccba04bd546ac35e95ddb"
+      "sha256": "3f9db0e4fa651305c2a09fced4ded2190a20f2fc92fcee200b70a68452fe39c4"
     },
     {
       "path": "rules/db-tls-enforced/typescript-generic.yml",
-      "sha256": "9c292e4e35e8e78905f6534bdd2fe3b9ca11b7535d05faf78fbb2e4afcc36c7d"
+      "sha256": "c4a81deb589a7efaa841db9a9156ec134de2dd247fc24320d1b3e11146cff6ac"
     },
     {
       "path": "rules/dependency-scanning-ci/json-generic.yml",

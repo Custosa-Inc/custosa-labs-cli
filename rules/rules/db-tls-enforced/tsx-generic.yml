@@ -65,11 +65,12 @@ rule:
             regex: '^connection$'
 min_engine: 0.39.0
 ---
-# T29-P1-C6: the client's TLS mode taken from an environment value the check can't read: an ssl option whose value
-# reads process.env, on the same clients as tls-off-option, or a connection string template whose sslmode is
-# interpolated. The practice reports unknown and asks (assistant_answer_needed), never a pass, while it is there. A
-# bare connection string from the environment, with no TLS option beside it, is not this: the server side settles
-# enforcement.
+# T29-P1-C6: the client's TLS mode taken from a value the check can't read: an ssl option whose value is not a
+# literal (true, false, a string, a number or an object) or reads process.env, on the same clients as tls-off-option,
+# a template whose sslmode is interpolated (whatever it starts with), or sslmode= ending a string joined with +
+# (T29-P3-C65 low 1, T29-P1-C52). The practice reports unknown and asks (assistant_answer_needed), never a pass, while
+# it is there. A bare connection string from the environment, with no TLS option beside it, is not this: the server
+# side settles enforcement.
 id: db-tls-enforced.tsx-generic.tls-from-env
 practice_id: db-tls-enforced
 language: tsx
@@ -79,7 +80,14 @@ kind: evidence
 rule:
   any:
   - kind: template_string
-    regex: '(?i)^`postgres(ql)?(\+\w+)?://[^`]*[?&]sslmode=\$\{'
+    regex: '(?i)[?&]sslmode=\$\{'
+  - any:
+    - kind: string
+      regex: '(?i)[?&]sslmode=["'']$'
+    - kind: template_string
+      regex: '(?i)[?&]sslmode=`$'
+    inside:
+      kind: binary_expression
   - kind: pair
     all:
     - has:
@@ -89,11 +97,21 @@ rule:
           regex: '^ssl$'
         - kind: string
           regex: '^["''`]ssl["''`]$'
-    - has:
-        field: value
-        stopBy: end
-        kind: member_expression
-        regex: '^process\.env\b'
+    - any:
+      - has:
+          field: value
+          stopBy: end
+          kind: member_expression
+          regex: '^process\.env\b'
+      - has:
+          field: value
+          not:
+            any:
+            - kind: 'true'
+            - kind: 'false'
+            - kind: string
+            - kind: number
+            - kind: object
     - inside:
         kind: object
         any:
