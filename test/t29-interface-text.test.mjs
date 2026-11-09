@@ -5,7 +5,7 @@
 // fixes yet" and "never apply part of it" were ignored every time, and goal fix was never reached.
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { INSTRUCTIONS, DESCRIPTION, GUIDANCE_DESCRIPTION, PAGE_DESCRIPTION } from "../lib/inspector/tool.mjs";
+import { INSTRUCTIONS, DESCRIPTION, GUIDANCE_DESCRIPTION, PAGE_DESCRIPTION, INPUT_SCHEMA } from "../lib/inspector/tool.mjs";
 
 // Well under the 4,096 characters the brief names, with room for page 1's lines (T29 item 2) beside them.
 const BUDGET = 3600;
@@ -36,4 +36,10 @@ test("a fix is information the assistant may apply in whole or in part", () => {
   assert.match(flat(INSTRUCTIONS), /in whole or in part/);
   // the safety line stays: fixes go to a development database
   assert.match(flat(INSTRUCTIONS), /development database/);
+});
+
+test("goal fix takes a finding of the assistant's own, by practice and file location", () => {
+  const ids = INPUT_SCHEMA.properties.finding_ids;
+  assert.match(ids.description, /practice_id@path:line/);
+  assert.match("authz-every-handler@app/api/notes/[id]/route.ts:12", new RegExp(ids.items.pattern));
 });
