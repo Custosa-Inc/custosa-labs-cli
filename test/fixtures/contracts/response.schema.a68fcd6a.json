@@ -3019,7 +3019,7 @@
           }
         },
         "to_commit": {
-          "description": "Entries the CLI writes to the state file (contract 2.3 §5.2): only for this body's person choices the core accepted whose token still equals the one the person was asked on. Empty until B28 brings options.",
+          "description": "Entries the CLI writes to the state file (contract 2.3 \u00a75.2): only for this body's person choices the core accepted whose token still equals the one the person was asked on. Empty until B28 brings options.",
           "type": "array",
           "maxItems": 1000,
           "items": {
@@ -3214,7 +3214,7 @@
       }
     },
     "evaluate_response": {
-      "description": "200 from POST /v1/evaluate for an evaluation goal (check, fix, verify) (fact_document sent) or a fetch (page or resend). findings in state fail first, then the rest, each by practice_id then object_id; the same digest, ruleset_id and arguments give byte-identical findings. Pages carry fixes, then the findings in state fail, then concerns, then questions, then the other findings, then the report. A fetch returns the stored sections of the last response with is_fetch_only true and charged_units 0.",
+      "description": "200 from POST /v1/evaluate for an evaluation goal (check, fix, verify) (fact_document sent) or a fetch (page or resend). findings in state fail first, most severe first then by practice_id and object_id, then the rest by practice_id then object_id; page 1 of a check or verify carries answer, every fail and every open result in one block (T29 item 2); the same digest, ruleset_id and arguments give byte-identical findings. Pages carry fixes, then the findings in state fail, then concerns, then questions, then the other findings, then the report. A fetch returns the stored sections of the last response with is_fetch_only true and charged_units 0.",
       "type": "object",
       "additionalProperties": false,
       "required": [
@@ -3284,6 +3284,9 @@
         },
         "collection": {
           "$ref": "#/$defs/collection_summary"
+        },
+        "answer": {
+          "$ref": "#/$defs/answer"
         },
         "state": {
           "description": "Contract 2.3 (T23 B50, P1 C75 ruling 1): the committed state on every response, from page 1, while questions are still open too. Present when the body carried committed. Page 1 always carries it, and so does every later page holding a share of its lists. On the ending response it mirrors report.state page by page; before that, its lists are paged right after the fixes and the findings in state fail (never pushing a fail off page 1), ahead of concerns, questions and the other findings.",
@@ -4337,6 +4340,157 @@
             "unknown_concern",
             "changed_meanwhile"
           ]
+        }
+      }
+    },
+    "answer": {
+      "description": "T29 item 2: page 1 of a check or verify only, the whole answer within 8,000 characters. fails names every result in state fail, one group per practice, most severe first (then by practice_id), with its object ids (sorted) and up to 3 locations; each object's full line is in findings. holds counts every result in state needs_review, unknown or error, one line per shown reason (in the reason list's order), with what to look at and up to 20 practices. Past the budget, locations go first, then object ids are cut from the largest group and cut is true; count is always exact.",
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "fails",
+        "holds",
+        "cut"
+      ],
+      "properties": {
+        "fails": {
+          "type": "array",
+          "maxItems": 200,
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "practice_id",
+              "title",
+              "severity",
+              "count",
+              "object_ids",
+              "locations"
+            ],
+            "properties": {
+              "practice_id": {
+                "$ref": "https://custosa.com/schemas/fact-document/2#/$defs/practice_id"
+              },
+              "title": {
+                "type": "string",
+                "maxLength": 200
+              },
+              "severity": {
+                "type": "string",
+                "enum": [
+                  "critical",
+                  "high",
+                  "medium",
+                  "low"
+                ]
+              },
+              "count": {
+                "type": "integer",
+                "minimum": 1
+              },
+              "object_ids": {
+                "type": "array",
+                "minItems": 1,
+                "maxItems": 20000,
+                "items": {
+                  "$ref": "https://custosa.com/schemas/fact-document/2#/$defs/object_id"
+                }
+              },
+              "locations": {
+                "type": "array",
+                "maxItems": 3,
+                "items": {
+                  "$ref": "https://custosa.com/schemas/fact-document/2#/$defs/location"
+                }
+              }
+            }
+          }
+        },
+        "holds": {
+          "type": "array",
+          "maxItems": 40,
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "reason",
+              "look",
+              "count",
+              "states",
+              "practices"
+            ],
+            "properties": {
+              "reason": {
+                "type": "string",
+                "enum": [
+                  "collector_failed",
+                  "collector_not_run",
+                  "collection_truncated",
+                  "not_analyzed",
+                  "no_rule_for_stack",
+                  "needs_dataflow",
+                  "grade_too_low",
+                  "assistant_answer_needed",
+                  "person_must_decide",
+                  "preflight_failed",
+                  "evaluator_error",
+                  "no_objects_observed",
+                  "unclassified_table_exposed",
+                  "entrypoints_not_observed",
+                  "table_not_resolved",
+                  "parse_failed",
+                  "catalog_not_deployed",
+                  "exposure_suspected",
+                  "assistant_located",
+                  "code_not_verified",
+                  "answer_contradicted",
+                  "location_not_confirmed",
+                  "assistant_contested",
+                  "definer_function_unjudged",
+                  "helper_not_reached_from_handlers",
+                  "elevated_client_imported",
+                  "rules_saw_nothing"
+                ]
+              },
+              "look": {
+                "type": "string",
+                "maxLength": 1000
+              },
+              "count": {
+                "type": "integer",
+                "minimum": 1
+              },
+              "states": {
+                "type": "object",
+                "additionalProperties": false,
+                "minProperties": 1,
+                "properties": {
+                  "needs_review": {
+                    "type": "integer",
+                    "minimum": 1
+                  },
+                  "unknown": {
+                    "type": "integer",
+                    "minimum": 1
+                  },
+                  "error": {
+                    "type": "integer",
+                    "minimum": 1
+                  }
+                }
+              },
+              "practices": {
+                "type": "array",
+                "maxItems": 20,
+                "items": {
+                  "$ref": "https://custosa.com/schemas/fact-document/2#/$defs/practice_id"
+                }
+              }
+            }
+          }
+        },
+        "cut": {
+          "type": "boolean"
         }
       }
     }
