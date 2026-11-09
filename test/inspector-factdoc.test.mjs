@@ -104,7 +104,7 @@ test("the shipped schemas are the contract's copies, and contracts.mjs names the
   // The fixtures are byte-for-byte copies of the evaluator's schemas, named by the evaluator commit each came from.
   const fixture = JSON.parse(readFileSync(new URL("./fixtures/contracts/fact_document.schema.d9a7b322.json", import.meta.url), "utf8"));
   assert.deepEqual(FACT_SCHEMA, fixture);
-  assert.deepEqual(RESPONSE_SCHEMA, JSON.parse(readFileSync(new URL("./fixtures/contracts/response.schema.30b52068.json", import.meta.url), "utf8")));
+  assert.deepEqual(RESPONSE_SCHEMA, JSON.parse(readFileSync(new URL("./fixtures/contracts/response.schema.7fe5a4f7.json", import.meta.url), "utf8")));
   assert.equal(FACT_SCHEMA.$id, "https://custosa.com/schemas/fact-document/2");
   assert.ok(!FACT_SCHEMA.$defs.query_server_version && !FACT_SCHEMA.$defs.row_server_version);
   assert.ok(!JSON.stringify(RESPONSE_SCHEMA).includes("server_version"));
