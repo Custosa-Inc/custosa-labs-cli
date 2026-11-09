@@ -3882,6 +3882,17 @@
             false,
             "not_read"
           ]
+        },
+        "owner_column": {
+          "description": "T29-P1-C35: the name of the row's column the policy compares with the session's user, as table_columns sends that column's name (a name the inspector hashes is hashed here too). Set only when every expression the policy's command is judged by requires one equality of that one column with a trusted user source (owner_required true, owner_source_untrusted false), and no other relation to the user appears in them; null otherwise. Schema metadata only: never a value and never the policy text. Absent from an older CLI: the evaluator then has no owner column for the table, and an open policy's fix stays guidance.",
+          "anyOf": [
+            {
+              "$ref": "#/$defs/pg_name"
+            },
+            {
+              "type": "null"
+            }
+          ]
         }
       },
       "allOf": [
