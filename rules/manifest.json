@@ -1,5 +1,5 @@
 {
-  "ruleset_id": "2026-11-09.e88986a8",
+  "ruleset_id": "2026-11-09.c56c9006",
   "min_engine": "0.45.3",
   "files": [
     {
@@ -1578,7 +1578,7 @@
     },
     {
       "path": "contracts/screen_rules.json",
-      "sha256": "82c84ddc378c1409790d98a271d1b0ae333e1a4ca9da1a17bfd2319771e4c6b6"
+      "sha256": "02baaa660cdffc6ef6f7a90a29707f428b6061fbc677943d03dd31ca56d44f78"
     },
     {
       "path": "contracts/state.schema.json",

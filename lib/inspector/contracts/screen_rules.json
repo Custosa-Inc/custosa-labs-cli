@@ -1,5 +1,5 @@
 {
- "version": "2026-11-07.534aa6fe",
+ "version": "2026-11-09.43604f29",
  "unicode_version": "15.0.0",
  "unicode_ranges": [
   [
@@ -4838,6 +4838,7 @@
   "quoted_max": 80,
   "single_char_run_min": 4,
   "spelled_digits_min": 5,
+  "spelled_digits_near_min": 2,
   "hotword_digits_min": 4,
   "age_max": 89,
   "birth_window": 3,
