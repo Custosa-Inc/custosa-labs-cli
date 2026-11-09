@@ -1,5 +1,5 @@
 {
-  "ruleset_id": "2026-11-08.b07874c6",
+  "ruleset_id": "2026-11-09.ee5e74eb",
   "min_engine": "0.45.3",
   "files": [
     {
@@ -1072,23 +1072,23 @@
     },
     {
       "path": "rules/phi-responses-not-cached/go-generic.yml",
-      "sha256": "15303911a798ae48303ef8f53661fb71f193f12f750f54f04729ba4f1e079d94"
+      "sha256": "4a2cb2286f6a8240998d1dd4f09b8e186a164a9ce304dff4212858171d019923"
     },
     {
       "path": "rules/phi-responses-not-cached/go-gin.yml",
-      "sha256": "b2d131f97234848c9a6b06f521f33e537432b9655026475ea5812dd931e14f2f"
+      "sha256": "0b693e8f733f800c434e771d14a15832a1a5d649a792d90db54014ef428ac697"
     },
     {
       "path": "rules/phi-responses-not-cached/java-spring.yml",
-      "sha256": "4141974066a394bb42bcef9b41dbc39e449d2af7005451c945a4a5980c99d199"
+      "sha256": "14c523063c49ee2dd661bda0a96dfa0f00c2b195f006c5751f1a418caddd664c"
     },
     {
       "path": "rules/phi-responses-not-cached/javascript-express.yml",
-      "sha256": "12997f18e3a16b114270c37eb465221cf4ce360a2364a8e29cd30753261d2a72"
+      "sha256": "bcd58365d278842c56831ccf3e05f28b3c30bf271f1d2f4b121cb1ac7471b81d"
     },
     {
       "path": "rules/phi-responses-not-cached/javascript-nextjs.yml",
-      "sha256": "30745516846e1fb03eceac6627f48cb7015140def02287eea2243ebdf968e2b9"
+      "sha256": "6ff15fdf3309693bbc1ba67b0c441953073d6b7eb198aea5fca1f646faea3c97"
     },
     {
       "path": "rules/phi-responses-not-cached/json-generic.yml",
@@ -1096,47 +1096,47 @@
     },
     {
       "path": "rules/phi-responses-not-cached/kotlin-spring.yml",
-      "sha256": "4ffd8a099d003ae3b701e42050a14dad66a45d2938be733d8cee33821167223c"
+      "sha256": "872642fac3c1c24ec4805bd5418072baf60c2fd7a3bc2bf60c83a1cc64ff6c46"
     },
     {
       "path": "rules/phi-responses-not-cached/php-generic.yml",
-      "sha256": "30c2f3575015524440cb680cd6bf4217233368903d8c2a0a6d1a886b6ee2651b"
+      "sha256": "63152e1970c86c6ef30746e2686cc606dd47c8c6cae4840ef84ad0b708414b15"
     },
     {
       "path": "rules/phi-responses-not-cached/php-laravel.yml",
-      "sha256": "1c91a4549cdd8cf5fb1a9b48d08a93edde6817872246286008c0100437df38b0"
+      "sha256": "37e2556c44aa9b4bdc300e44234bdee31ada55760e971c9cbca12251a2e75442"
     },
     {
       "path": "rules/phi-responses-not-cached/python-django.yml",
-      "sha256": "41cd42ed3d8708159f1bd8721ad2cecf11e9646c5cb7bc0fce57c7b5f8acdfee"
+      "sha256": "cfd901d8683838d45a352afef551fb6e779b129f73ea486da6eba3677d5492ff"
     },
     {
       "path": "rules/phi-responses-not-cached/python-fastapi.yml",
-      "sha256": "6acaf4eb2417e170fd823144ced9a75297eea256b8a811d1b46b7d1dcfb762a0"
+      "sha256": "ac30d4db8d8bdea4681d6c4b65ce495faae78f86cfd862cdca34f1734350be4c"
     },
     {
       "path": "rules/phi-responses-not-cached/python-flask.yml",
-      "sha256": "1cd9b14b1b44ded7a046715d79a66526d19d22b0334e446908dd50d0c7370c50"
+      "sha256": "1b1ba3178cb8f943a34f69fc58959a7e01b9e31640d7f3387f69cf5421438884"
     },
     {
       "path": "rules/phi-responses-not-cached/ruby-rails.yml",
-      "sha256": "24fef9ee367fc7bb510c6e2edf048f9bb22fd8b03a0a5cdbc6db78694f11f97d"
+      "sha256": "54bfee39deafe1f64088c89fbcbbc43bba2c7606bf5f0b7106c2edae2b125d69"
     },
     {
       "path": "rules/phi-responses-not-cached/tsx-nextjs.yml",
-      "sha256": "4840d16ad84f637e72de059135dcf195c2db0f08b0a8022609a6bf6e2ccf592a"
+      "sha256": "70e1c47e57be05732751d4a15aee9d911245b08eaa0eef197b8e4ac92049481c"
     },
     {
       "path": "rules/phi-responses-not-cached/typescript-express.yml",
-      "sha256": "0d4feab7d044fc5004b0763ee0be08a6980ab4c59bcb0cb756ef7d353cf74139"
+      "sha256": "921e25f7664600a7a97f0ea04b240e8e927adb17087217b7386d95c481c33853"
     },
     {
       "path": "rules/phi-responses-not-cached/typescript-nestjs.yml",
-      "sha256": "9f100890deeffe3a358ec59d16f22a66c7e207836e24e967bd10903722c372b8"
+      "sha256": "6f70413811730c00302b8918458120fbee5e98787d9073717115bc6f70078efe"
     },
     {
       "path": "rules/phi-responses-not-cached/typescript-nextjs.yml",
-      "sha256": "dd2c7b1d372716e72c88ccb77f7d6f2b23fcf9d7f6a40930b90c8464752500ea"
+      "sha256": "5d47553061495c46c972c6651ee5bd4377c1bd35553cfc5f3329921ab1305325"
     },
     {
       "path": "rules/purge-deleted-rows/go-generic.yml",

@@ -4,10 +4,12 @@
 # at its own path and line.
 
 # items-handler: a route handler whose body makes a data call. The control is a literal Cache-Control value holding
-# no-store, or the method's @Header('Cache-Control', ...) decorator. No control: fail, unless unobserved-header holds
-# it. The header counts only in a response write (res.set, setHeader, header, writeHead, headers.set, NextResponse or
-# new Response, a name bound from one of those, or a Headers object passed to one), never in a request sent with fetch
-# or axios or on its result, nor in a comment.
+# no-store (on Node, or private: T29-P1-C9), or the method's @Header('Cache-Control', ...) decorator. No control:
+# fail, unless unobserved-header holds it. On Next.js only a GET or HEAD route handler and getServerSideProps are one:
+# a POST, PUT, PATCH or DELETE reply, a Server Action's included, isn't stored by a shared cache by default
+# (T29-P1-C9). The header counts only in a response write (res.set, setHeader, header, writeHead, headers.set,
+# NextResponse or new Response, a name bound from one of those, or a Headers object passed to one), never in a request
+# sent with fetch or axios or on its result, nor in a comment.
 id: phi-responses-not-cached.typescript-nestjs.items-handler
 practice_id: phi-responses-not-cached
 language: typescript

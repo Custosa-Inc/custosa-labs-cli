@@ -4,9 +4,11 @@
 # at its own path and line.
 
 # items-handler: a route handler whose body makes a data call. The control is a literal Cache-Control value holding
-# no-store. No control: fail, unless unobserved-header holds it. The header counts only in a response write (res.set,
-# setHeader, header, writeHead, headers.set, NextResponse or new Response, a name bound from one of those, or a
-# Headers object passed to one), never in a request sent with fetch or axios or on its result, nor in a comment.
+# no-store (on Node, or private: T29-P1-C9). No control: fail, unless unobserved-header holds it. On Next.js only a
+# GET or HEAD route handler and getServerSideProps are one: a POST, PUT, PATCH or DELETE reply, a Server Action's
+# included, isn't stored by a shared cache by default (T29-P1-C9). The header counts only in a response write
+# (res.set, setHeader, header, writeHead, headers.set, NextResponse or new Response, a name bound from one of those,
+# or a Headers object passed to one), never in a request sent with fetch or axios or on its result, nor in a comment.
 id: phi-responses-not-cached.javascript-nextjs.items-handler
 practice_id: phi-responses-not-cached
 language: javascript
@@ -22,7 +24,7 @@ rule:
         - has:
             field: name
             kind: identifier
-            regex: ^(GET|POST|PUT|PATCH|DELETE|HEAD|OPTIONS)$
+            regex: ^(GET|HEAD)$
         - inside:
             kind: export_statement
       - kind: arrow_function
@@ -32,41 +34,20 @@ rule:
           - has:
               field: name
               kind: identifier
-              regex: ^(GET|POST|PUT|PATCH|DELETE|HEAD|OPTIONS)$
+              regex: ^(GET|HEAD)$
           - inside:
               kind: lexical_declaration
               inside:
                 kind: export_statement
-      - kind: function_declaration
-        all:
-        - inside:
-            kind: export_statement
-            regex: ^export\s+default\b
-        - has:
-            field: parameters
-            kind: formal_parameters
-            regex: ^\(\s*req\b[^,]*,\s*res\b
-    - any:
-      - kind: function_declaration
-        all:
-        - inside:
-            kind: export_statement
-        - inside:
-            stopBy: end
-            kind: program
-            regex: ^\s*(//[^\n]*\n\s*)*['"]use server['"]
-      - kind: arrow_function
-        all:
-        - inside:
-            kind: variable_declarator
-            inside:
-              kind: lexical_declaration
-              inside:
-                kind: export_statement
-        - inside:
-            stopBy: end
-            kind: program
-            regex: ^\s*(//[^\n]*\n\s*)*['"]use server['"]
+    - kind: function_declaration
+      all:
+      - inside:
+          kind: export_statement
+          regex: ^export\s+default\b
+      - has:
+          field: parameters
+          kind: formal_parameters
+          regex: ^\(\s*req\b[^,]*,\s*res\b
     - any:
       - kind: function_declaration
         all:
@@ -102,7 +83,7 @@ control:
     stopBy: end
     any:
     - kind: call_expression
-      regex: (?is)['"`]cache-control['"`]\s*[,:]\s*['"`][^'"`]*no-store
+      regex: (?is)['"`]cache-control['"`]\s*[,:]\s*['"`][^'"`]*(no-store|private)
       has:
         field: function
         any:
@@ -141,13 +122,13 @@ control:
                   - kind: await_expression
                     regex: ^(await\s+)?(fetch|axios)\b
     - kind: new_expression
-      regex: (?is)['"`]cache-control['"`]\s*[,:]\s*['"`][^'"`]*no-store
+      regex: (?is)['"`]cache-control['"`]\s*[,:]\s*['"`][^'"`]*(no-store|private)
       has:
         field: constructor
         kind: identifier
         regex: ^(NextResponse|Response)$
     - kind: call_expression
-      regex: (?is)['"`]cache-control['"`]\s*[,:]\s*['"`][^'"`]*no-store
+      regex: (?is)['"`]cache-control['"`]\s*[,:]\s*['"`][^'"`]*(no-store|private)
       all:
       - any:
         - pattern: $R.headers.set($$$A)
@@ -188,7 +169,7 @@ control:
                 - kind: await_expression
                   regex: ^(new\s+)?(NextResponse|Response)\b
     - kind: new_expression
-      regex: (?is)['"`]cache-control['"`]\s*[,:]\s*['"`][^'"`]*no-store
+      regex: (?is)['"`]cache-control['"`]\s*[,:]\s*['"`][^'"`]*(no-store|private)
       all:
       - has:
           field: constructor
@@ -285,7 +266,7 @@ rule:
         - has:
             field: name
             kind: identifier
-            regex: ^(GET|POST|PUT|PATCH|DELETE|HEAD|OPTIONS)$
+            regex: ^(GET|HEAD)$
         - inside:
             kind: export_statement
       - kind: arrow_function
@@ -295,41 +276,20 @@ rule:
           - has:
               field: name
               kind: identifier
-              regex: ^(GET|POST|PUT|PATCH|DELETE|HEAD|OPTIONS)$
+              regex: ^(GET|HEAD)$
           - inside:
               kind: lexical_declaration
               inside:
                 kind: export_statement
-      - kind: function_declaration
-        all:
-        - inside:
-            kind: export_statement
-            regex: ^export\s+default\b
-        - has:
-            field: parameters
-            kind: formal_parameters
-            regex: ^\(\s*req\b[^,]*,\s*res\b
-    - any:
-      - kind: function_declaration
-        all:
-        - inside:
-            kind: export_statement
-        - inside:
-            stopBy: end
-            kind: program
-            regex: ^\s*(//[^\n]*\n\s*)*['"]use server['"]
-      - kind: arrow_function
-        all:
-        - inside:
-            kind: variable_declarator
-            inside:
-              kind: lexical_declaration
-              inside:
-                kind: export_statement
-        - inside:
-            stopBy: end
-            kind: program
-            regex: ^\s*(//[^\n]*\n\s*)*['"]use server['"]
+    - kind: function_declaration
+      all:
+      - inside:
+          kind: export_statement
+          regex: ^export\s+default\b
+      - has:
+          field: parameters
+          kind: formal_parameters
+          regex: ^\(\s*req\b[^,]*,\s*res\b
     - any:
       - kind: function_declaration
         all:
@@ -547,7 +507,7 @@ rule:
         - has:
             field: name
             kind: identifier
-            regex: ^(GET|POST|PUT|PATCH|DELETE|HEAD|OPTIONS)$
+            regex: ^(GET|HEAD)$
         - inside:
             kind: export_statement
       - kind: arrow_function
@@ -557,41 +517,20 @@ rule:
           - has:
               field: name
               kind: identifier
-              regex: ^(GET|POST|PUT|PATCH|DELETE|HEAD|OPTIONS)$
+              regex: ^(GET|HEAD)$
           - inside:
               kind: lexical_declaration
               inside:
                 kind: export_statement
-      - kind: function_declaration
-        all:
-        - inside:
-            kind: export_statement
-            regex: ^export\s+default\b
-        - has:
-            field: parameters
-            kind: formal_parameters
-            regex: ^\(\s*req\b[^,]*,\s*res\b
-    - any:
-      - kind: function_declaration
-        all:
-        - inside:
-            kind: export_statement
-        - inside:
-            stopBy: end
-            kind: program
-            regex: ^\s*(//[^\n]*\n\s*)*['"]use server['"]
-      - kind: arrow_function
-        all:
-        - inside:
-            kind: variable_declarator
-            inside:
-              kind: lexical_declaration
-              inside:
-                kind: export_statement
-        - inside:
-            stopBy: end
-            kind: program
-            regex: ^\s*(//[^\n]*\n\s*)*['"]use server['"]
+    - kind: function_declaration
+      all:
+      - inside:
+          kind: export_statement
+          regex: ^export\s+default\b
+      - has:
+          field: parameters
+          kind: formal_parameters
+          regex: ^\(\s*req\b[^,]*,\s*res\b
     - any:
       - kind: function_declaration
         all:
@@ -655,5 +594,35 @@ rule:
     inside:
       stopBy: end
       kind: program
+      regex: (\b(db|prisma|supabase|knex|pool|sql|pg|mongo|mongoose|collection|tx|trx|repo|\w+Repository|\w+Model)(\s*\.\s*\w+)*\s*\.\s*(insert|create|update|upsert|delete|remove|save|query|execute|exec|from|find|select|aggregate|put|increment|decrement|count|get)\w*\s*\(|\b\w+(Service|Dao|Repo)\s*\.\s*\w+\s*\(|\b[A-Z]\w*\s*\.\s*(find\w*|aggregate|countDocuments|estimatedDocumentCount|distinct|exists|insertMany|updateOne|updateMany|replaceOne|deleteOne|deleteMany|bulkWrite)\s*\(|\b(?:[A-NP-Z]\w*|O(?:[^b\W]\w*)?|Ob(?:[^j\W]\w*)?|Obj(?:[^e\W]\w*)?|Obje(?:[^c\W]\w*)?|Objec(?:[^t\W]\w*)?|Object\w+)\s*\.\s*create\s*\()
+min_engine: 0.39.0
+---
+# unobserved-header-method: a pages-router default handler with a data call: it may answer any method, so its item is
+# held for a person, never failed or passed (T29-P1-C9).
+id: phi-responses-not-cached.javascript-nextjs.unobserved-header-method
+practice_id: phi-responses-not-cached
+language: javascript
+frameworks:
+- nextjs
+kind: evidence
+rule:
+  all:
+  - kind: function_declaration
+    all:
+    - inside:
+        kind: export_statement
+        regex: ^export\s+default\b
+    - has:
+        field: parameters
+        kind: formal_parameters
+        regex: ^\(\s*req\b[^,]*,\s*res\b
+  - any:
+    - kind: function_declaration
+      regex: (\b(db|prisma|supabase|knex|pool|sql|pg|mongo|mongoose|collection|tx|trx|repo|\w+Repository|\w+Model)(\s*\.\s*\w+)*\s*\.\s*(insert|create|update|upsert|delete|remove|save|query|execute|exec|from|find|select|aggregate|put|increment|decrement|count|get)\w*\s*\(|\b\w+(Service|Dao|Repo)\s*\.\s*\w+\s*\(|\b[A-Z]\w*\s*\.\s*(find\w*|aggregate|countDocuments|estimatedDocumentCount|distinct|exists|insertMany|updateOne|updateMany|replaceOne|deleteOne|deleteMany|bulkWrite)\s*\(|\b(?:[A-NP-Z]\w*|O(?:[^b\W]\w*)?|Ob(?:[^j\W]\w*)?|Obj(?:[^e\W]\w*)?|Obje(?:[^c\W]\w*)?|Objec(?:[^t\W]\w*)?|Object\w+)\s*\.\s*create\s*\()
+    - kind: arrow_function
+      regex: (\b(db|prisma|supabase|knex|pool|sql|pg|mongo|mongoose|collection|tx|trx|repo|\w+Repository|\w+Model)(\s*\.\s*\w+)*\s*\.\s*(insert|create|update|upsert|delete|remove|save|query|execute|exec|from|find|select|aggregate|put|increment|decrement|count|get)\w*\s*\(|\b\w+(Service|Dao|Repo)\s*\.\s*\w+\s*\(|\b[A-Z]\w*\s*\.\s*(find\w*|aggregate|countDocuments|estimatedDocumentCount|distinct|exists|insertMany|updateOne|updateMany|replaceOne|deleteOne|deleteMany|bulkWrite)\s*\(|\b(?:[A-NP-Z]\w*|O(?:[^b\W]\w*)?|Ob(?:[^j\W]\w*)?|Obj(?:[^e\W]\w*)?|Obje(?:[^c\W]\w*)?|Objec(?:[^t\W]\w*)?|Object\w+)\s*\.\s*create\s*\()
+    - kind: function_expression
+      regex: (\b(db|prisma|supabase|knex|pool|sql|pg|mongo|mongoose|collection|tx|trx|repo|\w+Repository|\w+Model)(\s*\.\s*\w+)*\s*\.\s*(insert|create|update|upsert|delete|remove|save|query|execute|exec|from|find|select|aggregate|put|increment|decrement|count|get)\w*\s*\(|\b\w+(Service|Dao|Repo)\s*\.\s*\w+\s*\(|\b[A-Z]\w*\s*\.\s*(find\w*|aggregate|countDocuments|estimatedDocumentCount|distinct|exists|insertMany|updateOne|updateMany|replaceOne|deleteOne|deleteMany|bulkWrite)\s*\(|\b(?:[A-NP-Z]\w*|O(?:[^b\W]\w*)?|Ob(?:[^j\W]\w*)?|Obj(?:[^e\W]\w*)?|Obje(?:[^c\W]\w*)?|Objec(?:[^t\W]\w*)?|Object\w+)\s*\.\s*create\s*\()
+    - kind: method_definition
       regex: (\b(db|prisma|supabase|knex|pool|sql|pg|mongo|mongoose|collection|tx|trx|repo|\w+Repository|\w+Model)(\s*\.\s*\w+)*\s*\.\s*(insert|create|update|upsert|delete|remove|save|query|execute|exec|from|find|select|aggregate|put|increment|decrement|count|get)\w*\s*\(|\b\w+(Service|Dao|Repo)\s*\.\s*\w+\s*\(|\b[A-Z]\w*\s*\.\s*(find\w*|aggregate|countDocuments|estimatedDocumentCount|distinct|exists|insertMany|updateOne|updateMany|replaceOne|deleteOne|deleteMany|bulkWrite)\s*\(|\b(?:[A-NP-Z]\w*|O(?:[^b\W]\w*)?|Ob(?:[^j\W]\w*)?|Obj(?:[^e\W]\w*)?|Obje(?:[^c\W]\w*)?|Objec(?:[^t\W]\w*)?|Object\w+)\s*\.\s*create\s*\()
 min_engine: 0.39.0
