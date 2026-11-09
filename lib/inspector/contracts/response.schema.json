@@ -3214,7 +3214,7 @@
       }
     },
     "evaluate_response": {
-      "description": "200 from POST /v1/evaluate for an evaluation goal (check, fix, verify) (fact_document sent) or a fetch (page or resend). findings in state fail first, most severe first then by practice_id and object_id, then the rest by practice_id then object_id; page 1 of a check or verify carries answer, every fail and every open result in one block (T29 item 2); the same digest, ruleset_id and arguments give byte-identical findings. Pages carry fixes, then the findings in state fail, then concerns, then questions, then the other findings, then the report. A fetch returns the stored sections of the last response with is_fetch_only true and charged_units 0.",
+      "description": "200 from POST /v1/evaluate for an evaluation goal (check, fix, verify) (fact_document sent) or a fetch (page or resend). findings in state fail first, most severe first then by practice_id and object_id, then the rest by practice_id then object_id; page 1 of a verify carries delta, what cleared since the last run of the same root (T29 item 1); page 1 of a check or verify carries answer, every fail and every open result in one block (T29 item 2); the same digest, ruleset_id and arguments give byte-identical findings. Pages carry fixes, then the findings in state fail, then concerns, then questions, then the other findings, then the report. A fetch returns the stored sections of the last response with is_fetch_only true and charged_units 0.",
       "type": "object",
       "additionalProperties": false,
       "required": [
@@ -3284,6 +3284,9 @@
         },
         "collection": {
           "$ref": "#/$defs/collection_summary"
+        },
+        "delta": {
+          "$ref": "#/$defs/delta"
         },
         "answer": {
           "$ref": "#/$defs/answer"
@@ -4344,7 +4347,7 @@
       }
     },
     "answer": {
-      "description": "T29 item 2 (T29-P1-C4, C6): page 1 of a check or verify only, the whole answer within 11,000 characters. fail_count is every result in state fail, and fails holds one short record per fail (object_id, practice_id, severity, the first location of its evidence or null), most severe first, then by practice_id and object_id; each object's full line is in findings. holds counts every result in state needs_review, unknown or error, one line per shown reason (in the reason list's order), with what to look at (at most 200 characters) and up to 10 practices. read says what the check read in full (collectors, the number of catalog queries, files analysed) and not_read the collectors, queries and Edge Functions reading it could not read in full, grouped by status and reason. Past the budget, hold lines name fewer practices, then the least severe fail records are left to the findings lines, and cut is true; every count is exact.",
+      "description": "T29 item 2 (T29-P1-C4, C6): page 1 of a check or verify only, the whole answer within 11,000 characters, less the size of a verify's delta. fail_count is every result in state fail, and fails holds one short record per fail (object_id, practice_id, severity, the first location of its evidence or null), most severe first, then by practice_id and object_id; each object's full line is in findings. holds counts every result in state needs_review, unknown or error, one line per shown reason (in the reason list's order), with what to look at (at most 200 characters) and up to 10 practices. read says what the check read in full (collectors, the number of catalog queries, files analysed) and not_read the collectors, queries and Edge Functions reading it could not read in full, grouped by status and reason. Past the budget, hold lines name fewer practices, then the least severe fail records are left to the findings lines, and cut is true; every count is exact.",
       "type": "object",
       "additionalProperties": false,
       "required": [
@@ -4556,6 +4559,130 @@
                   "type": "string",
                   "pattern": "^[a-z][a-z0-9_]{0,63}$"
                 }
+              }
+            }
+          }
+        },
+        "cut": {
+          "type": "boolean"
+        }
+      }
+    },
+    "delta": {
+      "description": "T29 item 1: page 1 of a verify only, within 4,000 characters. The findings (results shown in state fail, needs_review, unknown or error) of the last check or verify of the same project root (against names its goal; null when none is kept, and then nothing is compared) against this verify: cleared, now pass or not_applicable on Custosa's own reading or on a verdict labelled settled by the AI (by_ai counts those; T29-P1-C6); still_open, now in any other state or no longer in the results (unread counts those now unknown or error, or gone: a finding whose fact went missing is never cleared), naming only those now failing and the unread ones, the rest counted; a result a person's decision settled stays here, counted as person_decided; new, a finding now that was none in the last run. fails counts the fails in each list (in the last run for cleared, now for the others). Each list puts fails first, then by object id; past the budget, object ids are cut from the end of the longest list and cut is true. count is always exact.",
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "against",
+        "cleared",
+        "still_open",
+        "new",
+        "cut"
+      ],
+      "properties": {
+        "against": {
+          "anyOf": [
+            {
+              "type": "string",
+              "enum": [
+                "check",
+                "verify"
+              ]
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "cleared": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "count",
+            "fails",
+            "by_ai",
+            "object_ids"
+          ],
+          "properties": {
+            "count": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "fails": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "object_ids": {
+              "type": "array",
+              "maxItems": 5000,
+              "items": {
+                "$ref": "https://custosa.com/schemas/fact-document/2#/$defs/object_id"
+              }
+            },
+            "by_ai": {
+              "type": "integer",
+              "minimum": 0
+            }
+          }
+        },
+        "still_open": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "count",
+            "fails",
+            "unread",
+            "person_decided",
+            "object_ids"
+          ],
+          "properties": {
+            "count": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "fails": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "object_ids": {
+              "type": "array",
+              "maxItems": 5000,
+              "items": {
+                "$ref": "https://custosa.com/schemas/fact-document/2#/$defs/object_id"
+              }
+            },
+            "unread": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "person_decided": {
+              "type": "integer",
+              "minimum": 0
+            }
+          }
+        },
+        "new": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "count",
+            "fails",
+            "object_ids"
+          ],
+          "properties": {
+            "count": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "fails": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "object_ids": {
+              "type": "array",
+              "maxItems": 5000,
+              "items": {
+                "$ref": "https://custosa.com/schemas/fact-document/2#/$defs/object_id"
               }
             }
           }
