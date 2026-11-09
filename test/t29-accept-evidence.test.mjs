@@ -33,6 +33,19 @@ for (const note of [
   });
 }
 
+test("a run of 2 number words near a hotword still refuses, each word its own hit", () => {
+  const out = screenRaw("The patient is forty two.", IDS, RULES);
+  assert.deepEqual(out.hits.filter((h) => h.rule === "spelled_digits").map((h) => [h.start, h.end]), [[15, 20], [21, 24]]);
+  assert.ok(rulesHit("Patient bed twenty-one, ward nine.").includes("spelled_digits"));
+  assert.equal(RULES.limits.spelled_digits_near_min, 2);
+});
+
+test("a rule file without spelled_digits_near_min keeps the single-word rule, as core reads it", () => {
+  const { spelled_digits_near_min: _drop, ...limits } = RULES.limits;
+  const old = { ...RULES, limits };
+  assert.deepEqual(screenRaw("Only one patient route checks the session.", IDS, old).hits.map((h) => h.rule), ["spelled_digits"]);
+});
+
 test("a person's name still refuses", () => {
   assert.ok(rulesHit("Dr Smith can read every patient.").length > 0);
 });
