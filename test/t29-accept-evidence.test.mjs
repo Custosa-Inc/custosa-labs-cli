@@ -7,6 +7,7 @@ import assert from "node:assert/strict";
 import { fileURLToPath } from "node:url";
 import { loadRules, screenRaw } from "../lib/screen.mjs";
 import { NOTE_RULES_FILE } from "../lib/inspector/tool.mjs";
+import { refsRefused } from "../lib/inspector/notes.mjs";
 
 const RULES = loadRules(fileURLToPath(NOTE_RULES_FILE));
 const IDS = ["patients", "appointments", "src/lib/prisma.ts"];
@@ -34,4 +35,24 @@ for (const note of [
 
 test("a person's name still refuses", () => {
   assert.ok(rulesHit("Dr Smith can read every patient.").length > 0);
+});
+
+/* line_uncited: a line the check itself cited is citable. A match cites path:start-end; the AI citing a line or a
+ * narrower range inside it cites what the check cited. A line outside every cited range, or an uncited path, is still
+ * refused (line_uncited, not_read). */
+const DOC = { matches: [{ rule_id: "authz-every-handler.typescript-nextjs.route", practice_id: "authz-every-handler",
+  kind: "item", path: "app/api/notes/route.ts", line_start: 12, line_end: 30 }] };
+const refsOf = (...refs) => refsRefused({ verdicts: [{ practice_id: "authz-every-handler", refs }] }, [DOC]);
+
+test("a line or range inside a range the check cited is citable", () => {
+  assert.deepEqual(refsOf("app/api/notes/route.ts:12-30"), []);
+  assert.deepEqual(refsOf("app/api/notes/route.ts:12"), []);
+  assert.deepEqual(refsOf("app/api/notes/route.ts:15"), []);
+  assert.deepEqual(refsOf("app/api/notes/route.ts:14-20"), []);
+});
+
+test("a line outside every cited range, or an uncited file, is still refused", () => {
+  assert.deepEqual(refsOf("app/api/notes/route.ts:31").map((r) => r.why), ["line_uncited"]);
+  assert.deepEqual(refsOf("app/api/notes/route.ts:10-14").map((r) => r.why), ["line_uncited"]);
+  assert.deepEqual(refsOf("app/other.ts:3").map((r) => r.why), ["not_read"]);
 });
