@@ -433,3 +433,44 @@ test("Dotless and dotted i, control-character spaces and hash-shaped runs read a
   const key = Buffer.alloc(32, 7);
   assert.equal(sentIdentifier(key, "u_5551234567890123"), "u_5551234567890123");
 });
+
+/* T29 o2 step 2 (T29-P1-C116 (a)): core's response is one body with its index, and concerns past the client limit are
+ * grouped by status. The CLI matches a call's raises in the same call: from index.concerns, or by reading each grouped
+ * status through get_result (free, never shown to Claude). Nothing waits for a later call. */
+const INDEX = (concerns, grouped) => ({
+  result_counts: { by_state: { pass: 0, fail: 0, not_applicable: 0, needs_review: 0, unknown: 0, error: 0 }, by_severity: {},
+    by_state_and_severity: [] },
+  practices: [], fails: [], open: [], questions: [], concerns, fixes: [], lists: [],
+  ...(grouped ? { concerns_grouped: grouped } : {}),
+});
+const RESULT = (select, results) => ({ goal: "check", session: EVALUATE_OK.session, select, part: "detail",
+  matched: results.length, results, is_fetch_only: true, charged_units: 0, correlation_id: "corr_12345678" });
+
+test("T29 o2: a raise listed in index.concerns keeps its text in the same call, with no other call", async () => {
+  const root = repo();
+  const { s, runCheck } = await setup(() => ({ status: 200, json: { ...EVALUATE_OK, concern_options: OPTIONS,
+    index: INDEX([listed(ID_B, B, { raised_now: true }), listed(ID_A, A, { raised_now: true })]) } }));
+  try {
+    const out = await runCheck({ goal: "check", concerns: [{ ...A, note: TEXT_A }, { ...B, note: TEXT_B }] }, { roots: [root] });
+    assert.equal(s.calls.length, 1);
+    assert.deepEqual(new Set(readTexts(root).keys()), new Set([ID_A, ID_B]));
+    assert.equal(out.local_notes, undefined);
+  } finally { await s.close(); }
+});
+
+test("T29 o2: a raise grouped past the client limit is read through get_result and keeps its text in the same call", async () => {
+  const root = repo();
+  const select = { list: "concerns.unconfirmed" };
+  const { s, runCheck } = await setup((call) => ({ status: 200, json: call.body.select
+    ? RESULT(call.body.select, [listed(ID_B, B, { raised_now: true }), listed(ID_A, A, { raised_now: true })])
+    : { ...EVALUATE_OK, concern_options: OPTIONS, index: INDEX([], [{ status: "unconfirmed", count: 2, select }]) } }));
+  try {
+    const out = await runCheck({ goal: "check", concerns: [{ ...A, note: TEXT_A }, { ...B, note: TEXT_B }] }, { roots: [root] });
+    assert.equal(s.calls.length, 2);
+    assert.deepEqual(s.calls[1].body, { goal: "check", session: EVALUATE_OK.session, select });
+    assert.equal(JSON.stringify(s.calls[1].body).includes(TEXT_A), false, "a get_result read carries no text");
+    assert.deepEqual(new Set(readTexts(root).keys()), new Set([ID_A, ID_B]));
+    assert.equal(out.local_notes, undefined);
+    assert.ok(!("results" in out) && !("matched" in out), "the read is the CLI's own, not shown in the answer");
+  } finally { await s.close(); }
+});

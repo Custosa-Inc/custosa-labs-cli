@@ -270,3 +270,33 @@ test("each built root carries its one state.json read, and its matches' content 
   assert.deepEqual(out.documents[0].stateRead, readState(root));
   assert.equal(seen, "c".repeat(64));
 });
+
+/* T29 o2 step 2 (T29-P1-C116 (a)): the state's lists are in the call's store. After an evaluation the CLI reads
+ * state.to_commit (and not_committed) through get_result, following a sub_index entry by entry, and writes every entry;
+ * nothing waits on a later page. */
+test("T29 o2: to_commit is read through get_result, every entry past a sub_index, and written in the same call", async () => {
+  const root = rootWith();
+  const asked = [];
+  const fixed = { state_version: 1, sent: { decisions: 0, suppressions: 0, grants: 0 }, by_outcome: {}, to_commit_total: 2 };
+  const entries = [issued("rls-enabled@public.a"), issued("rls-enabled@public.b")];
+  const evaluate = async (body) => {
+    if (!body.select) return { ok: true, body: { goal: "check", status: "done", session: "s_0123456789abcdef0123", state: fixed,
+      report: { state: fixed } } };
+    asked.push(body.select.list);
+    const [name, at] = body.select.list.split("#");
+    const base = { goal: "check", session: "s_0123456789abcdef0123", select: body.select, part: "detail", is_fetch_only: true,
+      charged_units: 0 };
+    if (name !== "state.to_commit") return { ok: true, body: { ...base, matched: 0, results: [] } };
+    if (at === undefined) return { ok: true, body: { ...base, matched: 2, sub_index: entries.map((e, i) => ({ select: { list: `state.to_commit#${i}` } })) } };
+    return { ok: true, body: { ...base, matched: 1, results: [entries[Number(at)]] } };
+  };
+  const run = makeRunCheck({ localOnly: false, readToken: () => ({ token: "t", host: "https://e.test" }),
+    evaluatorUrl: () => ({ url: "https://e.test", origin: "https://e.test" }), stateEnv: {},
+    environmentFor: () => ({ environment: { value: "unknown", source: "setup" }, note: null }), evaluate,
+    build: async () => ({ notes: [], documents: [{ project: 0, label: "", nested: false, other: false, skipped: false,
+      root_id: "0".repeat(64), abs: root, document: { session: null } }] }) });
+  const out = await run({ goal: "check" }, { roots: ["A"] });
+  assert.deepEqual(readState(root).state.decisions.map((d) => d.subject), ["rls-enabled@public.a", "rls-enabled@public.b"]);
+  assert.ok(asked.includes("state.to_commit") && asked.includes("state.to_commit#1"), asked.join(","));
+  assert.ok(!(out.local_notes ?? []).some((n) => n.startsWith("state_entries_on_later_pages")));
+});

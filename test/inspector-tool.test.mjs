@@ -943,3 +943,11 @@ test("T29 o2: result_missing replaces page_missing, and no shipped text names pa
   hits.push(...["../README.md"].filter((f) => PAGING.test(readFileSync(fileURLToPath(new URL(f, import.meta.url)), "utf8"))));
   assert.deepEqual(hits, []);
 });
+
+test("T29 o2: the client takes a get_result answer (matched, no status) as an answer, not as an unreadable one", async () => {
+  const { checkEvaluateAnswer } = await import("../lib/inspector/client.mjs");
+  const body = { goal: "check", session: "ps_abcdefghijklmnopqrstuv", select: { state: "fail" }, part: "detail", matched: 0,
+    results: [], values: ["pass"], is_fetch_only: true, charged_units: 0, correlation_id: "corr_12345678" };
+  assert.deepEqual(checkEvaluateAnswer(200, body), { ok: true, body });
+  assert.equal(checkEvaluateAnswer(200, { ...body, matched: "0" }), null);
+});
