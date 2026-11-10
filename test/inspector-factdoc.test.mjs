@@ -1118,3 +1118,18 @@ test("facts past their 1 MB share drop whole candidates, with a count in the loc
   assert.ok(note, JSON.stringify(out.notes));
   assert.ok(!note.includes("route.ts"), "the note names no candidate");
 });
+
+test("T19 B2: a project whose only code fails to parse sends the rules collector truncated, nothing_read, in a lawful document", async () => {
+  const root = repo({ "package.json": BASE["package.json"], "src/a.js": "function f() {\n  console.log(x.patient);\n" });
+  const { out } = await build(root);
+  const doc = out.documents[0].document;
+  assert.equal(checkDocument(doc), null);
+  assert.deepEqual(doc.files.not_analyzed.filter((e) => e.path === "src/a.js").map((e) => e.reason), ["parse_error"]);
+  assert.equal(doc.files.analyzed, 0);
+  assert.deepEqual([col(doc, "rules").status, col(doc, "rules").reason], ["truncated", "nothing_read"]);
+  // The same project with the file whole is read: ok, found as before.
+  const fixed = repo({ "package.json": BASE["package.json"], "src/a.js": "function f() {\n  console.log(x.patient);\n}\n" });
+  const whole = (await build(fixed)).out.documents[0].document;
+  assert.equal(checkDocument(whole), null);
+  assert.equal(col(whole, "rules").status, "ok");
+});
