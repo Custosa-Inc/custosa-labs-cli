@@ -15,10 +15,12 @@ rule:
     regex: '(?i)^`postgres(ql)?(\+\w+)?://[^`]*[?&]sslmode=(disable|allow|prefer)\b'
   # T29 (t): a template or a joined string that adds the mode to a URL from elsewhere, `${process.env.DATABASE_URL}?sslmode=disable`
   # or DATABASE_URL + "?sslmode=disable" (the (k) key's B035)
+  # anchored (P2 C148 med 2): the mode follows an interpolation in one URL-shaped run, or a joined string starts with
+  # the query, so a guard's message, a replace or a warning that names the mode is not a client
   - kind: template_string
-    regex: '(?i)[?&]sslmode=(disable|allow|prefer)\b'
+    regex: '(?i)\}[^\s"''`]*[?&]sslmode=(disable|allow|prefer)\b'
   - kind: string
-    regex: '(?i)[?&]sslmode=(disable|allow|prefer)\b'
+    regex: '(?i)^["''][^\s"'']*[?&]sslmode=(disable|allow|prefer)\b'
     inside:
       kind: binary_expression
 min_engine: 0.39.0
@@ -187,7 +189,11 @@ rule:
           - kind: 'false'
           - kind: string
           - kind: number
+          # an object with a spread may carry rejectUnauthorized: false that no rule sees, so it asks (P2 C148 med 1)
           - kind: object
+            not:
+              has:
+                kind: spread_element
           - kind: ternary_expression
             all:
             - has: {field: consequence, any: [{kind: 'false'}, {kind: 'null'}, {kind: undefined}, {kind: identifier, regex: '^undefined$'}]}

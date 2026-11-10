@@ -1,5 +1,5 @@
 {
-  "ruleset_id": "2026-11-10.d1d47008",
+  "ruleset_id": "2026-11-10.73a80904",
   "min_engine": "0.45.3",
   "files": [
     {
@@ -528,7 +528,7 @@
     },
     {
       "path": "rules/db-tls-enforced/javascript-generic.yml",
-      "sha256": "d845706983d209f872ee63d6f654753757960721bc36883312874a20dfc35b7f"
+      "sha256": "5f3c3a0f6e8c912839bc009b8b6ead9cfc48ad7960c5263a87b1f4fa08fa5ab5"
     },
     {
       "path": "rules/db-tls-enforced/php-generic.yml",
@@ -544,11 +544,11 @@
     },
     {
       "path": "rules/db-tls-enforced/tsx-generic.yml",
-      "sha256": "d549fe09433728f6a682c99d7ee693c31215b97aa2075e8440d7f2e69886d759"
+      "sha256": "f3c7ef1cad6b793aca9089e356bd4e0ae933489a8cb778283670d36677608577"
     },
     {
       "path": "rules/db-tls-enforced/typescript-generic.yml",
-      "sha256": "dbf7af73e9a21f6006e03fa3df6e59b382c762ff3cf75c007c6ecc504ba2550f"
+      "sha256": "817c8d7b2568f01517984d92c12e4375e4033339bf5b015b796b322ef5c246da"
     },
     {
       "path": "rules/dependency-scanning-ci/json-generic.yml",
