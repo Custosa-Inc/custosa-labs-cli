@@ -278,6 +278,28 @@ test("B2 low (T19-P3-C157): a run whose only file read in full is frameworks_unk
   assert.deepEqual([judged.status, judged.analyzed], ["ok", 1]);
 });
 
+test("T29 (C148, bunehr B002): files under a dependency or build folder git tracks run after the app's own files, so a run cut short cuts them first", async () => {
+  // A committed node_modules is walked like source (enums DEPENDENCY_DIRECTORIES), but in path order
+  // "frontend/node_modules/..." ran before "src/...", so 57k vendored files used the whole budget and src was never read.
+  const rules = loadRules(RULES);
+  const files = [
+    { path: "frontend/node_modules/lib/index.ts", text: ROUTE },
+    { path: "frontend/dist/assets/index.ts", text: ROUTE },
+    { path: "src/app/api/visits/route.ts", text: ROUTE },
+    { path: "vendor/acme/route.ts", text: ROUTE },
+  ];
+  const stop = new AbortController();
+  const out = await runRules(rules, files, { key: KEY, frameworks: ["nextjs"], workers: 1, signal: stop.signal,
+    onFile: () => stop.abort() }); // only the first file to run is read
+  assert.deepEqual(out.analyzedPaths, ["src/app/api/visits/route.ts"]);
+  assert.deepEqual(out.notAnalyzed.map((n) => [n.path, n.reason]), [ // in the input's order
+    ["frontend/node_modules/lib/index.ts", "time_limit"], ["frontend/dist/assets/index.ts", "time_limit"],
+    ["vendor/acme/route.ts", "time_limit"]]);
+  // run in full, every file is read and the output order is the input's
+  const all = await runRules(rules, files, { key: KEY, frameworks: ["nextjs"], workers: 1 });
+  assert.deepEqual(all.analyzedPaths, files.map((f) => f.path).sort());
+});
+
 test("1b: a recovered parse (MISSING node, no ERROR) is parse_error and loses its evidence and controls", async () => {
   // A missing `}` lets GET swallow POST: GET would look controlled by POST's requireUser.
   const swallowed = `export async function GET(request) {
