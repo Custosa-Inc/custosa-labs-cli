@@ -1503,3 +1503,28 @@ test("fixture markers and sections count a lone CR as a line break, as the engin
   assert.deepEqual(fixtureSections("a\r// path: src/b.ts\nfoo();\n", "//").map((x) => [x.path, x.lines]),
     [[null, [1, 1]], ["src/b.ts", [2, 4]]]);
 });
+
+test("T19 B2: when the engine read none of the files it had rules for, the rules collector is truncated, nothing_read", async () => {
+  const rules = loadRules(RULES);
+  const big = "export const x = { a: [1, 2, 3], b: () => f(1) };\n".repeat(40000);
+  const tooBig = await runRules(rules, [{ path: "big.ts", text: big }], { key: KEY, frameworks: [], maxBytes: 1000 });
+  assert.deepEqual([tooBig.status, tooBig.reason, tooBig.analyzed], ["truncated", "nothing_read", 0]);
+  // Every file failed to parse: the violations they still show are kept, but nothing was read in full.
+  const broken = await runRules(rules, [{ path: "src/a.js", text: "function f() {\n  console.log(x.patient);\n" },
+    { path: "src/b.ts", text: "if (a) { b()\n" }], { key: KEY, frameworks: [] });
+  assert.deepEqual(broken.notAnalyzed.map((e) => e.reason), ["parse_error", "parse_error"]);
+  assert.deepEqual([broken.status, broken.reason], ["truncated", "nothing_read"]);
+  // One file read in full is enough: the rest are in not_analyzed, which the evaluator reads as before.
+  const one = await runRules(rules, [{ path: "src/a.js", text: "function f() {\n  console.log(x.patient);\n" },
+    { path: "src/c.js", text: "export const y = 1;\n" }], { key: KEY, frameworks: [] });
+  assert.equal(one.analyzed, 1);
+  assert.notEqual(one.reason, "nothing_read");
+  // Files the engine has no rules for are not unread files: no files, an unknown type or no rule for the frameworks
+  // stays empty.
+  assert.equal((await runRules(rules, [], { key: KEY, frameworks: [] })).status, "empty");
+  const unknown = await runRules(rules, [{ path: "notes.xyz", text: "x" }], { key: KEY, frameworks: [] });
+  assert.deepEqual([unknown.status, unknown.reason], ["empty", null]);
+  const nextOnly = rules.filter((r) => r.kind === "items");
+  const none = await runRules(nextOnly, [{ path: "app/api/visits/route.ts", text: ROUTE }], { key: KEY, frameworks: ["express"] });
+  assert.deepEqual([none.status, none.reason], ["empty", null]);
+});
