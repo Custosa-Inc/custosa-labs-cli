@@ -96,7 +96,7 @@ test("the shipped response schema takes exposure_suspected wherever it takes a r
     else if (x && typeof x === "object") Object.values(x).forEach(walk);
   };
   walk(RESPONSE_SCHEMA);
-  assert.equal(enums.length, 6);   // T29 item 2 added answer.holds[].reason
+  assert.equal(enums.length, 5);   // T29 o1b 3d-1 removed the answer block, and with it answer.holds[].reason
   for (const e of enums) assert.ok(e.includes("exposure_suspected"), JSON.stringify(e));
 });
 
@@ -104,7 +104,7 @@ test("the shipped schemas are the contract's copies, and contracts.mjs names the
   // The fixtures are byte-for-byte copies of the evaluator's schemas, named by the evaluator commit each came from.
   const fixture = JSON.parse(readFileSync(new URL("./fixtures/contracts/fact_document.schema.f7c5800e.json", import.meta.url), "utf8"));
   assert.deepEqual(FACT_SCHEMA, fixture);
-  assert.deepEqual(RESPONSE_SCHEMA, JSON.parse(readFileSync(new URL("./fixtures/contracts/response.schema.6b7bff6a.json", import.meta.url), "utf8")));
+  assert.deepEqual(RESPONSE_SCHEMA, JSON.parse(readFileSync(new URL("./fixtures/contracts/response.schema.11082673.json", import.meta.url), "utf8")));
   assert.equal(FACT_SCHEMA.$id, "https://custosa.com/schemas/fact-document/2");
   assert.ok(!FACT_SCHEMA.$defs.query_server_version && !FACT_SCHEMA.$defs.row_server_version);
   assert.ok(!JSON.stringify(RESPONSE_SCHEMA).includes("server_version"));
@@ -141,7 +141,7 @@ test("The response schema takes contract 2.2's result reasons, so a 2.2 core's a
     else if (x && typeof x === "object") Object.values(x).forEach(walk);
   };
   walk(RESPONSE_SCHEMA);
-  assert.equal(enums.length, 6);   // T29 item 2 added answer.holds[].reason
+  assert.equal(enums.length, 5);   // T29 o1b 3d-1 removed the answer block, and with it answer.holds[].reason
   for (const e of enums) {
     for (const r of ["assistant_located", "code_not_verified", "answer_contradicted", "location_not_confirmed", "assistant_contested"]) {
       assert.ok(e.includes(r), `${r} missing from ${JSON.stringify(e)}`);
