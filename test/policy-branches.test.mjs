@@ -40,6 +40,15 @@ test("an OR nested under AND is one branch, and no OR is one branch", () => {
   assert.deepEqual(usingBranches("(user_id = auth.uid())", "posts"), ["owner"]);
 });
 
+test("an OR under AND is one branch: never owner unless the owner check is required, and not_read when it may open rows (P1 C155 point 1)", () => {
+  // the owner check sits under the inner OR beside a branch every signed-in user meets: not required, so not owner
+  const weak = "((clinic_id IS NOT NULL) AND ((user_id = auth.uid()) OR (auth.uid() IS NOT NULL)))";
+  assert.deepEqual(usingBranches(weak, "notes"), ["not_read"]);
+  // the owner check is required on the AND path: the inner OR only narrows the owner's own rows
+  const narrow = "((user_id = auth.uid()) AND ((status = 'a'::text) OR (auth.uid() IS NOT NULL)))";
+  assert.deepEqual(usingBranches(narrow, "notes"), ["owner"]);
+});
+
 test("more than MAX_BRANCHES branches, or text that doesn't parse, is null", () => {
   assert.equal(MAX_BRANCHES, 8);
   const many = Array.from({ length: 9 }, (_, i) => `(status = '${i}'::text)`).join(" OR ");
