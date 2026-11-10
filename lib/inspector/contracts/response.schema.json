@@ -3697,34 +3697,6 @@
           "description": "Contract 2.3 (T23 B50, P1 C75 ruling 1): the committed state's fixed lines on every response, while questions are still open too. Present when the body carried committed. On the ending response it mirrors report.state. Its lists (to_commit, not_committed, unmatched) are kept in the call's store and named in the index's lists.",
           "$ref": "#/$defs/committed_state"
         },
-        "findings": {
-          "type": "array",
-          "maxItems": 20000,
-          "items": {
-            "$ref": "#/$defs/result"
-          }
-        },
-        "questions": {
-          "type": "array",
-          "maxItems": 1000,
-          "items": {
-            "$ref": "#/$defs/question"
-          }
-        },
-        "briefs": {
-          "type": "array",
-          "maxItems": 1000,
-          "items": {
-            "$ref": "#/$defs/brief"
-          }
-        },
-        "fixes": {
-          "type": "array",
-          "maxItems": 1000,
-          "items": {
-            "$ref": "#/$defs/fix"
-          }
-        },
         "report": {
           "anyOf": [
             {
@@ -3773,23 +3745,6 @@
           "description": "The request and response contract the evaluator speaks (contract 2.2, T23 B49; 2.4 since B51); absent from an older evaluator.",
           "type": "string",
           "pattern": "^[0-9]{1,3}\\.[0-9]{1,3}$"
-        },
-        "guidance": {
-          "description": "B52 (T23-P1-C104, C109): not sent since T29 o1b 3d-1. A practice's guidance is kept once in the call's store and returned by get_result part guidance. Kept here so an older body still validates.",
-          "type": "array",
-          "minItems": 1,
-          "maxItems": 200,
-          "items": {
-            "$ref": "#/$defs/guidance"
-          }
-        },
-        "concerns": {
-          "description": "B51 (contract 2.4, review N1): the assistant's concerns for this project, since T29 o1b 3d-1 kept in the call's store and named by the index (index.concerns, or index.concerns_grouped past the client limit), never on the response: every concern, those raised this call first, then those decided this call, then the unresolved, then the closed, newest first in each. report.concerns indexes every id by status and readiness.breakdown.concerns counts them.",
-          "type": "array",
-          "maxItems": 1000,
-          "items": {
-            "$ref": "#/$defs/concern"
-          }
         },
         "concern_options": {
           "$ref": "#/$defs/concern_options"
