@@ -894,3 +894,52 @@ test("T29-P1-C6: get_result_page sends a target (practice, table or file) as a f
     await s.close();
   }
 });
+
+/* T29 (o) o2, red first: get_result replaces get_result_page (core o1b: the response is one body with its index, and
+ * get_result is the only fetch). The tool count stays 3; no tool takes page, resend or target. */
+test("T29 o2: get_result replaces get_result_page, and no tool takes page, resend or target", async () => {
+  const { TOOLS } = await import("../lib/inspector/tool.mjs");
+  assert.deepEqual(TOOLS.map((t) => t.name), ["check_schema", "schema_guidance", "get_result"]);
+  for (const t of TOOLS) {
+    for (const k of ["page", "resend", "target"]) assert.ok(!Object.hasOwn(t.inputSchema.properties, k), `${t.name} takes ${k}`);
+  }
+  const input = TOOLS[2].inputSchema;
+  assert.deepEqual([...input.required].sort(), ["select", "session"]);
+  const select = input.properties.select;
+  assert.deepEqual(Object.keys(select.properties).sort(),
+    ["advice", "file", "finding", "list", "practice", "severity", "state", "table"]);
+  assert.equal(select.minProperties, 1);
+  assert.equal(select.maxProperties, 1);
+  assert.deepEqual(input.properties.part.enum, ["detail", "guidance", "fix", "proof", "reference"]);
+});
+
+test("T29 o2: get_result sends goal, session, select and part as a fetch, and collects nothing", async () => {
+  const root = repo();
+  const { s, runCheck, builds } = await setup();
+  try {
+    const n = builds.length;
+    const session = "ps_abcdefghijklmnopqrstuv";
+    await runCheck({ goal: "check", session, select: { practice: "rls-forced" }, part: "guidance" }, { roots: [root] });
+    assert.deepEqual(s.calls.at(-1).body, { goal: "check", session, select: { practice: "rls-forced" }, part: "guidance" });
+    await runCheck({ goal: "fix", session, select: { list: "fixes.own" } }, { roots: [root] });
+    assert.deepEqual(s.calls.at(-1).body, { goal: "fix", session, select: { list: "fixes.own" } });
+    assert.equal(builds.length, n, "a get_result fetch builds no fact document");
+    assert.equal((await runCheck({ goal: "check", select: { state: "fail" } }, { roots: [root] })).next_step,
+      TOOL_ERRORS.needs_session);
+  } finally {
+    await s.close();
+  }
+});
+
+test("T29 o2: result_missing replaces page_missing, and no shipped text names pages", async () => {
+  const { ERROR_STATUS } = await import("../lib/inspector/client.mjs");
+  assert.equal(ERROR_STATUS.result_missing, 404);
+  assert.ok(!Object.hasOwn(ERROR_STATUS, "page_missing"));
+  const { readdirSync, readFileSync } = await import("node:fs");
+  const lib = fileURLToPath(new URL("../lib/", import.meta.url));
+  const files = readdirSync(lib, { recursive: true }).filter((f) => /\.(mjs|json)$/.test(f) && !f.startsWith(`inspector${"/"}contracts`));
+  const PAGING = /get_result_page|page_missing|later page|page 1\b|page\.next|page\.of|\bresend\b/i;
+  const hits = files.filter((f) => PAGING.test(readFileSync(join(lib, f), "utf8")));
+  hits.push(...["../README.md"].filter((f) => PAGING.test(readFileSync(fileURLToPath(new URL(f, import.meta.url)), "utf8"))));
+  assert.deepEqual(hits, []);
+});
