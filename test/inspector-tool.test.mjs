@@ -765,6 +765,45 @@ test("every span is confirmed and hashed like location; one span that can't be c
   } finally { await s.close(); }
 });
 
+// --- T29 H2: no_subject, the app has nothing the practice is about, shown by the spans read (at) ------------
+test("T29 H2: the tool takes no_subject as a location answer, with at and no location or code", async () => {
+  const { default: AjvModule } = await import("ajv");
+  const { INPUT_SCHEMA } = await import("../lib/inspector/tool.mjs");
+  const validate = new (AjvModule.default ?? AjvModule)({ strict: true }).compile(INPUT_SCHEMA);
+  const none = (o) => validate({ goal: "check", session: "ps_abcdefghijklmnopqrstuv",
+    answers: [{ object_id: "a-b@one", question_id: "location", answer: "no_subject", location: null, ...o }] });
+  assert.equal(none({ at: ["src/a.ts:1-3", "src/b.ts:4"] }), true);
+  assert.equal(none({}), true, "with no at it is sent, and settles nothing");
+  assert.equal(none({ at: [] }), false);
+  assert.equal(none({ location: "src/a.ts:1" }), false, "no_subject names no location");
+  assert.equal(none({ at: ["src/a.ts:1"], code: "x_at" }), false, "no_subject carries no code");
+  assert.equal(validate({ goal: "check", session: "ps_abcdefghijklmnopqrstuv", answers: [
+    { object_id: "a-b@one", question_id: "purpose", answer: "no_subject", location: null }] }), false, "a location answer only");
+  const { ANSWERS_BY_QUESTION } = await import("../lib/inspector/contracts.mjs");
+  const { FACT_SCHEMA } = await import("../lib/inspector/schema.mjs");
+  assert.ok(ANSWERS_BY_QUESTION.location.includes("no_subject"));
+  assert.ok(FACT_SCHEMA.properties.answers.items.properties.answer.enum.includes("no_subject"));
+});
+
+test("T29 H2: a no_subject answer's spans are confirmed and hashed like a here answer's; one that can't be confirmed sends none", async () => {
+  const root = repo({ "odd dir/a.ts": "line1\nline2\nline3\n", "src/b.ts": "one\ntwo\nthree\n" });
+  const { s, runCheck, configDir } = await setup();
+  try {
+    await runCheck({ goal: "check", session: "ps_abcdefghijklmnopqrstuv", answers: [
+      { object_id: "a-b@one", question_id: "location", answer: "no_subject", location: null, at: ["odd dir/a.ts:1-3", "src/b.ts:2", "src/b.ts:2"] },
+      { object_id: "a-b@two", question_id: "location", answer: "no_subject", location: null, at: ["src/b.ts:1", "src/missing.ts:1"] },
+      { object_id: "a-b@three", question_id: "location", answer: "no_subject", location: null, at: ["src/b.ts:9"] },
+      { object_id: "a-b@four", question_id: "location", answer: "no_subject", location: null },
+    ] }, { roots: [root] });
+    const doc = s.calls[0].body.fact_document;
+    const { readFileSync } = await import("node:fs");
+    const odd = hashed(readFileSync(join(configDir, "install.key")), "odd dir");
+    const sent = (object_id, more = {}) => ({ object_id, question_id: "location", answer: "no_subject", location: null, location_kind: null, ...more });
+    assert.deepEqual(doc.answers, [sent("a-b@one", { at: [`${odd}/a.ts:1-3`, "src/b.ts:2"] }), sent("a-b@two"), sent("a-b@three"), sent("a-b@four")]);
+    assert.equal(validateFactDocument(doc), null);
+  } finally { await s.close(); }
+});
+
 test("a question's expects list is kept, and a location answer gets the first listed kind seen there", async () => {
   const root = repo({ "app/api/x/route.ts": "export async function POST(req) {\n  return Response.json({});\n}\n" });
   const q = (object_id, expects) => ({ question_id: "location", object_id, practice_id: "a-b", ask: "Where is it?", answers: ["here", "not_found", "not_present"], expects });
