@@ -1,5 +1,5 @@
 {
-  "ruleset_id": "2026-11-10.2d5dab70",
+  "ruleset_id": "2026-11-10.beb2b957",
   "min_engine": "0.45.3",
   "files": [
     {
@@ -1614,7 +1614,7 @@
     },
     {
       "path": "contracts/fact_document.schema.json",
-      "sha256": "bd2ec51e741942d8617b36d7c3b56d2a3f72983de65c14245988adbbc4f33bc7"
+      "sha256": "ab60136e4b566496a216aa066c56e61289cec28ba2c8ecf74f052195a307e3c1"
     },
     {
       "path": "contracts/fact_schema.json",
@@ -1626,7 +1626,7 @@
     },
     {
       "path": "contracts/response.schema.json",
-      "sha256": "23567b3f8249caf1c99cf8ca4f63fb987b72ea6441715885a794d299a2389373"
+      "sha256": "aba59a6223dae92e93513c8cb7be8841b49e6ce09336f43547154615b24b21f6"
     },
     {
       "path": "contracts/safe_words.txt",
