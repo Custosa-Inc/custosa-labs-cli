@@ -10,6 +10,7 @@
     "bin",
     "lib",
     "rules",
+    "skills",
     "README.md",
     "npm-shrinkwrap.json"
   ],

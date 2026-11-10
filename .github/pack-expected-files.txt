@@ -469,3 +469,4 @@ rules/rules/write-fields-allowlisted/typescript-express.yml
 rules/rules/write-fields-allowlisted/typescript-nestjs.yml
 rules/rules/write-fields-allowlisted/typescript-nextjs.yml
 rules/value_screen_words.json
+skills/phi-schema-check-reference/SKILL.md

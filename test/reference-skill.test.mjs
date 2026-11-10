@@ -3,7 +3,7 @@
  * regs.yaml, status.yaml, vendors.yaml).
  *
  * Who it serves: an assistant reading the rule text behind a practice gets the 45 CFR section, the status pages and
- * each vendor's own HIPAA page, each with the date Custosa last read it. This package is public, so the file carries
+ * each vendor's page, each with the date Custosa last read it. This package is public, so the file carries
  * links and dates only (C89): no BAA yes or no, no condition, no status wording and no excerpt. Those are served from
  * the evaluator, dated, in a finding's reference part. The sync test (C86 red case 5) keeps the file equal to what the
  * script makes from core's files. */
@@ -34,7 +34,7 @@ test("the shipped file is a skill: a name, a description, and one dated link per
   assert.match(front, /^name: phi-schema-check-reference$/m);
   assert.match(front, /^description: .{40,}$/m);
   const rows = body.split("\n").filter((l) => l.startsWith("| ") && !l.startsWith("| ---") && !/^\| (practice|what|service) \|/.test(l));
-  assert.equal(rows.length, 30 + 4 + 10); // regs, status, vendors as of the pack's first release
+  assert.equal(rows.length, 30 + 4 + 8); // regs, status, and the vendors with a page (upstash and dicebear have none yet)
   for (const r of rows) assert.match(r, /\]\(https:\/\/[^)\s]+\) \| \d{4}-\d{2}-\d{2} \|$/, r);
 });
 
@@ -44,7 +44,7 @@ test("links and dates only: no BAA value, condition, plan, setting, status wordi
     assert.ok(!out.includes(word), word);
   }
   assert.doesNotMatch(out, /\b(baa|yes|no)\b/i);
-  assert.ok(out.includes("| cloud-a | [HIPAA page](https://cloud-a.example/hipaa) | 2026-11-10 |"));
+  assert.ok(out.includes("| cloud-a | [source](https://cloud-a.example/hipaa) | 2026-11-10 |"));
   assert.ok(out.includes("| some-rule | [A proposed rule](https://www.reginfo.gov/x) | 2026-11-10 |"));
 });
 
@@ -61,6 +61,13 @@ test("an entry with no https link, no date, or a | in its text is refused, namin
   assert.throws(bad("regs", "p", { cite: "c", as_of: "", url: "https://www.ecfr.gov/p" }), /regs p: as_of is not a date/);
   assert.throws(bad("status", "s", { what: "a | b", checked_on: "2026-11-10", source: "https://x.example" }), /status s: what has a \|/);
   assert.throws(bad("vendors", "v", { checked_on: "2026-11-10" }), /vendors v: source is not an https link/);
+  assert.throws(bad("vendors", "v", { checked_on: "2026-11-10", source: "None" }), /vendors v: source is not an https link/);
+});
+
+test("a vendor not read yet (source: none) is left out, since there is no page to link", () => {
+  const out = renderReferenceSkill({ ...PACK, vendors: { ...PACK.vendors, "not-read": { baa: "open", checked_on: "2026-11-10", source: "none" } } });
+  assert.ok(!out.includes("not-read"));
+  assert.equal(out, renderReferenceSkill(PACK));
 });
 
 test("the file equals what scripts/sync-reference.mjs makes from core's pack", { skip: coreSkip(FOUND, "no core reference pack (set CUSTOSA_CORE_CONTRACTS)") }, () => {
