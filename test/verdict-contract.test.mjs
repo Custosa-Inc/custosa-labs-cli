@@ -123,7 +123,10 @@ test("the body sends a verdict's reason_code, refs and note and a concern's refs
   const raised = { concern_id: "cn_0123456789abcdef", raised_now: true, category: concern.category, area: concern.area,
     file_kind: concern.file_kind, proposed_severity: concern.proposed_severity, severity: concern.proposed_severity, status: "unconfirmed",
     label: "waits for a confirm", next: { awaiting: "confirm", options: [{ id: "real_problem" }, { id: "not_a_problem" }, { id: "not_sure" }] } };
-  const { s, runCheck } = await setup(() => ({ status: 200, json: { ...EVALUATE_OK, concerns: [raised], concern_options: { real_problem: "It's a real problem", not_a_problem: "It isn't a problem", not_sure: "Not sure" } } }));
+  // o1b 3d-3: the concern is a line of the answer's index (core sends no top-level concerns since 3d-1).
+  const { s, runCheck } = await setup(() => ({ status: 200, json: { ...EVALUATE_OK, index: { result_counts: { by_state: { pass: 0, fail: 0, not_applicable: 0, needs_review: 0, unknown: 0,
+    error: 0 }, by_severity: {}, by_state_and_severity: [] }, practices: [], fails: [], open: [], questions: [], concerns: [raised],
+    fixes: [], lists: [] }, concern_options: { real_problem: "It's a real problem", not_a_problem: "It isn't a problem", not_sure: "Not sure" } } }));
   try {
     const bare = { practice_id: "audit-log", state: "fail", reason_code: "control_missing" };
     await runCheck({ goal: "check", session: SESSION, verdicts: [verdict, bare], concerns: [concern],
