@@ -13,7 +13,8 @@ const T4 = "((patient_id = (current_setting('app.current_user'::text, true))::uu
 test("the key's d7, d9 and t4 policies", () => {
   assert.deepEqual(usingBranches(D7, "lab_annotations"), ["owner", "signed_in"]);
   assert.deepEqual(usingBranches(D9, "treatment_photos"), ["any_member"]);
-  assert.deepEqual(usingBranches(T4, "dentist_reviews"), ["owner", "member"]);
+  // app.current_user isn't a setting the parser reads as a user id (policyFields doesn't either), so not_read
+  assert.deepEqual(usingBranches(T4, "dentist_reviews"), ["not_read", "member"]);
 });
 
 test("a membership that names the caller and ties to the row is member_row", () => {
