@@ -1,6 +1,6 @@
 {
   "title": "Cited facts (T29 line item h, T29-P3-C85; built from lab/T29/experiment/fact_schema.json without the secrets rule). Facts only, never verdicts. Every fact cites a file, a line and an exact token copied from that line.",
-  "contract_version": "2.6",
+  "contract_version": "2.7",
   "cite": {
     "file": "path from the project root",
     "line": "1-based line number, counting lines on \\n",

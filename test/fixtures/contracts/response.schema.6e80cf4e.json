@@ -1234,7 +1234,7 @@
       }
     },
     "readiness": {
-      "description": "ready only with at least one settled pass (any assurance), nothing blocking (no fail, unknown or error result, and no needs_review result on a critical or high practice, B9), no open evidence hold, definer hold, person-only result or run problem at any severity, and no unresolved assistant concern (OQ1, B28). percent is verified by Custosa; score counts what the assistant or a person settled too and always travels with score_label; breakdown says who decided. A person's decision recorded without an option is shown, never counted. Production readiness (ready with environment production) needs environment value production from source setup; from source answer the state is not_ready in production. needs_review results on medium and low practices that are not holds don't block ready: with the rest of the open items they are the end-of-run list the person confirms, grouped by cause.",
+      "description": "Contract A (T29 r1): readiness counts practices, not objects. A practice's state is the worst of its results: fail, then open (needs_review, unknown or error), then pass, then not_applicable; a practice whose registry applies_to matches the app with no reading is unread, never pass, and one whose applies_to doesn't match is out of the practice counts, the score and ready (unless any of its results is other than a pass or not_applicable, or is a hold; a practice is out only on a positive read of another platform or stack by the inspector's own collectors (an empty, unrecognised or assistant-written read takes nothing out)); counts and by_severity still count every result, as the findings lines list them. ready only with at least one pass practice, every practice pass or not_applicable (no fail, no open item at any severity, no unread practice) and no unresolved assistant concern; a confirmed open concern makes the practice it names open, or counts as one more open line. percent is verified by Custosa (E1 or E2); score counts every pass practice and always travels with score_label; pass_by_grade and breakdown say who decided; practice_counts counts the practices by state and severity, and by_practice gives each practice's line. A person's decision recorded without an option is shown, never counted. Production readiness (ready with environment production) needs environment value production from source setup; from source answer the state is not_ready in production.",
       "type": "object",
       "additionalProperties": false,
       "required": [
@@ -1248,6 +1248,11 @@
         "registry_id",
         "checked_at",
         "environment",
+        "pass_by_grade",
+        "practice_counts",
+        "by_practice",
+        "concern_lines",
+        "verified_state",
         "score",
         "score_label",
         "breakdown",
@@ -1267,7 +1272,7 @@
             "ready",
             "not_ready"
           ],
-          "description": "T27 C69: state on Custosa's word alone, which the public badge and page show: ready only when state is ready, at least one pass is Custosa's own, and no result rests on the assistant's or a person's word (a settled pass or not_applicable counts as blocking). Inside the session state stands."
+          "description": "The badge's word (T27 C69, contract A), which the public badge and page show: the same rule as state, with a pass or not_applicable practice counted only at the grades custosa (E1, E2) and custosa_on_cited_facts (E3). A practice the assistant or a person settled (pass or not_applicable) never makes it ready. Inside the session state stands."
         },
         "headline": {
           "type": "string",
@@ -1280,10 +1285,10 @@
           ],
           "minimum": 0,
           "maximum": 100,
-          "description": "percent_verified: Custosa's own passes over every result but Custosa's not_applicable, plus open confirmed concerns in the denominator; half up, never 100 while one isn't a Custosa pass, null when nothing applies."
+          "description": "percent_verified: practices whose pass rests only on Custosa's own reading (E1 or E2) over every practice line but a not_applicable one Custosa read itself, plus one line per confirmed open concern that names no practice line; half up, never 100 while one isn't such a pass, null when nothing applies."
         },
         "counts": {
-          "description": "Results by shown state; a pass or not_applicable the assistant or a person settled is counted in assistant_decided or person_decided (B28), never in pass or not_applicable. A labelled fail stays in fail.",
+          "description": "Results by shown state; a pass or not_applicable Custosa judged on facts the assistant cited (E3), or the assistant or a person settled, is counted in custosa_on_cited_facts, assistant_decided or person_decided, never in pass or not_applicable. A labelled fail stays in fail.",
           "type": "object",
           "additionalProperties": false,
           "required": [
@@ -1293,6 +1298,7 @@
             "needs_review",
             "unknown",
             "error",
+            "custosa_on_cited_facts",
             "assistant_decided",
             "person_decided"
           ],
@@ -1323,6 +1329,11 @@
               "maximum": 1000000
             },
             "error": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 1000000
+            },
+            "custosa_on_cited_facts": {
               "type": "integer",
               "minimum": 0,
               "maximum": 1000000
@@ -1360,6 +1371,7 @@
                 "needs_review",
                 "unknown",
                 "error",
+                "custosa_on_cited_facts",
                 "assistant_decided",
                 "person_decided",
                 "concern_open"
@@ -1391,6 +1403,11 @@
                   "maximum": 1000000
                 },
                 "error": {
+                  "type": "integer",
+                  "minimum": 0,
+                  "maximum": 1000000
+                },
+                "custosa_on_cited_facts": {
                   "type": "integer",
                   "minimum": 0,
                   "maximum": 1000000
@@ -1423,6 +1440,7 @@
                 "needs_review",
                 "unknown",
                 "error",
+                "custosa_on_cited_facts",
                 "assistant_decided",
                 "person_decided",
                 "concern_open"
@@ -1454,6 +1472,11 @@
                   "maximum": 1000000
                 },
                 "error": {
+                  "type": "integer",
+                  "minimum": 0,
+                  "maximum": 1000000
+                },
+                "custosa_on_cited_facts": {
                   "type": "integer",
                   "minimum": 0,
                   "maximum": 1000000
@@ -1486,6 +1509,7 @@
                 "needs_review",
                 "unknown",
                 "error",
+                "custosa_on_cited_facts",
                 "assistant_decided",
                 "person_decided",
                 "concern_open"
@@ -1517,6 +1541,11 @@
                   "maximum": 1000000
                 },
                 "error": {
+                  "type": "integer",
+                  "minimum": 0,
+                  "maximum": 1000000
+                },
+                "custosa_on_cited_facts": {
                   "type": "integer",
                   "minimum": 0,
                   "maximum": 1000000
@@ -1549,6 +1578,7 @@
                 "needs_review",
                 "unknown",
                 "error",
+                "custosa_on_cited_facts",
                 "assistant_decided",
                 "person_decided",
                 "concern_open"
@@ -1584,6 +1614,11 @@
                   "minimum": 0,
                   "maximum": 1000000
                 },
+                "custosa_on_cited_facts": {
+                  "type": "integer",
+                  "minimum": 0,
+                  "maximum": 1000000
+                },
                 "assistant_decided": {
                   "type": "integer",
                   "minimum": 0,
@@ -1611,7 +1646,6 @@
             "additionalProperties": false,
             "required": [
               "area",
-              "pass",
               "verified_pass",
               "settled_pass",
               "applicable",
@@ -1621,35 +1655,274 @@
               "area": {
                 "$ref": "https://custosa.com/schemas/fact-document/2#/$defs/identifier"
               },
-              "pass": {
-                "type": "integer",
-                "minimum": 0,
-                "maximum": 1000000,
-                "description": "Deprecated (one release): the same as verified_pass."
-              },
               "applicable": {
                 "type": "integer",
                 "minimum": 0,
                 "maximum": 1000000,
-                "description": "Every result but Custosa's not_applicable: verified_pass's denominator."
+                "description": "Practices in the area but a not_applicable one Custosa read itself: verified_pass's denominator."
               },
               "verified_pass": {
                 "type": "integer",
                 "minimum": 0,
                 "maximum": 1000000,
-                "description": "Custosa's own passes in the area."
+                "description": "Practices in the area whose pass rests only on E1 or E2."
               },
               "settled_pass": {
                 "type": "integer",
                 "minimum": 0,
                 "maximum": 1000000,
-                "description": "Passes of any assurance in the area (Custosa, the assistant or a person)."
+                "description": "Pass practices in the area, of any grade."
               },
               "score_applicable": {
                 "type": "integer",
                 "minimum": 0,
                 "maximum": 1000000,
-                "description": "Every result but any not_applicable: settled_pass's denominator."
+                "description": "Practices in the area but any not_applicable: settled_pass's denominator."
+              }
+            }
+          }
+        },
+        "pass_by_grade": {
+          "description": "Pass practices by the grade they rest on, so the E3 count (custosa_on_cited_facts) and the settled counts show beside percent and score. They sum to the pass practices.",
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "custosa",
+            "custosa_on_cited_facts",
+            "person_decided",
+            "assistant_decided"
+          ],
+          "properties": {
+            "custosa": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 1000000
+            },
+            "custosa_on_cited_facts": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 1000000
+            },
+            "person_decided": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 1000000
+            },
+            "assistant_decided": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 1000000
+            }
+          }
+        },
+        "concern_lines": {
+          "description": "Confirmed open concerns that name no practice: one more open line each, in the score's and the percent's denominators. The percent's denominator is the sum of by_area's applicable plus this; the score's, the sum of by_area's score_applicable plus this.",
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 1000000
+        },
+        "practice_counts": {
+          "description": "Every practice counted by its state and severity (contract A): fail, open, unread, pass and not_applicable, complete on every response; by_practice gives the lines.",
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "fail",
+            "open",
+            "unread",
+            "pass",
+            "not_applicable"
+          ],
+          "properties": {
+            "fail": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "critical",
+                "high",
+                "medium",
+                "low"
+              ],
+              "properties": {
+                "critical": {
+                  "type": "integer",
+                  "minimum": 0
+                },
+                "high": {
+                  "type": "integer",
+                  "minimum": 0
+                },
+                "medium": {
+                  "type": "integer",
+                  "minimum": 0
+                },
+                "low": {
+                  "type": "integer",
+                  "minimum": 0
+                }
+              }
+            },
+            "open": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "critical",
+                "high",
+                "medium",
+                "low"
+              ],
+              "properties": {
+                "critical": {
+                  "type": "integer",
+                  "minimum": 0
+                },
+                "high": {
+                  "type": "integer",
+                  "minimum": 0
+                },
+                "medium": {
+                  "type": "integer",
+                  "minimum": 0
+                },
+                "low": {
+                  "type": "integer",
+                  "minimum": 0
+                }
+              }
+            },
+            "unread": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "critical",
+                "high",
+                "medium",
+                "low"
+              ],
+              "properties": {
+                "critical": {
+                  "type": "integer",
+                  "minimum": 0
+                },
+                "high": {
+                  "type": "integer",
+                  "minimum": 0
+                },
+                "medium": {
+                  "type": "integer",
+                  "minimum": 0
+                },
+                "low": {
+                  "type": "integer",
+                  "minimum": 0
+                }
+              }
+            },
+            "pass": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "critical",
+                "high",
+                "medium",
+                "low"
+              ],
+              "properties": {
+                "critical": {
+                  "type": "integer",
+                  "minimum": 0
+                },
+                "high": {
+                  "type": "integer",
+                  "minimum": 0
+                },
+                "medium": {
+                  "type": "integer",
+                  "minimum": 0
+                },
+                "low": {
+                  "type": "integer",
+                  "minimum": 0
+                }
+              }
+            },
+            "not_applicable": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "critical",
+                "high",
+                "medium",
+                "low"
+              ],
+              "properties": {
+                "critical": {
+                  "type": "integer",
+                  "minimum": 0
+                },
+                "high": {
+                  "type": "integer",
+                  "minimum": 0
+                },
+                "medium": {
+                  "type": "integer",
+                  "minimum": 0
+                },
+                "low": {
+                  "type": "integer",
+                  "minimum": 0
+                }
+              }
+            }
+          }
+        },
+        "by_practice": {
+          "description": "One line per practice counted (contract A), sorted by practice id: its state, the weakest grade its pass or not_applicable rests on (null for fail, open and unread) and its severity. Practice numbers, never compared with the index's result_counts.",
+          "type": "array",
+          "maxItems": 1000,
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "practice_id",
+              "state",
+              "grade",
+              "severity"
+            ],
+            "properties": {
+              "practice_id": {
+                "$ref": "https://custosa.com/schemas/fact-document/2#/$defs/identifier"
+              },
+              "state": {
+                "type": "string",
+                "enum": [
+                  "fail",
+                  "open",
+                  "unread",
+                  "pass",
+                  "not_applicable"
+                ]
+              },
+              "grade": {
+                "type": [
+                  "string",
+                  "null"
+                ],
+                "enum": [
+                  "custosa",
+                  "custosa_on_cited_facts",
+                  "person_decided",
+                  "assistant_decided",
+                  null
+                ]
+              },
+              "severity": {
+                "type": "string",
+                "enum": [
+                  "critical",
+                  "high",
+                  "medium",
+                  "low"
+                ]
               }
             }
           }
@@ -1670,7 +1943,7 @@
           "$ref": "https://custosa.com/schemas/fact-document/2#/$defs/environment"
         },
         "score": {
-          "description": "The settled score: passes of any assurance over every result but any not_applicable, plus open confirmed concerns in the denominator (a fixed concern is neutral, a dismissed or unconfirmed one out). Never shown without score_label.",
+          "description": "The score: pass practices of any grade over every practice line but a not_applicable one, plus one line per confirmed open concern that names no practice line (a fixed concern is neutral, a dismissed or unconfirmed one out). Never shown without score_label.",
           "type": [
             "integer",
             "null"
@@ -1684,7 +1957,7 @@
           "maxLength": 100
         },
         "blockers": {
-          "description": "What keeps the state not_ready, by severity, each result counted in one kind at most (B28-core second review), the same counts the headline names: hold is a result whose F4 class is hold (app.core.assurance.f4_class: observed_problem or definer_hold set, an evidence-hold reason such as collection_truncated, answer_contradicted, code_not_verified, location_not_confirmed, table_not_resolved, definer_function_unjudged, exposure_suspected, helper_not_reached_from_handlers, unclassified_table_exposed, non_runtime_file or fact_missing, or a reason in no class); person_only is a result whose F4 class is person_only for assistant_contested; a result person_only for rules_saw_nothing alone (an answer's pass or not_applicable refused where the rules saw nothing) counts by its state, as below (B9). Every other result counts by its state at the readiness level: fail; needs_review on critical and high practices only (B9); unknown; error. A run problem (evaluator_error, preflight_failed) counts as error or unknown by its state. Unresolved assistant concerns and production named by the assistant also keep it not_ready and are not counted here.",
+          "description": "What keeps the state not_ready, by severity, the same counts the headline and the public badge name (app.readiness.blocker_phrases). Each result counts in one kind at most (B28-core second review): hold is a result whose F4 class is hold (app.core.assurance.f4_class: observed_problem or definer_hold set, an evidence-hold reason such as collection_truncated, answer_contradicted, code_not_verified, location_not_confirmed, table_not_resolved, definer_function_unjudged, exposure_suspected, helper_not_reached_from_handlers, unclassified_table_exposed, non_runtime_file or fact_missing, or a reason in no class); person_only is a result whose F4 class is person_only for assistant_contested; a result person_only for rules_saw_nothing alone counts by its state, as below. Every other result counts by its shown state, at every severity (contract A): fail, needs_review, unknown, error. A run problem (evaluator_error, preflight_failed) counts as error or unknown by its state. unread counts practices, not results: a practice that applies with no reading. Unresolved assistant concerns and production named by the assistant also keep it not_ready and are not counted here.",
           "type": "object",
           "additionalProperties": false,
           "required": [
@@ -1693,7 +1966,8 @@
             "hold",
             "person_only",
             "unknown",
-            "error"
+            "error",
+            "unread"
           ],
           "properties": {
             "fail": {
@@ -1712,6 +1986,9 @@
               "$ref": "#/$defs/severity_counts"
             },
             "error": {
+              "$ref": "#/$defs/severity_counts"
+            },
+            "unread": {
               "$ref": "#/$defs/severity_counts"
             }
           }
@@ -1989,35 +2266,106 @@
                 "properties": {
                   "fail": {
                     "const": 0
-                  },
-                  "unknown": {
-                    "const": 0
-                  },
-                  "error": {
-                    "const": 0
-                  },
-                  "pass": {
-                    "minimum": 1
                   }
                 }
               },
-              "by_severity": {
+              "practice_counts": {
                 "properties": {
-                  "critical": {
+                  "fail": {
                     "properties": {
-                      "needs_review": {
+                      "critical": {
+                        "const": 0
+                      },
+                      "high": {
+                        "const": 0
+                      },
+                      "medium": {
+                        "const": 0
+                      },
+                      "low": {
                         "const": 0
                       }
                     }
                   },
-                  "high": {
+                  "open": {
                     "properties": {
-                      "needs_review": {
+                      "critical": {
+                        "const": 0
+                      },
+                      "high": {
+                        "const": 0
+                      },
+                      "medium": {
+                        "const": 0
+                      },
+                      "low": {
+                        "const": 0
+                      }
+                    }
+                  },
+                  "unread": {
+                    "properties": {
+                      "critical": {
+                        "const": 0
+                      },
+                      "high": {
+                        "const": 0
+                      },
+                      "medium": {
+                        "const": 0
+                      },
+                      "low": {
                         "const": 0
                       }
                     }
                   }
-                }
+                },
+                "anyOf": [
+                  {
+                    "properties": {
+                      "pass": {
+                        "properties": {
+                          "critical": {
+                            "minimum": 1
+                          }
+                        }
+                      }
+                    }
+                  },
+                  {
+                    "properties": {
+                      "pass": {
+                        "properties": {
+                          "high": {
+                            "minimum": 1
+                          }
+                        }
+                      }
+                    }
+                  },
+                  {
+                    "properties": {
+                      "pass": {
+                        "properties": {
+                          "medium": {
+                            "minimum": 1
+                          }
+                        }
+                      }
+                    }
+                  },
+                  {
+                    "properties": {
+                      "pass": {
+                        "properties": {
+                          "low": {
+                            "minimum": 1
+                          }
+                        }
+                      }
+                    }
+                  }
+                ]
               }
             }
           }
@@ -2520,7 +2868,7 @@
           "maxLength": 500
         },
         "by_state": {
-          "description": "The object ids of every result, by state, sorted. Since T29 o1b 3d-1 never on the response: the index's result_counts and its practice, fail and open lines say the same, and get_result with a state selector lists them. A pass or not_applicable the assistant or the person settled is listed under assistant_decided or person_decided instead, as readiness counts it.",
+          "description": "The object ids of every result, by state, sorted. Since T29 o1b 3d-1 never on the response: the index's result_counts and its practice, fail and open lines say the same, and get_result with a state selector lists them. A pass or not_applicable Custosa judged on cited facts, or the assistant or the person settled, is listed under custosa_on_cited_facts, assistant_decided or person_decided instead, as readiness counts it.",
           "type": "object",
           "additionalProperties": false,
           "required": [
@@ -2530,6 +2878,7 @@
             "needs_review",
             "unknown",
             "error",
+            "custosa_on_cited_facts",
             "assistant_decided",
             "person_decided"
           ],
@@ -2570,6 +2919,13 @@
               }
             },
             "error": {
+              "type": "array",
+              "maxItems": 20000,
+              "items": {
+                "$ref": "https://custosa.com/schemas/fact-document/2#/$defs/object_id"
+              }
+            },
+            "custosa_on_cited_facts": {
               "type": "array",
               "maxItems": 20000,
               "items": {
