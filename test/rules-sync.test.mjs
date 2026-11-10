@@ -79,8 +79,9 @@ test("a copy that differs from its manifest is caught: a changed byte, a missing
  * answer. This package's copy must be the schema its manifest names. */
 test("the manifest names the contract files, and this package's copies are those files", () => {
   // Contract 2.3: the fact and state schemas are hashed into the id beside the response schema. So are
-  // the screen's rule file, its three name lists and their license notices.
-  const names = ["NOTICE.txt", "ambiguous_names.txt", "fact_document.schema.json", "personal_names.txt",
+  // the screen's rule file, its three name lists and their license notices. Contract 2.6 (T29 line item h): the cited
+  // facts' fact_schema.json too.
+  const names = ["NOTICE.txt", "ambiguous_names.txt", "fact_document.schema.json", "fact_schema.json", "personal_names.txt",
     "response.schema.json", "safe_words.txt", "screen_rules.json", "state.schema.json"];
   const copies = names.map((n) => ({ path: `contracts/${n}`, bytes: readFileSync(join(CONTRACTS_DIR, "contracts", n)) }));
   assert.deepEqual(MANIFEST.contracts, copies.map((c) => ({ path: c.path, sha256: sha256(c.bytes) })));

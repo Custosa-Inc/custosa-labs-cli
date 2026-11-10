@@ -17,6 +17,7 @@ lib/inspector/contracts.mjs
 lib/inspector/contracts/NOTICE.txt
 lib/inspector/contracts/ambiguous_names.txt
 lib/inspector/contracts/fact_document.schema.json
+lib/inspector/contracts/fact_schema.json
 lib/inspector/contracts/free_text_probes.json
 lib/inspector/contracts/personal_names.txt
 lib/inspector/contracts/response.schema.json

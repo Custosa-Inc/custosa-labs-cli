@@ -1,0 +1,111 @@
+{
+  "title": "Cited facts (T29 line item h, T29-P3-C85; built from lab/T29/experiment/fact_schema.json without the secrets rule). Facts only, never verdicts. Every fact cites a file, a line and an exact token copied from that line.",
+  "contract_version": "2.6",
+  "cite": {
+    "file": "path from the project root",
+    "line": "1-based line number, counting lines on \\n",
+    "token": "an exact substring of that line, at least 3 characters, taken from the construct the value is about (for a guard, its call)"
+  },
+  "unknown": "If you cannot tell a value, give \"unknown\". Unknown never counts in the project's favour.",
+  "absence": "A value saying something is not there (guard none, owner_source none, rls_enabled disabled) needs no citation.",
+  "rules": {
+    "authz": {
+      "practice": "authz-every-handler",
+      "candidate": "every HTTP handler, controller method or server action that reads or returns one stored record by an id",
+      "fields": {
+        "handler": {
+          "values": [
+            "declared"
+          ],
+          "about": "cite the line that declares the handler"
+        },
+        "guard": {
+          "values": [
+            "none",
+            "signed_in",
+            "role",
+            "owner_filter",
+            "owner_compare"
+          ],
+          "about": "what limits who reaches the record; cite the line that does it"
+        },
+        "record_id_source": {
+          "values": [
+            "path_param",
+            "query",
+            "body",
+            "session",
+            "other"
+          ],
+          "about": "cite where the id is read"
+        },
+        "owner_value_source": {
+          "values": [
+            "session",
+            "request"
+          ],
+          "about": "for owner_filter or owner_compare: cite where the owner value comes from"
+        }
+      }
+    },
+    "write_fields": {
+      "practice": "write-fields-allowlisted",
+      "candidate": "every handler that creates or updates a stored record from request input",
+      "fields": {
+        "handler": {
+          "values": [
+            "declared"
+          ],
+          "about": "cite the line that declares the handler"
+        },
+        "data_shape": {
+          "values": [
+            "named_fields",
+            "spread_request",
+            "spread_parsed"
+          ],
+          "about": "cite the line that builds the written data"
+        },
+        "parser": {
+          "values": [
+            "strips_unknown_keys",
+            "keeps_unknown_keys"
+          ],
+          "about": "for spread_parsed: cite the schema declaration"
+        },
+        "owner_source": {
+          "values": [
+            "session",
+            "request",
+            "none"
+          ],
+          "about": "cite where the owner or user id written comes from"
+        }
+      }
+    },
+    "rls": {
+      "practice": "rls-policies-scoped",
+      "candidate": "every table created in a SQL file in the project, named schema.table",
+      "fields": {
+        "table": {
+          "values": [
+            "declared"
+          ],
+          "about": "cite the CREATE TABLE line"
+        },
+        "rls_enabled": {
+          "values": [
+            "enabled",
+            "disabled"
+          ],
+          "about": "cite the ENABLE ROW LEVEL SECURITY line"
+        },
+        "per_user_columns": {
+          "values": "list of column names",
+          "about": "the columns that hold a user, owner, patient or author id; [] if none; cite the column's line"
+        }
+      }
+    }
+  },
+  "record": "One object per candidate: {\"rule\": \"authz|write_fields|rls\", \"candidate\": <handler location or schema.table>, <field>: {\"value\": ..., \"file\": ..., \"line\": ..., \"token\": ...}, ...}. A field with no citation gives value only."
+}

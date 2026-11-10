@@ -35,9 +35,10 @@ const RULESET_ID = /^[0-9]{4}-[0-9]{2}-[0-9]{2}\.[0-9a-f]{8}$/;
 // value_screen_words.json: the value screen's common words, listed by core's build_ruleset
 // DATA_FILES under app/knowledge, so rules/value_screen_words.json; valueshape.mjs reads it there.
 const LISTED_PATH = /^(?:rules\/[a-z0-9][a-z0-9-]{0,63}\/[A-Za-z0-9._-]{1,128}|queries\/[a-z_]{1,40}\.(?:sql|yml)|value_screen_words\.json)$/;
-// The schemas, and the free-text screen's rule file, its three name lists and their license notices, which
-// core's build_ruleset lists as contracts so the ruleset id covers them.
-const CONTRACT_PATH = /^contracts\/(?:[a-z_]{1,40}\.schema\.json|screen_rules\.json|(?:personal|ambiguous)_names\.txt|safe_words\.txt|NOTICE\.txt)$/;
+// The schemas, the cited facts' fact_schema.json (T29 line item h, contract 2.6), and the free-text screen's rule file,
+// its three name lists and their license notices, which core's build_ruleset lists as contracts so the ruleset id
+// covers them.
+const CONTRACT_PATH = /^contracts\/(?:[a-z_]{1,40}\.schema\.json|fact_schema\.json|screen_rules\.json|(?:personal|ambiguous)_names\.txt|safe_words\.txt|NOTICE\.txt)$/;
 // shared test tables that ride with the contracts but aren't part of the ruleset_id (core's build_ruleset
 // leaves them out of CONTRACT_FILES). Copied when the source has them; test/free-text-probes.test.mjs runs the copy.
 export const PROBE_TABLES = ["contracts/free_text_probes.json"];

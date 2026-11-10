@@ -2956,6 +2956,433 @@
           ]
         }
       }
+    },
+    "cited_facts": {
+      "description": "T29 line item h (T29-P3-C85): facts the assistant reported for authz-every-handler (rule authz), write-fields-allowlisted (write_fields) and rls-policies-scoped (rls), relayed by the inspector, never a verdict. One row per field of a candidate: an authz or write_fields candidate is the handler's location, an rls candidate a table. value is the field's closed value (enums.FACT_VALUES), a list of column names for per_user_columns, or unknown. cite is the inspector's check of the assistant's citation: ok when the file is in the walk, the line exists and the cited token (3 or more characters) is on that line; failed when not; none when no citation was given. at is the cited file and line for ok and null otherwise; the token never leaves the machine. Optional: absent means the assistant sent no facts, and the three practices are judged as before (enums.FACT_RULES).",
+      "type": "array",
+      "maxItems": 10000,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "rule",
+          "candidate",
+          "field",
+          "value",
+          "at",
+          "cite"
+        ],
+        "properties": {
+          "rule": {
+            "type": "string",
+            "enum": [
+              "authz",
+              "write_fields",
+              "rls"
+            ]
+          },
+          "candidate": {
+            "anyOf": [
+              {
+                "$ref": "#/$defs/location"
+              },
+              {
+                "$ref": "#/$defs/qualified_name"
+              }
+            ]
+          },
+          "field": {
+            "type": "string",
+            "enum": [
+              "handler",
+              "guard",
+              "record_id_source",
+              "owner_value_source",
+              "data_shape",
+              "parser",
+              "owner_source",
+              "table",
+              "rls_enabled",
+              "per_user_columns"
+            ]
+          },
+          "value": {
+            "anyOf": [
+              {
+                "type": "string",
+                "enum": [
+                  "declared",
+                  "none",
+                  "signed_in",
+                  "role",
+                  "owner_filter",
+                  "owner_compare",
+                  "path_param",
+                  "query",
+                  "body",
+                  "session",
+                  "other",
+                  "request",
+                  "named_fields",
+                  "spread_request",
+                  "spread_parsed",
+                  "strips_unknown_keys",
+                  "keeps_unknown_keys",
+                  "enabled",
+                  "disabled",
+                  "unknown"
+                ]
+              },
+              {
+                "type": "array",
+                "maxItems": 50,
+                "items": {
+                  "$ref": "#/$defs/pg_name"
+                }
+              }
+            ]
+          },
+          "at": {
+            "anyOf": [
+              {
+                "$ref": "#/$defs/location"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "cite": {
+            "type": "string",
+            "enum": [
+              "ok",
+              "failed",
+              "none"
+            ]
+          }
+        },
+        "allOf": [
+          {
+            "if": {
+              "properties": {
+                "rule": {
+                  "const": "authz"
+                }
+              }
+            },
+            "then": {
+              "properties": {
+                "field": {
+                  "enum": [
+                    "handler",
+                    "guard",
+                    "record_id_source",
+                    "owner_value_source"
+                  ]
+                },
+                "candidate": {
+                  "$ref": "#/$defs/location"
+                }
+              }
+            }
+          },
+          {
+            "if": {
+              "properties": {
+                "rule": {
+                  "const": "write_fields"
+                }
+              }
+            },
+            "then": {
+              "properties": {
+                "field": {
+                  "enum": [
+                    "handler",
+                    "data_shape",
+                    "parser",
+                    "owner_source"
+                  ]
+                },
+                "candidate": {
+                  "$ref": "#/$defs/location"
+                }
+              }
+            }
+          },
+          {
+            "if": {
+              "properties": {
+                "rule": {
+                  "const": "rls"
+                }
+              }
+            },
+            "then": {
+              "properties": {
+                "field": {
+                  "enum": [
+                    "table",
+                    "rls_enabled",
+                    "per_user_columns"
+                  ]
+                },
+                "candidate": {
+                  "$ref": "#/$defs/qualified_name"
+                }
+              }
+            }
+          },
+          {
+            "if": {
+              "properties": {
+                "field": {
+                  "const": "handler"
+                }
+              }
+            },
+            "then": {
+              "properties": {
+                "value": {
+                  "type": "string",
+                  "enum": [
+                    "declared",
+                    "unknown"
+                  ]
+                }
+              }
+            }
+          },
+          {
+            "if": {
+              "properties": {
+                "field": {
+                  "const": "guard"
+                }
+              }
+            },
+            "then": {
+              "properties": {
+                "value": {
+                  "type": "string",
+                  "enum": [
+                    "none",
+                    "signed_in",
+                    "role",
+                    "owner_filter",
+                    "owner_compare",
+                    "unknown"
+                  ]
+                }
+              }
+            }
+          },
+          {
+            "if": {
+              "properties": {
+                "field": {
+                  "const": "record_id_source"
+                }
+              }
+            },
+            "then": {
+              "properties": {
+                "value": {
+                  "type": "string",
+                  "enum": [
+                    "path_param",
+                    "query",
+                    "body",
+                    "session",
+                    "other",
+                    "unknown"
+                  ]
+                }
+              }
+            }
+          },
+          {
+            "if": {
+              "properties": {
+                "field": {
+                  "const": "owner_value_source"
+                }
+              }
+            },
+            "then": {
+              "properties": {
+                "value": {
+                  "type": "string",
+                  "enum": [
+                    "session",
+                    "request",
+                    "unknown"
+                  ]
+                }
+              }
+            }
+          },
+          {
+            "if": {
+              "properties": {
+                "field": {
+                  "const": "data_shape"
+                }
+              }
+            },
+            "then": {
+              "properties": {
+                "value": {
+                  "type": "string",
+                  "enum": [
+                    "named_fields",
+                    "spread_request",
+                    "spread_parsed",
+                    "unknown"
+                  ]
+                }
+              }
+            }
+          },
+          {
+            "if": {
+              "properties": {
+                "field": {
+                  "const": "parser"
+                }
+              }
+            },
+            "then": {
+              "properties": {
+                "value": {
+                  "type": "string",
+                  "enum": [
+                    "strips_unknown_keys",
+                    "keeps_unknown_keys",
+                    "unknown"
+                  ]
+                }
+              }
+            }
+          },
+          {
+            "if": {
+              "properties": {
+                "field": {
+                  "const": "owner_source"
+                }
+              }
+            },
+            "then": {
+              "properties": {
+                "value": {
+                  "type": "string",
+                  "enum": [
+                    "session",
+                    "request",
+                    "none",
+                    "unknown"
+                  ]
+                }
+              }
+            }
+          },
+          {
+            "if": {
+              "properties": {
+                "field": {
+                  "const": "table"
+                }
+              }
+            },
+            "then": {
+              "properties": {
+                "value": {
+                  "type": "string",
+                  "enum": [
+                    "declared",
+                    "unknown"
+                  ]
+                }
+              }
+            }
+          },
+          {
+            "if": {
+              "properties": {
+                "field": {
+                  "const": "rls_enabled"
+                }
+              }
+            },
+            "then": {
+              "properties": {
+                "value": {
+                  "type": "string",
+                  "enum": [
+                    "enabled",
+                    "disabled",
+                    "unknown"
+                  ]
+                }
+              }
+            }
+          },
+          {
+            "if": {
+              "properties": {
+                "field": {
+                  "const": "per_user_columns"
+                }
+              }
+            },
+            "then": {
+              "properties": {
+                "value": {
+                  "anyOf": [
+                    {
+                      "type": "string",
+                      "enum": [
+                        "unknown"
+                      ]
+                    },
+                    {
+                      "type": "array",
+                      "maxItems": 50,
+                      "items": {
+                        "$ref": "#/$defs/pg_name"
+                      }
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          {
+            "if": {
+              "properties": {
+                "cite": {
+                  "const": "ok"
+                }
+              }
+            },
+            "then": {
+              "properties": {
+                "at": {
+                  "$ref": "#/$defs/location"
+                }
+              }
+            },
+            "else": {
+              "properties": {
+                "at": {
+                  "type": "null"
+                }
+              }
+            }
+          }
+        ]
+      }
     }
   },
   "allOf": [
