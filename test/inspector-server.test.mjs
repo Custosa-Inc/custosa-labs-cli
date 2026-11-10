@@ -15,7 +15,7 @@ import AjvModule from "ajv";
 import {
   NO_ROOT_MESSAGE, ROOTS_UNREADABLE_MESSAGE, UNUSABLE_ROOTS_MESSAGE, findGitRoot, rootsFromHost, startServer,
 } from "../lib/inspector/server.mjs";
-import { GUIDANCE_INPUT_SCHEMA, INPUT_SCHEMA, PAGE_INPUT_SCHEMA, locationProblem } from "../lib/inspector/tool.mjs";
+import { GUIDANCE_INPUT_SCHEMA, INPUT_SCHEMA, RESULT_INPUT_SCHEMA, locationProblem } from "../lib/inspector/tool.mjs";
 import { localError } from "../lib/inspector/client.mjs";
 
 const BIN = fileURLToPath(new URL("../bin/custosa.mjs", import.meta.url));
@@ -96,14 +96,14 @@ test("inspect --stdio: handshake, exactly check_schema, the sign-in message, the
   assert.ok(init.result.capabilities.tools);
 
   const list = await s.request("tools/list", {});
-  assert.deepEqual(list.result.tools.map((t) => t.name), ["check_schema", "schema_guidance", "get_result_page"]);
+  assert.deepEqual(list.result.tools.map((t) => t.name), ["check_schema", "schema_guidance", "get_result"]);
   assert.equal(list.result.tools[0].annotations.openWorldHint, true); // the facts go to the evaluator
   assert.deepEqual(list.result.tools[0].annotations, { title: "PHI Schema Check", readOnlyHint: false, destructiveHint: false, idempotentHint: false, openWorldHint: true });
   assert.equal(list.result.tools[0].title, "PHI Schema Check");
   assert.equal(list.result.tools[0].outputSchema.type, "object");
   const props = Object.keys(list.result.tools[0].inputSchema.properties);
   for (const key of ["goal", "session", "answers", "decisions"]) assert.ok(props.includes(key), key); // decisions: the person's
-  assert.deepEqual(Object.keys(list.result.tools[2].inputSchema.properties), ["goal", "session", "page", "resend", "target"]); // TU1: pages are get_result_page's; target (T29-P1-C6, C10)
+  assert.deepEqual(Object.keys(list.result.tools[2].inputSchema.properties), ["goal", "session", "select", "part"]); // T29 o2: get_result reads one selector and one part
   for (const key of ["tables", "fields", "json_schema", "verified", "verified_file", "changed_files", "app"]) assert.ok(!props.includes(key), key);
 
   const ok = await s.call({ goal: "check", session: "ps_abcdefghijklmnopqrstuv", answers: [
@@ -130,7 +130,7 @@ test("inspect --stdio: with no root, check_schema is refused with the message; t
   const refused = await s.call();
   assert.equal(refused.isError, true);
   assert.equal(refused.content[0].text, NO_ROOT_MESSAGE);
-  isNotSignedIn(await s.callTool("get_result_page", { session: "ps_abcdefghijklmnopqrstuv", page: 2 }));
+  isNotSignedIn(await s.callTool("get_result", { session: "ps_abcdefghijklmnopqrstuv", select: { state: "fail" } }));
   s.child.stdin.end();
   assert.equal(await s.exited, 0);
   assert.ok(s.stderr().includes(NO_ROOT_MESSAGE), s.stderr());
@@ -176,7 +176,7 @@ test("a host whose roots are all unusable is refused (no fallback to the working
   s.box.roots = [{ uri: "https://example.com/y" }];
   assert.equal((await s.call()).isError, true);
   const list = await s.request("tools/list", {});
-  assert.deepEqual(list.result.tools.map((t) => t.name), ["check_schema", "schema_guidance", "get_result_page"]);
+  assert.deepEqual(list.result.tools.map((t) => t.name), ["check_schema", "schema_guidance", "get_result"]);
   await s.end(); // resolves: a refused root list is not a crash
 });
 
@@ -270,13 +270,14 @@ test("the input schema takes the fact document contract's answers, sessions and 
     answer({ question_id: "person_confirmation", answer: "declined", location: null }),
     { session: "ps_abcdefghij_-KLMNOPQRST" },
   ]) assert.ok(ok(args), JSON.stringify(args));
-  // TU1: guidance and page arguments are the other tools'
+  // TU1: guidance and get_result arguments are the other tools'
   const guidance = new AjvModule.default({ strict: true }).compile(GUIDANCE_INPUT_SCHEMA);
-  const page = new AjvModule.default({ strict: true }).compile(PAGE_INPUT_SCHEMA);
+  const result = new AjvModule.default({ strict: true }).compile(RESULT_INPUT_SCHEMA);
   assert.ok(guidance({ goal: "explain", practice_id: "access-audit-log" }));
-  assert.ok(page({ session: "ps_abcdefghij_-KLMNOPQRST", page: 2, resend: ["all"] }));
-  assert.ok(!page({ page: 2 }), "a page needs its session");
-  assert.ok(!page({ session: "ps_abcdefghij_-KLMNOPQRST", page: 0 }));
+  assert.ok(result({ session: "ps_abcdefghij_-KLMNOPQRST", select: { list: "state.to_commit#3" }, part: "detail" }));
+  assert.ok(!result({ select: { state: "fail" } }), "a read needs its session");
+  assert.ok(!result({ session: "ps_abcdefghij_-KLMNOPQRST", select: { state: "fail", practice: "rls-enabled" } }), "one selector");
+  assert.ok(!result({ session: "ps_abcdefghij_-KLMNOPQRST", select: { state: "fail" }, page: 2 }), "no page");
 
   for (const args of [
     answer({ location: "./src/a.ts:3" }), answer({ location: "/etc/passwd:1" }), answer({ location: "src//a.ts:3" }),
@@ -317,8 +318,8 @@ test("the tool accepts exactly what the evaluator's next steps say (final review
     "rls-enabled@public.care_messages", "edge-function-auth@supabase/functions/x/index.ts",
     "authz-every-handler@src/routes/patients.ts:GET:/patients/:id", "audit-log@project", "rls-forced"] });
   assert.equal(fix.isError, undefined, fix.content?.[0]?.text);
-  assert.equal((await s.callTool("get_result_page", { goal: "check", session: "ps_abcdefghijklmnopqrstuv", page: 1000 })).isError, undefined);
-  assert.equal((await s.callTool("get_result_page", { goal: "check", session: "ps_abcdefghijklmnopqrstuv", page: 1001 })).isError, true);
+  assert.equal((await s.callTool("get_result", { goal: "check", session: "ps_abcdefghijklmnopqrstuv", select: { severity: "high" } })).isError, undefined);
+  assert.equal((await s.callTool("get_result", { goal: "check", session: "ps_abcdefghijklmnopqrstuv", select: { severity: "urgent" } })).isError, true);
   assert.equal((await s.call({ goal: "check", session: "ps_abcdefghijklmnopqrstuv",
     decisions: [{ object_id: "phi-columns@public.patients:dob", decision: "accepted" }] })).isError, undefined);
   const decided = await s.call({ goal: "check", session: "ps_abcdefghijklmnopqrstuv",

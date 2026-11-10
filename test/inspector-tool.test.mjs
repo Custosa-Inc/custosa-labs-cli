@@ -1,6 +1,6 @@
 /* check_schema wired end to end: the handler runs the collectors, builds and validates the fact documents, sends
  * them to a local stub evaluator and returns its answer unchanged; nothing is collected or sent before sign-in;
- * advice, page and resend calls collect nothing; local-only mode builds without sending. No real service, no real
+ * advice and get_result calls collect nothing; local-only mode builds without sending. No real service, no real
  * config folder: every test uses a temporary one. */
 import { test } from "node:test";
 import assert from "node:assert/strict";
@@ -72,7 +72,7 @@ test("nothing is collected or sent before sign-in", async () => {
   const root = repo();
   const { s, runCheck, builds } = await setup(undefined, { signedIn: false });
   try {
-    for (const args of [{ goal: "check" }, { goal: "explain", practice_id: "rls-forced" }, { goal: "check", session: "ps_abcdefghijklmnopqrstuv", page: 2 }]) {
+    for (const args of [{ goal: "check" }, { goal: "explain", practice_id: "rls-forced" }, { goal: "check", session: "ps_abcdefghijklmnopqrstuv", select: { state: "fail" } }]) {
       const out = await runCheck(args, { roots: [root] });
       assert.equal(out.error, "sign_in_required");
       assert.equal(out.next_step, LOCAL.sign_in_required);
@@ -108,7 +108,7 @@ test("a check carrying the answers, with the location confirmed and its path has
   } finally { await s.close(); }
 });
 
-test("fix sends finding_ids; verify sends none and refuses them; advice, page and resend collect nothing", async () => {
+test("fix sends finding_ids; verify sends none and refuses them; advice and get_result collect nothing", async () => {
   const root = repo();
   const { s, runCheck, builds } = await setup();
   try {
@@ -123,10 +123,10 @@ test("fix sends finding_ids; verify sends none and refuses them; advice, page an
     assert.equal(s.calls[1].body.goal, "verify");
     assert.equal(s.calls[1].body.finding_ids, undefined);
     const n = builds.length;
-    await runCheck({ goal: "check", session: "ps_abcdefghijklmnopqrstuv", page: 2 }, { roots: [root] });
-    assert.deepEqual(s.calls[2].body, { goal: "check", session: "ps_abcdefghijklmnopqrstuv", page: 2 });
-    await runCheck({ goal: "check", session: "ps_abcdefghijklmnopqrstuv", resend: ["all"] }, { roots: [root] });
-    assert.deepEqual(s.calls[3].body, { goal: "check", session: "ps_abcdefghijklmnopqrstuv", resend: "all" });
+    await runCheck({ goal: "check", session: "ps_abcdefghijklmnopqrstuv", select: { state: "fail" } }, { roots: [root] });
+    assert.deepEqual(s.calls[2].body, { goal: "check", session: "ps_abcdefghijklmnopqrstuv", select: { state: "fail" } });
+    await runCheck({ goal: "check", session: "ps_abcdefghijklmnopqrstuv", select: { practice: "rls-forced" }, part: "fix" }, { roots: [root] });
+    assert.deepEqual(s.calls[3].body, { goal: "check", session: "ps_abcdefghijklmnopqrstuv", select: { practice: "rls-forced" }, part: "fix" });
     await runCheck({ goal: "pattern", stack: "nextjs-supabase", need: "audit-log" }, { roots: [root] });
     assert.deepEqual(s.calls[4].body, { goal: "pattern", stack: "nextjs-supabase", need: "audit-log" });
     await runCheck({ goal: "plan", entities: [{ name: "patients", columns: [{ name: "dob" }, { name: "first name" }] }] }, { roots: [root] });
@@ -134,11 +134,10 @@ test("fix sends finding_ids; verify sends none and refuses them; advice, page an
     assert.equal(s.calls[5].body.entities[0], "patients");
     assert.equal(s.calls[5].body.entities[1], "patients.dob");
     assert.match(s.calls[5].body.entities[2], /^patients\.u_[0-9a-f]{16}$/);
-    assert.equal(builds.length, n, "no facts collected for page, resend or advice");
+    assert.equal(builds.length, n, "no facts collected for get_result or advice");
     // Missing inputs are answered locally, nothing sent.
     const before = s.calls.length;
-    assert.equal((await runCheck({ goal: "check", page: 2 }, { roots: [root] })).next_step, TOOL_ERRORS.needs_session);
-    assert.equal((await runCheck({ goal: "check", session: "ps_abcdefghijklmnopqrstuv", resend: ["nope"] }, { roots: [root] })).next_step, TOOL_ERRORS.bad_resend);
+    assert.equal((await runCheck({ goal: "check", select: { state: "fail" } }, { roots: [root] })).next_step, TOOL_ERRORS.needs_session);
     assert.equal((await runCheck({ goal: "explain" }, { roots: [root] })).next_step, TOOL_ERRORS.explain_needs_input);
     assert.equal(s.calls.length, before);
   } finally { await s.close(); }
@@ -311,18 +310,18 @@ test("The token's evaluator is read from the url when the answer gives no origin
 
 test("decisions: the person's, passed through on the project root's document only, decided_by fixed to person", async () => {
   const { default: AjvModule } = await import("ajv");
-  const { INPUT_SCHEMA, PAGE_INPUT_SCHEMA } = await import("../lib/inspector/tool.mjs");
+  const { INPUT_SCHEMA, RESULT_INPUT_SCHEMA } = await import("../lib/inspector/tool.mjs");
   const validate = new (AjvModule.default ?? AjvModule)({ strict: true }).compile(INPUT_SCHEMA);
-  const validatePage = new (AjvModule.default ?? AjvModule)({ strict: true }).compile(PAGE_INPUT_SCHEMA); // TU1: pages are get_result_page's
+  const validateResult = new (AjvModule.default ?? AjvModule)({ strict: true }).compile(RESULT_INPUT_SCHEMA); // TU1: reads are get_result's
   assert.equal(validate({ goal: "check", decisions: [{ object_id: "phi-columns@public.patients:dob", decision: "accepted", decided_by: "assistant" }] }), false);
   assert.equal(validate({ goal: "check", decisions: [{ object_id: "phi-columns@public.patients:dob", decision: "pass" }] }), false);
-  // final review I1: the evaluator's object ids, practice@object (table, file path, handler id, project), and pages to 1000.
+  // final review I1: the evaluator's object ids, practice@object (table, file path, handler id, project).
   for (const id of ["rls-enabled@public.care_messages", "edge-function-auth@supabase/functions/x/index.ts", "audit-log@project", "rls-forced"]) {
     assert.equal(validate({ goal: "fix", finding_ids: [id] }), true, id);
   }
   assert.equal(validate({ goal: "fix", finding_ids: ["Not An Id"] }), false);
-  assert.equal(validatePage({ goal: "check", session: "ps_abcdefghijklmnopqrstuv", page: 1000 }), true);
-  assert.equal(validatePage({ goal: "check", session: "ps_abcdefghijklmnopqrstuv", page: 1001 }), false);
+  assert.equal(validateResult({ goal: "check", session: "ps_abcdefghijklmnopqrstuv", select: { finding: "rls-enabled@public.care_messages" } }), true);
+  assert.equal(validateResult({ goal: "check", session: "ps_abcdefghijklmnopqrstuv", select: { finding: "Not An Id" } }), false);
   assert.equal(validate({ goal: "check", session: "ps_abcdefghijklmnopqrstuv", page: 2 }), false, "check_schema takes no page");
   const { decisionsProblem } = await import("../lib/inspector/tool.mjs");
   assert.match(decisionsProblem({ decisions: [{ object_id: "x", decision: "accepted", decided_by: "person" }] }), /decided_by/);
@@ -610,11 +609,12 @@ test("Issued questions are kept for the last 100 sessions; the oldest is dropped
   const root = repo();
   const session = (i) => `ps_${"x".repeat(19)}${String(i).padStart(3, "0")}`;
   const q = { question_id: "location", object_id: "a-b@one", practice_id: "a-b", ask: "Where is it?", answers: ["here", "not_found", "not_present"], expects: ["call", "function"] };
-  // Each page answer issues the same question in its own session: 101 sessions in all.
+  // Each get_result read of a questions list issues the same question in its own session: 101 sessions in all.
   const { s, runCheck, builds } = await setup((call) => ({ status: 200,
-    json: call.body.page ? { ...EVALUATE_OK, session: call.body.session, questions: [q] } : EVALUATE_OK }));
+    json: call.body.select ? { goal: "check", session: call.body.session, select: call.body.select, part: "detail", matched: 1,
+      results: [q], is_fetch_only: true, charged_units: 0, correlation_id: "corr_12345678" } : EVALUATE_OK }));
   try {
-    for (let i = 0; i <= 100; i++) await runCheck({ goal: "check", session: session(i), page: 2 }, { roots: [root] });
+    for (let i = 0; i <= 100; i++) await runCheck({ goal: "check", session: session(i), select: { list: "questions.a-b" } }, { roots: [root] });
     const answer = { object_id: "a-b@one", question_id: "location", answer: "here", location: "src/db.ts:1" };
     for (const i of [0, 1, 100]) await runCheck({ goal: "check", session: session(i), answers: [answer] }, { roots: [root] });
     assert.deepEqual(builds.map((b) => b.answers[0].expects), [undefined, ["call", "function"], ["call", "function"]]);
@@ -877,23 +877,6 @@ test("the instructions and the description say what the check covers, what it do
 
 // T27 D10's "Make fixes only after the person asks for them." is gone: the owner's yes in T29-P1-C7 (brief rank 2) puts
 // consent with the person and the harness, and test/t29-interface-text.test.mjs checks no line gates on the person.
-
-test("T29-P1-C6: get_result_page sends a target (practice, table or file) as a fetch, and collects nothing", async () => {
-  const root = repo();
-  const { s, runCheck, builds } = await setup();
-  try {
-    const n = builds.length;
-    for (const target of [{ practice_id: "rls-forced" }, { table: "public.care_messages" }, { file: "app/api/notes/route.ts" }]) {
-      await runCheck({ goal: "check", session: "ps_abcdefghijklmnopqrstuv", target }, { roots: [root] });
-      assert.deepEqual(s.calls.at(-1).body, { goal: "check", session: "ps_abcdefghijklmnopqrstuv", target });
-    }
-    assert.equal(builds.length, n, "a target fetch builds no fact document");
-    assert.equal((await runCheck({ goal: "check", target: { table: "public.t" } }, { roots: [root] })).next_step,
-      TOOL_ERRORS.needs_session);
-  } finally {
-    await s.close();
-  }
-});
 
 /* T29 (o) o2, red first: get_result replaces get_result_page (core o1b: the response is one body with its index, and
  * get_result is the only fetch). The tool count stays 3; no tool takes page, resend or target. */

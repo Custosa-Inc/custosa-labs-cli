@@ -29,7 +29,7 @@ const SESSION = "ps_abcdefghijklmnopqrstuv";
 const CALLS = [
   ["check_schema", { goal: "check" }],
   ["schema_guidance", { goal: "plan", entities: [{ name: "patients", columns: [{ name: "dob" }] }] }],
-  ["get_result_page", { session: SESSION, page: 2 }],
+  ["get_result", { session: SESSION, select: { state: "fail" } }],
 ];
 
 /* The SDK client on one revision, connected to a spawned inspector. `roots`: the roots the client offers (null: it
@@ -132,7 +132,7 @@ test(`${MODERN} on the wire: discover without a handshake, resultType and cache 
   assert.ok(["public", "private"].includes(list.result.cacheScope));
   assert.deepEqual(list.result.tools, toolsListResult().tools);
   assert.equal(list.result._meta?.["io.modelcontextprotocol/serverInfo"]?.name, "custosa-inspector");
-  const call = await s.request(3, "tools/call", { name: "get_result_page", arguments: { session: SESSION, page: 2 }, ...envelope() });
+  const call = await s.request(3, "tools/call", { name: "get_result", arguments: { session: SESSION, select: { state: "fail" } }, ...envelope() });
   assert.equal(call.result.resultType, "complete");
   isNotSignedIn(call.result);
   // Unknown method, unknown tool, non-object arguments, then lines that aren't JSON or JSON-RPC.

@@ -88,11 +88,11 @@ const issued = (object_id, more = {}) => ({ kind: "decision", object_id, option:
   max_age_on: "2027-01-28", practice_id: object_id.split("@")[0], reasons: ["person_must_decide"],
   f4_class: "coverage_gap", why_asked: "assistant_could_not_decide", ...MADE, ...more });
 
+/* `pages`: the answer of each evaluation call in turn (T29 o2: there are no pages; a check whose body carries the
+ * state's lists, as an older core sent them, is used as sent, so no get_result read is made). */
 function writer({ root, pages, env = {} }) {
-  const evaluate = async (body) => {
-    if (body.page) return { ok: true, body: pages[body.page - 1] };
-    return { ok: true, body: pages[0] };
-  };
+  let calls = 0;
+  const evaluate = async () => ({ ok: true, body: pages[Math.min(calls++, pages.length - 1)] });
   return makeRunCheck({ localOnly: false, readToken: () => ({ token: "t", host: "https://e.test" }),
     evaluatorUrl: () => ({ url: "https://e.test", origin: "https://e.test" }), stateEnv: env,
     environmentFor: () => ({ environment: { value: "unknown", source: "setup" }, note: null }), evaluate,
@@ -103,27 +103,19 @@ const page = (to_commit, extra = {}) => ({ goal: "check", status: "done", sessio
   report: { state: { state_version: 1, sent: { decisions: 0, suppressions: 0, grants: 0 }, by_outcome: {},
     unmatched: [], to_commit, not_committed: [] } }, ...extra });
 
-test("to_commit on page 1 and on a later page are written to the session's root; the key is made once", async () => {
+test("to_commit from two checks in a session is written to the session's root; the key is made once", async () => {
   const root = rootWith();
   const run = writer({ root, pages: [page([issued("rls-enabled@public.a")]), page([issued("rls-enabled@public.b")])] });
   const first = await run({ goal: "check" }, { roots: ["A"] });
   assert.ok(first.local_notes.some((n) => n.includes("before others record decisions")));
   const key = readState(root).state.content_key;
-  const later = await run({ goal: "check", session: "s_0123456789abcdef0123", page: 2 }, { roots: ["A"] });
+  const later = await run({ goal: "check", session: "s_0123456789abcdef0123" }, { roots: ["A"] });
   assert.ok(later.local_notes.some((n) => n.includes("commit it")));
   const got = readState(root).state;
   assert.equal(got.content_key, key);
   assert.deepEqual(got.decisions.map((d) => d.subject), ["rls-enabled@public.a", "rls-enabled@public.b"]);
   assert.equal(got.decisions[0].audit.decided_by, "person");
   assert.equal(got.decisions[0].made.seal, MADE.seal);
-});
-
-test("a later page after a restart has no root: nothing is written, and the note says so", async () => {
-  const root = rootWith();
-  const run = writer({ root, pages: [page([]), page([issued("rls-enabled@public.b")])] });
-  const out = await run({ goal: "check", session: "s_0123456789abcdef0123", page: 2 }, { roots: ["A"] });
-  assert.ok(out.local_notes.some((n) => n.startsWith("state_root_unknown")));
-  assert.ok(!existsSync(join(root, ".custosa")));
 });
 
 test("in CI nothing is written, and the note names the variable", async () => {
@@ -170,12 +162,12 @@ test("a phi-schema-check.json beside the project is no state: no note names it",
   assert.ok(!JSON.stringify(out).includes("phi-schema-check.json"));
 });
 
-test("entries on later pages are counted in a note on page 1", async () => {
+test("entries the check couldn't read are counted in a note (T29 o2: state_entries_not_read)", async () => {
   const root = rootWith();
   const p = page([issued("rls-enabled@public.a")]);
   p.report.state.to_commit_total = 4;
   const out = await writer({ root, pages: [p] })({ goal: "check" }, { roots: ["A"] });
-  assert.ok(out.local_notes.some((n) => n.startsWith("state_entries_on_later_pages: 3 more")));
+  assert.ok(out.local_notes.some((n) => n.startsWith("state_entries_not_read: 3 more")));
 });
 
 test("the audit names the MCP client the person used, when its name fits the schema; else null", async () => {
@@ -184,7 +176,7 @@ test("the audit names the MCP client the person used, when its name fits the sch
     const root = rootWith();
     const run = writer({ root, pages: [page([issued("rls-enabled@public.a")]), page([issued("rls-enabled@public.b")])] });
     await run({ goal: "check" }, { roots: ["A"], client });
-    await run({ goal: "check", session: "s_0123456789abcdef0123", page: 2 }, { roots: ["A"], client });
+    await run({ goal: "check", session: "s_0123456789abcdef0123" }, { roots: ["A"], client });
     const got = readState(root).state;
     assert.deepEqual(got.decisions.map((d) => d.audit.client), [want, want], JSON.stringify(client));
   }
@@ -228,14 +220,14 @@ test("a first write into an ignored .custosa says state_ignored_by_git, so the p
   assert.ok(!out2.local_notes.some((n) => n.startsWith("state_ignored_by_git")));
 });
 
-test("contract 2.3: the top-level state is read, so an in-progress first page with no report still records its entries", async () => {
+test("contract 2.3: the top-level state is read, so an in-progress check with no report still records its entries", async () => {
   const root = rootWith();
   const p = { goal: "check", status: "in_progress", session: "s_0123456789abcdef0123",
     state: { state_version: 1, sent: { decisions: 0, suppressions: 0, grants: 0 }, by_outcome: {}, unmatched: [],
       to_commit: [issued("rls-enabled@public.a")], to_commit_total: 2, not_committed: [] } };
   const out = await writer({ root, pages: [p] })({ goal: "check" }, { roots: ["A"] });
   assert.deepEqual(readState(root).state.decisions.map((d) => d.subject), ["rls-enabled@public.a"]);
-  assert.ok(out.local_notes.some((n) => n.startsWith("state_entries_on_later_pages: 1 ")));
+  assert.ok(out.local_notes.some((n) => n.startsWith("state_entries_not_read: 1 ")));
 });
 
 test("the block comes from the same state.json read as the content key: a file changed after the build isn't read again", async () => {
@@ -298,5 +290,5 @@ test("T29 o2: to_commit is read through get_result, every entry past a sub_index
   const out = await run({ goal: "check" }, { roots: ["A"] });
   assert.deepEqual(readState(root).state.decisions.map((d) => d.subject), ["rls-enabled@public.a", "rls-enabled@public.b"]);
   assert.ok(asked.includes("state.to_commit") && asked.includes("state.to_commit#1"), asked.join(","));
-  assert.ok(!(out.local_notes ?? []).some((n) => n.startsWith("state_entries_on_later_pages")));
+  assert.ok(!(out.local_notes ?? []).some((n) => n.startsWith("state_entries_not_read")));
 });

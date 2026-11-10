@@ -123,15 +123,15 @@ test("An id the evaluator answers unknown_concern is dropped locally; refused fo
   } finally { await s.close(); }
 });
 
-test("A page fetch shows the kept texts of the session's root", async () => {
+test("A get_result read of the concerns shows the kept texts of the session's root (T29 o2)", async () => {
   const root = repo();
   const { s, runCheck } = await setup((call, n) => ({ status: 200, json: n === 1 ? RAISED
-    : { ...EVALUATE_OK, page: { n: 2, of: 2, next: null, later_pages_hold: [] }, concerns: [listed(ID_A, A)], concern_options: OPTIONS } }));
+    : RESULT(call.body.select, [listed(ID_A, A)]) }));
   try {
     await runCheck({ goal: "check", concerns: [{ ...A, note: TEXT_A }, { ...B, note: TEXT_B }] }, { roots: [root] });
-    const page = await runCheck({ goal: "check", session: EVALUATE_OK.session, page: 2 }, { roots: [root] });
+    const read = await runCheck({ goal: "check", session: EVALUATE_OK.session, select: { list: "concerns.unconfirmed" } }, { roots: [root] });
     assert.equal(s.calls[1].body.concerns, undefined);
-    assert.deepEqual(page.concerns.map((c) => c.local_text), [TEXT_A]);
+    assert.deepEqual(read.results.map((c) => c.local_text), [TEXT_A]);
   } finally { await s.close(); }
 });
 
@@ -154,8 +154,8 @@ test("Concerns go only with an evaluation goal; a person's concern decision is r
   const root = repo();
   const { s, runCheck } = await setup(() => ({ status: 200, json: EVALUATE_OK }));
   try {
-    const page = await runCheck({ goal: "check", session: EVALUATE_OK.session, page: 2, concerns: [{ ...A, note: TEXT_A }] }, { roots: [root] });
-    assert.equal(page.next_step, TOOL_ERRORS.concerns_need_evaluation);
+    const read = await runCheck({ goal: "check", session: EVALUATE_OK.session, select: { state: "fail" }, concerns: [{ ...A, note: TEXT_A }] }, { roots: [root] });
+    assert.equal(read.next_step, TOOL_ERRORS.concerns_need_evaluation);
     const advice = await runCheck({ goal: "explain", practice_id: "rls-enabled", concern_decisions: [{ concern_id: ID_A, option: "keep", decided_by: "assistant" }] }, { roots: [root] });
     assert.equal(advice.next_step, TOOL_ERRORS.concerns_need_evaluation);
     assert.equal(s.calls.length, 0);
@@ -181,11 +181,11 @@ test("A symlinked .custosa/local is never written through", async () => {
   } finally { await s.close(); }
 });
 
-test("The text summary counts the page's concerns and the unresolved ones; the output schema lists concerns", async () => {
+test("The text summary counts the index's concerns and the unresolved ones; the output schema lists concerns", async () => {
   const { textFor } = await import("../lib/inspector/server.mjs");
   const { OUTPUT_SCHEMA } = await import("../lib/inspector/tool.mjs");
   const closed = listed(ID_B, B, { status: "dismissed", next: { awaiting: null, options: [] } });
-  assert.match(textFor({ ...RAISED, concerns: [listed(ID_A, A), closed] }, { full: false }), /, 0 fixes, 2 concerns \(1 unresolved\),/);
+  assert.match(textFor({ ...EVALUATE_OK, index: INDEX([listed(ID_A, A), closed]) }, { full: false }), /, 0 fixes, 2 concerns \(1 unresolved\),/);
   assert.ok(!/concerns/.test(textFor(EVALUATE_OK, { full: false })));
   assert.equal(OUTPUT_SCHEMA.anyOf[0].properties.concerns.type, "array");
 });
@@ -209,9 +209,8 @@ test("Record ids, a date of birth and a titled name are refused in a concern tex
   for (const text of kept) assert.equal(concernsProblem({ concerns: [{ ...A, note: text }] }), null, text);
 });
 
-const PAGED = (n, of, concerns, hold = []) => ({ ...EVALUATE_OK, page: { n, of, next: n < of ? n + 1 : null, later_pages_hold: hold },
-  ...(concerns ? { concerns, concern_options: OPTIONS } : {}) });
-
+/* T29 o2 (T29-P1-C116): the pending-raise tests (raises spilling to a later page) went with the pending logic; a raise
+ * is matched in the call that sent it (the T29 o2 cases at the end of this file). */
 test("concerns_saved false from a losing decision keeps the texts of the raises the evaluator lists", async () => {
   const root = repo();
   const { s, runCheck } = await setup(() => ({ status: 200, json: { ...RAISED, concerns_saved: false,
@@ -222,40 +221,6 @@ test("concerns_saved false from a losing decision keeps the texts of the raises 
     assert.deepEqual([...readTexts(root)].map(([id, e]) => [id, e.text]), [[ID_A, TEXT_A], [ID_B, TEXT_B]]);
     assert.deepEqual(out.concerns.map((c) => c.local_text), [TEXT_B, TEXT_A]);
     assert.equal(out.local_notes, undefined);
-  } finally { await s.close(); }
-});
-
-test("Raises that spill to page 2 keep their texts when that page is fetched", async () => {
-  // Page 1 lists the newest raise (B) and says concerns continue; page 2 lists A. Or page 1 holds no concern at all.
-  for (const [page1, page2, after1] of [
-    [PAGED(1, 2, [listed(ID_B, B, { raised_now: true })], ["concerns"]), PAGED(2, 2, [listed(ID_A, A, { raised_now: true })]), [ID_B]],
-    [PAGED(1, 2, null, ["concerns"]), PAGED(2, 2, [listed(ID_B, B, { raised_now: true }), listed(ID_A, A, { raised_now: true })]), []],
-  ]) {
-    const root = repo();
-    const { s, runCheck } = await setup((call, n) => ({ status: 200, json: n === 1 ? page1 : page2 }));
-    try {
-      const first = await runCheck({ goal: "check", concerns: [{ ...A, note: TEXT_A }, { ...B, note: TEXT_B }] }, { roots: [root] });
-      assert.deepEqual(first.local_notes, [CONCERN_NOTES.concern_texts_pending.replace("{page}", "2")]);
-      assert.deepEqual([...readTexts(root).keys()], after1);
-      const page = await runCheck({ goal: "check", session: EVALUATE_OK.session, page: 2 }, { roots: [root] });
-      assert.equal(JSON.stringify(s.calls[1].body).includes(TEXT_A), false, "a page fetch carries no text");
-      assert.deepEqual(new Set(readTexts(root).keys()), new Set([ID_A, ID_B]));
-      assert.ok(page.concerns.some((c) => c.concern_id === ID_A && c.local_text === TEXT_A));
-      assert.equal(page.local_notes, undefined);
-    } finally { await s.close(); }
-  }
-});
-
-test("A later page that lists another raise than the one pending keeps no text for it, with a note", async () => {
-  const root = repo();
-  const other = { ...A, practice_id: undefined, category: "storage" };
-  const { s, runCheck } = await setup((call, n) => ({ status: 200, json: n === 1
-    ? PAGED(1, 2, [listed(ID_B, B, { raised_now: true })], ["concerns"]) : PAGED(2, 2, [listed(ID_A, other, { raised_now: true })]) }));
-  try {
-    await runCheck({ goal: "check", concerns: [{ ...A, note: TEXT_A }, { ...B, note: TEXT_B }] }, { roots: [root] });
-    const page = await runCheck({ goal: "check", session: EVALUATE_OK.session, page: 2 }, { roots: [root] });
-    assert.deepEqual([...readTexts(root).keys()], [ID_B]);
-    assert.deepEqual(page.local_notes, [CONCERN_NOTES.concern_texts_not_kept]);
   } finally { await s.close(); }
 });
 
@@ -311,42 +276,6 @@ test("The free-text shapes never change how a table, file or migration name is s
     assert.equal(holdsRecordValue(name), false, name);
   }
   for (const path of ["src/patient12345.ts", "supabase/migrations/20240312000000_account_12345.sql"]) assert.equal(sentPath(key, path), path);
-});
-
-test("Raises left for a later page say so, and a call before that page drops them with a note", async () => {
-  const root = repo();
-  const { s, runCheck } = await setup((call, n) => ({ status: 200, json: n === 1 ? PAGED(1, 2, null, ["concerns"]) : EVALUATE_OK }));
-  try {
-    const first = await runCheck({ goal: "check", concerns: [{ ...A, note: TEXT_A }] }, { roots: [root] });
-    assert.deepEqual(first.local_notes, [CONCERN_NOTES.concern_texts_pending.replace("{page}", "2")]);
-    const next = await runCheck({ goal: "check", session: EVALUATE_OK.session }, { roots: [root] });
-    assert.deepEqual(next.local_notes, [CONCERN_NOTES.concern_texts_dropped]);
-    assert.equal(readTexts(root).size, 0);
-  } finally { await s.close(); }
-});
-
-test("A second raise in the session before the first one's page drops the first one's texts with a note", async () => {
-  const root = repo();
-  const { s, runCheck } = await setup((call, n) => ({ status: 200, json: n === 1 ? PAGED(1, 2, null, ["concerns"])
-    : { ...EVALUATE_OK, concerns: [listed(ID_B, B, { raised_now: true })], concern_options: OPTIONS } }));
-  try {
-    await runCheck({ goal: "check", concerns: [{ ...A, note: TEXT_A }] }, { roots: [root] });
-    const second = await runCheck({ goal: "check", session: EVALUATE_OK.session, concerns: [{ ...B, note: TEXT_B }] }, { roots: [root] });
-    assert.deepEqual(second.local_notes, [CONCERN_NOTES.concern_texts_dropped]);
-    assert.deepEqual([...readTexts(root).keys()], [ID_B]);
-  } finally { await s.close(); }
-});
-
-test("Raises pushed out past the pending-session cap are noted, never dropped silently", async () => {
-  const { MAX_PENDING_RAISES } = await import("../lib/inspector/tool.mjs");
-  const root = repo();
-  const session = (n) => `ps_${String(n).padStart(22, "a")}`;
-  const { s, runCheck } = await setup((call, n) => ({ status: 200, json: { ...PAGED(1, 2, null, ["concerns"]), session: session(n) } }));
-  try {
-    for (let i = 1; i <= MAX_PENDING_RAISES; i++) await runCheck({ goal: "check", concerns: [{ ...A, note: TEXT_A }] }, { roots: [root] });
-    const over = await runCheck({ goal: "check", concerns: [{ ...A, note: TEXT_A }] }, { roots: [root] });
-    assert.ok(over.local_notes.includes(CONCERN_NOTES.concern_texts_dropped), JSON.stringify(over.local_notes));
-  } finally { await s.close(); }
 });
 
 test("A raising call that may have run but got no readable answer says its texts weren't kept", async () => {
