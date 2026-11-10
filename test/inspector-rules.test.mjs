@@ -244,7 +244,7 @@ test("a file past the hard deadline is time_limit, keeps its violations, and the
   const big = "export const x = { a: [1, 2, 3], b: () => f(1) };\n".repeat(40000);
   const tooBig = await runRules(rules, [{ path: "big.ts", text: big }], { key: KEY, frameworks: [], maxBytes: 1000 });
   assert.deepEqual(tooBig.notAnalyzed, [{ path: "big.ts", reason: "too_large" }]);
-  assert.equal(tooBig.status, "empty");
+  assert.deepEqual([tooBig.status, tooBig.reason], ["truncated", "nothing_read"]); // read nothing (T19, B2)
   assert.equal((await runRules(rules, [], { key: KEY, frameworks: [] })).status, "empty");
 });
 
