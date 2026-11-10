@@ -744,3 +744,21 @@ test("table_grants carries public_privileges, every privilege PUBLIC holds", () 
   // A privilege outside the contract's list never reaches the evaluator.
   assert.notEqual(sent(["usage"]).status, "ok");
 });
+
+test("T19 B3: a query the check's time budget left not_run makes the catalog truncated, timeout, never ok", () => {
+  const r = goodResult();
+  r.queries[2] = { query_id: "schema_privileges", status: "not_run", reason: "timeout", rows: [] };
+  let out = fact(r);
+  assert.deepEqual(out.catalog.queries[2], { query_id: "schema_privileges", status: "not_run", reason: "timeout", rows: [] });
+  assert.deepEqual([out.collection.status, out.collection.reason], ["truncated", "timeout"]);
+  // Beside a truncated query too: the budget's timeout is the reason, so the run reads as cut by time.
+  r.queries[3] = { ...r.queries[3], status: "truncated" };
+  out = fact(r);
+  assert.deepEqual([out.collection.status, out.collection.reason], ["truncated", "timeout"]);
+  // A query not_run or failed for another reason keeps its own status beside an ok collector, as before.
+  for (const q of [{ status: "not_run", reason: "platform_mismatch" }, { status: "failed", reason: "permission_denied" }]) {
+    const other = goodResult();
+    other.queries[2] = { query_id: "schema_privileges", ...q, rows: [] };
+    assert.deepEqual(fact(other).collection, { collector: "catalog", status: "ok", count: other.queries.length - 1, reason: null }, q.reason);
+  }
+});
