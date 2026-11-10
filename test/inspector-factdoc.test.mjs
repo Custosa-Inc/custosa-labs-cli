@@ -22,7 +22,7 @@ import { NOT_ANALYZED_MAX as WALK_NOT_ANALYZED_MAX } from "../lib/inspector/file
 const RULES = loadRules(fileURLToPath(new URL("./fixtures/rules/", import.meta.url)));
 const RULESET_ID = "2026-10-20.0123abcd";
 const ENV_VALUE = "sk\x5flive_ENVFILEVALUEabcdefghijklmnop1234";
-const SECRET = "sk\x5flive_51Habcdefghijklmnopqrstuv0123456789";
+const SECRET = "sk\x5flive_51HqT7vXk2LmP9rB4wZ8nC3dF6gJ1hY5sA0eU"; // mixed: an alphabet run reads as a placeholder (isShapePlaceholder)
 const temp = (prefix) => realpathSync(mkdtempSync(join(tmpdir(), prefix)));
 
 function repo(files) {
@@ -757,7 +757,7 @@ test("each key prefix has its known body: a letters-only glpat\x2d token is a se
     `sk\x5flive_${"a".repeat(23)}`]) assert.equal(holdsSecret(n), false, n);
   // The secret scan now finds a GitLab token in file contents too.
   const { scanSecrets } = await import("../lib/inspector/secrets.mjs");
-  const out = scanSecrets([{ path: "ci.yml", text: `token: "glpat\x2d${"xY9_-".repeat(4)}"\n` }], { key: Buffer.alloc(32) });
+  const out = scanSecrets([{ path: "ci.yml", text: `token: "glpat\x2dxY9_-Qm4Rt7_Lp2-Wz8K"\n` }], { key: Buffer.alloc(32) });
   assert.deepEqual(out.secrets.map((s) => s.rule_id), ["gitlab-token"]);
 });
 

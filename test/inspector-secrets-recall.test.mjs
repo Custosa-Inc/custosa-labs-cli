@@ -305,8 +305,8 @@ test("the three password-location rules fingerprint the location, never the valu
   const [u] = scan("a.ts", `"smtp://svc:${REAL}@mail.example.org"\n`);
   assert.equal(u.fingerprint, loc("url-userinfo-password", "a.ts", 1));
   // Provider tokens keep the value fingerprint.
-  const [g] = scan("a.ts", `"ghp_${"a1".repeat(18)}"\n`);
-  assert.equal(g.fingerprint, fingerprint(key, `ghp_${"a1".repeat(18)}`));
+  const [g] = scan("a.ts", `"ghp\x5fq7Rm2Xa9Lk4Tz8Wb1Nc6Pd3Hf5Js0Vg2Ye7K"\n`); // not a repeated unit, which reads as a placeholder
+  assert.equal(g.fingerprint, fingerprint(key, "ghp\x5fq7Rm2Xa9Lk4Tz8Wb1Nc6Pd3Hf5Js0Vg2Ye7K"));
   // These patterns are inspector-only and marked as location rules.
   const b58 = DEFAULT_SECRET_PATTERNS.filter((p) => ["config-password", "supabase-service-role-config", "url-userinfo-password"].includes(p.rule_id));
   assert.ok(b58.length >= 3);

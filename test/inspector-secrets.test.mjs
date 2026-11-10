@@ -1218,7 +1218,7 @@ test("\\u000a, \\x0a and \\012 newline escapes in one literal and split across l
 
 test("a lone CR counts as a line break, like LF and CRLF, and a rule match is numbered the same way", async () => {
   const key = Buffer.alloc(32, 7);
-  const secret = "sk\x5flive_51Habcdefghijklmnopqrstuv0123456789";
+  const secret = `sk\x5flive_51H${rand(32)}`; // random: an alphabet run is a placeholder (isShapePlaceholder)
   const lines = ["// one", "// two", "// three", "// four", `const k = "${secret}";`, ""];
   for (const eol of ["\n", "\r\n", "\r"]) {
     const out = scanSecrets([{ path: "src/a.js", text: lines.join(eol) }], { key });
