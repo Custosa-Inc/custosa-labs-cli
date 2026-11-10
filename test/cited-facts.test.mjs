@@ -117,3 +117,14 @@ test("a handler candidate must be a line of a walked file", async () => {
     { ...RLS, candidate: "public.my table" }, { ...RLS, candidate: "notes" }]);
   assert.deepEqual(rows, []);
 });
+
+test("the check tool takes facts, shaped by the synced fact_schema.json, and only the check tool does", async () => {
+  const { INPUT_SCHEMA, GUIDANCE_INPUT_SCHEMA, PAGE_INPUT_SCHEMA } = await import("../lib/inspector/tool.mjs");
+  const item = INPUT_SCHEMA.properties.facts.items;
+  assert.deepEqual(item.properties.rule.enum, Object.keys(FACTS.rules));
+  const fields = new Set(Object.values(FACTS.rules).flatMap((r) => Object.keys(r.fields)));
+  assert.deepEqual(new Set(Object.keys(item.properties).filter((k) => k !== "rule" && k !== "candidate")), fields);
+  assert.equal(item.additionalProperties, false);
+  assert.ok(!("minLength" in item.properties.handler.properties.token), "a short token is a failed cite, not a refused call");
+  assert.ok(!GUIDANCE_INPUT_SCHEMA.properties.facts && !PAGE_INPUT_SCHEMA.properties.facts);
+});
