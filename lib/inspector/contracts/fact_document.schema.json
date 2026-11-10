@@ -4351,6 +4351,32 @@
               "type": "null"
             }
           ]
+        },
+        "using_branches": {
+          "description": "T29 h4b (T29-P3-C215, P1 C155): one word per top-level OR branch of the policy's USING expression, in order (one entry with no OR; [\"none\"] with no USING, which Postgres reads as true). owner: the branch requires a row column to equal the session's user. member_row: an EXISTS or IN that names the session's user and ties to this row. member: one that names the session's user but not this row (a staff list). any_member: one that ties to this row but never names the session's user, so any caller meets it. signed_in: the branch reads the session but no row column (auth.uid() IS NOT NULL). row: it reads the row but not the session. none: it reads neither (true). not_read: the inspector couldn't say. An OR under an AND is one branch. null when the expression isn't parsed or has more than 8 branches. Decided from the parsed expression on the machine, never by a text search; the expression never leaves the machine. Absent from an older CLI: the evaluator judges the policy by its other fields alone.",
+          "anyOf": [
+            {
+              "type": "array",
+              "minItems": 1,
+              "maxItems": 8,
+              "items": {
+                "type": "string",
+                "enum": [
+                  "owner",
+                  "member_row",
+                  "member",
+                  "any_member",
+                  "signed_in",
+                  "row",
+                  "none",
+                  "not_read"
+                ]
+              }
+            },
+            {
+              "type": "null"
+            }
+          ]
         }
       },
       "allOf": [

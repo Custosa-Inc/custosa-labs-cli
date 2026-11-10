@@ -102,14 +102,14 @@ test("the shipped response schema takes exposure_suspected wherever it takes a r
 
 test("the shipped schemas are the contract's copies, and contracts.mjs names the commit", () => {
   // The fixtures are byte-for-byte copies of the evaluator's schemas, named by the evaluator commit each came from.
-  const fixture = JSON.parse(readFileSync(new URL("./fixtures/contracts/fact_document.schema.a3b1d69b.json", import.meta.url), "utf8"));
+  const fixture = JSON.parse(readFileSync(new URL("./fixtures/contracts/fact_document.schema.4f2a7ed3.json", import.meta.url), "utf8"));
   assert.deepEqual(FACT_SCHEMA, fixture);
   assert.deepEqual(RESPONSE_SCHEMA, JSON.parse(readFileSync(new URL("./fixtures/contracts/response.schema.549e3e09.json", import.meta.url), "utf8")));
   assert.equal(FACT_SCHEMA.$id, "https://custosa.com/schemas/fact-document/2");
   assert.ok(!FACT_SCHEMA.$defs.query_server_version && !FACT_SCHEMA.$defs.row_server_version);
   assert.ok(!JSON.stringify(RESPONSE_SCHEMA).includes("server_version"));
   assert.ok(RESPONSE_SCHEMA.$defs.evaluate_response.properties.not_used);
-  assert.match(SOURCE_COMMIT, /^a3b1d69b/); // the evaluator commit the fact schema was last copied from
+  assert.match(SOURCE_COMMIT, /^4f2a7ed3/); // the evaluator commit the fact schema was last copied from
   assert.ok(!FACT_SCHEMA.$defs.query_hba_rules);
   // other_execute_roles is optional, so a row from an older CLI stays valid and core holds the function.
   assert.ok(FACT_SCHEMA.$defs.row_definer_functions.properties.other_execute_roles);
