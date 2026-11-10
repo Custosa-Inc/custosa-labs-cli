@@ -10,6 +10,7 @@ lib/inspector/auth.mjs
 lib/inspector/captures.mjs
 lib/inspector/catalog.mjs
 lib/inspector/catalogfacts.mjs
+lib/inspector/cite.mjs
 lib/inspector/client.mjs
 lib/inspector/columns.mjs
 lib/inspector/concerns.mjs
