@@ -267,6 +267,17 @@ test("1a: a file with rules for its language but none for its frameworks is neve
   await assert.rejects(runRules(rules, route, { key: KEY }), /opts\.frameworks/);
 });
 
+test("B2 low (T19-P3-C157): a run whose only file read in full is frameworks_unknown read nothing in full, so it is truncated, nothing_read", async () => {
+  const rules = loadRules(RULES);
+  const route = [{ path: "app/api/visits/route.ts", text: ROUTE }];
+  const unknown = await runRules(rules, route, { key: KEY, frameworks: null });
+  assert.deepEqual(unknown.notAnalyzed, [{ path: "app/api/visits/route.ts", reason: "frameworks_unknown" }]);
+  assert.deepEqual([unknown.status, unknown.reason, unknown.analyzed], ["truncated", "nothing_read", 0]);
+  assert.deepEqual(unknown.matches.map((m) => m.kind), ["evidence"]); // its generic rule's matches are still sent
+  const judged = await runRules(rules, route, { key: KEY, frameworks: ["nextjs"] });
+  assert.deepEqual([judged.status, judged.analyzed], ["ok", 1]);
+});
+
 test("1b: a recovered parse (MISSING node, no ERROR) is parse_error and loses its evidence and controls", async () => {
   // A missing `}` lets GET swallow POST: GET would look controlled by POST's requireUser.
   const swallowed = `export async function GET(request) {
