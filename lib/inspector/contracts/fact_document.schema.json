@@ -2958,7 +2958,7 @@
       }
     },
     "cited_facts": {
-      "description": "T29 line item h (T29-P3-C85): facts the assistant reported for authz-every-handler (rule authz), write-fields-allowlisted (write_fields) and rls-policies-scoped (rls), relayed by the inspector, never a verdict. One row per field of a candidate: an authz or write_fields candidate is the handler's location, an rls candidate a table. value is the field's closed value (enums.FACT_VALUES), a list of column names for per_user_columns, or unknown. cite is the inspector's check of the assistant's citation: ok when the file is in the walk, the line exists and the cited token (3 or more characters) is on that line; failed when not; none when no citation was given. at is the cited file and line for ok and null otherwise; the token never leaves the machine. Optional: absent means the assistant sent no facts, and the three practices are judged as before (enums.FACT_RULES).",
+      "description": "T29 line item h (T29-P3-C85): facts the assistant reported for authz-every-handler (rule authz), write-fields-allowlisted (write_fields) and rls-policies-scoped (rls), relayed by the inspector, never a verdict. One row per field of a candidate: an authz or write_fields candidate is the handler's location, an rls candidate a table. value is the field's closed value (enums.FACT_VALUES) or unknown; for per_user_columns it is listed, with the columns in column_names ([] for none), and column_names is [] on every other field. cite is the inspector's check of the assistant's citation: ok when the file is in the walk, the line exists and the cited token (3 or more characters) is on that line; failed when not; none when no citation was given. cited_at is the cited file and line for ok and null otherwise; the token never leaves the machine. The names here are inline patterns, not the name $defs, and the keys are this section's own, so it adds no snapshot id (app.core.snapshot) and binds no ref. Optional: absent means the assistant sent no facts, and the three practices are judged as before (enums.FACT_RULES).",
       "type": "array",
       "maxItems": 10000,
       "items": {
@@ -2969,7 +2969,8 @@
           "candidate",
           "field",
           "value",
-          "at",
+          "column_names",
+          "cited_at",
           "cite"
         ],
         "properties": {
@@ -2984,10 +2985,13 @@
           "candidate": {
             "anyOf": [
               {
-                "$ref": "#/$defs/location"
+                "type": "string",
+                "maxLength": 528,
+                "pattern": "^(?!/)(?![^:]*//)(?![^:]*/:)(?!(?:[^:]*/)?\\.\\.?(?:/|:))[A-Za-z0-9_.@+$\\[\\]()~/-]{1,512}:[1-9][0-9]{0,6}(?:-[1-9][0-9]{0,6})?$"
               },
               {
-                "$ref": "#/$defs/qualified_name"
+                "type": "string",
+                "pattern": "^[A-Za-z_][A-Za-z0-9_$\\-]{0,62}\\.[A-Za-z_][A-Za-z0-9_$\\-]{0,62}$"
               }
             ]
           },
@@ -3007,45 +3011,45 @@
             ]
           },
           "value": {
+            "type": "string",
+            "enum": [
+              "declared",
+              "none",
+              "signed_in",
+              "role",
+              "owner_filter",
+              "owner_compare",
+              "path_param",
+              "query",
+              "body",
+              "session",
+              "other",
+              "request",
+              "named_fields",
+              "spread_request",
+              "spread_parsed",
+              "strips_unknown_keys",
+              "keeps_unknown_keys",
+              "enabled",
+              "disabled",
+              "listed",
+              "unknown"
+            ]
+          },
+          "column_names": {
+            "type": "array",
+            "maxItems": 50,
+            "items": {
+              "type": "string",
+              "pattern": "^[A-Za-z_][A-Za-z0-9_$\\-]{0,62}$"
+            }
+          },
+          "cited_at": {
             "anyOf": [
               {
                 "type": "string",
-                "enum": [
-                  "declared",
-                  "none",
-                  "signed_in",
-                  "role",
-                  "owner_filter",
-                  "owner_compare",
-                  "path_param",
-                  "query",
-                  "body",
-                  "session",
-                  "other",
-                  "request",
-                  "named_fields",
-                  "spread_request",
-                  "spread_parsed",
-                  "strips_unknown_keys",
-                  "keeps_unknown_keys",
-                  "enabled",
-                  "disabled",
-                  "unknown"
-                ]
-              },
-              {
-                "type": "array",
-                "maxItems": 50,
-                "items": {
-                  "$ref": "#/$defs/pg_name"
-                }
-              }
-            ]
-          },
-          "at": {
-            "anyOf": [
-              {
-                "$ref": "#/$defs/location"
+                "maxLength": 528,
+                "pattern": "^(?!/)(?![^:]*//)(?![^:]*/:)(?!(?:[^:]*/)?\\.\\.?(?:/|:))[A-Za-z0-9_.@+$\\[\\]()~/-]{1,512}:[1-9][0-9]{0,6}(?:-[1-9][0-9]{0,6})?$"
               },
               {
                 "type": "null"
@@ -3081,7 +3085,9 @@
                   ]
                 },
                 "candidate": {
-                  "$ref": "#/$defs/location"
+                  "type": "string",
+                  "maxLength": 528,
+                  "pattern": "^(?!/)(?![^:]*//)(?![^:]*/:)(?!(?:[^:]*/)?\\.\\.?(?:/|:))[A-Za-z0-9_.@+$\\[\\]()~/-]{1,512}:[1-9][0-9]{0,6}(?:-[1-9][0-9]{0,6})?$"
                 }
               }
             }
@@ -3105,7 +3111,9 @@
                   ]
                 },
                 "candidate": {
-                  "$ref": "#/$defs/location"
+                  "type": "string",
+                  "maxLength": 528,
+                  "pattern": "^(?!/)(?![^:]*//)(?![^:]*/:)(?!(?:[^:]*/)?\\.\\.?(?:/|:))[A-Za-z0-9_.@+$\\[\\]()~/-]{1,512}:[1-9][0-9]{0,6}(?:-[1-9][0-9]{0,6})?$"
                 }
               }
             }
@@ -3128,7 +3136,8 @@
                   ]
                 },
                 "candidate": {
-                  "$ref": "#/$defs/qualified_name"
+                  "type": "string",
+                  "pattern": "^[A-Za-z_][A-Za-z0-9_$\\-]{0,62}\\.[A-Za-z_][A-Za-z0-9_$\\-]{0,62}$"
                 }
               }
             }
@@ -3144,11 +3153,13 @@
             "then": {
               "properties": {
                 "value": {
-                  "type": "string",
                   "enum": [
                     "declared",
                     "unknown"
                   ]
+                },
+                "column_names": {
+                  "maxItems": 0
                 }
               }
             }
@@ -3164,7 +3175,6 @@
             "then": {
               "properties": {
                 "value": {
-                  "type": "string",
                   "enum": [
                     "none",
                     "signed_in",
@@ -3173,6 +3183,9 @@
                     "owner_compare",
                     "unknown"
                   ]
+                },
+                "column_names": {
+                  "maxItems": 0
                 }
               }
             }
@@ -3188,7 +3201,6 @@
             "then": {
               "properties": {
                 "value": {
-                  "type": "string",
                   "enum": [
                     "path_param",
                     "query",
@@ -3197,6 +3209,9 @@
                     "other",
                     "unknown"
                   ]
+                },
+                "column_names": {
+                  "maxItems": 0
                 }
               }
             }
@@ -3212,12 +3227,14 @@
             "then": {
               "properties": {
                 "value": {
-                  "type": "string",
                   "enum": [
                     "session",
                     "request",
                     "unknown"
                   ]
+                },
+                "column_names": {
+                  "maxItems": 0
                 }
               }
             }
@@ -3233,13 +3250,15 @@
             "then": {
               "properties": {
                 "value": {
-                  "type": "string",
                   "enum": [
                     "named_fields",
                     "spread_request",
                     "spread_parsed",
                     "unknown"
                   ]
+                },
+                "column_names": {
+                  "maxItems": 0
                 }
               }
             }
@@ -3255,12 +3274,14 @@
             "then": {
               "properties": {
                 "value": {
-                  "type": "string",
                   "enum": [
                     "strips_unknown_keys",
                     "keeps_unknown_keys",
                     "unknown"
                   ]
+                },
+                "column_names": {
+                  "maxItems": 0
                 }
               }
             }
@@ -3276,13 +3297,15 @@
             "then": {
               "properties": {
                 "value": {
-                  "type": "string",
                   "enum": [
                     "session",
                     "request",
                     "none",
                     "unknown"
                   ]
+                },
+                "column_names": {
+                  "maxItems": 0
                 }
               }
             }
@@ -3298,11 +3321,13 @@
             "then": {
               "properties": {
                 "value": {
-                  "type": "string",
                   "enum": [
                     "declared",
                     "unknown"
                   ]
+                },
+                "column_names": {
+                  "maxItems": 0
                 }
               }
             }
@@ -3318,12 +3343,14 @@
             "then": {
               "properties": {
                 "value": {
-                  "type": "string",
                   "enum": [
                     "enabled",
                     "disabled",
                     "unknown"
                   ]
+                },
+                "column_names": {
+                  "maxItems": 0
                 }
               }
             }
@@ -3339,20 +3366,9 @@
             "then": {
               "properties": {
                 "value": {
-                  "anyOf": [
-                    {
-                      "type": "string",
-                      "enum": [
-                        "unknown"
-                      ]
-                    },
-                    {
-                      "type": "array",
-                      "maxItems": 50,
-                      "items": {
-                        "$ref": "#/$defs/pg_name"
-                      }
-                    }
+                  "enum": [
+                    "listed",
+                    "unknown"
                   ]
                 }
               }
@@ -3368,14 +3384,16 @@
             },
             "then": {
               "properties": {
-                "at": {
-                  "$ref": "#/$defs/location"
+                "cited_at": {
+                  "type": "string",
+                  "maxLength": 528,
+                  "pattern": "^(?!/)(?![^:]*//)(?![^:]*/:)(?!(?:[^:]*/)?\\.\\.?(?:/|:))[A-Za-z0-9_.@+$\\[\\]()~/-]{1,512}:[1-9][0-9]{0,6}(?:-[1-9][0-9]{0,6})?$"
                 }
               }
             },
             "else": {
               "properties": {
-                "at": {
+                "cited_at": {
                   "type": "null"
                 }
               }

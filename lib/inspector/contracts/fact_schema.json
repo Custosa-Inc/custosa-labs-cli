@@ -101,8 +101,11 @@
           "about": "cite the ENABLE ROW LEVEL SECURITY line"
         },
         "per_user_columns": {
-          "values": "list of column names",
-          "about": "the columns that hold a user, owner, patient or author id; [] if none; cite the column's line"
+          "values": [
+            "listed"
+          ],
+          "columns": "list of column names, [] if none",
+          "about": "the columns that hold a user, owner, patient or author id; cite the column's line"
         }
       }
     }
