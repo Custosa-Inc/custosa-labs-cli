@@ -49,6 +49,15 @@ const line = (object_id, reason, sawNothing = true) => ({ object_id, practice_id
   decision: { object_id, question: "q?", why_asked: "assistant_could_not_decide", scope: "s", evidence: [], options: OPTIONS,
     ...(sawNothing ? { saw: { matched: "nothing", stack_count: 1, files_covered: 3 } } : {}) } });
 
+/* o1b 3d-3: a stub whose answer is the envelope and its index, and whose lines are read through get_result {finding}. */
+const storeOf = (lines) => {
+  const byId = new Map(lines.map((l) => [l.object_id, l]));
+  return (call) => ({ status: 200, json: !call.body.select ? { ...EVALUATE_OK, index: INDEX }
+    : byId.has(call.body.select.finding) ? lineRead(call.body, byId.get(call.body.select.finding))
+      : { goal: call.body.goal, session: call.body.session, select: call.body.select, part: "detail", matched: 0, results: [],
+        values: [...byId.keys()], is_fetch_only: true, charged_units: 0, correlation_id: "corr_12345678" } });
+};
+
 test("decider_ref: a decision takes a listed role or local:<8 hex>, and the body sends it as written", async () => {
   assert.ok(validateArgs({ goal: "check", session: EVALUATE_OK.session, decisions: [{ object_id: "a-b", option: "pass", decider_ref: "security-lead" }] }));
   for (const ref of ["", "jane doe", "jane@clinic.example", "x".repeat(65), "owner/1", "cto", "dpo.2", "team-1234"]) {
@@ -66,9 +75,9 @@ test("decider_ref: a decision takes a listed role or local:<8 hex>, and the body
 
 test("decider_ref: the tool never makes one up; an option left open on a line seen nothing of (decision.saw) gets a note", async () => {
   const root = repo();
-  // as 1ea2abf8 answers it: a refused pass keeps the line's own reason (no_rule_for_stack here) beside decision.saw
-  const answer = { ...EVALUATE_OK, findings: [line("a-b", "no_rule_for_stack"), line("c-d", "rules_saw_nothing"), line("e-f", "person_must_decide", false)] };
-  const { s, runCheck } = await setup(() => ({ status: 200, json: answer }));
+  // as 1ea2abf8 answers it: a refused pass keeps the line's own reason (no_rule_for_stack here) beside decision.saw.
+  // o1b 3d-3: the lines are in the store, read through get_result ({finding}) in the same call.
+  const { s, runCheck } = await setup(storeOf([line("a-b", "no_rule_for_stack"), line("c-d", "rules_saw_nothing"), line("e-f", "person_must_decide", false)]));
   try {
     const out = await runCheck({ goal: "check", session: EVALUATE_OK.session, decisions: [{ object_id: "a-b", option: "pass" },
       { object_id: "c-d", option: "fail" }, { object_id: "e-f", option: "not_applicable" }] }, { roots: [root] });
@@ -129,8 +138,7 @@ test("A decider_ref is a listed role or local:<8 hex>, so a run of digits, a UUI
 
 test("A legacy {decision: not_applicable} on a line seen nothing of gets the decider_ref_needed note", async () => {
   const root = repo();
-  const answer = { ...EVALUATE_OK, findings: [line("a-b", "rules_saw_nothing"), line("c-d", "rules_saw_nothing"), line("e-f", "person_must_decide", false)] };
-  const { s, runCheck } = await setup(() => ({ status: 200, json: answer }));
+  const { s, runCheck } = await setup(storeOf([line("a-b", "rules_saw_nothing"), line("c-d", "rules_saw_nothing"), line("e-f", "person_must_decide", false)]));
   try {
     const out = await runCheck({ goal: "check", session: EVALUATE_OK.session, decisions: [{ object_id: "a-b", decision: "not_applicable" },
       { object_id: "c-d", decision: "declined" }, { object_id: "e-f", decision: "not_applicable" }] }, { roots: [root] });
