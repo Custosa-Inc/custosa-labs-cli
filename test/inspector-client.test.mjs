@@ -101,7 +101,7 @@ test("evaluate: an answer outside the response schema is never passed on as a re
   }
 });
 
-test("evaluate: an unreachable evaluator is a local error; an evaluation is not re-sent, a page fetch is once", async () => {
+test("evaluate: an unreachable evaluator is a local error; an evaluation is not re-sent, a get_result read is once", async () => {
   const s = await stub(() => ({ status: 200, json: EVALUATE_OK }));
   const url = s.url;
   await s.close();
@@ -118,7 +118,7 @@ test("evaluate: an unreachable evaluator is a local error; an evaluation is not 
   assert.match(out.body.next_step, /may have run/);
   assert.equal(calls, 1);
   calls = 0;
-  out = await evaluate({ goal: "check", session: "ps_abcdefghijklmnopqrstuv", page: 2 }, { token: TOKEN, baseUrl: url, fetch: failing });
+  out = await evaluate({ goal: "check", session: "ps_abcdefghijklmnopqrstuv", select: { state: "fail" } }, { token: TOKEN, baseUrl: url, fetch: failing });
   assert.equal(out.body.error, "evaluator_unreachable");
   assert.equal(calls, 2);
   assert.ok(!JSON.stringify(out).includes(TOKEN));
@@ -210,8 +210,8 @@ test("A page 1 that names answers the session never issued (not_used) is a lawfu
   assert.notEqual(validateResponse({ ...EVALUATE_OK, not_used: Array(21).fill(stray) }), null);
 });
 
-// a page fetch cut off is sent once more (it is never charged), then reported as unreadable, not as incomplete.
-test("evaluate: a page fetch cut off twice is evaluator_response_invalid after one retry", async () => {
+// a get_result read cut off is sent once more (it is never charged), then reported as unreadable, not as incomplete.
+test("evaluate: a get_result read cut off twice is evaluator_response_invalid after one retry", async () => {
   const { createServer } = await import("node:http");
   let hits = 0;
   const server = createServer((req, res) => {
@@ -220,7 +220,7 @@ test("evaluate: a page fetch cut off twice is evaluator_response_invalid after o
   });
   await new Promise((ok) => server.listen(0, "127.0.0.1", ok));
   try {
-    const out = await evaluate({ goal: "check", session: "ps_abcdefghijklmnopqrstuv", page: 2 },
+    const out = await evaluate({ goal: "check", session: "ps_abcdefghijklmnopqrstuv", select: { state: "fail" } },
       { token: TOKEN, baseUrl: `http://127.0.0.1:${server.address().port}` });
     assert.equal(out.body.error, "evaluator_response_invalid");
     assert.equal(hits, 2);

@@ -58,9 +58,9 @@ test("The evaluator timeout is 150 s; a timed-out attempt that is retried reuses
   await new Promise((ok) => server.listen(0, "127.0.0.1", ok));
   const url = `http://127.0.0.1:${server.address().port}`;
   try {
-    // A page fetch evaluates and charges nothing, so a timed-out attempt is retried once, with the same key.
-    const page = await evaluate({ goal: "check", session: "ps_abcdefghijklmnopqrstuv", page: 2 }, { token: TOKEN, baseUrl: url, timeoutMs: 300 });
-    assert.equal(page.ok, true, JSON.stringify(page));
+    // A get_result read evaluates and charges nothing, so a timed-out attempt is retried once, with the same key.
+    const read = await evaluate({ goal: "check", session: "ps_abcdefghijklmnopqrstuv", select: { state: "fail" } }, { token: TOKEN, baseUrl: url, timeoutMs: 300 });
+    assert.equal(read.ok, true, JSON.stringify(read));
     assert.equal(calls.length, 2);
     assert.ok(UUID.test(calls[0]));
     assert.equal(calls[1], calls[0], "the retry of a timed-out attempt reuses its key");
@@ -155,8 +155,8 @@ test("health: one unauthenticated GET of /v1/health, and nothing else, even afte
   try { assert.deepEqual(await health(down.url), { ok: false, why: "http_503" }); assert.equal(down.calls.length, 1); } finally { await down.close(); }
 });
 
-test("Every evaluate attempt carries an Idempotency-Key: a check, a schema_guidance call, a page fetch", async () => {
-  const advice = { goal: "explain", status: "done", session: "ps_abcdefghijklmnopqrstuv", content: "## Practice\nText.", page: null,
+test("Every evaluate attempt carries an Idempotency-Key: a check, a schema_guidance call, a get_result read", async () => {
+  const advice = { goal: "explain", status: "done", session: "ps_abcdefghijklmnopqrstuv", content: "## Practice\nText.",
     is_fetch_only: false, charged_units: 10, next_step: "Show it.", notice: "", correlation_id: "corr_12345678" };
   const s = await stub((call) => ({ status: 200, json: call.body.goal === "explain" ? advice : EVALUATE_OK }));
   const configDir = join(temp("custosa-idem-"), "custosa");
@@ -166,7 +166,7 @@ test("Every evaluate attempt carries an Idempotency-Key: a check, a schema_guida
     await runCheck({ goal: "check" }, { roots: ["/p"] });
     await runCheck({ goal: "explain", practice_id: "audit-log" }, { roots: [] });
     await runCheck({ goal: "plan", entities: [{ name: "patients", columns: [{ name: "dob" }] }] }, { roots: [] });
-    await runCheck({ goal: "check", session: EVALUATE_OK.session, page: 2 }, { roots: [] });
+    await runCheck({ goal: "check", session: EVALUATE_OK.session, select: { state: "fail" } }, { roots: [] });
     assert.equal(s.calls.length, 4);
     assert.ok(s.calls.every((c) => c.url === "/v1/evaluate" && UUID.test(c.headers["idempotency-key"])), JSON.stringify(s.calls.map((c) => c.headers["idempotency-key"])));
     assert.equal(new Set(s.calls.map((c) => c.headers["idempotency-key"])).size, 4, "a fresh key per call");
@@ -340,9 +340,9 @@ test("M-B: an evaluation starts only with 90 s left; a sent request keeps its fu
     out = await evaluate(body, { token: TOKEN, baseUrl: "http://e.test", fetch, now: () => clock, deadline: 200_000, retries: 1, sleep: async (ms) => { clock += ms; } });
     assert.equal(calls, 2);
     assert.deepEqual(timeouts, [EVALUATOR_TIMEOUT_MS, EVALUATOR_TIMEOUT_MS]);
-    // a page fetch (never charged) needs only a second
+    // a get_result read (never charged) needs only a second
     calls = 0; clock = 0;
-    await evaluate({ goal: "check", session: "ps_abcdefghijklmnopqrstuv", page: 2 }, { token: TOKEN, baseUrl: "http://e.test", fetch, now: () => clock, deadline: 5_000, retries: 0 });
+    await evaluate({ goal: "check", session: "ps_abcdefghijklmnopqrstuv", select: { state: "fail" } }, { token: TOKEN, baseUrl: "http://e.test", fetch, now: () => clock, deadline: 5_000, retries: 0 });
     assert.equal(calls, 1);
   } finally { AbortSignal.timeout = orig; }
 });
@@ -413,8 +413,8 @@ test("H1: a cancel after send keeps the request; a repeat always collects anew a
     assert.equal(calls[3].body.fact_document.facts, "rls_off", "never an answer built from old facts");
     assert.notEqual(calls[3].key, calls[2].key, "a different body never reuses a key (no idempotency_mismatch)");
     // the stub answers every call with the same session, so the evaluator now holds the newer answer for it: the note
-    // says so, and never offers get_result_page for the old one
-    assert.ok(changed.local_notes.some((n) => n.includes(`session ${EVALUATE_OK.session}, the same session as this answer`) && !n.includes("get_result_page")), JSON.stringify(changed.local_notes));
+    // says so, and never offers get_result for the old one
+    assert.ok(changed.local_notes.some((n) => n.includes(`session ${EVALUATE_OK.session}, the same session as this answer`) && !n.includes("get_result")), JSON.stringify(changed.local_notes));
     // the kept entry is gone once noted
     const after = await runCheck({ goal: "verify" }, { roots: ["/p"] });
     assert.ok(!(after.local_notes ?? []).length);

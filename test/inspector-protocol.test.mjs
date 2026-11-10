@@ -11,7 +11,7 @@ import { PassThrough } from "node:stream";
 import { fileURLToPath, pathToFileURL } from "node:url";
 import AjvModule from "ajv";
 import { InspectorStdioTransport, startServer, textFor } from "../lib/inspector/server.mjs";
-import { GUIDANCE_OUTPUT_SCHEMA, OUTPUT_SCHEMA, PAGE_OUTPUT_SCHEMA, TOOL, TOOLS, makeRunCheck } from "../lib/inspector/tool.mjs";
+import { GUIDANCE_OUTPUT_SCHEMA, OUTPUT_SCHEMA, RESULT_OUTPUT_SCHEMA, TOOL, TOOLS, makeRunCheck } from "../lib/inspector/tool.mjs";
 import { LOCAL, localError } from "../lib/inspector/client.mjs";
 import { writeToken } from "../lib/inspector/auth.mjs";
 import { liveWorkers, loadRules, runRules } from "../lib/inspector/rules.mjs";
@@ -21,7 +21,7 @@ import { EVALUATE_OK, stub } from "./stub-evaluator.mjs";
 const Ajv = AjvModule.default ?? AjvModule;
 const validateOutput = new Ajv({ strict: false }).compile(OUTPUT_SCHEMA);
 const validateGuidance = new Ajv({ strict: false }).compile(GUIDANCE_OUTPUT_SCHEMA);
-const validatePage = new Ajv({ strict: false }).compile(PAGE_OUTPUT_SCHEMA);
+const validateResult = new Ajv({ strict: false }).compile(RESULT_OUTPUT_SCHEMA);
 const temp = (prefix) => realpathSync(mkdtempSync(join(tmpdir(), prefix)));
 const repo = (files = {}) => {
   const dir = temp("custosa-proto-");
@@ -138,10 +138,13 @@ test("PC5: real outputs validate against the outputSchema (single root, other ro
     collectCatalog: async () => ({ status: "not_run", count: 0, reason: "service_missing", preflight: null, queries: [] }),
     collectPlatform: async () => ({ provider: null, status: "not_run", reason: "no_token", settings: {} }),
   };
-  const advice = { goal: "explain", status: "done", session: "ps_abcdefghijklmnopqrstuv", content: "## Practice\nText.", page: null,
+  const advice = { goal: "explain", status: "done", session: "ps_abcdefghijklmnopqrstuv", content: "## Practice\nText.",
     is_fetch_only: false, charged_units: 10, next_step: "Show it.", notice: "", correlation_id: "corr_12345678" };
-  const evaluator = await stub((call) => ({ status: 200, json: call.body.goal === "explain" ? advice : EVALUATE_OK }));
-  // (a page fetch of an explain session answers the stored advice; of a check session, the stored check)
+  // a get_result read answers get_result_response (T29 o2): here a selector that matches nothing
+  const read = (body) => ({ goal: body.goal, session: body.session, select: body.select, part: "detail", matched: 0, results: [],
+    values: [], is_fetch_only: true, charged_units: 0, correlation_id: "corr_12345678" });
+  const evaluator = await stub((call) => ({ status: 200, json: call.body.select ? read(call.body)
+    : call.body.goal === "explain" ? advice : EVALUATE_OK }));
   const configDir = join(temp("custosa-proto-cfg-"), "custosa");
   writeToken(`phisc_${"t".repeat(43)}`, { configDir, host: new URL(evaluator.url).origin });
   try {
@@ -156,20 +159,21 @@ test("PC5: real outputs validate against the outputSchema (single root, other ro
     ];
     assert.ok(outputs[0].other_roots && outputs[1].results.length === 2, JSON.stringify(outputs[0]).slice(0, 300));
     for (const out of outputs) assert.ok(validateOutput(out), `${JSON.stringify(validateOutput.errors)} ${JSON.stringify(out).slice(0, 300)}`);
-    // schema_guidance and get_result_page, each against its own outputSchema
+    // schema_guidance and get_result, each against its own outputSchema
     const advised = await runCheck({ goal: "explain", practice_id: "audit-log" }, { roots: [] });
     assert.ok(validateGuidance(advised), JSON.stringify(validateGuidance.errors));
     assert.ok(!validateOutput(advised), "an advice answer is not a check_schema result");
     const local = await makeRunCheck({ localOnly: true, configDir, buildOptions: quiet })({ goal: "plan", entities: [{ name: "patients", columns: [{ name: "dob" }] }] }, { roots: [] });
     assert.ok(validateGuidance(local), JSON.stringify(validateGuidance.errors));
-    for (const args of [{ goal: "check", session: EVALUATE_OK.session, page: 2 }, { goal: "explain", session: EVALUATE_OK.session, resend: ["all"] }]) {
+    for (const args of [{ goal: "check", session: EVALUATE_OK.session, select: { state: "fail" } }, { goal: "explain", session: EVALUATE_OK.session, select: { advice: "practice" } }]) {
       const fetched = await runCheck(args, { roots: [] });
-      assert.ok(validatePage(fetched), JSON.stringify(validatePage.errors));
+      assert.ok(validateResult(fetched), JSON.stringify(validateResult.errors));
+      assert.ok(!validateResult(EVALUATE_OK), "a check answer is not a get_result result");
     }
-    // L-b: a page in local-only mode validates too
-    const localPage = await makeRunCheck({ localOnly: true, configDir, buildOptions: quiet })({ goal: "check", session: EVALUATE_OK.session, page: 2 }, { roots: [] });
-    assert.equal(localPage.local_only, true);
-    assert.ok(validatePage(localPage), JSON.stringify(validatePage.errors));
+    // L-b: a get_result read in local-only mode validates too
+    const localRead = await makeRunCheck({ localOnly: true, configDir, buildOptions: quiet })({ goal: "check", session: EVALUATE_OK.session, select: { state: "fail" } }, { roots: [] });
+    assert.equal(localRead.local_only, true);
+    assert.ok(validateResult(localRead), JSON.stringify(validateResult.errors));
     assert.ok(!validateOutput({ error: "sign_in_required", next_step: "x", local: true }), "an error is never a structured result");
   } finally { await evaluator.close(); }
 });
@@ -294,8 +298,8 @@ test("L5: the SDK pin is @modelcontextprotocol/server 2.3.1; the transport reads
   await t.send({ jsonrpc: "2.0", id: 1, result: {} }); // after close: dropped, no throw
 });
 
-test("TU1: three tools, each with a title, a short name, its own schemas and annotations; get_result_page alone is read-only", () => {
-  assert.deepEqual(TOOLS.map((t) => t.name), ["check_schema", "schema_guidance", "get_result_page"]);
+test("TU1: three tools, each with a title, a short name, its own schemas and annotations; get_result alone is idempotent", () => {
+  assert.deepEqual(TOOLS.map((t) => t.name), ["check_schema", "schema_guidance", "get_result"]);
   for (const t of TOOLS) {
     assert.ok(t.name.length <= 64 && /^[a-z_]+$/.test(t.name));
     assert.ok(t.title && t.annotations.title === t.title);
@@ -305,14 +309,12 @@ test("TU1: three tools, each with a title, a short name, its own schemas and ann
     assert.equal(t.annotations.destructiveHint, false);
     assert.ok(!/\bfree\b|—|\bexpert\b|never stop/i.test(t.description), t.name);
   }
-  const [check, guidance, page] = TOOLS;
+  const [check, guidance, result] = TOOLS;
   for (const t of [check, guidance]) { assert.equal(t.annotations.readOnlyHint, false); assert.equal(t.annotations.idempotentHint, false); }
-  // a page whose answer carries decisions to record writes .custosa/state.json, so it is not read-only,
-  // and its description says so.
-  assert.equal(page.annotations.readOnlyHint, false);
-  assert.equal(page.annotations.idempotentHint, true);
-  assert.match(page.description, /\.custosa\/state\.json/);
-  assert.match(page.description, /Not charged/);
+  // get_result reads what is stored: the same answer each time, never charged (T29 o2)
+  assert.equal(result.annotations.readOnlyHint, false);
+  assert.equal(result.annotations.idempotentHint, true);
+  assert.match(result.description, /Not charged/);
   assert.match(guidance.description, /advice rate/);
   assert.doesNotMatch(guidance.description, /app_description/);
   assert.deepEqual(check.inputSchema.properties.goal.enum, ["check", "fix", "verify"]);
@@ -327,29 +329,29 @@ test("TU1: each tool refuses what belongs to another, with isError and the right
   const cases = [
     ["check_schema", { goal: "plan", entities: [] }, "schema_guidance"],
     ["check_schema", { goal: "explain", practice_id: "audit-log" }, "schema_guidance"],
-    ["check_schema", { goal: "check", session: EVALUATE_OK.session, page: 2 }, "get_result_page"],
-    ["check_schema", { goal: "check", session: EVALUATE_OK.session, resend: ["all"] }, "get_result_page"],
+    ["check_schema", { goal: "check", session: EVALUATE_OK.session, select: { state: "fail" } }, "get_result"],
+    ["check_schema", { goal: "check", session: EVALUATE_OK.session, part: "fix" }, "get_result"],
     ["schema_guidance", { goal: "check" }, "check_schema"],
-    ["schema_guidance", { goal: "explain", practice_id: "audit-log", page: 2 }, "get_result_page"],
+    ["schema_guidance", { goal: "explain", practice_id: "audit-log", select: { advice: "practice" } }, "get_result"],
     ["schema_guidance", { goal: "plan", answers: [] }, "check_schema"],
-    ["get_result_page", { session: EVALUATE_OK.session, page: 2, answers: [] }, "check_schema"],
-    ["get_result_page", { session: EVALUATE_OK.session, page: 2, practice_id: "audit-log" }, "schema_guidance"],
+    ["get_result", { session: EVALUATE_OK.session, select: { state: "fail" }, answers: [] }, "check_schema"],
+    ["get_result", { session: EVALUATE_OK.session, select: { state: "fail" }, practice_id: "audit-log" }, "schema_guidance"],
     // concerns and concern_decisions go with check_schema.
     ["schema_guidance", { goal: "plan", entities: [], concerns: [] }, "check_schema"],
-    ["get_result_page", { session: EVALUATE_OK.session, page: 2, concern_decisions: [] }, "check_schema"],
+    ["get_result", { session: EVALUATE_OK.session, select: { state: "fail" }, concern_decisions: [] }, "check_schema"],
   ];
   for (const [tool, args, right] of cases) {
     const res = await call(tool, args);
     assert.equal(res.isError, true, `${tool} ${JSON.stringify(args)}`);
     assert.match(res.content[0].text, new RegExp(`belongs to ${right}, not ${tool}\\. Call ${right} with it instead\\.`), res.content[0].text);
   }
-  const none = await call("get_result_page", { session: EVALUATE_OK.session });
+  const none = await call("get_result", { session: EVALUATE_OK.session });
   assert.equal(none.isError, true);
-  assert.match(none.content[0].text, /needs page .* or resend/);
+  assert.match(none.content[0].text, /needs select/);
   assert.equal(calls.length, 0);
   // and the right tool takes them
   assert.equal((await call("schema_guidance", { goal: "explain", practice_id: "audit-log" })).isError, undefined);
-  assert.equal((await call("get_result_page", { session: EVALUATE_OK.session, page: 2 })).isError, undefined);
+  assert.equal((await call("get_result", { session: EVALUATE_OK.session, select: { state: "fail" } })).isError, undefined);
   assert.equal((await call("check_schema", { goal: "check", session: EVALUATE_OK.session, answers: [] })).isError, undefined);
   assert.equal(calls.length, 3);
   // goal doubts is no goal of either tool: the schema refuses it, with no pointer to another tool

@@ -5,21 +5,21 @@
 // fixes yet" and "never apply part of it" were ignored every time, and goal fix was never reached.
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { INSTRUCTIONS, DESCRIPTION, GUIDANCE_DESCRIPTION, PAGE_DESCRIPTION, INPUT_SCHEMA } from "../lib/inspector/tool.mjs";
+import { INSTRUCTIONS, DESCRIPTION, GUIDANCE_DESCRIPTION, RESULT_DESCRIPTION, INPUT_SCHEMA } from "../lib/inspector/tool.mjs";
 
-// Well under the 4,096 characters the brief names, with room for page 1's lines (T29 item 2) beside them.
+// Well under the 4,096 characters the brief names, with room for the index (T29 o2) beside them.
 const BUDGET = 3600;
 const GATED = /make no fixes|ask the person|ask before|do you want me to|only after the person|after the person (says|asks)|the person says yes|never apply part|each whole|not your own summary|fixes only after/i;
 const flat = (text) => text.replace(/\s+/g, " ");
 const firstSentence = (text) => flat(text).split(/(?<=\.) /)[0];
 
 test("the server instructions and the three descriptions fit the budget together", () => {
-  const total = INSTRUCTIONS.length + DESCRIPTION.length + GUIDANCE_DESCRIPTION.length + PAGE_DESCRIPTION.length;
+  const total = INSTRUCTIONS.length + DESCRIPTION.length + GUIDANCE_DESCRIPTION.length + RESULT_DESCRIPTION.length;
   assert.ok(total <= BUDGET, `${total} characters, over ${BUDGET}`);
 });
 
 test("no person-gated imperative in the instructions or a description", () => {
-  for (const text of [INSTRUCTIONS, DESCRIPTION, GUIDANCE_DESCRIPTION, PAGE_DESCRIPTION]) {
+  for (const text of [INSTRUCTIONS, DESCRIPTION, GUIDANCE_DESCRIPTION, RESULT_DESCRIPTION]) {
     assert.doesNotMatch(flat(text), GATED);
   }
 });

@@ -85,16 +85,22 @@ test("decider_ref: one shaped like a secret or a record value is not a role, so 
   assert.equal(decisionsProblem({ decisions: [{ object_id: "a-b", option: "pass", decider_ref: "security-lead" }] }, { env: {} }), null);
 });
 
-test("decider_ref: a later page that shows the open line adds the note too", async () => {
+/* T29 o2 (T29-P1-C116 (a)): the lines are in the call's store. The CLI reads the line of each decision that may need
+ * a decider_ref through get_result ({finding}, part detail) in the same call, so the note comes with the check. */
+const INDEX = { result_counts: { by_state: { pass: 0, fail: 0, not_applicable: 0, needs_review: 1, unknown: 0, error: 0 },
+  by_severity: {}, by_state_and_severity: [] }, practices: [], fails: [], open: [], questions: [], concerns: [], fixes: [], lists: [] };
+const lineRead = (body, detail) => ({ goal: body.goal, session: body.session, select: body.select, part: "detail", matched: 1,
+  results: [{ finding: detail.object_id, practice_id: detail.practice_id, object: detail.object_id, state: detail.state,
+    severity: detail.severity, detail }], is_fetch_only: true, charged_units: 0, correlation_id: "corr_12345678" });
+
+test("decider_ref: the open line read from the store adds the note in the same call (T29 o2)", async () => {
   const root = repo();
-  const first = { ...EVALUATE_OK, page: { n: 1, of: 2, next: 2, later_pages_hold: ["findings"] } };
-  const second = { ...EVALUATE_OK, page: { n: 2, of: 2, next: null, later_pages_hold: [] }, findings: [line("a-b", "no_rule_for_stack")] };
-  const { s, runCheck } = await setup((call) => ({ status: 200, json: call.body.page === 2 ? second : first }));
+  const { s, runCheck } = await setup((call) => ({ status: 200, json: call.body.select
+    ? lineRead(call.body, line("a-b", "no_rule_for_stack")) : { ...EVALUATE_OK, index: INDEX } }));
   try {
     const out = await runCheck({ goal: "check", session: EVALUATE_OK.session, decisions: [{ object_id: "a-b", option: "pass" }] }, { roots: [root] });
-    assert.equal(out.local_notes, undefined);
-    const page = await runCheck({ goal: "check", session: EVALUATE_OK.session, page: 2 }, { roots: [root] });
-    assert.deepEqual(page.local_notes, [DECISION_NOTES.decider_ref_needed.replace("{ids}", "a-b")]);
+    assert.deepEqual(s.calls[1].body, { goal: "check", session: EVALUATE_OK.session, select: { finding: "a-b" } });
+    assert.deepEqual(out.local_notes, [DECISION_NOTES.decider_ref_needed.replace("{ids}", "a-b")]);
   } finally { await s.close(); }
 });
 
@@ -134,14 +140,12 @@ test("A legacy {decision: not_applicable} on a line seen nothing of gets the dec
   } finally { await s.close(); }
 });
 
-test("A later page that shows a legacy not_applicable's open line adds the note too", async () => {
+test("A legacy not_applicable's open line read from the store adds the note in the same call (T29 o2)", async () => {
   const root = repo();
-  const first = { ...EVALUATE_OK, page: { n: 1, of: 2, next: 2, later_pages_hold: ["findings"] } };
-  const second = { ...EVALUATE_OK, page: { n: 2, of: 2, next: null, later_pages_hold: [] }, findings: [line("a-b", "rules_saw_nothing")] };
-  const { s, runCheck } = await setup((call) => ({ status: 200, json: call.body.page === 2 ? second : first }));
+  const { s, runCheck } = await setup((call) => ({ status: 200, json: call.body.select
+    ? lineRead(call.body, line("a-b", "rules_saw_nothing")) : { ...EVALUATE_OK, index: INDEX } }));
   try {
-    await runCheck({ goal: "check", session: EVALUATE_OK.session, decisions: [{ object_id: "a-b", decision: "not_applicable" }] }, { roots: [root] });
-    const page = await runCheck({ goal: "check", session: EVALUATE_OK.session, page: 2 }, { roots: [root] });
-    assert.deepEqual(page.local_notes, [DECISION_NOTES.decider_ref_needed.replace("{ids}", "a-b")]);
+    const out = await runCheck({ goal: "check", session: EVALUATE_OK.session, decisions: [{ object_id: "a-b", decision: "not_applicable" }] }, { roots: [root] });
+    assert.deepEqual(out.local_notes, [DECISION_NOTES.decider_ref_needed.replace("{ids}", "a-b")]);
   } finally { await s.close(); }
 });

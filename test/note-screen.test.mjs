@@ -177,18 +177,19 @@ test("a built document is reused only by the same session, roots and answers, an
   } finally { await s.close(); }
 });
 
-test("a page fetch that issues new expects for the answers between a refused call and its rewrite makes the rewrite build anew", async () => {
+test("a get_result read that issues new expects for the answers between a refused call and its rewrite makes the rewrite build anew", async () => {
   // The build reads the session's issued expects, so the kept document is reused only while they hold.
   const root = repo();
   let skew = 0;
   const q = { question_id: "location", object_id: "a-b@one", practice_id: "a-b", ask: "Where is it?", answers: ["here", "not_found", "not_present"], expects: ["call", "function"] };
   const { s, runCheck, builds } = await setup({ now: () => Date.now() + skew,
-    respond: (call) => ({ status: 200, json: call.body.page ? { ...EVALUATE_OK, session: call.body.session, questions: [q] } : EVALUATE_OK }) });
+    respond: (call) => ({ status: 200, json: call.body.select ? { goal: "check", session: call.body.session, select: call.body.select,
+      part: "detail", matched: 1, results: [q], is_fetch_only: true, charged_units: 0, correlation_id: "corr_12345678" } : EVALUATE_OK }) });
   try {
     const answer = { object_id: "a-b@one", question_id: "location", answer: "here", location: "src/db.ts:1" };
     const refused = { goal: "check", session: SESSION, answers: [answer], verdicts: [verdict(NAMED)] };
     assert.equal((await runCheck(refused, { roots: [root] })).error, "note_refused");
-    await runCheck({ goal: "check", session: SESSION, page: 2 }, { roots: [root] });
+    await runCheck({ goal: "check", session: SESSION, select: { list: "questions.a-b" } }, { roots: [root] });
     await runCheck({ ...refused, verdicts: [verdict(CLEAN)] }, { roots: [root] });
     assert.deepEqual(builds.map((b) => b.answers[0]?.expects), [undefined, ["call", "function"]], "the rewrite built anew, with the new expects");
     assert.ok(s.calls.at(-1).body.fact_document, "the rewrite was sent");
