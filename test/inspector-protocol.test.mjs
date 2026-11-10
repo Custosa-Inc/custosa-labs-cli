@@ -377,6 +377,21 @@ test("The text summary names the check's report link, only when it is an https l
   }
 });
 
+test("T29-P2-C80 point 1: the summary shows score_label and the E3 passes apart, never percent as the readiness score", () => {
+  // r1: percent is the verified share (E1 and E2 only), so an app whose passes rest on cited facts reads low there
+  const readiness = { score: 100, percent: 40, score_label: "100% settled, 40% verified by Custosa",
+    pass_by_grade: { custosa: 2, custosa_on_cited_facts: 3, person_decided: 0, assistant_decided: 0 } };
+  const short = textFor({ ...EVALUATE_OK, readiness }, { full: false });
+  assert.ok(!/readiness score 40%/.test(short), short);
+  assert.match(short, /, 100% settled, 40% verified by Custosa, /);
+  assert.match(short, /\n3 practices pass on Custosa's reading of facts the AI cited \(E3\), not in the verified percent\.\n/);
+  const one = textFor({ ...EVALUATE_OK, readiness: { ...readiness, pass_by_grade: { ...readiness.pass_by_grade, custosa_on_cited_facts: 1 } } }, { full: false });
+  assert.match(one, /\n1 practice passes on Custosa's reading/);
+  const none = textFor({ ...EVALUATE_OK, readiness: { ...readiness, pass_by_grade: { ...readiness.pass_by_grade, custosa_on_cited_facts: 0 } } }, { full: false });
+  assert.ok(!/facts the AI cited/.test(none), "no E3 line when no practice passes on cited facts");
+  assert.ok(!/verified by Custosa|readiness score/.test(textFor(EVALUATE_OK, { full: false })), "no score when the response has no readiness");
+});
+
 test("the text summary names the practices the response's guidance covers; the output schema lists guidance", () => {
   const entry = (practice_id) => ({ practice_id, why: "Why it matters.", look_for: [{ stack: "any", items: ["Where to look."] }],
     examples: { safe: "A safe shape.", unsafe: "An unsafe shape." }, saw: ["What this run read."], answer_with: ["no_storage_bucket"] });
