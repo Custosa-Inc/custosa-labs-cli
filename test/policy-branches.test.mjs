@@ -60,3 +60,14 @@ test("every kind is one of the listed words", () => {
   assert.deepEqual([...BRANCH_KINDS], ["owner", "member_row", "member", "any_member", "signed_in", "row", "none", "not_read"]);
   for (const e of [D7, D9, T4]) for (const k of usingBranches(e, "x")) assert.ok(BRANCH_KINDS.includes(k), k);
 });
+
+test("a membership that calls a function it doesn't read, and names no caller, is not_read, never any_member", () => {
+  // public.current_user_id() may return the session user: reading it as any_member would fail a scoped policy
+  const e = "(EXISTS ( SELECT 1 FROM private.clinic_members m WHERE ((m.clinic_id = visits.clinic_id) AND (m.member_id = public.current_user_id()))))";
+  assert.deepEqual(usingBranches(e, "visits"), ["not_read"]);
+  const quoted = "(EXISTS ( SELECT 1 FROM private.clinic_members m WHERE ((m.clinic_id = visits.clinic_id) AND (m.member_id = \"my_uid\"()))))";
+  assert.deepEqual(usingBranches(quoted, "visits"), ["not_read"]);
+  // keywords before a parenthesis are not calls: d9 stays any_member
+  const nested = "(EXISTS ( SELECT 1 FROM private.clinic_members m WHERE ((m.clinic_id = visits.clinic_id) AND (m.active OR (m.role IN ( SELECT 'a'::text))))))";
+  assert.deepEqual(usingBranches(nested, "visits"), ["any_member"]);
+});
