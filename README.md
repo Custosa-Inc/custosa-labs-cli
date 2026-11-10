@@ -21,7 +21,10 @@ changing anything. Then it:
    unknown), saved as `~/.config/custosa/environment.json`, mode 0600, with a fingerprint of the entry's host, port and
    database. The mark is asked at the terminal and production is typed out in full; the evaluator treats it as your
    own statement. A production readiness score needs the entry marked production here; if the entry changes later, or
-   there was no entry when it was marked production, the inspector counts the environment as unknown;
+   there was no entry when it was marked production, the inspector counts the environment as unknown. Only an entry
+   marked development runs fix proofs: on verify, the inspector runs the test SQL the last fix call gave, as
+   `phisc_ro` inside a read-only transaction that is rolled back, and sends only pass, fail or unread for each. On any
+   other mark it runs none and sends each as unread;
 4. prints the SQL for the read-only `phisc_ro` role, the Postgres 14 step, the read and write checks and the connection
    entry. Setup never runs SQL itself: you run it, once.
 
