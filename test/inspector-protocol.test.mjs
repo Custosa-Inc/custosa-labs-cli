@@ -311,8 +311,9 @@ test("TU1: three tools, each with a title, a short name, its own schemas and ann
   }
   const [check, guidance, result] = TOOLS;
   for (const t of [check, guidance]) { assert.equal(t.annotations.readOnlyHint, false); assert.equal(t.annotations.idempotentHint, false); }
-  // get_result reads what is stored: the same answer each time, never charged (T29 o2)
-  assert.equal(result.annotations.readOnlyHint, false);
+  // get_result reads what is stored: the same answer each time, never charged (T29 o2), and writes nothing on this
+  // computer, so it is read-only (T29-P1-C119)
+  assert.equal(result.annotations.readOnlyHint, true);
   assert.equal(result.annotations.idempotentHint, true);
   assert.match(result.description, /Not charged/);
   assert.match(guidance.description, /advice rate/);
