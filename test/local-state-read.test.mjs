@@ -97,3 +97,14 @@ test("concerns: no file yet is written, and a readable one keeps what it held", 
   assert.deepEqual(rememberRaised(other, SENT, RAISED), { note: null, pending: null });
   assert.deepEqual([...readTexts(other).keys()], ["cn_00000000000000a1", ID]);
 });
+
+test("concerns: when .custosa/local is a plain file, the note says to move it, and it is left as it is", () => {
+  const root = temp();
+  mkdirSync(join(root, ".custosa"));
+  const file = join(root, ".custosa/local");
+  writeFileSync(file, "not a folder\n");
+  const out = rememberRaised(root, SENT, RAISED);
+  assert.deepEqual(out, { note: CONCERN_NOTES.concern_texts_unread, pending: null });
+  assert.match(out.note, /\.custosa\/local itself, if it is a file/);
+  assert.equal(readFileSync(file, "utf8"), "not a folder\n");
+});
