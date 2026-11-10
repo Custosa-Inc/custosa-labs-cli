@@ -42,7 +42,7 @@ The inspector offers three MCP tools:
 | ---- | ----- | ------------- | ---- |
 | `check_schema` | check (which also sends answers to its questions), fix, verify | a fact document built from the project: table and column names, settings, rule results and file locations; never code, rows or secret values | $0.003 per work unit, charged exactly the work units a call used; every result is charged, unknown and no-rule-for-the-stack results included |
 | `schema_guidance` | plan, pattern, explain | only the advice request: planned table and column names, a stack and need, or a practice id | the advice rate: the same $0.003 per work unit, where a call costs 1 unit per practice check plus 1 unit per started 1,000 characters of content (a guidance answer runs no practice checks), charged exactly the work units it used |
-| `get_result_page` | a later page, or a resend of a result already returned | only the goal, session and page or section names | not charged |
+| `get_result` | a read of a result already returned: one selector its index names, and one part | only the goal, session, selector and part | not charged |
 
 Each refuses a goal or argument that belongs to another and names the right one.
 
@@ -146,7 +146,7 @@ A cancel stops collection at once and stops any further evaluation from starting
 cut off, since the evaluator may charge it: it finishes in the background and is kept (for six hours). A later call
 always collects and builds its facts anew; only when it is about to send exactly the same request again does it reuse
 that request's Idempotency-Key, so the evaluator answers it once and charges it once. If the project changed, the
-kept request is dropped and the answer carries a note with its session, whose answer `get_result_page` returns
+kept request is dropped and the answer carries a note with its session, whose results `get_result` reads
 without a charge.
 
 `custosa doctor` prints one PASS, WARN or FAIL line per check and exits 1 when any check fails: Node.js, the package

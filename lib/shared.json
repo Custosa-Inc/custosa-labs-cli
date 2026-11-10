@@ -7,7 +7,7 @@
   "tryPrompt": "Use PHI Schema Check to review how this app handles patient data. Run the check through to the end on your own and answer the questions you can from the code. Then show me the readiness score, the findings and the decisions only I can make, and ask me before you change any code or database.",
   "credit": "PHI Schema Check is pay per use. Your account starts with $10 of credit at your first sign-in. Top up from $5 or redeem a coupon on your billing page to add to it.",
   "zeroBalance": "Your account has no credit. Add credit or redeem a coupon on your billing page to run a check.",
-  "connectedCheck": "Check that custosa-phi-schema-check shows connected with its three tools (check_schema, schema_guidance and get_result_page), then send the prompt.",
+  "connectedCheck": "Check that custosa-phi-schema-check shows connected with its three tools (check_schema, schema_guidance and get_result), then send the prompt.",
   "learning": "Learning: unless it is off for your account, PHI Schema Check keeps the facts your inspector sends (names, settings, rule results and file locations) and the results with their grades, linked to your account and company, to improve Custosa products. It starts on for accounts with a personal email address and off for work email and team accounts; change it on your billing page.",
   "database": {
     "role": "CREATE ROLE phisc_ro LOGIN PASSWORD 'YOUR_PASSWORD'\n  NOSUPERUSER NOCREATEDB NOCREATEROLE NOREPLICATION NOBYPASSRLS;",
