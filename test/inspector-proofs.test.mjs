@@ -17,6 +17,7 @@ import { join } from "node:path";
 import { fileURLToPath } from "node:url";
 import pg from "pg";
 import { makeRunCheck, PROOF_NOTES } from "../lib/inspector/tool.mjs";
+import { buildFactDocuments } from "../lib/inspector/factdoc.mjs";
 import { proofBlocks, runProofs } from "../lib/inspector/catalog.mjs";
 import { writeToken } from "../lib/inspector/auth.mjs";
 import { loadRules } from "../lib/inspector/rules.mjs";
@@ -69,12 +70,12 @@ function handler(call) {
   const fixes = call.body.goal === "fix" ? FINDINGS.map(({ finding, practice_id, object, kind }) => ({ finding, practice_id, object, kind })) : [];
   return { status: 200, json: { ...EVALUATE_OK, index: INDEX(fixes) } };
 }
-async function setup({ mark = "development", run = null } = {}) {
+async function setup({ mark = "development", run = null, build = undefined } = {}) {
   const configDir = join(temp("proofs-cfg-"), "custosa");
   const s = await stub(handler);
   writeToken(TOKEN, { configDir, host: new URL(s.url).origin });
   const ran = [];
-  const runCheck = makeRunCheck({ configDir, localOnly: false, buildOptions: quiet,
+  const runCheck = makeRunCheck({ configDir, localOnly: false, buildOptions: quiet, ...(build ? { build } : {}),
     environmentFor: () => ({ environment: { value: mark, source: "setup" }, note: null }),
     runProofs: async (proofs, opts) => { ran.push({ proofs, opts }); return run ? run(proofs) : proofs.map((p) => ({ object_id: p.object_id, proof_id: p.proof_id, result: "pass" })); },
     evaluatorUrl: () => ({ url: s.url, origin: new URL(s.url).origin }), clientOptions: { sleep: async () => {} } });
@@ -140,6 +141,21 @@ test("with no fix call in this process for the session, verify sends no proof_re
     await runCheck({ goal: "check", session }, { roots: [root] });
     assert.ok(!s.calls.some((c) => c.body.part === "proof"));
     assert.ok(s.calls.every((c) => c.body.proof_results === undefined || c.body.goal === "verify"));
+  } finally { await s.close(); }
+});
+
+test("C118 low 2: a verify cancelled after its build, before it is sent, runs no proofs", async () => {
+  const root = repo();
+  const c = new AbortController();
+  let abortAfterBuild = false;
+  const build = async (...a) => { const out = await buildFactDocuments(...a); if (abortAfterBuild) c.abort(); return out; };
+  const { s, runCheck, ran } = await setup({ build });
+  try {
+    await runCheck({ goal: "fix", session, finding_ids: ids }, { roots: [root] });
+    abortAfterBuild = true;
+    await assert.rejects(runCheck({ goal: "verify", session }, { roots: [root], signal: c.signal }));
+    assert.equal(ran.length, 0);
+    assert.ok(!s.calls.some((x) => x.body.goal === "verify" && !x.body.select));
   } finally { await s.close(); }
 });
 
@@ -252,4 +268,19 @@ test("runProofs: no connection, another login, or a deadline already past gives 
   Object.defineProperty(gone, "password", { value: "x", enumerable: false });
   assert.deepEqual(results(await runProofs(gone, p, { connectTimeoutMs: 500 })), ["unread"]);
   assert.deepEqual(results(await runProofs(cluster.ro, p, { deadline: Date.now() - 1 })), ["unread"]);
+});
+
+test("C118 med 1: a proof that switches off its own time limit still stops at the deadline, as unread", { skip }, async () => {
+  const off = "DO $custosa$\nBEGIN\n  PERFORM set_config('statement_timeout', '0', true);\n  PERFORM set_config('lock_timeout', '0', true);\nEND\n$custosa$;";
+  const sleep = "DO $custosa$\nBEGIN\n  PERFORM pg_sleep(10);\nEND\n$custosa$;";
+  const t0 = Date.now();
+  const out = await runProofs(cluster.ro, [proof("a", proofSql(off, sleep))], { deadline: Date.now() + 2000 });
+  assert.deepEqual(results(out), ["unread"]);
+  assert.ok(Date.now() - t0 < 4000, `took ${Date.now() - t0} ms`);
+});
+
+test("C118 low 1: a session advisory lock a proof takes is gone before the next proof runs", { skip }, async () => {
+  const lock = proofSql("DO $custosa$\nBEGIN\n  PERFORM pg_advisory_lock(42);\nEND\n$custosa$;");
+  const free = proofSql(block("NOT EXISTS (SELECT 1 FROM pg_locks WHERE locktype = 'advisory' AND objid = 42 AND pid = pg_backend_pid())"));
+  assert.deepEqual(results(await runProofs(cluster.ro, [proof("a", lock), proof("b", free)])), ["pass", "pass"]);
 });
