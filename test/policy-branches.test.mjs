@@ -67,9 +67,12 @@ test("a membership that calls a function it doesn't read, and names no caller, i
   assert.deepEqual(usingBranches(e, "visits"), ["not_read"]);
   const quoted = "(EXISTS ( SELECT 1 FROM private.clinic_members m WHERE ((m.clinic_id = visits.clinic_id) AND (m.member_id = \"my_uid\"()))))";
   assert.deepEqual(usingBranches(quoted, "visits"), ["not_read"]);
-  // keywords before a parenthesis are not calls: d9 stays any_member
+  // keywords before a parenthesis are not calls: d9's tie in extra parentheses stays any_member
+  const parens = "(EXISTS ( SELECT 1 FROM private.clinic_members m WHERE ((m.clinic_id = visits.clinic_id))))";
+  assert.deepEqual(usingBranches(parens, "visits"), ["any_member"]);
+  // a test beside the tie narrows the rows it opens (P2 T29-C167 finding 3): not_read, a hold
   const nested = "(EXISTS ( SELECT 1 FROM private.clinic_members m WHERE ((m.clinic_id = visits.clinic_id) AND (m.active OR (m.role IN ( SELECT 'a'::text))))))";
-  assert.deepEqual(usingBranches(nested, "visits"), ["any_member"]);
+  assert.deepEqual(usingBranches(nested, "visits"), ["not_read"]);
 });
 
 test("P2 C163 false-fail guard: a trusted source in a scalar subquery or a jwt claim is owner or member_row, a helper call not_read", () => {
@@ -86,4 +89,31 @@ test("P2 C163 false-fail guard: a trusted source in a scalar subquery or a jwt c
 test("P2 C163 point 2: the owner AND a signed-in check is one branch and stays owner", () => {
   assert.deepEqual(usingBranches("((user_id = auth.uid()) AND (auth.uid() IS NOT NULL))", "notes"), ["owner"]);
   assert.deepEqual(usingBranches("((user_id = ( SELECT auth.uid() AS uid)) OR (auth.uid() IS NOT NULL))", "notes"), ["owner", "signed_in"]);
+});
+
+test("P2 C167 finding 1: a helper call outside the session ones is not_read, never none (is_admin() may check the caller)", () => {
+  assert.deepEqual(usingBranches("((user_id = auth.uid()) OR is_admin())", "notes"), ["owner", "not_read"]);
+  assert.deepEqual(usingBranches("is_admin()", "notes"), ["not_read"]);
+  assert.deepEqual(usingBranches("((user_id = auth.uid()) OR (coalesce(is_public, false)))", "notes"), ["owner", "not_read"]);
+  assert.deepEqual(usingBranches("((user_id = auth.uid()) OR true)", "notes"), ["owner", "none"]); // no call: still none
+});
+
+test("P2 C167 finding 2: signed_in is a presence or role test only; any other session claim against a constant is not_read", () => {
+  for (const e of ["(auth.uid() IS NOT NULL)", "(auth.jwt() IS NOT NULL)", "(auth.uid() IS NULL)",
+    "(auth.role() = 'authenticated'::text)", "(auth.role() = 'anon'::text)"]) {
+    assert.deepEqual(usingBranches(`((user_id = auth.uid()) OR ${e})`, "notes"), ["owner", "signed_in"], e);
+  }
+  for (const e of ["(((auth.jwt() -> 'app_metadata'::text) ->> 'role'::text) = 'admin'::text)",
+    "((auth.jwt() ->> 'user_role'::text) = 'admin'::text)", "(auth.role() = 'service_role'::text)",
+    "(auth.email() ~~ '%@clinic.org'::text)", "(auth.uid() = '00000000-0000-0000-0000-000000000001'::uuid)"]) {
+    assert.deepEqual(usingBranches(`((user_id = auth.uid()) OR ${e})`, "notes"), ["owner", "not_read"], e);
+  }
+  assert.deepEqual(usingBranches(D7, "lab_annotations"), ["owner", "signed_in"]); // d7's setting IS NOT NULL
+});
+
+test("P2 C167 finding 3: any_member only when the EXISTS holds nothing but column ties; a parent's property is not_read", () => {
+  assert.deepEqual(usingBranches("(EXISTS ( SELECT 1 FROM posts p WHERE ((p.id = notes.post_id) AND (p.published = true))))", "notes"), ["not_read"]);
+  assert.deepEqual(usingBranches("(EXISTS ( SELECT 1 FROM posts p WHERE ((p.id = notes.post_id) AND p.published)))", "notes"), ["not_read"]);
+  assert.deepEqual(usingBranches("((user_id = auth.uid()) OR (EXISTS ( SELECT 1 FROM appointments a WHERE ((a.id = notes.appointment_id) AND (a.status = 'shared'::text)))))", "notes"), ["owner", "not_read"]);
+  assert.deepEqual(usingBranches(D9, "treatment_photos"), ["any_member"]); // d9: the tie alone
 });
