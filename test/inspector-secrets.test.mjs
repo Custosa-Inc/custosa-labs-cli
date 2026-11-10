@@ -472,6 +472,36 @@ test("(5) Twilio auth token and file-level SK, Slack webhooks, xapp and xoxe tok
     .map((s) => s.rule_id), ["stripe-secret-key"]);
 });
 
+test("(5b) a Twilio auth token passed by position after a literal account SID", () => {
+  const configDir = temp("custosa-secrets-");
+  const sid = `AC${hex(32)}`;
+  const found = [
+    `const client = twilio("${sid}", "${hex(32)}");`, // the salus form
+    `const client = new Twilio('${sid}', '${hex(32)}');`,
+    `client = Client("${sid}",\n    "${hex(32)}")`,
+    `Twilio.init(\`${sid}\`, \`${hex(32)}\`);`,
+  ];
+  const notFound = [
+    "const client = twilio(process.env.TWILIO_ACCOUNT_SID, process.env.TWILIO_AUTH_TOKEN);",
+    `const client = twilio("${sid}", process.env.TWILIO_AUTH_TOKEN);`,
+    `client = Client(os.environ["TWILIO_ACCOUNT_SID"], os.environ["TWILIO_AUTH_TOKEN"])`,
+    `twilio("AC${"0".repeat(32)}", "${"0".repeat(32)}");`,
+    `twilio("${sid}", "${"ab".repeat(16)}");`,
+    `twilio("ACXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX", "your_auth_token");`,
+    `twilio("${sid}", "${hex(33)}");`, // not a token's length
+  ];
+  for (const line of found) {
+    const result = scan([{ path: "sms.ts", text: `import twilio from "twilio";\n${line}\n` }], { configDir });
+    assert.deepEqual(result.map((s) => s.rule_id), ["twilio-auth-token"], line);
+    assert.equal(result[0].line, line.includes("\n") ? 3 : 2, line);
+  }
+  for (const line of notFound) {
+    assert.deepEqual(scan([{ path: "sms.ts", text: `import twilio from "twilio";\n${line}\n` }], { configDir }), [], line);
+  }
+  // The same call in a file that never names Twilio is not a finding.
+  assert.deepEqual(scan([{ path: "x.ts", text: `const c = sms("${sid}", "${hex(32)}");\n` }], { configDir }), []);
+});
+
 test("(6, 7) templates and loopback local defaults are quiet; compose services and the Supabase default are not", () => {
   const configDir = temp("custosa-secrets-");
   const found = [
