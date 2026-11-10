@@ -71,3 +71,19 @@ test("a membership that calls a function it doesn't read, and names no caller, i
   const nested = "(EXISTS ( SELECT 1 FROM private.clinic_members m WHERE ((m.clinic_id = visits.clinic_id) AND (m.active OR (m.role IN ( SELECT 'a'::text))))))";
   assert.deepEqual(usingBranches(nested, "visits"), ["any_member"]);
 });
+
+test("P2 C163 false-fail guard: a trusted source in a scalar subquery or a jwt claim is owner or member_row, a helper call not_read", () => {
+  // Supabase's performance advice wraps auth.uid() in a scalar subquery; it must read as the caller, never as row
+  assert.deepEqual(usingBranches("(user_id = ( SELECT auth.uid() AS uid))", "notes"), ["owner"]);
+  assert.deepEqual(usingBranches("(user_id = ((auth.jwt() ->> 'sub'::text))::uuid)", "notes"), ["owner"]);
+  const member = "(EXISTS ( SELECT 1 FROM clinic_members m WHERE ((m.clinic_id = notes.clinic_id) AND (m.user_id = ( SELECT auth.uid() AS uid)))))";
+  assert.deepEqual(usingBranches(member, "notes"), ["member_row"]);
+  assert.deepEqual(usingBranches("is_member(clinic_id)", "notes"), ["not_read"]);
+  // an IN list over a member table is not read either way, so it is held, never any_member
+  assert.deepEqual(usingBranches("(clinic_id IN ( SELECT m.clinic_id FROM clinic_members m))", "notes"), ["not_read"]);
+});
+
+test("P2 C163 point 2: the owner AND a signed-in check is one branch and stays owner", () => {
+  assert.deepEqual(usingBranches("((user_id = auth.uid()) AND (auth.uid() IS NOT NULL))", "notes"), ["owner"]);
+  assert.deepEqual(usingBranches("((user_id = ( SELECT auth.uid() AS uid)) OR (auth.uid() IS NOT NULL))", "notes"), ["owner", "signed_in"]);
+});
