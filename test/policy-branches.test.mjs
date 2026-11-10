@@ -117,3 +117,13 @@ test("P2 C167 finding 3: any_member only when the EXISTS holds nothing but colum
   assert.deepEqual(usingBranches("((user_id = auth.uid()) OR (EXISTS ( SELECT 1 FROM appointments a WHERE ((a.id = notes.appointment_id) AND (a.status = 'shared'::text)))))", "notes"), ["owner", "not_read"]);
   assert.deepEqual(usingBranches(D9, "treatment_photos"), ["any_member"]); // d9: the tie alone
 });
+
+test("P2 C171 low 1: a filter in a JOIN's ON narrows the rows like one in the WHERE, so it is not_read", () => {
+  const joined = (on) => `(EXISTS ( SELECT 1 FROM (posts p JOIN authors a ON (${on})) WHERE (p.id = notes.post_id)))`;
+  assert.deepEqual(usingBranches(joined("(a.id = p.author_id) AND a.public"), "notes"), ["not_read"]);
+  assert.deepEqual(usingBranches(joined("(a.id = p.author_id) AND (a.status = 'active'::text)"), "notes"), ["not_read"]);
+  assert.deepEqual(usingBranches(`(EXISTS ( SELECT 1 FROM ((posts p JOIN authors a ON ((a.id = p.author_id))) LEFT JOIN teams t ON ((t.id = a.team_id) AND t.open)) WHERE (p.id = notes.post_id)))`, "notes"), ["not_read"]);
+  // ties alone in every ON stay any_member, as d9's tie does
+  assert.deepEqual(usingBranches(joined("a.id = p.author_id"), "notes"), ["any_member"]);
+  assert.deepEqual(usingBranches(`(EXISTS ( SELECT 1 FROM (posts p JOIN authors a USING (author_id)) WHERE (p.id = notes.post_id)))`, "notes"), ["any_member"]);
+});
