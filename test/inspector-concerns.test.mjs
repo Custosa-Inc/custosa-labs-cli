@@ -12,7 +12,7 @@ import AjvModule from "ajv";
 import { INPUT_SCHEMA, makeRunCheck, decisionsProblem, concernsProblem, verdictsProblem, TOOL_ERRORS } from "../lib/inspector/tool.mjs";
 import { writeToken } from "../lib/inspector/auth.mjs";
 import { loadRules } from "../lib/inspector/rules.mjs";
-import { CONCERN_NOTES, MAX_INDEX_TEXTS, MAX_TEXT, readTexts, withTexts } from "../lib/inspector/concerns.mjs";
+import { CLIENT_OUTPUT_CHARS, CONCERN_NOTES, MAX_INDEX_TEXTS, MAX_TEXT, readTexts, withTexts } from "../lib/inspector/concerns.mjs";
 import { holdsRecordValue, sentIdentifier, sentPath } from "../lib/inspector/ids.mjs";
 import { EVALUATE_OK, stub } from "./stub-evaluator.mjs";
 
@@ -438,6 +438,52 @@ test("T29-P1-C127 (a): the raise caps hold on index lines: at most 50 texts per 
   assert.equal(texts[0], long.slice(0, MAX_TEXT));
   assert.deepEqual(texts.slice(1, MAX_INDEX_TEXTS), ids.slice(1, MAX_INDEX_TEXTS).map((_, i) => `text ${i + 1}`));
   assert.equal(texts[MAX_INDEX_TEXTS], undefined);
+  assert.deepEqual(out.local_notes, [leftOut(1)], "the text past the cap is never dropped without saying so (T29-P1-C136)");
   assert.ok(answer.index.concerns.every((c) => !("local_text" in c)), "the response's own object is never changed");
   assert.equal(withTexts(ANSWER([listed(ID_A, A)]), root).index.concerns[0].local_text, undefined);
+});
+
+const leftOut = (n) => CONCERN_NOTES.concern_texts_left_out.replace("{n}", String(n));
+const keepTexts = (root, entries) => {
+  mkdirSync(join(root, ".custosa/local"), { recursive: true });
+  writeFileSync(join(root, ".custosa/local/concerns.json"), JSON.stringify({ version: 1,
+    concerns: Object.fromEntries(entries.map(([id, text]) => [id, { text }])) }));
+};
+
+test("T29-P1-C136 low 2: a get_result read of the concerns cuts each kept text to 500 characters, as index lines do", async () => {
+  const root = repo();
+  const long = "z".repeat(MAX_TEXT + 300);
+  const { s, runCheck } = await setup((call, n) => ({ status: 200, json: n === 1 ? RAISED
+    : RESULT(call.body.select, [listed(ID_A, A), listed(ID_B, B)]) }));
+  try {
+    await runCheck({ goal: "check", concerns: [{ ...A, note: TEXT_A }, { ...B, note: TEXT_B }] }, { roots: [root] });
+    keepTexts(root, [[ID_A, long], [ID_B, TEXT_B]]);   // a hand-edited file: the raise itself takes at most 500
+    const read = await runCheck({ goal: "check", session: EVALUATE_OK.session, select: { list: "concerns.unconfirmed" } }, { roots: [root] });
+    assert.deepEqual(read.results.map((c) => c.local_text), [long.slice(0, MAX_TEXT), TEXT_B]);
+    assert.equal(read.local_notes, undefined, "nothing was left out, so no note");
+  } finally { await s.close(); }
+});
+
+test("T29-P1-C136 low 1: kept texts never take an answer past the client's output limit, and the answer says how many it left out", () => {
+  const root = repo();
+  const ids = Array.from({ length: MAX_INDEX_TEXTS }, (_, i) => `cn_${String(i).padStart(16, "0")}`);
+  keepTexts(root, ids.map((id, i) => [id, String(i % 10).repeat(MAX_TEXT)]));
+  // an index sized by core to just under the limit: the 50 lines, plus other lists that fill it
+  const base = ANSWER(ids.map((id) => listed(id, A)));
+  const pad = CLIENT_OUTPUT_CHARS - 5_000 - JSON.stringify(base).length;
+  const answer = { ...base, index: { ...base.index, fails: [{ line: "f".repeat(pad) }] } };
+  assert.ok(JSON.stringify(answer).length < CLIENT_OUTPUT_CHARS);
+  const out = withTexts(answer, root);
+  assert.ok(JSON.stringify(out).length <= CLIENT_OUTPUT_CHARS, `${JSON.stringify(out).length} characters`);
+  const texts = out.index.concerns.map((c) => c.local_text);
+  const kept = texts.filter((t) => t !== undefined).length;
+  assert.ok(kept > 0 && kept < MAX_INDEX_TEXTS, `${kept} texts shown`);
+  assert.ok(texts.slice(0, kept).every((t) => t !== undefined), "the texts shown are the first lines, in order");
+  assert.deepEqual(out.local_notes, [leftOut(MAX_INDEX_TEXTS - kept)]);
+  assert.match(out.local_notes[0], /get_result/);
+  // a get_result read is sized the same way
+  const read = withTexts({ ...RESULT({ list: "concerns.unconfirmed" }, ids.map((id) => listed(id, A))), pad: "p".repeat(pad) }, root, { from: "results" });
+  assert.ok(JSON.stringify(read).length <= CLIENT_OUTPUT_CHARS);
+  const shownRead = read.results.filter((c) => c.local_text !== undefined).length;
+  assert.deepEqual(read.local_notes, [leftOut(MAX_INDEX_TEXTS - shownRead)]);
 });
