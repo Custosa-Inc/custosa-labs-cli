@@ -13,6 +13,14 @@ rule:
     regex: '(?i)^["''`]postgres(ql)?(\+\w+)?://[^"''`]*[?&]sslmode=(disable|allow|prefer)\b'
   - kind: template_string
     regex: '(?i)^`postgres(ql)?(\+\w+)?://[^`]*[?&]sslmode=(disable|allow|prefer)\b'
+  # T29 (t): a template or a joined string that adds the mode to a URL from elsewhere, `${process.env.DATABASE_URL}?sslmode=disable`
+  # or DATABASE_URL + "?sslmode=disable" (the (k) key's B035)
+  - kind: template_string
+    regex: '(?i)[?&]sslmode=(disable|allow|prefer)\b'
+  - kind: string
+    regex: '(?i)[?&]sslmode=(disable|allow|prefer)\b'
+    inside:
+      kind: binary_expression
 min_engine: 0.39.0
 ---
 # ssl: false on a Postgres client's options: node-postgres (new Pool or new Client, pg.Pool), postgres.js (postgres(...)),
@@ -36,7 +44,17 @@ rule:
         regex: '^["''`]ssl["''`]$'
   - has:
       field: value
-      kind: 'false'
+      any:
+      - kind: 'false'
+      # T29 (t): a choice where no branch turns TLS on and one turns it off, `ssl: prod ? undefined : false` (the (k)
+      # key's B023): node-postgres then takes the mode from the URL or PGSSLMODE in one case and is off in the other
+      - kind: ternary_expression
+        all:
+        - has: {field: consequence, any: [{kind: 'false'}, {kind: 'null'}, {kind: undefined}, {kind: identifier, regex: '^undefined$'}]}
+        - has: {field: alternative, any: [{kind: 'false'}, {kind: 'null'}, {kind: undefined}, {kind: identifier, regex: '^undefined$'}]}
+        - any:
+          - has: {field: consequence, kind: 'false'}
+          - has: {field: alternative, kind: 'false'}
   - inside:
       kind: object
       any:
@@ -63,6 +81,68 @@ rule:
             field: key
             kind: property_identifier
             regex: '^connection$'
+min_engine: 0.39.0
+---
+# T29 (t): certificate checks off in a Postgres client's ssl object, `ssl: { rejectUnauthorized: false }` (the (k) key's
+# B008), on the same clients as tls-off-option. The practice asks for a client that verifies the server's certificate.
+# node-postgres's connection string parser reads sslmode=require as verify-full unless uselibpqcompat is set, so in
+# node this option is the plain way to turn the check off. A rejectUnauthorized the check can't read is tls-from-env.
+id: db-tls-enforced.javascript-generic.tls-no-verify
+practice_id: db-tls-enforced
+language: javascript
+frameworks:
+- generic
+kind: violation
+rule:
+  kind: pair
+  all:
+  - has:
+      field: key
+      any:
+      - kind: property_identifier
+        regex: '^rejectUnauthorized$'
+      - kind: string
+        regex: '^["''`]rejectUnauthorized["''`]$'
+  - has:
+      field: value
+      kind: 'false'
+  - inside:
+      kind: object
+      inside:
+        kind: pair
+        has:
+          field: key
+          any:
+          - kind: property_identifier
+            regex: '^ssl$'
+          - kind: string
+            regex: '^["''`]ssl["''`]$'
+        inside:
+          kind: object
+          any:
+          - inside:
+              kind: arguments
+              inside:
+                any:
+                - kind: new_expression
+                  has:
+                    field: constructor
+                    any:
+                    - kind: identifier
+                      regex: '^(Pool|Client)$'
+                    - kind: member_expression
+                      regex: '^pg\.(Pool|Client)$'
+                - kind: call_expression
+                  has:
+                    field: function
+                    kind: identifier
+                    regex: '^(postgres|createPool)$'
+          - inside:
+              kind: pair
+              has:
+                field: key
+                kind: property_identifier
+                regex: '^connection$'
 min_engine: 0.39.0
 ---
 # T29-P1-C6: the client's TLS mode taken from a value the check can't read: an ssl option whose value is not a
@@ -97,21 +177,24 @@ rule:
           regex: '^ssl$'
         - kind: string
           regex: '^["''`]ssl["''`]$'
-    - any:
-      - has:
-          field: value
-          stopBy: end
-          kind: member_expression
-          regex: '^process\.env\b'
-      - has:
-          field: value
-          not:
-            any:
-            - kind: 'true'
-            - kind: 'false'
-            - kind: string
-            - kind: number
-            - kind: object
+    # an object is judged by its own keys (below): a CA or a certificate path read from the environment changes no mode
+    # (T29 (t): the (k) key's twins B007 and B013 asked before). A choice that is off on every branch is tls-off-option.
+    - has:
+        field: value
+        not:
+          any:
+          - kind: 'true'
+          - kind: 'false'
+          - kind: string
+          - kind: number
+          - kind: object
+          - kind: ternary_expression
+            all:
+            - has: {field: consequence, any: [{kind: 'false'}, {kind: 'null'}, {kind: undefined}, {kind: identifier, regex: '^undefined$'}]}
+            - has: {field: alternative, any: [{kind: 'false'}, {kind: 'null'}, {kind: undefined}, {kind: identifier, regex: '^undefined$'}]}
+            - any:
+              - has: {field: consequence, kind: 'false'}
+              - has: {field: alternative, kind: 'false'}
     - inside:
         kind: object
         any:
@@ -138,4 +221,94 @@ rule:
               field: key
               kind: property_identifier
               regex: '^connection$'
+  # T29 (t): a certificate check the code can't read, `ssl: { rejectUnauthorized: process.env.X !== "false" }`, on the
+  # same clients (it was matched before through any process.env inside the ssl value, which also asked on a CA path)
+  - kind: pair
+    all:
+    - has:
+        field: key
+        any:
+        - kind: property_identifier
+          regex: '^rejectUnauthorized$'
+        - kind: string
+          regex: '^["''`]rejectUnauthorized["''`]$'
+    - has:
+        field: value
+        not:
+          any:
+          - kind: 'true'
+          - kind: 'false'
+    - inside:
+        kind: object
+        inside:
+          kind: pair
+          has:
+            field: key
+            any:
+            - kind: property_identifier
+              regex: '^ssl$'
+            - kind: string
+              regex: '^["''`]ssl["''`]$'
+          inside:
+            kind: object
+            any:
+            - inside:
+                kind: arguments
+                inside:
+                  any:
+                  - kind: new_expression
+                    has:
+                      field: constructor
+                      any:
+                      - kind: identifier
+                        regex: '^(Pool|Client)$'
+                      - kind: member_expression
+                        regex: '^pg\.(Pool|Client)$'
+                  - kind: call_expression
+                    has:
+                      field: function
+                      kind: identifier
+                      regex: '^(postgres|createPool)$'
+            - inside:
+                kind: pair
+                has:
+                  field: key
+                  kind: property_identifier
+                  regex: '^connection$'
+  # T29 (t): a node-postgres Pool or Client given its host in code, with no ssl option and no connection string (the (k)
+  # key's B014). node-postgres then takes the mode from PGSSLMODE, and with that unset it connects without TLS. The check
+  # can't read the environment, so it asks. A bare connection string from the environment stays as it was: its URL or
+  # the server side settles it. An object with a spread may carry ssl, so it is left alone.
+  - kind: object
+    all:
+    - has:
+        kind: pair
+        has:
+          field: key
+          kind: property_identifier
+          regex: '^host$'
+    - not:
+        has:
+          kind: pair
+          has:
+            field: key
+            any:
+            - kind: property_identifier
+              regex: '^(ssl|connectionString)$'
+            - kind: string
+              regex: '^["''`](ssl|connectionString)["''`]$'
+    - not:
+        has:
+          kind: spread_element
+    - inside:
+        kind: arguments
+        inside:
+          kind: new_expression
+          has:
+            field: constructor
+            any:
+            - kind: identifier
+              regex: '^(Pool|Client)$'
+            - kind: member_expression
+              regex: '^pg\.(Pool|Client)$'
 min_engine: 0.39.0
