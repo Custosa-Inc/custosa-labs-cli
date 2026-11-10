@@ -527,7 +527,7 @@ test("a platform.json that is a symbolic link is refused", () => {
 // --- toFactPlatform against the contract schema -------------------------------------------------------------------
 
 // The contract's fact document schema (contract v2.1), copied in test/fixtures/contracts.
-const SCHEMA = JSON.parse(fixture("../contracts/fact_document.schema.9cc759f7.json"));
+const SCHEMA = JSON.parse(fixture("../contracts/fact_document.schema.f7c5800e.json"));
 const Ajv2020 = Ajv2020Module.default ?? Ajv2020Module;
 const ajv = new Ajv2020({ strict: false, allErrors: true });
 ajv.addSchema(SCHEMA);
