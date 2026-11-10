@@ -1073,3 +1073,26 @@ test("secrets are sent once each, in path, line, rule and fingerprint order, wha
     ["src/app.ts", 10, "secrets.aws", fp("0"), "not_checked"],
   ]);
 });
+
+// T29 line item h, h2 (T29-P3-C85, C87): the assistant's fact records reach the primary root's document as
+// cited_facts, each citation checked against the walk; none sent leaves the section out.
+test("cited facts reach the document checked, and a document without them has no cited_facts", async () => {
+  const root = temp("h2-facts-");
+  mkdirSync(join(root, "app"));
+  writeFileSync(join(root, "app", "route.ts"), "export async function GET(req) {\n  const session = await auth();\n  return null;\n}\n");
+  const facts = [{ rule: "authz", candidate: "app/route.ts:1",
+    handler: { value: "declared", file: "app/route.ts", line: 1, token: "export async function GET" },
+    guard: { value: "signed_in", file: "app/route.ts", line: 2, token: "await auth()" },
+    record_id_source: { value: "path_param", file: "app/route.ts", line: 1, token: "nowhere on this line" } }];
+  const withFacts = await build(root, { facts });
+  const doc = withFacts.out.documents[0].document;
+  assert.equal(withFacts.out.documents[0].problem, null, JSON.stringify(withFacts.out.documents[0].problem));
+  assert.equal(checkDocument(doc), null);
+  const byField = Object.fromEntries(doc.cited_facts.map((r) => [r.field, r]));
+  assert.deepEqual([byField.guard.cite, byField.guard.cited_at], ["ok", "app/route.ts:2"]);
+  assert.deepEqual([byField.record_id_source.cite, byField.record_id_source.cited_at], ["failed", null]);
+  assert.deepEqual([byField.owner_value_source.value, byField.owner_value_source.cite], ["unknown", "none"]);
+  assert.ok(!JSON.stringify(doc.cited_facts).includes("await auth()"), "the token never leaves the machine");
+  const without = await build(root);
+  assert.ok(!("cited_facts" in without.out.documents[0].document));
+});
