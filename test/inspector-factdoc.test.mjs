@@ -1096,3 +1096,25 @@ test("cited facts reach the document checked, and a document without them has no
   const without = await build(root);
   assert.ok(!("cited_facts" in without.out.documents[0].document));
 });
+
+// T29-P1-C73 point 1: past cited_facts' 1 MB share, whole candidates are dropped in record order, and a local note
+// gives the count, no names, so a hold reads as too many facts, not as the assistant's miss. The matches are untouched.
+test("facts past their 1 MB share drop whole candidates, with a count in the local notes", async () => {
+  const root = temp("h2-facts-cap-");
+  mkdirSync(join(root, "app"));
+  writeFileSync(join(root, "app", "route.ts"), "export async function GET(req) {\n".repeat(2400));
+  const facts = Array.from({ length: 2400 }, (_, i) => ({ rule: "authz", candidate: `app/route.ts:${i + 1}`,
+    handler: { value: "declared", file: "app/route.ts", line: i + 1, token: "export async function GET" } }));
+  const { out } = await build(root, { facts });
+  const doc = out.documents[0].document;
+  assert.equal(out.documents[0].problem, null, JSON.stringify(out.documents[0].problem));
+  const rows = doc.cited_facts;
+  assert.ok(Buffer.byteLength(JSON.stringify(rows), "utf8") <= 1_000_000);
+  const kept = [...new Set(rows.map((r) => r.candidate))];
+  assert.ok(kept.length > 0 && kept.length < 2400);
+  assert.deepEqual(kept, facts.slice(0, kept.length).map((f) => f.candidate), "kept in record order, from the first");
+  assert.equal(rows.length, kept.length * 4, "every kept candidate has all its rows");
+  const note = (out.notes ?? []).find((n) => /fact/.test(n) && n.includes(String(2400 - kept.length)));
+  assert.ok(note, JSON.stringify(out.notes));
+  assert.ok(!note.includes("route.ts"), "the note names no candidate");
+});

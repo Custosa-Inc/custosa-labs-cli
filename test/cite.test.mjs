@@ -14,6 +14,8 @@ function project() {
   mkdirSync(join(root, "app"));
   writeFileSync(join(root, "app", "route.ts"), "export async function GET(req) {\n  const session = await auth();\n  return x;\n}\n");
   writeFileSync(join(root, "app", "crlf.ts"), "line one\r\nconst user = await auth();\r\nend\r\n");
+  // old Mac line ends: with \n alone this is one long line, so a cite to line 1 would find a token from anywhere
+  writeFileSync(join(root, "app", "mac.ts"), "line one\rconst user = await auth();\rend\n");
   // U+2028 and U+0085 and a form feed are line breaks to Python's splitlines, not to an editor or this check
   writeFileSync(join(root, "app", "seps.ts"), "a b\u0085c\fd\nconst owner = session.user.id;\n");
   writeFileSync(join(root, "app", "big.ts"), "const owner = session.user.id;\n");
@@ -22,7 +24,7 @@ function project() {
   writeFileSync(join(outside, "secret.ts"), "const owner = session.user.id;\n");
   symlinkSync(join(outside, "secret.ts"), join(root, "app", "link.ts"));
   // the walk's entries by path; big.ts was skipped, so it has none
-  const files = new Map(["app/route.ts", "app/crlf.ts", "app/seps.ts", "app/bin.ts", "app/link.ts"].map((p) => [p, { path: p }]));
+  const files = new Map(["app/route.ts", "app/crlf.ts", "app/mac.ts", "app/seps.ts", "app/bin.ts", "app/link.ts"].map((p) => [p, { path: p }]));
   return { root, files };
 }
 
@@ -75,4 +77,12 @@ test("a CRLF file counts the same lines, and the CR is not part of the line", as
   assert.equal(await check({ file: "app/crlf.ts", line: 3, token: "end" }), "ok");
   assert.equal(await check({ file: "app/crlf.ts", line: 3, token: "end\r" }), "failed");
   assert.deepEqual(citeLines("x\r\ny\r\n"), ["x", "y", ""]);
+});
+
+// T29-P1-C73 point 2 (P2 C70): a file with a lone CR (one not before \n) fails every citation, so the check's line
+// count (\n alone) and the answers' (normalizeBreaks, which counts a lone CR) never disagree in a way that passes.
+test("a file with a lone CR fails every citation, even a token on its first line", async () => {
+  assert.equal(await check({ file: "app/mac.ts", line: 1, token: "await auth()" }), "failed");
+  assert.equal(await check({ file: "app/mac.ts", line: 1, token: "line one" }), "failed");
+  assert.equal(await check({ file: "app/crlf.ts", line: 2, token: "await auth();" }), "ok", "CRLF is not a lone CR");
 });

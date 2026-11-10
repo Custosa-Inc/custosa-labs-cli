@@ -10,7 +10,7 @@ import { mkdtempSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import Ajv2020Module from "ajv/dist/2020.js";
-import { citedFactRows, FACT_FIELDS, FACT_VALUES } from "../lib/inspector/cite.mjs";
+import { citedFactRows, citedFacts, CITED_FACTS_MAX_BYTES, FACT_FIELDS, FACT_VALUES } from "../lib/inspector/cite.mjs";
 import { sentPath } from "../lib/inspector/ids.mjs";
 
 const SCHEMA = JSON.parse(readFileSync(new URL("../lib/inspector/contracts/fact_document.schema.json", import.meta.url), "utf8"));
@@ -127,4 +127,39 @@ test("the check tool takes facts, shaped by the synced fact_schema.json, and onl
   assert.equal(item.additionalProperties, false);
   assert.ok(!("minLength" in item.properties.handler.properties.token), "a short token is a failed cite, not a refused call");
   assert.ok(!GUIDANCE_INPUT_SCHEMA.properties.facts && !PAGE_INPUT_SCHEMA.properties.facts);
+});
+
+// T29-P1-C73 point 1 (P3 C96, P2 C70): matches come first, so cited_facts gets a fixed share of the document. Whole
+// candidates are kept in the order the records came in while they fit; the rest are dropped and counted (no names),
+// and never cut part way, so a kept candidate has a row for every field of its rule.
+const rowBytes = (rows) => Buffer.byteLength(JSON.stringify(rows), "utf8");
+const threeHandlers = ["app/route.ts:1", "app/route.ts:2", "app/route.ts:3"].map((candidate) => ({ ...AUTHZ, candidate }));
+
+test("cited_facts has a fixed 1 MB share", () => {
+  assert.equal(CITED_FACTS_MAX_BYTES, 1_000_000);
+});
+
+test("past the share, whole candidates are dropped in record order and counted", async () => {
+  const one = rowBytes(await rowsOf([threeHandlers[0]]));
+  const { rows, dropped } = await citedFacts(root, files, key, threeHandlers, { maxBytes: 2 * one + 2 });
+  assert.ok(validRows(rows), JSON.stringify(validRows.errors));
+  assert.deepEqual([...new Set(rows.map((r) => r.candidate))], ["app/route.ts:1", "app/route.ts:2"]);
+  assert.equal(rows.length, 2 * FACT_FIELDS.authz.length, "no candidate is cut part way");
+  assert.equal(dropped, 1);
+  assert.ok(rowBytes(rows) <= 2 * one + 2);
+  const again = await citedFacts(root, files, key, threeHandlers, { maxBytes: 2 * one + 2 });
+  assert.deepEqual(again, { rows, dropped }, "the same input keeps the same rows");
+});
+
+test("the row limit drops whole candidates too, never part of one", async () => {
+  const { rows, dropped } = await citedFacts(root, files, key, threeHandlers, { maxRows: FACT_FIELDS.authz.length + 1 });
+  assert.deepEqual([...new Set(rows.map((r) => r.candidate))], ["app/route.ts:1"]);
+  assert.equal(rows.length, FACT_FIELDS.authz.length);
+  assert.equal(dropped, 2);
+});
+
+test("a bad record is not counted as dropped for size, and under the share nothing is dropped", async () => {
+  const { rows, dropped } = await citedFacts(root, files, key, [{ ...AUTHZ, candidate: "app/other.ts:1" }, AUTHZ]);
+  assert.equal(rows.length, FACT_FIELDS.authz.length);
+  assert.equal(dropped, 0);
 });
