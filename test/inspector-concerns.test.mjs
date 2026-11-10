@@ -12,7 +12,7 @@ import AjvModule from "ajv";
 import { INPUT_SCHEMA, makeRunCheck, decisionsProblem, concernsProblem, verdictsProblem, TOOL_ERRORS } from "../lib/inspector/tool.mjs";
 import { writeToken } from "../lib/inspector/auth.mjs";
 import { loadRules } from "../lib/inspector/rules.mjs";
-import { CONCERN_NOTES, readTexts } from "../lib/inspector/concerns.mjs";
+import { CONCERN_NOTES, MAX_INDEX_TEXTS, MAX_TEXT, readTexts, withTexts } from "../lib/inspector/concerns.mjs";
 import { holdsRecordValue, sentIdentifier, sentPath } from "../lib/inspector/ids.mjs";
 import { EVALUATE_OK, stub } from "./stub-evaluator.mjs";
 
@@ -50,8 +50,20 @@ const ID_A = "cn_00000000000000a1", ID_B = "cn_00000000000000b2";
 const OPTIONS = { real_problem: "It's a real problem", not_a_problem: "It isn't a problem", not_sure: "Not sure" };
 const listed = (id, meta, extra = {}) => ({ concern_id: id, ...meta, severity: meta.proposed_severity, status: "unconfirmed",
   label: "waits for a confirm", raised_now: false, next: { awaiting: "confirm", options: [{ id: "real_problem" }, { id: "not_a_problem" }, { id: "not_sure" }] }, ...extra });
+const INDEX = (concerns, grouped) => ({
+  result_counts: { by_state: { pass: 0, fail: 0, not_applicable: 0, needs_review: 0, unknown: 0, error: 0 }, by_severity: {},
+    by_state_and_severity: [] },
+  practices: [], fails: [], open: [], questions: [], concerns, fixes: [], lists: [],
+  ...(grouped ? { concerns_grouped: grouped } : {}),
+});
+const RESULT = (select, results) => ({ goal: "check", session: EVALUATE_OK.session, select, part: "detail",
+  matched: results.length, results, is_fetch_only: true, charged_units: 0, correlation_id: "corr_12345678" });
+
 // The evaluator lists this call's raises first, newest first (respond.concerns_block): B, then A, for [A, B] sent.
-const RAISED = { ...EVALUATE_OK, concerns: [listed(ID_B, B, { raised_now: true }), listed(ID_A, A, { raised_now: true })], concern_options: OPTIONS };
+// o1b 3d-3: the concerns are lines of the answer's index (core sends no top-level concerns since 3d-1).
+const ANSWER = (concerns, extra = {}) => ({ ...EVALUATE_OK, index: INDEX(concerns), concern_options: OPTIONS, ...extra });
+const RAISED = ANSWER([listed(ID_B, B, { raised_now: true }), listed(ID_A, A, { raised_now: true })]);
+const shown = (out) => out.index.concerns.map((c) => c.local_text);
 
 test("Concerns and concern_decisions are in check_schema's input schema, closed as contract 2.4 has them", () => {
   assert.ok(validateArgs({ goal: "check", concerns: [{ ...A, note: TEXT_A }, { ...B, note: TEXT_B }] }), JSON.stringify(validateArgs.errors));
@@ -73,12 +85,12 @@ test("Concerns and concern_decisions are in check_schema's input schema, closed 
 test("A raising call sends the concerns once, keeps each text by its id in .custosa/local, and shows it", async () => {
   const root = repo();
   const { s, runCheck } = await setup((call, n) => ({ status: 200, json: n === 1 ? RAISED
-    : { ...EVALUATE_OK, concerns: [listed(ID_A, A), listed(ID_B, B)], concern_options: OPTIONS } }));
+    : ANSWER([listed(ID_A, A), listed(ID_B, B)]) }));
   try {
     const first = await runCheck({ goal: "check", concerns: [{ ...A, note: TEXT_A }, { ...B, note: TEXT_B }] }, { roots: [root] });
     // no response has said learning: on, so the notes stay here and the concerns say so.
     assert.deepEqual(s.calls[0].body.concerns, [{ ...A, note_kept_local: true }, { ...B, note_kept_local: true }]);
-    assert.deepEqual(first.concerns.map((c) => [c.concern_id, c.local_text]), [[ID_B, TEXT_B], [ID_A, TEXT_A]]);
+    assert.deepEqual(first.index.concerns.map((c) => [c.concern_id, c.local_text]), [[ID_B, TEXT_B], [ID_A, TEXT_A]]);
     const file = join(root, ".custosa/local/concerns.json");
     assert.equal(statSync(file).mode & 0o777, 0o600);
     assert.equal(readFileSync(join(root, ".custosa/.gitignore"), "utf8"), "local/\n*.custosa-tmp\n");
@@ -89,15 +101,15 @@ test("A raising call sends the concerns once, keeps each text by its id in .cust
     const sent = JSON.stringify(s.calls[1].body);
     assert.ok(!sent.includes(TEXT_A) && !sent.includes(TEXT_B) && !sent.includes("concerns\":"), "no concern text after the raising call");
     assert.deepEqual(s.calls[1].body.concern_decisions, [{ concern_id: ID_A, option: "real_problem", decided_by: "assistant" }]);
-    assert.deepEqual(second.concerns.map((c) => c.local_text), [TEXT_A, TEXT_B]);
+    assert.deepEqual(shown(second), [TEXT_A, TEXT_B]);
   } finally { await s.close(); }
 });
 
 test("Texts are not kept when the evaluator's raised list doesn't match what was sent, or it lists no raise (concerns_saved false)", async () => {
   for (const [answer, note] of [
-    [{ ...RAISED, concerns: [listed(ID_A, A, { raised_now: true })] }, CONCERN_NOTES.concern_texts_not_kept], // one of two
-    [{ ...RAISED, concerns: [listed(ID_A, A, { raised_now: true }), listed(ID_B, B, { raised_now: true })] }, CONCERN_NOTES.concern_texts_not_kept], // order
-    [{ ...RAISED, concerns: [listed(ID_A, A)], concerns_saved: false }, null], // the raises were dropped (the cap)
+    [ANSWER([listed(ID_A, A, { raised_now: true })]), CONCERN_NOTES.concern_texts_not_kept], // one of two
+    [ANSWER([listed(ID_A, A, { raised_now: true }), listed(ID_B, B, { raised_now: true })]), CONCERN_NOTES.concern_texts_not_kept], // order
+    [ANSWER([listed(ID_A, A)], { concerns_saved: false }), null], // the raises were dropped (the cap)
   ]) {
     const root = repo();
     const { s, runCheck } = await setup(() => ({ status: 200, json: answer }));
@@ -105,7 +117,7 @@ test("Texts are not kept when the evaluator's raised list doesn't match what was
       const out = await runCheck({ goal: "check", concerns: [{ ...A, note: TEXT_A }, { ...B, note: TEXT_B }] }, { roots: [root] });
       assert.equal(existsSync(join(root, ".custosa/local/concerns.json")), false);
       assert.deepEqual(out.local_notes ?? [], note ? [note] : []);
-      assert.ok(out.concerns.every((c) => c.local_text === undefined));
+      assert.ok(out.index.concerns.every((c) => c.local_text === undefined));
     } finally { await s.close(); }
   }
 });
@@ -146,7 +158,7 @@ test("A retried raising call sends identical body bytes with the same Idempotenc
     assert.deepEqual(s.calls[1].body, s.calls[0].body);
     assert.ok(s.calls[0].headers["idempotency-key"]);
     assert.equal(s.calls[1].headers["idempotency-key"], s.calls[0].headers["idempotency-key"]);
-    assert.deepEqual(out.concerns.map((c) => c.local_text), [TEXT_B, TEXT_A]);
+    assert.deepEqual(shown(out), [TEXT_B, TEXT_A]);
   } finally { await s.close(); }
 });
 
@@ -219,7 +231,7 @@ test("concerns_saved false from a losing decision keeps the texts of the raises 
     const out = await runCheck({ goal: "check", concerns: [{ ...A, note: TEXT_A }, { ...B, note: TEXT_B }],
       concern_decisions: [{ concern_id: "cn_00000000000000c3", option: "fixed", decided_by: "assistant" }] }, { roots: [root] });
     assert.deepEqual([...readTexts(root)].map(([id, e]) => [id, e.text]), [[ID_A, TEXT_A], [ID_B, TEXT_B]]);
-    assert.deepEqual(out.concerns.map((c) => c.local_text), [TEXT_B, TEXT_A]);
+    assert.deepEqual(shown(out), [TEXT_B, TEXT_A]);
     assert.equal(out.local_notes, undefined);
   } finally { await s.close(); }
 });
@@ -366,15 +378,6 @@ test("Dotless and dotted i, control-character spaces and hash-shaped runs read a
 /* T29 o2 step 2 (T29-P1-C116 (a)): core's response is one body with its index, and concerns past the client limit are
  * grouped by status. The CLI matches a call's raises in the same call: from index.concerns, or by reading each grouped
  * status through get_result (free, never shown to Claude). Nothing waits for a later call. */
-const INDEX = (concerns, grouped) => ({
-  result_counts: { by_state: { pass: 0, fail: 0, not_applicable: 0, needs_review: 0, unknown: 0, error: 0 }, by_severity: {},
-    by_state_and_severity: [] },
-  practices: [], fails: [], open: [], questions: [], concerns, fixes: [], lists: [],
-  ...(grouped ? { concerns_grouped: grouped } : {}),
-});
-const RESULT = (select, results) => ({ goal: "check", session: EVALUATE_OK.session, select, part: "detail",
-  matched: results.length, results, is_fetch_only: true, charged_units: 0, correlation_id: "corr_12345678" });
-
 test("T29 o2: a raise listed in index.concerns keeps its text in the same call, with no other call", async () => {
   const root = repo();
   const { s, runCheck } = await setup(() => ({ status: 200, json: { ...EVALUATE_OK, concern_options: OPTIONS,
@@ -402,4 +405,39 @@ test("T29 o2: a raise grouped past the client limit is read through get_result a
     assert.equal(out.local_notes, undefined);
     assert.ok(!("results" in out) && !("matched" in out), "the read is the CLI's own, not shown in the answer");
   } finally { await s.close(); }
+});
+
+test("T29-P1-C127 (a): an index.concerns line shows its own kept text, a line with none shows none, never another's", async () => {
+  const root = repo();
+  const ID_C = "cn_00000000000000c3";
+  const { s, runCheck } = await setup((call, n) => ({ status: 200, json: n === 1 ? RAISED
+    : ANSWER([listed(ID_C, B), listed(ID_A, A)]) }));
+  try {
+    const first = await runCheck({ goal: "check", concerns: [{ ...A, note: TEXT_A }, { ...B, note: TEXT_B }] }, { roots: [root] });
+    assert.deepEqual(first.index.concerns.map((c) => [c.concern_id, c.local_text]), [[ID_B, TEXT_B], [ID_A, TEXT_A]]);
+    // ID_C was never raised here, and ID_B is kept but not listed: only ID_A's line gets a text, its own.
+    const out = await runCheck({ goal: "check", session: EVALUATE_OK.session }, { roots: [root] });
+    assert.deepEqual(out.index.concerns.map((c) => [c.concern_id, c.local_text]), [[ID_C, undefined], [ID_A, TEXT_A]]);
+    assert.ok(!("local_text" in out.index.concerns[0]));
+    assert.equal(JSON.stringify(out).includes(TEXT_B), false);
+    assert.equal(s.calls.slice(1).some((c) => JSON.stringify(c.body).includes(TEXT_A)), false, "no text leaves after the raise");
+  } finally { await s.close(); }
+});
+
+test("T29-P1-C127 (a): the raise caps hold on index lines: at most 50 texts per answer, each at most 500 characters", () => {
+  const root = repo();
+  const ids = Array.from({ length: MAX_INDEX_TEXTS + 1 }, (_, i) => `cn_${String(i).padStart(16, "0")}`);
+  mkdirSync(join(root, ".custosa/local"), { recursive: true });
+  const long = "y".repeat(MAX_TEXT + 40);
+  writeFileSync(join(root, ".custosa/local/concerns.json"), JSON.stringify({ version: 1,
+    concerns: Object.fromEntries(ids.map((id, i) => [id, { text: i === 0 ? long : `text ${i}` }])) }));
+  const answer = ANSWER(ids.map((id) => listed(id, A)));
+  const out = withTexts(answer, root);
+  const texts = out.index.concerns.map((c) => c.local_text);
+  assert.equal(texts.filter((t) => t !== undefined).length, MAX_INDEX_TEXTS);
+  assert.equal(texts[0], long.slice(0, MAX_TEXT));
+  assert.deepEqual(texts.slice(1, MAX_INDEX_TEXTS), ids.slice(1, MAX_INDEX_TEXTS).map((_, i) => `text ${i + 1}`));
+  assert.equal(texts[MAX_INDEX_TEXTS], undefined);
+  assert.ok(answer.index.concerns.every((c) => !("local_text" in c)), "the response's own object is never changed");
+  assert.equal(withTexts(ANSWER([listed(ID_A, A)]), root).index.concerns[0].local_text, undefined);
 });
