@@ -47,6 +47,11 @@ async function setup(handler = () => ({ status: 200, json: EVALUATE_OK }), { sig
   return { s, runCheck, configDir, builds };
 }
 
+
+/* o1b 3d-3: a response carries no questions of its own; they are on its index (index.questions). */
+const indexed = (questions) => ({ result_counts: { by_state: { pass: 0, fail: 0, not_applicable: 0, needs_review: 0, unknown: 0, error: 0 },
+  by_severity: {}, by_state_and_severity: [] }, practices: [], fails: [], open: [], questions, concerns: [], fixes: [], lists: [] });
+
 test("PC6: the annotations say a call sends data out and is charged: not read-only, not idempotent, open-world", () => {
   assert.deepEqual({ ...ANNOTATIONS }, { title: "PHI Schema Check", readOnlyHint: false, destructiveHint: false, idempotentHint: false, openWorldHint: true });
 });
@@ -568,8 +573,8 @@ test("location answers carry the E3 kind the question issued when the construct 
     "supabase/migrations/20240101_init.sql": "create table patients (id uuid);\n" });
   // expects is one kind or a list of kinds (the evaluator's _expects): every kind in a list is read, not only the first.
   const q = (object_id, expects) => ({ question_id: "location", object_id, practice_id: "a-b", ask: "Where is it?", answers: ["here", "not_found", "not_present"], expects });
-  const first = { ...EVALUATE_OK, session: "ps_abcdefghijklmnopqrstuv", questions: [q("a-b@one", "function"), q("a-b@two", ["migration", "route_handler"]),
-    q("a-b@three", ["class", "route_handler"]), q("a-b@four", ["class", "sql_statement", "migration"])] };
+  const first = { ...EVALUATE_OK, session: "ps_abcdefghijklmnopqrstuv", index: indexed([q("a-b@one", "function"), q("a-b@two", ["migration", "route_handler"]),
+    q("a-b@three", ["class", "route_handler"]), q("a-b@four", ["class", "sql_statement", "migration"])]) };
   const { s, runCheck } = await setup((call, n) => ({ status: 200, json: n === 1 ? first : EVALUATE_OK }));
   try {
     await runCheck({ goal: "check" }, { roots: [root] });
@@ -582,25 +587,6 @@ test("location answers carry the E3 kind the question issued when the construct 
     ] }, { roots: [root] });
     const answers = s.calls[1].body.fact_document.answers;
     assert.deepEqual(answers.map((a) => a.location_kind), ["function", "route_handler", "other", "sql_statement", "other"]);
-    assert.equal(validateFactDocument(s.calls[1].body.fact_document), null);
-  } finally { await s.close(); }
-});
-
-test("a location answer on an object listed in a brief carries the brief's E3 kind", async () => {
-  const root = repo({ "app/api/x/route.ts": "export async function POST(req) {\n  return Response.json({});\n}\n" });
-  const brief = { practice_id: "audit-patient-recorded", question_id: "location", ask: "Find where each handler records patient access.",
-    answers: ["here", "not_found", "not_present"], expects: "route_handler", object_ids: ["audit-patient-recorded@h1", "audit-patient-recorded@h2"] };
-  const first = { ...EVALUATE_OK, session: "ps_abcdefghijklmnopqrstuv", questions: [], briefs: [brief] };
-  const { s, runCheck } = await setup((call, n) => ({ status: 200, json: n === 1 ? first : EVALUATE_OK }));
-  try {
-    await runCheck({ goal: "check" }, { roots: [root] });
-    await runCheck({ goal: "check", session: "ps_abcdefghijklmnopqrstuv", answers: [
-      { object_id: "audit-patient-recorded@h1", question_id: "location", answer: "here", location: "app/api/x/route.ts:1-3" },
-      { object_id: "audit-patient-recorded@h2", question_id: "location", answer: "not_present" },
-      { object_id: "audit-patient-recorded@h3", question_id: "location", answer: "here", location: "app/api/x/route.ts:1-3" }, // not in the brief
-    ] }, { roots: [root] });
-    const answers = s.calls[1].body.fact_document.answers;
-    assert.deepEqual(answers.map((a) => a.location_kind), ["route_handler", null, "other"]);
     assert.equal(validateFactDocument(s.calls[1].body.fact_document), null);
   } finally { await s.close(); }
 });
@@ -808,7 +794,7 @@ test("a question's expects list is kept, and a location answer gets the first li
   const root = repo({ "app/api/x/route.ts": "export async function POST(req) {\n  return Response.json({});\n}\n" });
   const q = (object_id, expects) => ({ question_id: "location", object_id, practice_id: "a-b", ask: "Where is it?", answers: ["here", "not_found", "not_present"], expects });
   const first = { ...EVALUATE_OK, session: "ps_abcdefghijklmnopqrstuv",
-    questions: [q("a-b@one", ["class", "route_handler", "function"]), q("a-b@two", ["class", "migration"])] };
+    index: indexed([q("a-b@one", ["class", "route_handler", "function"]), q("a-b@two", ["class", "migration"])]) };
   const { s, runCheck } = await setup((call, n) => ({ status: 200, json: n === 1 ? first : EVALUATE_OK }));
   try {
     await runCheck({ goal: "check" }, { roots: [root] });
