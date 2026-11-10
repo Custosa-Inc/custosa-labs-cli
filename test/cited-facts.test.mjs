@@ -10,7 +10,7 @@ import { mkdtempSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import Ajv2020Module from "ajv/dist/2020.js";
-import { citedFactRows, citedFacts, CITED_FACTS_MAX_BYTES, FACT_FIELDS, FACT_VALUES } from "../lib/inspector/cite.mjs";
+import { citedFactRows, citedFacts, CITED_FACTS_MAX_BYTES, droppedFactsNote, FACT_FIELDS, FACT_VALUES } from "../lib/inspector/cite.mjs";
 import { sentPath } from "../lib/inspector/ids.mjs";
 
 const SCHEMA = JSON.parse(readFileSync(new URL("../lib/inspector/contracts/fact_document.schema.json", import.meta.url), "utf8"));
@@ -156,6 +156,19 @@ test("the row limit drops whole candidates too, never part of one", async () => 
   assert.deepEqual([...new Set(rows.map((r) => r.candidate))], ["app/route.ts:1"]);
   assert.equal(rows.length, FACT_FIELDS.authz.length);
   assert.equal(dropped, 2);
+});
+
+// P2 C72 lows 1 and 2 (T29-P1-C77): past the cut only good records are counted, and the note names both limits.
+test("past the cut, a bad record is not counted as dropped", async () => {
+  const bad = [{ ...AUTHZ, candidate: "app/other.ts:1" }, { rule: "no-such-rule", candidate: "app/route.ts:1" }];
+  const { dropped } = await citedFacts(root, files, key, [...threeHandlers, ...bad], { maxRows: FACT_FIELDS.authz.length + 1 });
+  assert.equal(dropped, 2, "only the two good handlers past the cut");
+});
+
+test("the dropped note names both limits and no candidate", () => {
+  const note = droppedFactsNote(3);
+  assert.match(note, /over their share \(1,000,000 bytes or 10,000 rows\)/);
+  assert.match(note, /^3 fact records were left out/);
 });
 
 test("a bad record is not counted as dropped for size, and under the share nothing is dropped", async () => {
