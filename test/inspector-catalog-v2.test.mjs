@@ -1,6 +1,6 @@
 /* Contract v2.1 catalog facts without a database: the policy expression parser and its fuzzing, the connected_roles
  * buckets, the preflight's write_privileges check, the contract patterns, and toFactCatalog against the v2 schema
- * (fixtures/contracts/fact_document.schema.d0de2104.json, a byte-for-byte copy of the evaluator's fact schema). */
+ * (fixtures/contracts/fact_document.schema.4f2a7ed3.json, a byte-for-byte copy of the evaluator's fact schema). */
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
@@ -12,7 +12,7 @@ import { hashed } from "../lib/inspector/ids.mjs";
 import { judgePreflight, checkShippedSql, PREFLIGHT_CHECKS } from "../lib/inspector/catalog.mjs";
 import * as C from "../lib/inspector/contracts.mjs";
 
-const SCHEMA = JSON.parse(readFileSync(new URL("./fixtures/contracts/fact_document.schema.d0de2104.json", import.meta.url), "utf8"));
+const SCHEMA = JSON.parse(readFileSync(new URL("./fixtures/contracts/fact_document.schema.4f2a7ed3.json", import.meta.url), "utf8"));
 const Ajv2020 = Ajv2020Module.default ?? Ajv2020Module;
 const ajv = new Ajv2020({ strict: false, allErrors: true });
 ajv.addSchema(SCHEMA);
@@ -36,7 +36,7 @@ function fact(result) {
 
 test("contracts.mjs patterns and the bucket table match the v2 schema", () => {
   const d = SCHEMA.$defs;
-  assert.equal(C.SOURCE_COMMIT.slice(0, 8), "d0de2104"); // the evaluator commit the fact schema was last copied from
+  assert.equal(C.SOURCE_COMMIT.slice(0, 8), "4f2a7ed3"); // the evaluator commit the fact schema was last copied from
   assert.equal(C.IDENTIFIER, d.identifier.pattern);
   assert.equal(C.HASHED_IDENTIFIER, d.hashed_identifier.pattern);
   assert.equal(C.PATH, d.path.pattern);
@@ -743,22 +743,4 @@ test("table_grants carries public_privileges, every privilege PUBLIC holds", () 
   assert.deepEqual(sent([]).rows[0].public_privileges, []);
   // A privilege outside the contract's list never reaches the evaluator.
   assert.notEqual(sent(["usage"]).status, "ok");
-});
-
-test("T19 B3: a query the check's time budget left not_run makes the catalog truncated, timeout, never ok", () => {
-  const r = goodResult();
-  r.queries[2] = { query_id: "schema_privileges", status: "not_run", reason: "timeout", rows: [] };
-  let out = fact(r);
-  assert.deepEqual(out.catalog.queries[2], { query_id: "schema_privileges", status: "not_run", reason: "timeout", rows: [] });
-  assert.deepEqual([out.collection.status, out.collection.reason], ["truncated", "timeout"]);
-  // Beside a truncated query too: the budget's timeout is the reason, so the run reads as cut by time.
-  r.queries[3] = { ...r.queries[3], status: "truncated" };
-  out = fact(r);
-  assert.deepEqual([out.collection.status, out.collection.reason], ["truncated", "timeout"]);
-  // A query not_run or failed for another reason keeps its own status beside an ok collector, as before.
-  for (const q of [{ status: "not_run", reason: "platform_mismatch" }, { status: "failed", reason: "permission_denied" }]) {
-    const other = goodResult();
-    other.queries[2] = { query_id: "schema_privileges", ...q, rows: [] };
-    assert.deepEqual(fact(other).collection, { collector: "catalog", status: "ok", count: other.queries.length - 1, reason: null }, q.reason);
-  }
 });

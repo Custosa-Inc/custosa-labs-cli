@@ -1,5 +1,5 @@
 {
-  "ruleset_id": "2026-11-10.28fb6716",
+  "ruleset_id": "2026-11-10.b77d483a",
   "min_engine": "0.45.3",
   "files": [
     {
@@ -528,7 +528,7 @@
     },
     {
       "path": "rules/db-tls-enforced/javascript-generic.yml",
-      "sha256": "e881114ce595fdb305bdea15b244ab1bd8accc101ce810ddbb612aa9804c2155"
+      "sha256": "5f3c3a0f6e8c912839bc009b8b6ead9cfc48ad7960c5263a87b1f4fa08fa5ab5"
     },
     {
       "path": "rules/db-tls-enforced/php-generic.yml",
@@ -544,11 +544,11 @@
     },
     {
       "path": "rules/db-tls-enforced/tsx-generic.yml",
-      "sha256": "901cfe0d98402c2288e22bde3f4ce3bd45ef0d1a9f07601ef560b7dc443da3e8"
+      "sha256": "f3c7ef1cad6b793aca9089e356bd4e0ae933489a8cb778283670d36677608577"
     },
     {
       "path": "rules/db-tls-enforced/typescript-generic.yml",
-      "sha256": "4400fe9eb721ae92cf33295d871d75c0703264d53e14765c900def7c9e6f6d27"
+      "sha256": "817c8d7b2568f01517984d92c12e4375e4033339bf5b015b796b322ef5c246da"
     },
     {
       "path": "rules/dependency-scanning-ci/json-generic.yml",
@@ -1614,7 +1614,7 @@
     },
     {
       "path": "contracts/fact_document.schema.json",
-      "sha256": "4eb3ba0b902248333fe31eecaa11afae04367edbe11fcdce4c792ddbc88bf2f8"
+      "sha256": "414f058d734a0b834e47a087b3289287650b07d7b7838ac20dd32e2af2cebde1"
     },
     {
       "path": "contracts/fact_schema.json",

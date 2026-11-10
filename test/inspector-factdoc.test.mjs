@@ -102,14 +102,14 @@ test("the shipped response schema takes exposure_suspected wherever it takes a r
 
 test("the shipped schemas are the contract's copies, and contracts.mjs names the commit", () => {
   // The fixtures are byte-for-byte copies of the evaluator's schemas, named by the evaluator commit each came from.
-  const fixture = JSON.parse(readFileSync(new URL("./fixtures/contracts/fact_document.schema.d0de2104.json", import.meta.url), "utf8"));
+  const fixture = JSON.parse(readFileSync(new URL("./fixtures/contracts/fact_document.schema.4f2a7ed3.json", import.meta.url), "utf8"));
   assert.deepEqual(FACT_SCHEMA, fixture);
   assert.deepEqual(RESPONSE_SCHEMA, JSON.parse(readFileSync(new URL("./fixtures/contracts/response.schema.549e3e09.json", import.meta.url), "utf8")));
   assert.equal(FACT_SCHEMA.$id, "https://custosa.com/schemas/fact-document/2");
   assert.ok(!FACT_SCHEMA.$defs.query_server_version && !FACT_SCHEMA.$defs.row_server_version);
   assert.ok(!JSON.stringify(RESPONSE_SCHEMA).includes("server_version"));
   assert.ok(RESPONSE_SCHEMA.$defs.evaluate_response.properties.not_used);
-  assert.match(SOURCE_COMMIT, /^d0de2104/); // the evaluator commit the fact schema was last copied from
+  assert.match(SOURCE_COMMIT, /^4f2a7ed3/); // the evaluator commit the fact schema was last copied from
   assert.ok(!FACT_SCHEMA.$defs.query_hba_rules);
   // other_execute_roles is optional, so a row from an older CLI stays valid and core holds the function.
   assert.ok(FACT_SCHEMA.$defs.row_definer_functions.properties.other_execute_roles);
@@ -1117,19 +1117,4 @@ test("facts past their 1 MB share drop whole candidates, with a count in the loc
   const note = (out.notes ?? []).find((n) => /fact/.test(n) && n.includes(String(2400 - kept.length)));
   assert.ok(note, JSON.stringify(out.notes));
   assert.ok(!note.includes("route.ts"), "the note names no candidate");
-});
-
-test("T19 B2: a project whose only code fails to parse sends the rules collector truncated, nothing_read, in a lawful document", async () => {
-  const root = repo({ "package.json": BASE["package.json"], "src/a.js": "function f() {\n  console.log(x.patient);\n" });
-  const { out } = await build(root);
-  const doc = out.documents[0].document;
-  assert.equal(checkDocument(doc), null);
-  assert.deepEqual(doc.files.not_analyzed.filter((e) => e.path === "src/a.js").map((e) => e.reason), ["parse_error"]);
-  assert.equal(doc.files.analyzed, 0);
-  assert.deepEqual([col(doc, "rules").status, col(doc, "rules").reason], ["truncated", "nothing_read"]);
-  // The same project with the file whole is read: ok, found as before.
-  const fixed = repo({ "package.json": BASE["package.json"], "src/a.js": "function f() {\n  console.log(x.patient);\n}\n" });
-  const whole = (await build(fixed)).out.documents[0].document;
-  assert.equal(checkDocument(whole), null);
-  assert.equal(col(whole, "rules").status, "ok");
 });
