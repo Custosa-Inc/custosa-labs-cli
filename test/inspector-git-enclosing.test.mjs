@@ -91,3 +91,18 @@ test("(u) a folder in no repository is still no_git_dir", async () => {
   assert.equal((await locateGitdir(lone)).reason, "no_git_dir");
   assert.equal((await readTracked(lone)).status, "not_run");
 });
+
+test("(u) a repository above that tracks nothing under the root (a home folder in git) is not the root's", { skip: !HAS_GIT }, async () => {
+  const home = temp();
+  git(home, "init", "-q");
+  put(join(home, ".bashrc"));
+  git(home, "add", ".bashrc");
+  git(home, "commit", "-qm", "dotfiles");
+  const project = join(home, "code", "app");
+  put(join(project, "a.js"));
+  const t = await readTracked(project);
+  assert.equal(t.status, "not_run");
+  assert.equal(t.reason, "no_git_dir");
+  const r = await walk(project);
+  assert.equal(r.git.status, "not_run", JSON.stringify(r.git));
+});
