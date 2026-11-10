@@ -111,6 +111,29 @@ test("loadRules reads one rule per kind from the fixture rule set", () => {
   assert.ok(rules.find((r) => r.kind === "items").control);
 });
 
+test("runFixtures runs a fixture's sections on one warm rule worker per rule file, with the same results", async () => {
+  // T19 (T29 conventions audit P1): a cold worker per section paid the worker's start (grammars, rules, prefilters)
+  // once per section; core's 793 sections in 377 fixture files took 143 s cold and 95 s warm on P2, same counts.
+  const parent = mkdtempSync(join(tmpdir(), "custosa-fixwarm-"));
+  try {
+    const dir = join(parent, "rules");
+    cpSync(RULES, dir, { recursive: true });
+    const fixture = join(dir, "ai-trace-redaction", "javascript-generic.fixtures.js");
+    const body = readFileSync(fixture, "utf8");
+    writeFileSync(fixture, ["a", "b", "c"].map((n) => `// path: src/${n}.js\n${body}`).join(""));
+    const files = new Set(loadRules(dir).map((r) => r.file)).size;
+    const warm = new WarmPool();
+    const got = await runFixtures(dir, { warm });
+    assert.deepEqual(got.failed, []);
+    assert.ok(warm.started >= 1 && warm.started <= files, `${warm.started} workers for ${files} rule files and 6 sections`);
+    const own = await runFixtures(dir);   // no pool given: it makes its own and drops it
+    assert.deepEqual(own, got);
+    assert.equal(got.passed, (await runFixtures(RULES)).passed + 2 * 4, "the copied sections' 4 markers run twice more");
+  } finally {
+    rmSync(parent, { recursive: true, force: true });
+  }
+});
+
 test("runFixtures passes on the fixture rule set, and `custosa rules test` agrees", async () => {
   const { passed, failed } = await runFixtures(RULES);
   assert.deepEqual(failed, []);
