@@ -123,7 +123,8 @@ test("runFixtures runs a fixture's sections on one warm rule worker per rule fil
     writeFileSync(fixture, ["a", "b", "c"].map((n) => `// path: src/${n}.js\n${body}`).join(""));
     const files = new Set(loadRules(dir).map((r) => r.file)).size;
     const warm = new WarmPool();
-    const got = await runFixtures(dir, { warm });
+    let got;
+    try { got = await runFixtures(dir, { warm }); } finally { await warm.drop(); }   // a given pool is the caller's to drop
     assert.deepEqual(got.failed, []);
     assert.ok(warm.started >= 1 && warm.started <= files, `${warm.started} workers for ${files} rule files and 6 sections`);
     const own = await runFixtures(dir);   // no pool given: it makes its own and drops it
