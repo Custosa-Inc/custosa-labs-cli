@@ -24,7 +24,8 @@ mkdirSync(join(root, "app"));
 mkdirSync(join(root, "db"));
 writeFileSync(join(root, "app", "route.ts"), "export async function GET(req, { params }) {\n  const session = await auth();\n  const { id } = await params;\n  return db.note.findFirst({ where: { id, ownerId: session.user.id } });\n}\n");
 writeFileSync(join(root, "db", "init.sql"), "create table public.notes (\n  id uuid primary key,\n  user_id uuid not null\n);\nalter table public.notes enable row level security;\n");
-const walked = new Set(["app/route.ts", "db/init.sql"]);
+writeFileSync(join(root, "app", "my route.ts"), "export async function GET(req) {\n");
+const walked = new Set(["app/route.ts", "db/init.sql", "app/my route.ts"]);
 
 const AUTHZ = {
   rule: "authz", candidate: "app/route.ts:1",
@@ -98,4 +99,11 @@ test("a record with an unknown rule or a candidate of the wrong shape is dropped
   ]);
   assert.deepEqual([...new Set(rows.map((r) => r.candidate))], ["app/route.ts:1"]);
   assert.equal(rows.length, FACT_FIELDS.authz.length);
+});
+
+test("a cited file whose path no location can name is failed, so the document stays valid", async () => {
+  const rows = await citedFactRows(root, walked, [{ ...AUTHZ,
+    handler: { value: "declared", file: "app/my route.ts", line: 1, token: "export async function GET" } }]);
+  assert.ok(validRows(rows), JSON.stringify(validRows.errors));
+  assert.deepEqual([byField(rows).handler.cite, byField(rows).handler.cited_at], ["failed", null]);
 });
