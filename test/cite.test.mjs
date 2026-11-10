@@ -21,12 +21,13 @@ function project() {
   const outside = mkdtempSync(join(tmpdir(), "cite-out-"));
   writeFileSync(join(outside, "secret.ts"), "const owner = session.user.id;\n");
   symlinkSync(join(outside, "secret.ts"), join(root, "app", "link.ts"));
-  const walked = new Set(["app/route.ts", "app/crlf.ts", "app/seps.ts", "app/bin.ts", "app/link.ts"]); // big.ts was skipped
-  return { root, walked };
+  // the walk's entries by path; big.ts was skipped, so it has none
+  const files = new Map(["app/route.ts", "app/crlf.ts", "app/seps.ts", "app/bin.ts", "app/link.ts"].map((p) => [p, { path: p }]));
+  return { root, files };
 }
 
 const P = project();
-const check = (cite) => checkCitation(P.root, P.walked, cite);
+const check = async (cite) => (await checkCitation(P.root, P.files, cite)).cite;
 
 test("a token of 3 or more characters on the cited line of a walked file is ok", async () => {
   assert.equal(MIN_CITE_TOKEN_CHARS, 3);

@@ -11,6 +11,7 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import Ajv2020Module from "ajv/dist/2020.js";
 import { citedFactRows, FACT_FIELDS, FACT_VALUES } from "../lib/inspector/cite.mjs";
+import { sentPath } from "../lib/inspector/ids.mjs";
 
 const SCHEMA = JSON.parse(readFileSync(new URL("../lib/inspector/contracts/fact_document.schema.json", import.meta.url), "utf8"));
 const FACTS = JSON.parse(readFileSync(new URL("../lib/inspector/contracts/fact_schema.json", import.meta.url), "utf8"));
@@ -25,7 +26,9 @@ mkdirSync(join(root, "db"));
 writeFileSync(join(root, "app", "route.ts"), "export async function GET(req, { params }) {\n  const session = await auth();\n  const { id } = await params;\n  return db.note.findFirst({ where: { id, ownerId: session.user.id } });\n}\n");
 writeFileSync(join(root, "db", "init.sql"), "create table public.notes (\n  id uuid primary key,\n  user_id uuid not null\n);\nalter table public.notes enable row level security;\n");
 writeFileSync(join(root, "app", "my route.ts"), "export async function GET(req) {\n");
-const walked = new Set(["app/route.ts", "db/init.sql", "app/my route.ts"]);
+const files = new Map(["app/route.ts", "db/init.sql", "app/my route.ts"].map((p) => [p, { path: p }]));
+const key = Buffer.alloc(32, 7);
+const rowsOf = (records) => citedFactRows(root, files, key, records);
 
 const AUTHZ = {
   rule: "authz", candidate: "app/route.ts:1",
@@ -51,7 +54,7 @@ test("the field lists and values are the synced contract's", () => {
 });
 
 test("a fully cited authz record gives one ok row per field, with no token", async () => {
-  const rows = await citedFactRows(root, walked, [AUTHZ]);
+  const rows = await rowsOf([AUTHZ]);
   assert.ok(validRows(rows), JSON.stringify(validRows.errors));
   assert.deepEqual(rows.map((r) => r.field), FACT_FIELDS.authz);
   const f = byField(rows);
@@ -62,7 +65,7 @@ test("a fully cited authz record gives one ok row per field, with no token", asy
 
 test("an rls record lists its columns, and a field left out is unknown with no citation", async () => {
   const { rls_enabled: _, ...partial } = RLS;
-  const rows = await citedFactRows(root, walked, [partial]);
+  const rows = await rowsOf([partial]);
   assert.ok(validRows(rows), JSON.stringify(validRows.errors));
   const f = byField(rows);
   assert.deepEqual([f.per_user_columns.value, f.per_user_columns.column_names, f.per_user_columns.cite], ["listed", ["user_id"], "ok"]);
@@ -70,17 +73,17 @@ test("an rls record lists its columns, and a field left out is unknown with no c
 });
 
 test("a citation that doesn't hold keeps the value but is failed, with no location", async () => {
-  const rows = await citedFactRows(root, walked, [{ ...AUTHZ, guard: { ...AUTHZ.guard, line: 2 } }]);
+  const rows = await rowsOf([{ ...AUTHZ, guard: { ...AUTHZ.guard, line: 2 } }]);
   assert.deepEqual([byField(rows).guard.value, byField(rows).guard.cite, byField(rows).guard.cited_at], ["owner_filter", "failed", null]);
 });
 
 test("a claim of absence may come without a citation (cite none)", async () => {
-  const rows = await citedFactRows(root, walked, [{ ...AUTHZ, guard: { value: "none" } }]);
+  const rows = await rowsOf([{ ...AUTHZ, guard: { value: "none" } }]);
   assert.deepEqual([byField(rows).guard.value, byField(rows).guard.cite], ["none", "none"]);
 });
 
 test("a value outside the field's list, or a column that isn't a plain name, is unknown", async () => {
-  const rows = await citedFactRows(root, walked, [
+  const rows = await rowsOf([
     { ...AUTHZ, guard: { ...AUTHZ.guard, value: "admin_only" } },
     { ...RLS, per_user_columns: { ...RLS.per_user_columns, value: ["user id"] } },
     { ...RLS, candidate: "public.other", per_user_columns: { ...RLS.per_user_columns, value: "user_id" } },
@@ -93,7 +96,7 @@ test("a value outside the field's list, or a column that isn't a plain name, is 
 });
 
 test("a record with an unknown rule or a candidate of the wrong shape is dropped", async () => {
-  const rows = await citedFactRows(root, walked, [
+  const rows = await rowsOf([
     { ...AUTHZ, rule: "secrets" }, { ...AUTHZ, candidate: "public.notes" }, { ...RLS, candidate: "db/init.sql:1" },
     { ...AUTHZ, candidate: "../x.ts:1" }, null, "text", { ...AUTHZ, candidate: "app/route.ts:1" },
   ]);
@@ -101,9 +104,16 @@ test("a record with an unknown rule or a candidate of the wrong shape is dropped
   assert.equal(rows.length, FACT_FIELDS.authz.length);
 });
 
-test("a cited file whose path no location can name is failed, so the document stays valid", async () => {
-  const rows = await citedFactRows(root, walked, [{ ...AUTHZ,
+test("a cited path goes out as every walked path does (ids.sentPath), and the document stays valid", async () => {
+  const rows = await rowsOf([{ ...AUTHZ,
     handler: { value: "declared", file: "app/my route.ts", line: 1, token: "export async function GET" } }]);
   assert.ok(validRows(rows), JSON.stringify(validRows.errors));
-  assert.deepEqual([byField(rows).handler.cite, byField(rows).handler.cited_at], ["failed", null]);
+  assert.notEqual(sentPath(key, "app/my route.ts"), "app/my route.ts");
+  assert.deepEqual([byField(rows).handler.cite, byField(rows).handler.cited_at], ["ok", `${sentPath(key, "app/my route.ts")}:1`]);
+});
+
+test("a handler candidate must be a line of a walked file", async () => {
+  const rows = await rowsOf([{ ...AUTHZ, candidate: "app/other.ts:1" }, { ...AUTHZ, candidate: "app/route.ts:40" },
+    { ...RLS, candidate: "public.my table" }, { ...RLS, candidate: "notes" }]);
+  assert.deepEqual(rows, []);
 });
