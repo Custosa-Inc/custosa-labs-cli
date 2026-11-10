@@ -34,8 +34,11 @@ function repo() {
 const META = { category: "logging", area: "logging", file_kind: "server_module", proposed_severity: "high" };
 const NOTE = "`src/db.ts` logs the whole row because it calls console.log on it.";
 const ID = "cn_00000000000000a1";
-const RAISED = { ...EVALUATE_OK, concerns: [{ concern_id: ID, ...META, severity: "high", status: "unconfirmed", label: "waits for a confirm",
-  raised_now: true, next: { awaiting: "confirm", options: [{ id: "real_problem" }, { id: "not_a_problem" }, { id: "not_sure" }] } }],
+// o1b 3d-3: the concerns are lines of the answer's index (core sends no top-level concerns since 3d-1).
+const INDEX = (concerns) => ({ result_counts: { by_state: { pass: 0, fail: 0, not_applicable: 0, needs_review: 0, unknown: 0, error: 0 },
+  by_severity: {}, by_state_and_severity: [] }, practices: [], fails: [], open: [], questions: [], concerns, fixes: [], lists: [] });
+const RAISED = { ...EVALUATE_OK, index: INDEX([{ concern_id: ID, ...META, severity: "high", status: "unconfirmed", label: "waits for a confirm",
+  raised_now: true, next: { awaiting: "confirm", options: [{ id: "real_problem" }, { id: "not_a_problem" }, { id: "not_sure" }] } }]),
   concern_options: { real_problem: "It's a real problem", not_a_problem: "It isn't a problem", not_sure: "Not sure" } };
 const verdict = { practice_id: "authz-every-handler", state: "fail", reason_code: "control_missing", note: "The insert has no owner check." };
 
@@ -78,7 +81,7 @@ test("while learning is off, no note leaves; a concern sends note_kept_local and
     assert.deepEqual(body.concerns, [{ ...META, note_kept_local: true }]);
     assert.ok(!JSON.stringify(body).includes("console.log") && !JSON.stringify(body).includes("owner check"));
     assert.equal(readTexts(root).get(ID)?.text, NOTE);
-    assert.equal(out.concerns[0].local_text, NOTE);
+    assert.equal(out.index.concerns[0].local_text, NOTE);
   } finally { await s.close(); }
 });
 
