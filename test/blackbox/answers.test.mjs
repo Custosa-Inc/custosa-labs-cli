@@ -44,7 +44,12 @@ before(async () => {
   const ids = Object.keys(TARGETS).map((k) => `access-audit-log@${k}`);
   const first = {
     goal: 'check', status: 'in_progress', session: SESSION, ruleset_id: '2026-10-21.8020a370', registry_id: '2026-10-21.8020a370',
-    headline: 'black-box', findings: [], fixes: [], questions: ids.map(question), is_fetch_only: false, charged_units: 10,
+    // o1b 3d-3: the questions are in the answer's index (core sends no top-level lists since 3d-1)
+    headline: 'black-box', index: {
+      result_counts: { by_state: { pass: 0, fail: 0, not_applicable: 0, needs_review: 0, unknown: 0, error: 0 }, by_severity: {},
+        by_state_and_severity: [] },
+      practices: [], fails: [], open: [], questions: ids.map(question), concerns: [], fixes: [], lists: [],
+    }, is_fetch_only: false, charged_units: 10,
     next_step: 'Answer the questions.', notice: 'black-box stub', correlation_id: 'bbcorrelation01',
   };
   // The CLI drops a reply its response schema refuses, so a stale script would fail far from its cause.
