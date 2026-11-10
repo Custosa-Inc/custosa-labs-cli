@@ -19,6 +19,7 @@ rule:
   # the query, so a guard's message, a replace or a warning that names the mode is not a client
   # (P2 C152 lows 1 and 2) a mysql or mariadb URL is not a Postgres client, and only a + joins: `=== "?sslmode=disable"`
   # is a guard
+  # (P3 C218 low 1) url += "?sslmode=disable" joins too, and so does a string in one pair of parentheses that a + joins
   - kind: template_string
     regex: '(?i)\}[^\s"''`]*[?&]sslmode=(disable|allow|prefer)\b'
     not:
@@ -26,8 +27,15 @@ rule:
       regex: '(?i)^`(mysql|mariadb)(\+\w+)?://'
   - kind: string
     regex: '(?i)^["''][^\s"'']*[?&]sslmode=(disable|allow|prefer)\b'
-    inside:
-      pattern: $L + $R
+    any:
+    - inside:
+        pattern: $L + $R
+    - inside:
+        pattern: $L += $R
+    - inside:
+        kind: parenthesized_expression
+        inside:
+          pattern: $L + $R
 min_engine: 0.39.0
 ---
 # ssl: false on a Postgres client's options: node-postgres (new Pool or new Client, pg.Pool), postgres.js (postgres(...)),

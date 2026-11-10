@@ -905,7 +905,7 @@ test("v2: any write privilege on any relation, in any schema, through any route,
   assert.equal(r.preflight.passed, true); assert.equal(r.preflight.writable_tables, 0);
 });
 
-const V2_SCHEMA = JSON.parse(readFileSync(new URL("./fixtures/contracts/fact_document.schema.4f2a7ed3.json", import.meta.url), "utf8"));
+const V2_SCHEMA = JSON.parse(readFileSync(new URL("./fixtures/contracts/fact_document.schema.35e4cb49.json", import.meta.url), "utf8"));
 const Ajv2020 = Ajv2020Module.default ?? Ajv2020Module;
 const v2ajv = new Ajv2020({ strict: false, allErrors: true });
 v2ajv.addSchema(V2_SCHEMA);
