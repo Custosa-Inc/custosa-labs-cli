@@ -870,6 +870,45 @@ test("T29 C189 item 3: a write path only through PUBLIC is told apart from one t
   }
 });
 
+test("T29 C207: a role's own write on an object PUBLIC can also write is beyond PUBLIC", { skip }, async () => {
+  // [grant, undo, beyond_public is 0]. The first three are P2's C207 probes.
+  const wrong = [];
+  for (const [grant, undo, onlyPublic] of [
+    ["GRANT DELETE ON app.patients TO PUBLIC; GRANT UPDATE ON app.patients TO phisc_ro",
+      "REVOKE DELETE ON app.patients FROM PUBLIC; REVOKE UPDATE ON app.patients FROM phisc_ro", false],
+    ["GRANT CREATE ON SCHEMA public TO PUBLIC; GRANT CREATE ON SCHEMA public TO phisc_ro",
+      "REVOKE CREATE ON SCHEMA public FROM PUBLIC; REVOKE CREATE ON SCHEMA public FROM phisc_ro", false],
+    ["CREATE ROLE dwr2 NOLOGIN; GRANT dwr2 TO phisc_ro; GRANT CREATE ON SCHEMA public TO PUBLIC; GRANT CREATE ON SCHEMA public TO dwr2",
+      "REVOKE CREATE ON SCHEMA public FROM PUBLIC; REVOKE CREATE ON SCHEMA public FROM dwr2; REVOKE dwr2 FROM phisc_ro; DROP ROLE dwr2", false],
+    ["GRANT DELETE ON app.patients TO PUBLIC; GRANT UPDATE (name) ON app.patients TO phisc_ro",
+      "REVOKE DELETE ON app.patients FROM PUBLIC; REVOKE UPDATE (name) ON app.patients FROM phisc_ro", false],
+    ["CREATE SEQUENCE app.s207; GRANT USAGE ON SEQUENCE app.s207 TO PUBLIC; GRANT UPDATE ON SEQUENCE app.s207 TO phisc_ro",
+      "DROP SEQUENCE app.s207", false],
+    ["SELECT pg_catalog.lo_create(20707); GRANT UPDATE ON LARGE OBJECT 20707 TO PUBLIC; GRANT UPDATE ON LARGE OBJECT 20707 TO phisc_ro",
+      "SELECT pg_catalog.lo_unlink(20707)", false],
+    ["GRANT CREATE ON DATABASE postgres TO PUBLIC; GRANT CREATE ON DATABASE postgres TO phisc_ro",
+      "REVOKE CREATE ON DATABASE postgres FROM PUBLIC; REVOKE CREATE ON DATABASE postgres FROM phisc_ro", false],
+    ["CREATE FOREIGN DATA WRAPPER w207; CREATE SERVER s207 FOREIGN DATA WRAPPER w207; GRANT USAGE ON FOREIGN SERVER s207 TO PUBLIC; GRANT USAGE ON FOREIGN SERVER s207 TO phisc_ro",
+      "DROP SERVER s207; DROP FOREIGN DATA WRAPPER w207", false],
+    ["CREATE FOREIGN DATA WRAPPER w207; GRANT USAGE ON FOREIGN DATA WRAPPER w207 TO PUBLIC; GRANT USAGE ON FOREIGN DATA WRAPPER w207 TO phisc_ro",
+      "DROP FOREIGN DATA WRAPPER w207", false],
+    // An owner can grant itself any privilege back, so a relation a member role owns is never PUBLIC's alone.
+    ["CREATE ROLE own207 NOLOGIN; CREATE TABLE app.t207 (id int); ALTER TABLE app.t207 OWNER TO own207; REVOKE ALL ON app.t207 FROM own207; GRANT DELETE ON app.t207 TO PUBLIC; GRANT own207 TO phisc_ro",
+      "DROP TABLE app.t207; REVOKE own207 FROM phisc_ro; DROP ROLE own207", false],
+    // A write grant to a role phisc_ro is not in stays outside: PUBLIC's grant is still its only path.
+    ["CREATE ROLE other207 NOLOGIN; GRANT DELETE ON app.patients TO PUBLIC; GRANT UPDATE ON app.patients TO other207",
+      "REVOKE DELETE ON app.patients FROM PUBLIC; REVOKE UPDATE ON app.patients FROM other207; DROP ROLE other207", true],
+    ["CREATE ROLE other207 NOLOGIN; GRANT CREATE ON SCHEMA public TO PUBLIC; GRANT CREATE ON SCHEMA public TO other207",
+      "REVOKE CREATE ON SCHEMA public FROM PUBLIC; REVOKE CREATE ON SCHEMA public FROM other207; DROP ROLE other207", true],
+  ]) {
+    const r = await refusedWith(grant, undo, "write_privileges");
+    const p = r.preflight.public_writes;
+    assert.ok(p.beyond_public >= 0, grant);
+    if ((p.beyond_public === 0) !== onlyPublic) wrong.push(`${grant}: ${JSON.stringify(p)}`);
+  }
+  assert.deepEqual(wrong, []);
+});
+
 test("v2: any write privilege on any relation, in any schema, through any route, is refused", { skip }, async (t) => {
   for (const [grant, undo] of [
     ["GRANT INSERT ON app.patients TO phisc_ro", "REVOKE INSERT ON app.patients FROM phisc_ro"],
