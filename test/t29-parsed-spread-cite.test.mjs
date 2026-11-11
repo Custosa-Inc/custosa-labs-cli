@@ -34,6 +34,34 @@ const FILES = {
     "}",
   ].join("\n"),
   "app/schemas.ts": "export const JournalInput = z.object({ body: z.string() });\n",
+  // P2 T29-C199: an alias, a passthrough on the alias line, two schemas the handler parses, a name only in a comment.
+  "app/alias/route.ts": [
+    "const Base = z.object({ title: z.string() }).passthrough();",
+    "const Input = Base;",
+    "const Loose = Base.passthrough();",
+    "export async function POST(req) {",
+    "  const input = Input.parse(await req.json());",
+    "  return db.note.create({ data: { ...input, ownerId: (await auth()).user.id } });",
+    "}",
+  ].join("\n"),
+  "app/two/route.ts": [
+    "const Query = z.object({ page: z.string() }).strict();",
+    "const Body = z.object({ title: z.string() }).passthrough();",
+    "export async function POST(req) {",
+    "  const q = Query.parse(Object.fromEntries(new URL(req.url).searchParams));",
+    "  const input = Body.parse(await req.json());",
+    "  return db.note.create({ data: { ...input, ownerId: (await auth()).user.id } });",
+    "}",
+  ].join("\n"),
+  "app/comment/route.ts": [
+    "const Strict = z.object({ title: z.string() }).strict();",
+    "const Loose = z.object({ title: z.string() }).passthrough();",
+    "export async function POST(req) {",
+    "  // was Strict before",
+    "  const input = Loose.parse(await req.json());",
+    "  return db.note.create({ data: { ...input, ownerId: (await auth()).user.id } });",
+    "}",
+  ].join("\n"),
   "src/items.controller.ts": [
     "export class CreateItemDto {",
     "  name: string;",
@@ -117,4 +145,24 @@ test("a DTO class the handler's signature names, and a Python model, stay ok", a
   const nest = "src/items.controller.ts";
   assert.equal(await parserCite(write(`${nest}:5`, cite(nest, 6, "...data"), cite(nest, 1, "class CreateItemDto"))), "ok");
   assert.equal(await parserCite(write("api/notes.py:5", cite("api/notes.py", 6, "**body"), cite("api/notes.py", 1, "class NoteIn"))), "ok");
+});
+
+test("P2 C199 med 1: an alias line, or a line that keeps unknown keys, is failed", async () => {
+  const f = "app/alias/route.ts";
+  const shape = cite(f, 6, "...input");
+  assert.equal(await parserCite(write(`${f}:4`, shape, cite(f, 2, "const Input = Base"))), "failed");
+  assert.equal(await parserCite(write(`${f}:4`, shape, cite(f, 3, "Base.passthrough()"))), "failed");
+  assert.equal(await parserCite(write(`${f}:4`, shape, cite(f, 1, "const Base"))), "failed");
+});
+
+test("P2 C199 med 2: a handler that parses two schemas of this file holds, whichever is cited", async () => {
+  const f = "app/two/route.ts";
+  const shape = cite(f, 6, "...input");
+  assert.equal(await parserCite(write(`${f}:3`, shape, cite(f, 1, "const Query"))), "failed");
+  assert.equal(await parserCite(write(`${f}:3`, shape, cite(f, 2, "const Body"))), "failed");
+});
+
+test("P2 C199 low 1: a name seen only in a comment is not used", async () => {
+  const f = "app/comment/route.ts";
+  assert.equal(await parserCite(write(`${f}:3`, cite(f, 6, "...input"), cite(f, 1, "const Strict"))), "failed");
 });
