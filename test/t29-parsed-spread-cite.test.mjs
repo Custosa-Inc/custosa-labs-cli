@@ -1,0 +1,120 @@
+/* T29-P1-C189 item 1: core reads a write_fields parser fact of strips_unknown_keys anywhere in the candidate's own
+ * file, so the inspector sends that cite as ok only when it names the schema the handler parses: the cited line lies
+ * inside the handler (from the candidate's line to the data_shape cite's line), or it declares a name one of those lines
+ * uses. The red case: two schemas in one file, the handler parses the .passthrough() one, and the cite names the strict
+ * one. That cite is failed, so the fact is not usable and the candidate can't pass. keeps_unknown_keys is not checked:
+ * it only decides toward fail. */
+import { test } from "node:test";
+import assert from "node:assert/strict";
+import { mkdtempSync, mkdirSync, writeFileSync } from "node:fs";
+import { tmpdir } from "node:os";
+import { dirname, join } from "node:path";
+import { citedFactRows } from "../lib/inspector/cite.mjs";
+
+const FILES = {
+  "app/notes/route.ts": [
+    'import { z } from "zod";',
+    "const Strict = z.object({ title: z.string() }).strict();",
+    "const Loose = z.object({ title: z.string() }).passthrough();",
+    "",
+    "export async function POST(req) {",
+    "  const session = await auth();",
+    "  const input = Loose.parse(await req.json());",
+    "  return db.note.create({ data: { ...input, ownerId: session.user.id } });",
+    "}",
+  ].join("\n"),
+  "app/journal/route.ts": [
+    'import { z } from "zod";',
+    "export const JournalInput = z.object({ body: z.string() });",
+    "",
+    "export async function POST(req) {",
+    "  const session = await auth();",
+    "  const input = JournalInput.parse(await req.json());",
+    "  return db.entry.create({ data: { ...input, ownerId: session.user.id } });",
+    "}",
+  ].join("\n"),
+  "app/schemas.ts": "export const JournalInput = z.object({ body: z.string() });\n",
+  "src/items.controller.ts": [
+    "export class CreateItemDto {",
+    "  name: string;",
+    "}",
+    "export class ItemsController {",
+    "  create(@Body() data: CreateItemDto, @Req() req) {",
+    "    return this.prisma.item.create({ data: { ...data, ownerId: req.user.id } });",
+    "  }",
+    "}",
+  ].join("\n"),
+  "api/notes.py": [
+    "class NoteIn(BaseModel):",
+    "    title: str",
+    "",
+    "@router.post('/notes')",
+    "def create_note(body: NoteIn, user=Depends(current_user)):",
+    "    return db.add(Note(**body.dict(), owner_id=user.id))",
+  ].join("\n"),
+};
+
+const root = mkdtempSync(join(tmpdir(), "parsed-spread-"));
+for (const [p, text] of Object.entries(FILES)) {
+  mkdirSync(dirname(join(root, p)), { recursive: true });
+  writeFileSync(join(root, p), `${text}\n`);
+}
+const files = new Map(Object.keys(FILES).map((p) => [p, { path: p }]));
+const key = Buffer.alloc(32, 9);
+
+const cite = (file, line, token) => ({ file, line, token });
+function write(candidate, shape, parser, value = "strips_unknown_keys") {
+  const [file, line] = candidate.split(":");
+  return {
+    rule: "write_fields", candidate,
+    handler: { value: "declared", ...cite(file, Number(line), "export") },
+    data_shape: shape ? { value: "spread_parsed", ...shape } : { value: "unknown" },
+    parser: { value, ...parser },
+    owner_source: { value: "session", ...(shape ?? cite(file, Number(line), "export")) },
+  };
+}
+async function parserCite(record) {
+  const rows = await citedFactRows(root, files, key, [record]);
+  return rows.find((r) => r.field === "parser").cite;
+}
+
+const NOTES = "app/notes/route.ts";
+const NOTES_SHAPE = cite(NOTES, 8, "...input");
+
+test("C189 red case: a cite naming the strict schema, while the handler parses the .passthrough() one, is failed", async () => {
+  assert.equal(await parserCite(write(`${NOTES}:5`, NOTES_SHAPE, cite(NOTES, 2, "const Strict"))), "failed");
+  assert.equal(await parserCite(write(`${NOTES}:5`, NOTES_SHAPE, cite(NOTES, 2, "z.object({"))), "failed");
+});
+
+test("a cite of the schema the handler parses, outside the handler, stays ok", async () => {
+  const shape = cite("app/journal/route.ts", 7, "...input");
+  assert.equal(await parserCite(write("app/journal/route.ts:4", shape, cite("app/journal/route.ts", 2, "z.object({"))), "ok");
+});
+
+test("a cite inside the handler, from its line to the data shape's, stays ok", async () => {
+  assert.equal(await parserCite(write(`${NOTES}:5`, NOTES_SHAPE, cite(NOTES, 7, "Loose.parse"))), "ok");
+});
+
+test("a cite in another file is failed, even of a schema with the parsed name", async () => {
+  const shape = cite("app/journal/route.ts", 7, "...input");
+  assert.equal(await parserCite(write("app/journal/route.ts:4", shape, cite("app/schemas.ts", 1, "JournalInput"))), "failed");
+});
+
+test("with no usable data_shape cite only the candidate's own line counts", async () => {
+  assert.equal(await parserCite(write("app/journal/route.ts:4", null, cite("app/journal/route.ts", 2, "JournalInput"))), "failed");
+});
+
+test("a line that declares no name is failed outside the handler", async () => {
+  assert.equal(await parserCite(write(`${NOTES}:5`, NOTES_SHAPE, cite(NOTES, 1, "import"))), "failed");
+});
+
+test("keeps_unknown_keys is not checked: it only decides toward fail", async () => {
+  assert.equal(await parserCite(write(`${NOTES}:5`, NOTES_SHAPE, cite(NOTES, 2, "const Strict"), "keeps_unknown_keys")), "ok");
+  assert.equal(await parserCite(write(`${NOTES}:5`, NOTES_SHAPE, cite("app/schemas.ts", 1, "JournalInput"), "keeps_unknown_keys")), "ok");
+});
+
+test("a DTO class the handler's signature names, and a Python model, stay ok", async () => {
+  const nest = "src/items.controller.ts";
+  assert.equal(await parserCite(write(`${nest}:5`, cite(nest, 6, "...data"), cite(nest, 1, "class CreateItemDto"))), "ok");
+  assert.equal(await parserCite(write("api/notes.py:5", cite("api/notes.py", 6, "**body"), cite("api/notes.py", 1, "class NoteIn"))), "ok");
+});
