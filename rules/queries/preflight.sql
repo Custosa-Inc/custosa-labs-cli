@@ -46,6 +46,8 @@ writes AS (
 -- T29-P1-C189 item 3: the writes PUBLIC alone holds, part by part as in writes. Every role the session can become is a
 -- member of PUBLIC, so each part of writes counts at least these. When the totals match, every write path is a grant to
 -- PUBLIC (writable_beyond_public 0). The catalog read still refuses then, and the grant itself is the finding.
+-- T29-P2-C207: an object counts here only when no role the session can become owns it or holds its own write grant on
+-- it, so a role's own grant on an object PUBLIC can also write is never cancelled out.
 public_writes AS (
   SELECT
     (SELECT pg_catalog.count(*) FROM pg_catalog.pg_class c
@@ -58,23 +60,42 @@ public_writes AS (
                 OR CASE WHEN pg_catalog.current_setting('server_version_num')::int >= 170000
                   THEN pg_catalog.has_table_privilege(m.who, c.oid, 'MAINTAIN') ELSE false END
                 OR CASE WHEN (SELECT k.relkind FROM pg_catalog.pg_class k WHERE k.oid = c.oid) = 'S'
-                  THEN pg_catalog.has_sequence_privilege(m.who, c.oid, 'USAGE, UPDATE') ELSE false END))::int AS relations,
+                  THEN pg_catalog.has_sequence_privilege(m.who, c.oid, 'USAGE, UPDATE') ELSE false END)
+        AND NOT (c.relowner IN (SELECT m.oid FROM member_roles m)
+                OR EXISTS (SELECT 1 FROM pg_catalog.aclexplode(c.relacl) a
+                WHERE a.grantee IN (SELECT m.oid FROM member_roles m) AND (a.privilege_type IN ('INSERT', 'UPDATE', 'DELETE', 'TRUNCATE', 'REFERENCES', 'TRIGGER', 'MAINTAIN')
+                      OR (c.relkind = 'S' AND a.privilege_type = 'USAGE'))
+                    AND NOT (c.oid = 'pg_catalog.pg_settings'::pg_catalog.regclass AND a.privilege_type = 'UPDATE'))
+                OR EXISTS (SELECT 1 FROM pg_catalog.pg_attribute at CROSS JOIN LATERAL pg_catalog.aclexplode(at.attacl) a
+                  WHERE at.attrelid = c.oid AND at.attnum > 0 AND NOT at.attisdropped AND a.grantee IN (SELECT m.oid FROM member_roles m)
+                    AND a.privilege_type IN ('INSERT', 'UPDATE', 'REFERENCES')
+                    AND NOT (c.oid = 'pg_catalog.pg_settings'::pg_catalog.regclass AND a.privilege_type = 'UPDATE'))))::int AS relations,
     (SELECT pg_catalog.count(*) FROM pg_catalog.pg_largeobject_metadata l
       WHERE EXISTS (SELECT 1 FROM pg_catalog.aclexplode(l.lomacl) a
-                    WHERE a.privilege_type = 'UPDATE' AND a.grantee = 0))::int AS large_objects,
+                    WHERE a.privilege_type = 'UPDATE' AND a.grantee = 0)
+        AND NOT (l.lomowner IN (SELECT m.oid FROM member_roles m) OR EXISTS (SELECT 1 FROM pg_catalog.aclexplode(l.lomacl) a
+                WHERE a.grantee IN (SELECT m.oid FROM member_roles m) AND a.privilege_type = 'UPDATE')))::int AS large_objects,
     (SELECT pg_catalog.count(*) FROM pg_catalog.pg_namespace n
-      WHERE n.nspname !~ '^pg_(toast_)?temp_' AND pg_catalog.has_schema_privilege('public', n.oid, 'CREATE'))::int AS schemas,
+      WHERE n.nspname !~ '^pg_(toast_)?temp_' AND pg_catalog.has_schema_privilege('public', n.oid, 'CREATE')
+        AND NOT (n.nspowner IN (SELECT m.oid FROM member_roles m) OR EXISTS (SELECT 1 FROM pg_catalog.aclexplode(n.nspacl) a
+                WHERE a.grantee IN (SELECT m.oid FROM member_roles m) AND a.privilege_type = 'CREATE')))::int AS schemas,
     (SELECT pg_catalog.count(*) FROM pg_catalog.pg_database d
       WHERE d.datname = pg_catalog.current_database()
-        AND pg_catalog.has_database_privilege('public', d.oid, 'CREATE'))::int AS database,
+        AND pg_catalog.has_database_privilege('public', d.oid, 'CREATE')
+        AND NOT (d.datdba IN (SELECT m.oid FROM member_roles m) OR EXISTS (SELECT 1 FROM pg_catalog.aclexplode(d.datacl) a
+                WHERE a.grantee IN (SELECT m.oid FROM member_roles m) AND a.privilege_type = 'CREATE')))::int AS database,
     (SELECT pg_catalog.count(*) FROM pg_catalog.pg_default_acl d CROSS JOIN LATERAL pg_catalog.aclexplode(d.defaclacl) a
       WHERE a.grantee = 0 AND (a.privilege_type IN ('INSERT', 'UPDATE', 'DELETE', 'TRUNCATE', 'REFERENCES', 'TRIGGER')
                  OR (d.defaclobjtype = 'S' AND a.privilege_type = 'USAGE')
                  OR (d.defaclobjtype = 'n' AND a.privilege_type = 'CREATE')))::int AS default_privileges,
     (SELECT pg_catalog.count(*) FROM pg_catalog.pg_foreign_server s
-      WHERE pg_catalog.has_server_privilege('public', s.oid, 'USAGE'))::int AS foreign_servers,
+      WHERE pg_catalog.has_server_privilege('public', s.oid, 'USAGE')
+        AND NOT (s.srvowner IN (SELECT m.oid FROM member_roles m) OR EXISTS (SELECT 1 FROM pg_catalog.aclexplode(s.srvacl) a
+                WHERE a.grantee IN (SELECT m.oid FROM member_roles m) AND a.privilege_type = 'USAGE')))::int AS foreign_servers,
     (SELECT pg_catalog.count(*) FROM pg_catalog.pg_foreign_data_wrapper fw
-      WHERE pg_catalog.has_foreign_data_wrapper_privilege('public', fw.oid, 'USAGE'))::int AS fdw,
+      WHERE pg_catalog.has_foreign_data_wrapper_privilege('public', fw.oid, 'USAGE')
+        AND NOT (fw.fdwowner IN (SELECT m.oid FROM member_roles m) OR EXISTS (SELECT 1 FROM pg_catalog.aclexplode(fw.fdwacl) a
+                WHERE a.grantee IN (SELECT m.oid FROM member_roles m) AND a.privilege_type = 'USAGE')))::int AS fdw,
     EXISTS (SELECT 1 FROM pg_catalog.pg_namespace n
       WHERE n.nspname = 'public' AND pg_catalog.has_schema_privilege('public', n.oid, 'CREATE')) AS schema_public_create
 ),
