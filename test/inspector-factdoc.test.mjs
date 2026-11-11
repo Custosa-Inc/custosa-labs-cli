@@ -104,11 +104,12 @@ test("the shipped schemas are the contract's copies, and contracts.mjs names the
   // The fixtures are byte-for-byte copies of the evaluator's schemas, named by the evaluator commit each came from.
   const fixture = JSON.parse(readFileSync(new URL("./fixtures/contracts/fact_document.schema.7bdf3ae2.json", import.meta.url), "utf8"));
   assert.deepEqual(FACT_SCHEMA, fixture);
-  assert.deepEqual(RESPONSE_SCHEMA, JSON.parse(readFileSync(new URL("./fixtures/contracts/response.schema.ec4647dd.json", import.meta.url), "utf8")));
+  assert.deepEqual(RESPONSE_SCHEMA, JSON.parse(readFileSync(new URL("./fixtures/contracts/response.schema.c0b6f4fd.json", import.meta.url), "utf8")));
   assert.equal(FACT_SCHEMA.$id, "https://custosa.com/schemas/fact-document/2");
   assert.ok(!FACT_SCHEMA.$defs.query_server_version && !FACT_SCHEMA.$defs.row_server_version);
   assert.ok(!JSON.stringify(RESPONSE_SCHEMA).includes("server_version"));
   assert.ok(RESPONSE_SCHEMA.$defs.evaluate_response.properties.not_used);
+  assert.ok(RESPONSE_SCHEMA.$defs.evaluate_response.properties.verdicts_unsettled); // T29-P1-C204 item 3
   assert.match(SOURCE_COMMIT, /^7bdf3ae2/); // the evaluator commit the fact schema was last copied from
   assert.ok(!FACT_SCHEMA.$defs.query_hba_rules);
   // other_execute_roles is optional, so a row from an older CLI stays valid and core holds the function.
