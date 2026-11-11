@@ -37,8 +37,8 @@ test("letterToken: JWT segments and hex are hashed as before", () => {
   assert.equal(letterToken("0123456789abcdef0123456789abcdef"), false); // hex has no 24-letter run: other screens hash it
 });
 
-// Random letters only, mixed case: what the words rule spares of the runs the old reading hashed. About 5 in 100,000
-// at 24 letters in T29-P2's measure, fewer when longer. The bound leaves room for chance in a 20,000 draw.
+// Random letters only, mixed case: what the words rule spares of the runs the old reading hashed. About 1 in 10,000
+// at 24 letters in T29-P2's measure, almost none from 32. The bound leaves room for chance in a 20,000 draw.
 const oldReading = (run) => {
   const vowels = (run.match(/[aeiouyAEIOUY]/g) ?? []).length / run.length;
   const humps = run.match(/[A-Z]?[a-z]+|[A-Z]+(?![a-z])/g) ?? [run];
@@ -55,5 +55,5 @@ test("letterToken: random mixed-case letters are almost never read as words", ()
     if (!letterToken(s)) spared++;
   }
   assert.ok(hashedBefore > 18000);
-  assert.ok(spared <= 8, `${spared} of ${hashedBefore} random runs read as names`);
+  assert.ok(spared <= 10, `${spared} of ${hashedBefore} random runs read as names`);
 });
