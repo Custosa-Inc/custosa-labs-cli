@@ -114,3 +114,17 @@ test("C192 item 2: a stopped thread of a file that isn't app code, still exiting
   const app = await runRules([consolePhi, slowRule], [{ path: "src/slow.js", text: SLOW }, { path: "src/client.js", text: CLIENT }], opts);
   assert.deepEqual([app.status, app.reason], ["truncated", "timeout"]);
 });
+
+test("C196: a pool left stuck by test files past their limit cuts only test files, so the read stays ok", async () => {
+  // PTDoc on the sweep: its Playwright specs ran last, each was killed inside the native walk, and the stuck threads
+  // left every later file time_limit through POOL_STUCK, which truncated the run. Those files aren't app code, and
+  // the app's own ran first. The premise and limits are inspector-rules.test.mjs's stuck-pool test.
+  const files = [{ path: "src/a.js", text: CLIENT }, { path: "tests/slow.test.js", text: SLOW }, { path: "tests/slow2.test.js", text: SLOW },
+    { path: "tests/slow3.test.js", text: SLOW }, { path: "tests/z.test.js", text: CLIENT }];
+  const walk = await walkMs(SLOW);
+  const timeoutMs = Math.max(100, Math.ceil(walk / 12)), closeGraceMs = Math.min(300, timeoutMs);
+  const res = await runRules([consolePhi, slowRule], files, { key: KEY, frameworks: [], timeoutMs, closeGraceMs });
+  assert.deepEqual(res.analyzedPaths, ["src/a.js"]);
+  assert.deepEqual(res.notAnalyzed.map((n) => n.reason), ["time_limit", "time_limit", "time_limit", "time_limit"]);
+  assert.deepEqual([res.status, res.reason], ["ok", null]);
+});
