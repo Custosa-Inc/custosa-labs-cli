@@ -1,5 +1,5 @@
 {
-  "ruleset_id": "2026-11-11.fbb20c34",
+  "ruleset_id": "2026-11-11.0a462ec1",
   "min_engine": "0.45.3",
   "files": [
     {
@@ -36,7 +36,7 @@
     },
     {
       "path": "queries/preflight.sql",
-      "sha256": "2f4a79d958df4ad0d584f753d49fc734e7c2cea4a1f4bfa72d415fa28a15ae8e"
+      "sha256": "05323571d42cd5ec173b180aa8a0bddd9ba6a5ecef2409dc605b1b7846d87c8e"
     },
     {
       "path": "queries/realtime_publication.sql",
