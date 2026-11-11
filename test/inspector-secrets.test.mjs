@@ -525,6 +525,51 @@ test("(6, 7) templates and loopback local defaults are quiet; compose services a
   expectLines(scan([{ path: "cfg.txt", text }], { configDir }), found);
 });
 
+test("(6b) the Supabase CLI's demo service-role key (iss supabase-demo) is not a finding", () => {
+  const configDir = temp("custosa-secrets-");
+  // The signature holds a "-", as the CLI's demo key's does, so the value is never read as a dotted code name and
+  // the service-role-config fallback sees it too.
+  const sig = () => `${rand(20, ALNUM)}-${rand(22, ALNUM)}`;
+  const jwt = (payload) => [b64url({ alg: "HS256", typ: "JWT" }), b64url(payload), sig()].join(".");
+  const demo = jwt({ iss: "supabase-demo", role: "service_role", exp: 1983812996 });
+  const real = jwt({ iss: "supabase", ref: rand(20).toLowerCase(), role: "service_role", iat: 1700000000, exp: 2015000000 });
+  const rows = (path, text) => (isEnvFile(path) ? scan([], { configDir, envFiles: [{ path, tracked: true, text }] })
+    : scan([{ path, text }], { configDir })).map((s) => `${s.rule_id}:${s.line}`);
+  const forms = (k) => [
+    ["src/supa.ts", `export const k = "${k}";\n`],
+    [".env", `SUPABASE_URL=http://127.0.0.1:54321\nSUPABASE_SERVICE_ROLE_KEY=${k}\n`],
+    ["src/admin.ts", `const serviceRoleKey = "${k}";\n`],
+    ["src/client.ts", `const h = \`Bearer ${k}\`;\n`],
+    ["src/client.ts", `fetch(\`\${url}/rest/v1\`, { headers: { apikey: \`${k}\` } });\n`],
+  ];
+  for (const [path, text] of forms(demo)) assert.deepEqual(rows(path, text), [], `demo in ${path}`);
+  for (const [path, text] of forms(real)) {
+    assert.deepEqual(rows(path, text), [`supabase-service-role-jwt:${path === ".env" ? 2 : 1}`], `real in ${path}`);
+  }
+  // Only the exact issuer is the demo key; a payload that only resembles it is still a finding.
+  for (const payload of [{ iss: "supabase-demo-2", role: "service_role" }, { iss: "Supabase-Demo", role: "service_role" },
+    { iss: ["supabase-demo"], role: "service_role" }, { role: "service_role" }, { iss: "supabase", role: "service_role",
+      note: "supabase-demo" }]) {
+    assert.deepEqual(rows("a.ts", `const k = "${jwt(payload)}";\n`), ["supabase-service-role-jwt:1"], JSON.stringify(payload));
+  }
+  // Anon keys, demo or real, stay quiet, also under a service-role name.
+  for (const iss of ["supabase-demo", "supabase"]) {
+    const anon = jwt({ iss, role: "anon", exp: 1983812996 });
+    assert.deepEqual(rows("a.ts", `const k = "${anon}";\nconst serviceRoleKey = "${anon}";\n`), [], iss);
+  }
+  // A malformed payload is not a JWT finding; under a service-role name the fallback still reports the location.
+  const broken = [b64url({ alg: "HS256" }), Buffer.from('{"iss":"supabase-demo","role":"service_role"').toString("base64url"),
+    sig()].join(".");
+  assert.deepEqual(rows("a.ts", `const k = "${broken}";\n`), []);
+  assert.deepEqual(rows(".env", `SUPABASE_SERVICE_ROLE_KEY=${broken}\n`), ["supabase-service-role-config:1"]);
+  // A key split across a template string's lines is not seen, demo or real (as before this change).
+  for (const k of [demo, real]) {
+    const [h, p, s] = k.split(".");
+    assert.deepEqual(rows("a.ts", `const k = \`${h}.\n${p}.\n${s}\`;\n`), []);
+    assert.deepEqual(rows("a.ts", `const k = \`${h}.\${p}.${s}\`;\n`.replace("${p}", `\${"${p}"}`)), []);
+  }
+});
+
 /* Round 4. */
 test("(A) each adversarial 1 MB input scans in under 2 s of CPU", () => {
   const configDir = temp("custosa-secrets-");
