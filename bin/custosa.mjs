@@ -81,10 +81,16 @@ if (argv[0] === "inspect") {
             const base = !where.problem && client.issuedBy(where, saved.host) ? where.url : saved.host;
             revoked = await client.revokeToken({ token: saved.token, baseUrl: base });
           }
-          const removed = auth.removeToken();
+          const why = revoked ? ` (${revoked.why === "unreachable" ? "the evaluator couldn't be reached" : revoked.why === "http_404" ? "the evaluator doesn't offer revoking yet" : revoked.why})` : " (the saved sign-in couldn't be read)";
+          let removed;
+          try { removed = auth.removeToken(); } catch (error) {
+            if (!(error instanceof auth.TokenUnremoved)) throw error;
+            const server = revoked?.revoked ? "The sign-in was revoked on the server, so it no longer works, but" : `The server revoke didn't happen${why}, and`;
+            console.error(`custosa logout: ${server} the saved sign-in is still on this computer: ${error.message}. Delete that file yourself.`);
+            return 1;
+          }
           if (!removed && !saved.token) { console.log("There was no saved sign-in."); return 0; }
           if (revoked?.revoked) { console.log("Signed out: the sign-in was revoked on the server and removed from this computer."); return 0; }
-          const why = revoked ? ` (${revoked.why === "unreachable" ? "the evaluator couldn't be reached" : revoked.why === "http_404" ? "the evaluator doesn't offer revoking yet" : revoked.why})` : " (the saved sign-in couldn't be read)";
           console.log(`Signed out on this computer: the saved sign-in was removed. The server revoke didn't happen${why}, so the token stays valid until it expires. To revoke it now, remove it on your billing page (https://custosa.com/billing).`);
           return 0;
         }
