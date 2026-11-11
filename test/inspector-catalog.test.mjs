@@ -297,7 +297,7 @@ const GOOD_ROW = Object.freeze({
   catalog_extensions: [], owned_objects: 0, definer_functions_executable: 0, readable_large_objects: 0,
   lo_compat_privileges: false, write_relations: 0, write_large_objects: 0, write_schemas: 0, write_database: 0,
   write_default_privileges: 0, write_createdb: 0, write_foreign_servers: 0, write_fdw: 0, user_casts: 0,
-  user_casts_implicit: 0, user_operators: 0,
+  user_casts_implicit: 0, user_operators: 0, writable_beyond_public: 0, public_write_defaults: 0, public_schema_create: false,
 });
 const GOOD_PREFLIGHT = Object.freeze({
   role: "phisc_ro", session_user: "phisc_ro", database: "postgres", system_identifier: "7", settings_mismatched: [],
@@ -305,6 +305,7 @@ const GOOD_PREFLIGHT = Object.freeze({
   extension_relations_readable: [], catalog_tables: [], predefined_roles: [], dangerous_functions: [],
   catalog_extensions: [], owned_objects: 0, large_objects: false, definer_functions_executable: 0, passed: true, failed: [],
   write_parts: { relations: 0, large_objects: 0, schemas: 0, database: 0, default_privileges: 0, createdb: 0, foreign_servers: 0, fdw: 0 },
+  public_writes: { beyond_public: 0, default_privileges: 0, schema_public_create: false },
   user_casts: { any: 0, implicit: 0 }, user_operators: 0, message: null,
 });
 
@@ -841,6 +842,33 @@ test("role-level settings that change how values read are pinned in every transa
 });
 
 /* ---------- contract v2.1: write_privileges and the new catalog queries ---------- */
+
+test("T29 C189 item 3: a write path only through PUBLIC is told apart from one through any other role", { skip }, async () => {
+  // [grant, undo, beyond_public is 0, PUBLIC's default write grants, PUBLIC may CREATE in schema public]
+  for (const [grant, undo, onlyPublic, defaults, schemaCreate] of [
+    ["ALTER DEFAULT PRIVILEGES FOR ROLE postgres GRANT INSERT ON TABLES TO PUBLIC",
+      "ALTER DEFAULT PRIVILEGES FOR ROLE postgres REVOKE INSERT ON TABLES FROM PUBLIC", true, 1, false],
+    ["ALTER DEFAULT PRIVILEGES FOR ROLE postgres IN SCHEMA app GRANT ALL ON TABLES TO PUBLIC",
+      "ALTER DEFAULT PRIVILEGES FOR ROLE postgres IN SCHEMA app REVOKE ALL ON TABLES FROM PUBLIC", true, 6, false],
+    ["GRANT CREATE ON SCHEMA public TO PUBLIC", "REVOKE CREATE ON SCHEMA public FROM PUBLIC", true, 0, true],
+    ["GRANT ALL ON SCHEMA public TO PUBLIC", "REVOKE ALL ON SCHEMA public FROM PUBLIC; GRANT USAGE ON SCHEMA public TO PUBLIC", true, 0, true],
+    ["GRANT DELETE ON app.patients TO PUBLIC", "REVOKE DELETE ON app.patients FROM PUBLIC", true, 0, false],
+    // P2's probe for the ruling: the same writes through a role other than PUBLIC are not PUBLIC's.
+    ["CREATE ROLE dwriter NOLOGIN; ALTER DEFAULT PRIVILEGES FOR ROLE postgres GRANT INSERT ON TABLES TO dwriter; GRANT dwriter TO phisc_ro",
+      "REVOKE dwriter FROM phisc_ro; ALTER DEFAULT PRIVILEGES FOR ROLE postgres REVOKE INSERT ON TABLES FROM dwriter; DROP ROLE dwriter", false, 0, false],
+    ["GRANT CREATE ON SCHEMA public TO phisc_ro", "REVOKE CREATE ON SCHEMA public FROM phisc_ro", false, 0, false],
+    ["GRANT DELETE ON app.patients TO phisc_ro", "REVOKE DELETE ON app.patients FROM phisc_ro", false, 0, false],
+    ["ALTER DEFAULT PRIVILEGES FOR ROLE postgres GRANT INSERT ON TABLES TO PUBLIC; GRANT DELETE ON app.patients TO phisc_ro",
+      "ALTER DEFAULT PRIVILEGES FOR ROLE postgres REVOKE INSERT ON TABLES FROM PUBLIC; REVOKE DELETE ON app.patients FROM phisc_ro", false, 1, false],
+  ]) {
+    const r = await refusedWith(grant, undo, "write_privileges"); // the read still refuses, whoever holds the grant
+    const p = r.preflight.public_writes;
+    assert.equal(p.beyond_public === 0, onlyPublic, `${grant}: ${JSON.stringify(p)}`);
+    assert.ok(p.beyond_public >= 0, grant);
+    assert.equal(p.default_privileges, defaults, grant);
+    assert.equal(p.schema_public_create, schemaCreate, grant);
+  }
+});
 
 test("v2: any write privilege on any relation, in any schema, through any route, is refused", { skip }, async (t) => {
   for (const [grant, undo] of [
