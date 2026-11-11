@@ -105,6 +105,7 @@
             "assistant_answer_needed",
             "person_must_decide",
             "preflight_failed",
+            "preflight_public_write",
             "evaluator_error",
             "no_objects_observed",
             "unclassified_table_exposed",
@@ -536,6 +537,7 @@
                   "assistant_answer_needed",
                   "person_must_decide",
                   "preflight_failed",
+                  "preflight_public_write",
                   "evaluator_error",
                   "no_objects_observed",
                   "unclassified_table_exposed",
@@ -897,6 +899,7 @@
             "assistant_answer_needed",
             "person_must_decide",
             "preflight_failed",
+            "preflight_public_write",
             "evaluator_error",
             "no_objects_observed",
             "unclassified_table_exposed",
@@ -1097,6 +1100,7 @@
             "assistant_answer_needed",
             "person_must_decide",
             "preflight_failed",
+            "preflight_public_write",
             "evaluator_error",
             "no_objects_observed",
             "unclassified_table_exposed",
@@ -1961,7 +1965,7 @@
           "maxLength": 100
         },
         "blockers": {
-          "description": "What keeps the state not_ready, by severity, the same counts the headline and the public badge name (app.readiness.blocker_phrases). Each result counts in one kind at most (B28-core second review): hold is a result whose F4 class is hold (app.core.assurance.f4_class: observed_problem or definer_hold set, an evidence-hold reason such as collection_truncated, answer_contradicted, code_not_verified, location_not_confirmed, table_not_resolved, definer_function_unjudged, exposure_suspected, helper_not_reached_from_handlers, unclassified_table_exposed, non_runtime_file or fact_missing, or a reason in no class); person_only is a result whose F4 class is person_only for assistant_contested; a result person_only for rules_saw_nothing alone counts by its state, as below. Every other result counts by its shown state, at every severity (contract A): fail, needs_review, unknown, error. A run problem (evaluator_error, preflight_failed) counts as error or unknown by its state. unread counts practices, not results: a practice that applies with no reading. Unresolved assistant concerns and production named by the assistant also keep it not_ready and are not counted here.",
+          "description": "What keeps the state not_ready, by severity, the same counts the headline and the public badge name (app.readiness.blocker_phrases). Each result counts in one kind at most (B28-core second review): hold is a result whose F4 class is hold (app.core.assurance.f4_class: observed_problem or definer_hold set, an evidence-hold reason such as collection_truncated, answer_contradicted, code_not_verified, location_not_confirmed, table_not_resolved, definer_function_unjudged, exposure_suspected, helper_not_reached_from_handlers, unclassified_table_exposed, non_runtime_file or fact_missing, or a reason in no class); person_only is a result whose F4 class is person_only for assistant_contested; a result person_only for rules_saw_nothing alone counts by its state, as below. Every other result counts by its shown state, at every severity (contract A): fail, needs_review, unknown, error. A run problem (evaluator_error, preflight_failed, preflight_public_write) counts as error or unknown by its state. unread counts practices, not results: a practice that applies with no reading. Unresolved assistant concerns and production named by the assistant also keep it not_ready and are not counted here.",
           "type": "object",
           "additionalProperties": false,
           "required": [
@@ -3185,6 +3189,7 @@
                     "assistant_answer_needed",
                     "person_must_decide",
                     "preflight_failed",
+                    "preflight_public_write",
                     "evaluator_error",
                     "no_objects_observed",
                     "unclassified_table_exposed",
