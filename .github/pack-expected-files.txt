@@ -33,6 +33,7 @@ lib/inspector/files.mjs
 lib/inspector/followimport.mjs
 lib/inspector/frameworks.mjs
 lib/inspector/gitread.mjs
+lib/inspector/handlernames.mjs
 lib/inspector/helpers.mjs
 lib/inspector/ids.mjs
 lib/inspector/imports.mjs
