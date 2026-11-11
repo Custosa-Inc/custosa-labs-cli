@@ -95,9 +95,9 @@ test("a cite inside the handler, from its line to the data shape's, stays ok", a
   assert.equal(await parserCite(write(`${NOTES}:5`, NOTES_SHAPE, cite(NOTES, 7, "Loose.parse"))), "ok");
 });
 
-test("a cite in another file is failed, even of a schema with the parsed name", async () => {
+test("a cite in another file is left ok: core reads a parser fact only in the candidate's own file, and holds it", async () => {
   const shape = cite("app/journal/route.ts", 7, "...input");
-  assert.equal(await parserCite(write("app/journal/route.ts:4", shape, cite("app/schemas.ts", 1, "JournalInput"))), "failed");
+  assert.equal(await parserCite(write("app/journal/route.ts:4", shape, cite("app/schemas.ts", 1, "JournalInput"))), "ok");
 });
 
 test("with no usable data_shape cite only the candidate's own line counts", async () => {
