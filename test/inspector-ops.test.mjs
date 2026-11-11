@@ -114,6 +114,27 @@ test("OP1: custosa logout revokes on the server, then deletes locally; offline o
   assert.match(none.stdout, /no saved sign-in/);
 });
 
+test("custosa logout: a saved sign-in it can't delete is never reported removed; logout fails and names the file", async (t) => {
+  if (process.platform === "win32" || process.getuid?.() === 0) return t.skip("POSIX permissions, not as root");
+  for (const [answer, words] of [[200, /was revoked on the server/], [null, /server revoke didn't happen \(the evaluator couldn't be reached\)/]]) {
+    const s = await stub(() => ({ status: answer ?? 200, json: {} }));
+    const configDir = join(temp("custosa-logout-"), "custosa");
+    writeToken(TOKEN, { configDir, host: new URL(s.url).origin });
+    if (answer === null) await s.close();
+    chmodSync(configDir, 0o500); // the folder can't be written, so the token file can't be deleted
+    let res;
+    try { res = await bin(["logout"], { CUSTOSA_CONFIG_DIR: configDir, CUSTOSA_EVALUATOR_URL: s.url }); }
+    finally { chmodSync(configDir, 0o700); }
+    if (answer !== null) await s.close();
+    assert.equal(res.code, 1, res.stdout);
+    assert.doesNotMatch(res.stdout, /removed/);
+    assert.match(res.stderr, words);
+    assert.ok(res.stderr.includes(`${join(configDir, "token")} couldn't be deleted (EACCES)`), res.stderr);
+    assert.ok(!res.stdout.includes(TOKEN) && !res.stderr.includes(TOKEN));
+    assert.ok(existsSync(join(configDir, "token")));
+  }
+});
+
 test("custosa logout sends the revoke to the evaluator that issued the token, under its path when it is the one configured", async () => {
   const issuer = await stub(() => ({ status: 200, json: {} }));
   const other = await stub(() => ({ status: 200, json: {} }));
