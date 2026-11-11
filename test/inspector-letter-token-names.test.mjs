@@ -12,7 +12,7 @@ const KEY = Buffer.alloc(32, 7);
 test("letterToken: a run that splits at case into words is a name", () => {
   for (const name of [
     "ConsentRecordsController", "consentRecordsController", "PatientIntakeServiceController", "HIPAAAuditLogRetentionPolicy",
-    "ZodCheckStringFormatInternals", "ZodCheckLessThanInternals", "PatientIntakeService", "HIPAAAuditLog",
+    "PatientIntakeService", "HIPAAAuditLog", "AppointmentReminderSchedulers", "PatientConsentFormsRepository",
     "FacilitySubscriptionPayment", "patientmedicationadministrations",
   ]) assert.equal(letterToken(name), false, name);
   assert.equal(sentPath(KEY, "src/Api/Controllers/ConsentRecordsController.ts"), "src/Api/Controllers/ConsentRecordsController.ts");
@@ -37,8 +37,8 @@ test("letterToken: JWT segments and hex are hashed as before", () => {
   assert.equal(letterToken("0123456789abcdef0123456789abcdef"), false); // hex has no 24-letter run: other screens hash it
 });
 
-// Random letters only, mixed case: what the words rule spares of the runs the old reading hashed. Fewer than 1 in
-// 50,000 at 24 letters in T29-P2's measure, none seen from 32. The bound leaves room for chance in a 20,000 draw.
+// Random letters only, mixed case: what the words rule spares of the runs the old reading hashed. None in T29-P2's
+// measure; the bound leaves room for chance in a 20,000 draw.
 const oldReading = (run) => {
   const vowels = (run.match(/[aeiouyAEIOUY]/g) ?? []).length / run.length;
   const humps = run.match(/[A-Z]?[a-z]+|[A-Z]+(?![a-z])/g) ?? [run];
@@ -55,11 +55,11 @@ test("letterToken: random mixed-case letters are almost never read as words", ()
     if (!letterToken(s)) spared++;
   }
   assert.ok(hashedBefore > 18000);
-  assert.ok(spared <= 5, `${spared} of ${hashedBefore} random runs read as names`);
+  assert.ok(spared <= 2, `${spared} of ${hashedBefore} random runs read as names`);
 });
 
 // T29-P3-C264's probe: random humps, each a capital and 4 to 9 random lower-case letters, are the shape the words rule
-// could spare most. About 1 in 400 of those the old reading hashed (T29-P2's measure); the bound is 1 in 100.
+// could spare most. No hashed share may drop (T29-P1-C183): 1 of 192,505 in T29-P2's measure; the bound allows 2.
 test("letterToken: random camel humps are rarely read as words", () => {
   const lower = "abcdefghijklmnopqrstuvwxyz";
   const hump = () => lower[randomInt(26)].toUpperCase() + Array.from({ length: 4 + randomInt(6) }, () => lower[randomInt(26)]).join("");
@@ -71,5 +71,5 @@ test("letterToken: random camel humps are rarely read as words", () => {
     if (!letterToken(s)) spared++;
   }
   assert.ok(hashedBefore > 5000);
-  assert.ok(spared * 100 <= hashedBefore, `${spared} of ${hashedBefore} random hump runs read as names`);
+  assert.ok(spared <= 2, `${spared} of ${hashedBefore} random hump runs read as names`);
 });
