@@ -3793,6 +3793,63 @@
             }
           }
         },
+        "verdicts_unsettled": {
+          "description": "T29-P1-C204 item 3 (live look 1, L3): absent when every decided verdict (pass, fail, not_applicable) the session holds settled the lines it could. Otherwise one entry per practice and why, by practice_id then why, at most 100: the verdict's state and reason (as the line's assistant shows), how many of the practice's lines it left as they were (lines), and those lines' own words (how), which say what would settle them. why: answer_conflict (the verdict and a no_subject location answer disagree), rules_saw_nothing (only a not_applicable with refs naming what it rests on, or a person, settles it), refused (the check's facts contradict it, or its code couldn't be checked), held_by_the_check (open for a reason the check clears itself), no_bound_ref (a pass or not_applicable needs refs the check gave out or cited), fail_on_own_answer (the fail rests on the assistant's not_present location answer), fail_observed (an observed fail stands).",
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 100,
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "practice_id",
+              "state",
+              "reason",
+              "why",
+              "lines",
+              "how"
+            ],
+            "properties": {
+              "practice_id": {
+                "$ref": "https://custosa.com/schemas/fact-document/2#/$defs/practice_id"
+              },
+              "state": {
+                "type": "string",
+                "enum": [
+                  "pass",
+                  "fail",
+                  "not_applicable"
+                ]
+              },
+              "reason": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 300
+              },
+              "why": {
+                "type": "string",
+                "enum": [
+                  "answer_conflict",
+                  "rules_saw_nothing",
+                  "refused",
+                  "held_by_the_check",
+                  "no_bound_ref",
+                  "fail_on_own_answer",
+                  "fail_observed"
+                ]
+              },
+              "lines": {
+                "type": "integer",
+                "minimum": 1
+              },
+              "how": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 600
+              }
+            }
+          }
+        },
         "concerns_saved": {
           "description": "B51: present, false, when this call's concern changes were not all kept: the write failed (send the call's concerns and concern_decisions again) or some decisions were refused because another call changed those concerns meanwhile (concern_outcomes reason changed_meanwhile: read them as listed, then decide again). Absent when they were kept.",
           "const": false
