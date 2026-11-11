@@ -96,3 +96,15 @@ test("C192 item 2: what counts as not app code", () => {
   assert.ok(!minified("const x = 1;\n".repeat(200) + `const img = "data:image/png;base64,${"A".repeat(40000)}";\n`));
   assert.ok(!minified("x".repeat(1500)), "too short to say");
 });
+
+test("C192 item 2: a stopped thread of a file that isn't app code, still exiting at the end, doesn't truncate the run", async () => {
+  // dholbach's chart.umd.min.js on the sweep: past its limit, its thread stayed in the native walk past the end-of-run
+  // wait (factdoc's endGraceMs), and the run came back truncated, timeout, though every file was decided.
+  const walk = await walkMs(SLOW);
+  const opts = { key: KEY, frameworks: [], timeoutMs: Math.max(200, Math.ceil(walk / 4)), endGraceMs: 1 };
+  const vendor = await runRules([consolePhi, slowRule], [{ path: "public/js/chart.umd.min.js", text: SLOW }, { path: "src/client.js", text: CLIENT }], opts);
+  assert.deepEqual([vendor.status, vendor.reason], ["ok", null]);
+  assert.deepEqual(vendor.notAnalyzed, [{ path: "public/js/chart.umd.min.js", reason: "time_limit" }]);
+  const app = await runRules([consolePhi, slowRule], [{ path: "src/slow.js", text: SLOW }, { path: "src/client.js", text: CLIENT }], opts);
+  assert.deepEqual([app.status, app.reason], ["truncated", "timeout"]);
+});
