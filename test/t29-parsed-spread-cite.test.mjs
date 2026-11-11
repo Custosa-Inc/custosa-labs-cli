@@ -119,6 +119,28 @@ const FILES = {
     "def create_note(body: NoteIn, user=Depends(current_user)):",
     "    return db.add(Note(**body.dict(), owner_id=user.id))",
   ].join("\n"),
+  // P2 T29-C205 med 1: the class header over several lines, as black writes a long one.
+  "api/split.py": [
+    "class NoteIn(",
+    "    BaseModel,",
+    "):",
+    "    model_config = ConfigDict(extra=\"allow\")",
+    "    title: str",
+    "",
+    "@router.post('/notes')",
+    "def create_note(body: NoteIn, user=Depends(current_user)):",
+    "    return db.add(Note(**body.dict(), owner_id=user.id))",
+  ].join("\n"),
+  "api/split-ok.py": [
+    "class NoteIn(",
+    "    BaseModel,",
+    "):",
+    "    title: str",
+    "",
+    "@router.post('/notes')",
+    "def create_note(body: NoteIn, user=Depends(current_user)):",
+    "    return db.add(Note(**body.dict(), owner_id=user.id))",
+  ].join("\n"),
   "api/forbid.py": [
     "class NoteIn(BaseModel):",
     "    model_config = ConfigDict(extra=\"forbid\")",
@@ -260,4 +282,9 @@ test("P2 C203 med 2: a handler that makes the cited schema loose where it parses
   assert.equal(await parserCite(write(`${f}:6`, cite(f, 11, "...input"), cite(f, 7, "const Inline"))), "failed");
   // .strict() at the call keeps it strict
   assert.equal(await parserCite(write(`${f}:13`, cite(f, 15, "...input"), cite(f, 1, "const Input"))), "ok");
+});
+
+test("P2 C205 med 1: a class header over several lines is read to its body", async () => {
+  assert.equal(await parserCite(write("api/split.py:8", cite("api/split.py", 9, "**body"), cite("api/split.py", 1, "class NoteIn("))), "failed");
+  assert.equal(await parserCite(write("api/split-ok.py:7", cite("api/split-ok.py", 8, "**body"), cite("api/split-ok.py", 1, "class NoteIn("))), "ok");
 });
