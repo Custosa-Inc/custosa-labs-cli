@@ -4065,6 +4065,31 @@
           "maxLength": 512,
           "pattern": "^(/[A-Za-z0-9_]{1,64})*$"
         },
+        "also": {
+          "description": "T29-P1-C204 item 4 (live look 1, L2): absent unless this call had more than one refused field the assistant wrote (a verdict's practice_id or reason_code, a verdict's or concern's ref, a no_subject answer's at). Each one after the field in at, in the order read, at most 20, with its own pointer and next step. Fix every one before calling again.",
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 20,
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "at",
+              "next_step"
+            ],
+            "properties": {
+              "at": {
+                "type": "string",
+                "maxLength": 512,
+                "pattern": "^(/[A-Za-z0-9_]{1,64})*$"
+              },
+              "next_step": {
+                "type": "string",
+                "maxLength": 4000
+              }
+            }
+          }
+        },
         "current_ruleset_id": {
           "type": "string",
           "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}\\.[0-9a-f]{8}$"
@@ -4107,6 +4132,18 @@
                 ]
               }
             }
+          }
+        },
+        {
+          "if": {
+            "required": [
+              "also"
+            ]
+          },
+          "then": {
+            "required": [
+              "at"
+            ]
           }
         },
         {
