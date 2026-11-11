@@ -71,7 +71,7 @@ test("C192 item 3: a later get_result read names the handler in its text, keeps 
     const [r] = out.results;
     assert.deepEqual([r.finding, r.object, r.detail.object_id, r.detail.objects], [OBJ, H, OBJ, [H]]);
     assert.equal(r.detail.title, "Does each access record in GET at src/app/x/route.ts:6 name the patient it is about?");
-    assert.equal(r.detail.how, `Add the patient id to the audit write in GET at src/app/x/route.ts:6. See also ${OTHER}.`);
+    assert.equal(r.detail.how, `Add the patient id to the audit write in audit-patient-recorded: GET at src/app/x/route.ts:6. See also ${OTHER}.`);
   });
 });
 
