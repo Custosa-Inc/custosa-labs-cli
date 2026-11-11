@@ -894,7 +894,7 @@
       ],
       "properties": {
         "preflight": {
-          "description": "Run first, in code, as Player 2's A4 preflight (P2-213) plus write_privileges. role: current_user (the role name, never a user's identity); session_user: session_user; database: current_database(); system_identifier: pg_control_system()'s, as text (null when not executable); together they tie the facts to one cluster and database. settings_mismatched: pinned session settings that differ. superuser, bypassrls, replication, createrole: any role the session or current user can become has it. readable_tables: relations outside pg_catalog and information_schema any such role can SELECT (table or any column), except those only PUBLIC can read. public_readable_tables: relations only PUBLIC can read that no extension owns, reported and never failing (T27-P1-C60 F5); absent from an older inspector. writable_tables: the count of objects any such role (directly or through any membership) could change: relations in any schema, the catalog included, with INSERT, UPDATE, DELETE, TRUNCATE, REFERENCES or TRIGGER, or MAINTAIN on PG17+ (table or any column); sequences with USAGE or UPDATE; large objects owned or with UPDATE; non-temp schemas and the current database with CREATE; pg_default_acl entries granting such a role or PUBLIC any of those privileges (USAGE for sequences, CREATE for schemas); USAGE on a foreign server or foreign data wrapper; and CREATEDB held by any such role. Not counted: core's PUBLIC UPDATE on pg_catalog.pg_settings, CREATE on a tablespace; SECURITY DEFINER writers stay report-only (definer_functions_executable). On Postgres 14 or earlier, or a database upgraded from one, public grants CREATE to PUBLIC, so setup tells the person to run REVOKE CREATE ON SCHEMA public FROM PUBLIC (enums.PREFLIGHT_SETUP_STEPS), after granting CREATE on public to the app or migration role that relies on it. extension_relations_readable: relations an extension owns that only PUBLIC can read (listed, never failing). catalog_tables, predefined_roles, dangerous_functions: the refused ones it can read, is a member of, or can execute. catalog_extensions: extensions installed in pg_catalog other than plpgsql and pg_cron. owned_objects: relations, schemas, functions and types outside the catalog, and the database, any such role owns. large_objects: it can read a large object or lo_compat_privileges is on. definer_functions_executable: SECURITY DEFINER functions outside the catalog it can execute; report only, never failing (the evaluator marks data-access practices needs_review while it is above 0). failed: the check ids that failed, in the order run; passed only when none did. Missing values fail closed: with no connection every field is null and failed is [\"connect\"].",
+          "description": "Run first, in code, as Player 2's A4 preflight (P2-213) plus write_privileges. role: current_user (the role name, never a user's identity); session_user: session_user; database: current_database(); system_identifier: pg_control_system()'s, as text (null when not executable); together they tie the facts to one cluster and database. settings_mismatched: pinned session settings that differ. superuser, bypassrls, replication, createrole: any role the session or current user can become has it. readable_tables: relations outside pg_catalog and information_schema any such role can SELECT (table or any column), except those only PUBLIC can read. public_readable_tables: relations only PUBLIC can read that no extension owns, reported and never failing (T27-P1-C60 F5); absent from an older inspector. writable_tables: the count of objects any such role (directly or through any membership) could change: relations in any schema, the catalog included, with INSERT, UPDATE, DELETE, TRUNCATE, REFERENCES or TRIGGER, or MAINTAIN on PG17+ (table or any column); sequences with USAGE or UPDATE; large objects owned or with UPDATE; non-temp schemas and the current database with CREATE; pg_default_acl entries granting such a role or PUBLIC any of those privileges (USAGE for sequences, CREATE for schemas); USAGE on a foreign server or foreign data wrapper; and CREATEDB held by any such role. Not counted: core's PUBLIC UPDATE on pg_catalog.pg_settings, CREATE on a tablespace; SECURITY DEFINER writers stay report-only (definer_functions_executable). On Postgres 14 or earlier, or a database upgraded from one, public grants CREATE to PUBLIC, so setup tells the person to run REVOKE CREATE ON SCHEMA public FROM PUBLIC (enums.PREFLIGHT_SETUP_STEPS), after granting CREATE on public to the app or migration role that relies on it. extension_relations_readable: relations an extension owns that only PUBLIC can read (listed, never failing). catalog_tables, predefined_roles, dangerous_functions: the refused ones it can read, is a member of, or can execute. catalog_extensions: extensions installed in pg_catalog other than plpgsql and pg_cron. owned_objects: relations, schemas, functions and types outside the catalog, and the database, any such role owns. large_objects: it can read a large object or lo_compat_privileges is on. definer_functions_executable: SECURITY DEFINER functions outside the catalog it can execute; report only, never failing (the evaluator marks data-access practices needs_review while it is above 0). failed: the check ids that failed, in the order run; passed only when none did. Missing values fail closed: with no connection every field is null and failed is [\"connect\"]. writable_beyond_public (T29-P1-C189 item 3): writable_tables less the writes PUBLIC alone holds, counted part by part (every such role is a member of PUBLIC, so 0 means every write path is a grant to PUBLIC); public_write_defaults: pg_default_acl entries granting PUBLIC a write privilege; public_schema_create: PUBLIC may CREATE in schema public. All three are optional (absent from an older inspector) and null when not read; they never make the preflight pass.",
           "type": "object",
           "additionalProperties": false,
           "required": [
@@ -1034,6 +1034,28 @@
               ],
               "minimum": 0,
               "maximum": 1000000
+            },
+            "writable_beyond_public": {
+              "type": [
+                "integer",
+                "null"
+              ],
+              "minimum": 0,
+              "maximum": 1000000
+            },
+            "public_write_defaults": {
+              "type": [
+                "integer",
+                "null"
+              ],
+              "minimum": 0,
+              "maximum": 1000000
+            },
+            "public_schema_create": {
+              "type": [
+                "boolean",
+                "null"
+              ]
             },
             "extension_relations_readable": {
               "type": [
@@ -1332,6 +1354,15 @@
                     "type": "null"
                   },
                   "writable_tables": {
+                    "type": "null"
+                  },
+                  "writable_beyond_public": {
+                    "type": "null"
+                  },
+                  "public_write_defaults": {
+                    "type": "null"
+                  },
+                  "public_schema_create": {
                     "type": "null"
                   },
                   "extension_relations_readable": {
