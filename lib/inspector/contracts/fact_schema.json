@@ -71,7 +71,7 @@
             "strips_unknown_keys",
             "keeps_unknown_keys"
           ],
-          "about": "for spread_parsed: cite the schema declaration"
+          "about": "for spread_parsed: cite the line that declares the schema the handler parses, with its name on that line; a cite outside the handler counts only when the handler uses that name"
         },
         "owner_source": {
           "values": [
