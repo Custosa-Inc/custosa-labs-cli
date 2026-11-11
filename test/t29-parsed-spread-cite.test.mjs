@@ -53,6 +53,23 @@ const FILES = {
     "  return db.note.create({ data: { ...input, ownerId: (await auth()).user.id } });",
     "}",
   ].join("\n"),
+  "app/multi/route.ts": [
+    "const Input = z.object({",
+    "  title: z.string(),",
+    "})",
+    "  .passthrough();",
+    "const Other = z.object({",
+    "  title: z.string(),",
+    "}).catchall(z.any());",
+    "export async function POST(req) {",
+    "  const input = Input.parse(await req.json());",
+    "  return db.note.create({ data: { ...input, ownerId: (await auth()).user.id } });",
+    "}",
+    "export async function PUT(req) {",
+    "  const input = Other.parse(await req.json());",
+    "  return db.note.create({ data: { ...input, ownerId: (await auth()).user.id } });",
+    "}",
+  ].join("\n"),
   "app/comment/route.ts": [
     "const Strict = z.object({ title: z.string() }).strict();",
     "const Loose = z.object({ title: z.string() }).passthrough();",
@@ -165,4 +182,13 @@ test("P2 C199 med 2: a handler that parses two schemas of this file holds, which
 test("P2 C199 low 1: a name seen only in a comment is not used", async () => {
   const f = "app/comment/route.ts";
   assert.equal(await parserCite(write(`${f}:3`, cite(f, 6, "...input"), cite(f, 1, "const Strict"))), "failed");
+});
+
+test("a schema built over many lines that keeps unknown keys on a later line is failed", async () => {
+  const f = "app/multi/route.ts";
+  assert.equal(await parserCite(write(`${f}:8`, cite(f, 10, "...input"), cite(f, 1, "const Input"))), "failed");
+  assert.equal(await parserCite(write(`${f}:12`, cite(f, 14, "...input"), cite(f, 5, "const Other"))), "failed");
+  // the journal schema closes on one line with no passthrough: still ok
+  const j = "app/journal/route.ts";
+  assert.equal(await parserCite(write(`${j}:4`, cite(j, 7, "...input"), cite(j, 2, "z.object({"))), "ok");
 });
