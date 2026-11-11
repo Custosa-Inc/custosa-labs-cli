@@ -43,6 +43,41 @@ writes AS (
     (SELECT pg_catalog.count(*) FROM pg_catalog.pg_foreign_data_wrapper fw
       WHERE EXISTS (SELECT 1 FROM member_roles m WHERE pg_catalog.has_foreign_data_wrapper_privilege(m.oid, fw.oid, 'USAGE')))::int AS fdw
 ),
+-- T29-P1-C189 item 3: the writes PUBLIC alone holds, part by part as in writes. Every role the session can become is a
+-- member of PUBLIC, so each part of writes counts at least these; when the totals match, every write path is a grant to
+-- PUBLIC (writable_beyond_public 0). The catalog read still refuses then; the grant itself is the finding.
+public_writes AS (
+  SELECT
+    (SELECT pg_catalog.count(*) FROM pg_catalog.pg_class c
+      WHERE c.relkind IN ('r', 'p', 'v', 'm', 'f', 'S', 't')
+        AND EXISTS (SELECT 1 FROM (SELECT 'public'::pg_catalog.name AS who) m WHERE CASE WHEN c.oid = 'pg_catalog.pg_settings'::pg_catalog.regclass
+                THEN pg_catalog.has_table_privilege(m.who, c.oid, 'INSERT, DELETE, TRUNCATE, REFERENCES, TRIGGER')
+                  OR pg_catalog.has_any_column_privilege(m.who, c.oid, 'INSERT, REFERENCES')
+                ELSE pg_catalog.has_table_privilege(m.who, c.oid, 'INSERT, UPDATE, DELETE, TRUNCATE, REFERENCES, TRIGGER')
+                  OR pg_catalog.has_any_column_privilege(m.who, c.oid, 'INSERT, UPDATE, REFERENCES') END
+                OR CASE WHEN pg_catalog.current_setting('server_version_num')::int >= 170000
+                  THEN pg_catalog.has_table_privilege(m.who, c.oid, 'MAINTAIN') ELSE false END
+                OR CASE WHEN (SELECT k.relkind FROM pg_catalog.pg_class k WHERE k.oid = c.oid) = 'S'
+                  THEN pg_catalog.has_sequence_privilege(m.who, c.oid, 'USAGE, UPDATE') ELSE false END))::int AS relations,
+    (SELECT pg_catalog.count(*) FROM pg_catalog.pg_largeobject_metadata l
+      WHERE EXISTS (SELECT 1 FROM pg_catalog.aclexplode(l.lomacl) a
+                    WHERE a.privilege_type = 'UPDATE' AND a.grantee = 0))::int AS large_objects,
+    (SELECT pg_catalog.count(*) FROM pg_catalog.pg_namespace n
+      WHERE n.nspname !~ '^pg_(toast_)?temp_' AND pg_catalog.has_schema_privilege('public', n.oid, 'CREATE'))::int AS schemas,
+    (SELECT pg_catalog.count(*) FROM pg_catalog.pg_database d
+      WHERE d.datname = pg_catalog.current_database()
+        AND pg_catalog.has_database_privilege('public', d.oid, 'CREATE'))::int AS database,
+    (SELECT pg_catalog.count(*) FROM pg_catalog.pg_default_acl d CROSS JOIN LATERAL pg_catalog.aclexplode(d.defaclacl) a
+      WHERE a.grantee = 0 AND (a.privilege_type IN ('INSERT', 'UPDATE', 'DELETE', 'TRUNCATE', 'REFERENCES', 'TRIGGER')
+                 OR (d.defaclobjtype = 'S' AND a.privilege_type = 'USAGE')
+                 OR (d.defaclobjtype = 'n' AND a.privilege_type = 'CREATE')))::int AS default_privileges,
+    (SELECT pg_catalog.count(*) FROM pg_catalog.pg_foreign_server s
+      WHERE pg_catalog.has_server_privilege('public', s.oid, 'USAGE'))::int AS foreign_servers,
+    (SELECT pg_catalog.count(*) FROM pg_catalog.pg_foreign_data_wrapper fw
+      WHERE pg_catalog.has_foreign_data_wrapper_privilege('public', fw.oid, 'USAGE'))::int AS fdw,
+    EXISTS (SELECT 1 FROM pg_catalog.pg_namespace n
+      WHERE n.nspname = 'public' AND pg_catalog.has_schema_privilege('public', n.oid, 'CREATE')) AS schema_public_create
+),
 user_operators AS (
   -- = and <> operators someone defined on a type policy comparisons are read on: a looked-through type, a domain over
   -- one, or a polymorphic type that matches them. pg_get_expr prints IS [NOT] DISTINCT FROM without naming the = it
@@ -124,6 +159,11 @@ SELECT
   (SELECT w.schemas FROM writes w) AS write_schemas, (SELECT w.database FROM writes w) AS write_database,
   (SELECT w.default_privileges FROM writes w) AS write_default_privileges, (SELECT w.createdb FROM writes w) AS write_createdb,
   (SELECT w.foreign_servers FROM writes w) AS write_foreign_servers, (SELECT w.fdw FROM writes w) AS write_fdw,
+  (SELECT w.relations + w.large_objects + w.schemas + w.database + w.default_privileges + w.createdb + w.foreign_servers
+     + w.fdw - p.relations - p.large_objects - p.schemas - p.database - p.default_privileges - p.foreign_servers - p.fdw
+     FROM writes w, public_writes p)::int AS writable_beyond_public,
+  (SELECT p.default_privileges FROM public_writes p) AS public_write_defaults,
+  (SELECT p.schema_public_create FROM public_writes p) AS public_schema_create,
   (SELECT pg_catalog.count(*) FROM user_operators)::int AS user_operators,
   (SELECT pg_catalog.count(*) FROM user_casts)::int AS user_casts,
   (SELECT pg_catalog.count(*) FROM user_casts WHERE castcontext = 'i')::int AS user_casts_implicit,
