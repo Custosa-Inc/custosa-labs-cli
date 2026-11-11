@@ -4539,6 +4539,51 @@
             "type": "string",
             "pattern": "^[a-z][a-z0-9_]{0,63}$"
           }
+        },
+        "facts": {
+          "description": "T29-P1-C232 F1: present when lines of this practice ask for cited facts (facts_needed). For each field they ask, once per practice in fact_schema.json order: the values fact_schema.json lists for it (the schema's whole list, never which value passes; unknown is always allowed) and its about line, which says what to cite.",
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 11,
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "rule",
+              "field",
+              "values",
+              "about"
+            ],
+            "properties": {
+              "rule": {
+                "type": "string",
+                "enum": [
+                  "authz",
+                  "write_fields",
+                  "rls"
+                ]
+              },
+              "field": {
+                "type": "string",
+                "pattern": "^[a-z][a-z_]{0,39}$"
+              },
+              "values": {
+                "type": "array",
+                "minItems": 1,
+                "maxItems": 10,
+                "uniqueItems": true,
+                "items": {
+                  "type": "string",
+                  "pattern": "^[a-z][a-z_]{0,39}$"
+                }
+              },
+              "about": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 300
+              }
+            }
+          }
         }
       }
     },
