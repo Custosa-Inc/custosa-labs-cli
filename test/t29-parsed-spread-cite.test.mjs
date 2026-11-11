@@ -97,6 +97,57 @@ const FILES = {
     "def create_note(body: NoteIn, user=Depends(current_user)):",
     "    return db.add(Note(**body.dict(), owner_id=user.id))",
   ].join("\n"),
+  // P2 T29-C203 med 1: a Python model that keeps unknown keys in its class body (pydantic v2, then v1), and one that
+  // forbids them.
+  "api/v2.py": [
+    "class NoteIn(BaseModel):",
+    "    model_config = ConfigDict(extra=\"allow\")",
+    "    title: str",
+    "",
+    "@router.post('/notes')",
+    "def create_note(body: NoteIn, user=Depends(current_user)):",
+    "    return db.add(Note(**body.dict(), owner_id=user.id))",
+  ].join("\n"),
+  "api/v1.py": [
+    "class NoteIn(BaseModel):",
+    "    title: str",
+    "",
+    "    class Config:",
+    "        extra = Extra.allow",
+    "",
+    "@router.post('/notes')",
+    "def create_note(body: NoteIn, user=Depends(current_user)):",
+    "    return db.add(Note(**body.dict(), owner_id=user.id))",
+  ].join("\n"),
+  "api/forbid.py": [
+    "class NoteIn(BaseModel):",
+    "    model_config = ConfigDict(extra=\"forbid\")",
+    "    title: str",
+    "",
+    "@router.post('/notes')",
+    "def create_note(body: NoteIn, user=Depends(current_user)):",
+    "    return db.add(Note(**body.dict(), owner_id=user.id))",
+  ].join("\n"),
+  // P2 T29-C203 med 2: a strict schema made loose at the parse call, outside and inside the handler; .strict() at the
+  // call stays ok.
+  "app/atparse/route.ts": [
+    "const Input = z.object({ title: z.string() }).strict();",
+    "export async function POST(req) {",
+    "  const input = Input.passthrough().parse(await req.json());",
+    "  return db.note.create({ data: { ...input, ownerId: (await auth()).user.id } });",
+    "}",
+    "export async function PUT(req) {",
+    "  const Inline = z.object({ title: z.string() }).strict();",
+    "  const input = Inline",
+    "    .passthrough()",
+    "    .parse(await req.json());",
+    "  return db.note.create({ data: { ...input, ownerId: (await auth()).user.id } });",
+    "}",
+    "export async function PATCH(req) {",
+    "  const input = Input.strict().parse(await req.json());",
+    "  return db.note.create({ data: { ...input, ownerId: (await auth()).user.id } });",
+    "}",
+  ].join("\n"),
 };
 
 const root = mkdtempSync(join(tmpdir(), "parsed-spread-"));
@@ -191,4 +242,22 @@ test("a schema built over many lines that keeps unknown keys on a later line is 
   // the journal schema closes on one line with no passthrough: still ok
   const j = "app/journal/route.ts";
   assert.equal(await parserCite(write(`${j}:4`, cite(j, 7, "...input"), cite(j, 2, "z.object({"))), "ok");
+});
+
+test("P2 C203 med 1: a Python model that keeps unknown keys in its class body is failed", async () => {
+  for (const f of ["api/v2.py", "api/v1.py"]) {
+    const line = f === "api/v1.py" ? 8 : 6;
+    assert.equal(await parserCite(write(`${f}:${line}`, cite(f, line + 1, "**body"), cite(f, 1, "class NoteIn"))), "failed", f);
+  }
+  const f = "api/forbid.py";
+  assert.equal(await parserCite(write(`${f}:6`, cite(f, 7, "**body"), cite(f, 1, "class NoteIn"))), "ok");
+});
+
+test("P2 C203 med 2: a handler that makes the cited schema loose where it parses it is failed", async () => {
+  const f = "app/atparse/route.ts";
+  assert.equal(await parserCite(write(`${f}:2`, cite(f, 4, "...input"), cite(f, 1, "const Input"))), "failed");
+  // inside the handler, the call over three lines
+  assert.equal(await parserCite(write(`${f}:6`, cite(f, 11, "...input"), cite(f, 7, "const Inline"))), "failed");
+  // .strict() at the call keeps it strict
+  assert.equal(await parserCite(write(`${f}:13`, cite(f, 15, "...input"), cite(f, 1, "const Input"))), "ok");
 });
