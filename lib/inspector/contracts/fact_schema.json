@@ -7,7 +7,7 @@
     "token": "an exact substring of that line, at least 3 characters, taken from the construct the value is about (for a guard, its call)"
   },
   "unknown": "If you cannot tell a value, give \"unknown\". Unknown never counts in the project's favour.",
-  "absence": "A value saying something is not there (guard none, owner_source none, rls_enabled disabled) needs no citation.",
+  "absence": "A value saying something is not there (guard none, record_id_source none, owner_source none, rls_enabled disabled) needs no citation.",
   "rules": {
     "authz": {
       "practice": "authz-every-handler",
@@ -35,9 +35,10 @@
             "query",
             "body",
             "session",
-            "other"
+            "other",
+            "none"
           ],
-          "about": "cite where the id is read"
+          "about": "cite where the id is read; none when the handler reads or changes no stored record by an id"
         },
         "owner_value_source": {
           "values": [

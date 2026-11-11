@@ -82,6 +82,13 @@ test("a claim of absence may come without a citation (cite none)", async () => {
   assert.deepEqual([byField(rows).guard.value, byField(rows).guard.cite], ["none", "none"]);
 });
 
+test("record_id_source none (no record fetched by an id) is a value, and may come without a citation", async () => {
+  // T29-P1-C238 M2: with a role guard, core holds it for a person instead of failing it
+  const rows = await rowsOf([{ ...AUTHZ, guard: { value: "role", file: "app/route.ts", line: 3, token: "await params" },
+    record_id_source: { value: "none" } }]);
+  assert.deepEqual([byField(rows).record_id_source.value, byField(rows).record_id_source.cite], ["none", "none"]);
+});
+
 test("a value outside the field's list, or a column that isn't a plain name, is unknown", async () => {
   const rows = await rowsOf([
     { ...AUTHZ, guard: { ...AUTHZ.guard, value: "admin_only" } },
