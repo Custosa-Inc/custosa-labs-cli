@@ -670,6 +670,21 @@ test("the environment marked at setup goes in the document; a mark it can't use 
   } finally { await s.close(); }
 });
 
+// T29-P2-C211 med 1: an unreadable answer's own note (client.mjs unreadableNote) is kept beside the call's other notes
+test("an unreadable answer keeps its own local note beside an environment note", async () => {
+  const { CONTRACT_VERSION } = await import("../lib/inspector/client.mjs");
+  const root = repo();
+  const { s, runCheck } = await setup(() => ({ status: 200, json: { ...EVALUATE_OK, contract_version: CONTRACT_VERSION, headline: 7 } }),
+    { environmentFor: () => ({ environment: { value: "unknown", source: "setup" }, note: "ENV NOTE." }) });
+  try {
+    const out = await runCheck({ goal: "check" }, { roots: [root] });
+    assert.equal(out.error, "evaluator_response_invalid");
+    assert.equal(out.local_notes.length, 2, JSON.stringify(out.local_notes));
+    assert.match(out.local_notes[0], /failed this inspector's response schema at "\/headline" \(rule: type\)/);
+    assert.equal(out.local_notes[1], "ENV NOTE.");
+  } finally { await s.close(); }
+});
+
 test("a bucket list row-level security may have filtered comes back as a local note", async () => {
   const { STORAGE_FILTERED_NOTE } = await import("../lib/inspector/factdoc.mjs");
   const root = repo();
