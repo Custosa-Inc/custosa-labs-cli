@@ -3,7 +3,7 @@
  * secret-shaped literal sits in the repository. */
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { randomInt } from "node:crypto";
+import { createHmac, randomInt } from "node:crypto";
 import { chmodSync, mkdirSync, mkdtempSync, readdirSync, realpathSync, statSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { basename, join } from "node:path";
@@ -525,13 +525,25 @@ test("(6, 7) templates and loopback local defaults are quiet; compose services a
   expectLines(scan([{ path: "cfg.txt", text }], { configDir }), found);
 });
 
-test("(6b) the Supabase CLI's demo service-role key (iss supabase-demo) is not a finding", () => {
+test("(6b) a Supabase demo service-role key (iss supabase-demo, a published secret) is not a finding", () => {
   const configDir = temp("custosa-secrets-");
   // The signature holds a "-", as the CLI's demo key's does, so the value is never read as a dotted code name and
   // the service-role-config fallback sees it too.
   const sig = () => `${rand(20, ALNUM)}-${rand(22, ALNUM)}`;
-  const jwt = (payload) => [b64url({ alg: "HS256", typ: "JWT" }), b64url(payload), sig()].join(".");
-  const demo = jwt({ iss: "supabase-demo", role: "service_role", exp: 1983812996 });
+  const head = b64url({ alg: "HS256", typ: "JWT" });
+  const jwt = (payload) => [head, b64url(payload), sig()].join(".");
+  // HS256 with `secret`, the payload's iat moved until the signature holds a "-" too.
+  const signed = (secret, claims) => {
+    for (let iat = 1700000000; ; iat++) {
+      const body = b64url({ ...claims, iat });
+      const mac = createHmac("sha256", secret).update(`${head}.${body}`).digest("base64url");
+      if (mac.includes("-")) return [head, body, mac].join(".");
+    }
+  };
+  // The two published secrets: the Supabase CLI's local default and the self-hosted docker template's.
+  const published = ["", "your-"].map((p) => `${p}super-secret-jwt-token-with-at-${"least-32"}-characters-long`);
+  const demoClaims = { iss: "supabase-demo", role: "service_role", exp: 1983812996 };
+  const demos = published.map((s) => signed(s, demoClaims));
   const real = jwt({ iss: "supabase", ref: rand(20).toLowerCase(), role: "service_role", iat: 1700000000, exp: 2015000000 });
   const rows = (path, text) => (isEnvFile(path) ? scan([], { configDir, envFiles: [{ path, tracked: true, text }] })
     : scan([{ path, text }], { configDir })).map((s) => `${s.rule_id}:${s.line}`);
@@ -542,20 +554,30 @@ test("(6b) the Supabase CLI's demo service-role key (iss supabase-demo) is not a
     ["src/client.ts", `const h = \`Bearer ${k}\`;\n`],
     ["src/client.ts", `fetch(\`\${url}/rest/v1\`, { headers: { apikey: \`${k}\` } });\n`],
   ];
-  for (const [path, text] of forms(demo)) assert.deepEqual(rows(path, text), [], `demo in ${path}`);
-  for (const [path, text] of forms(real)) {
-    assert.deepEqual(rows(path, text), [`supabase-service-role-jwt:${path === ".env" ? 2 : 1}`], `real in ${path}`);
-  }
-  // Only the exact issuer is the demo key; a payload that only resembles it is still a finding.
+  const found = (k, what) => {
+    for (const [path, text] of forms(k)) {
+      assert.deepEqual(rows(path, text), [`supabase-service-role-jwt:${path === ".env" ? 2 : 1}`], `${what} in ${path}`);
+    }
+  };
+  for (const demo of demos) for (const [path, text] of forms(demo)) assert.deepEqual(rows(path, text), [], `demo in ${path}`);
+  found(real, "real");
+  // The demo issuer signed with any other secret may be a live self-hosted key (T29-P3-C250): the demo claims
+  // re-signed, and a newly minted demo-issuer key with its own times.
+  const own = rand(40, ALNUM);
+  found(signed(own, demoClaims), "re-signed demo claims");
+  found(signed(own, { iss: "supabase-demo", role: "service_role", exp: 2100000000 }), "newly minted demo issuer");
+  found(jwt(demoClaims), "unsigned demo claims");
+  // Only the exact issuer is the demo key, even with a published secret's signature.
   for (const payload of [{ iss: "supabase-demo-2", role: "service_role" }, { iss: "Supabase-Demo", role: "service_role" },
     { iss: ["supabase-demo"], role: "service_role" }, { role: "service_role" }, { iss: "supabase", role: "service_role",
       note: "supabase-demo" }]) {
-    assert.deepEqual(rows("a.ts", `const k = "${jwt(payload)}";\n`), ["supabase-service-role-jwt:1"], JSON.stringify(payload));
+    assert.deepEqual(rows("a.ts", `const k = "${signed(published[0], payload)}";\n`), ["supabase-service-role-jwt:1"],
+      JSON.stringify(payload));
   }
   // Anon keys, demo or real, stay quiet, also under a service-role name.
-  for (const iss of ["supabase-demo", "supabase"]) {
-    const anon = jwt({ iss, role: "anon", exp: 1983812996 });
-    assert.deepEqual(rows("a.ts", `const k = "${anon}";\nconst serviceRoleKey = "${anon}";\n`), [], iss);
+  for (const anon of [signed(published[0], { ...demoClaims, role: "anon" }), jwt({ iss: "supabase-demo", role: "anon" }),
+    jwt({ iss: "supabase", role: "anon" })]) {
+    assert.deepEqual(rows("a.ts", `const k = "${anon}";\nconst serviceRoleKey = "${anon}";\n`), []);
   }
   // A malformed payload is not a JWT finding; under a service-role name the fallback still reports the location.
   const broken = [b64url({ alg: "HS256" }), Buffer.from('{"iss":"supabase-demo","role":"service_role"').toString("base64url"),
@@ -563,7 +585,7 @@ test("(6b) the Supabase CLI's demo service-role key (iss supabase-demo) is not a
   assert.deepEqual(rows("a.ts", `const k = "${broken}";\n`), []);
   assert.deepEqual(rows(".env", `SUPABASE_SERVICE_ROLE_KEY=${broken}\n`), ["supabase-service-role-config:1"]);
   // A key split across a template string's lines is not seen, demo or real (as before this change).
-  for (const k of [demo, real]) {
+  for (const k of [demos[0], real]) {
     const [h, p, s] = k.split(".");
     assert.deepEqual(rows("a.ts", `const k = \`${h}.\n${p}.\n${s}\`;\n`), []);
     assert.deepEqual(rows("a.ts", `const k = \`${h}.\${p}.${s}\`;\n`.replace("${p}", `\${"${p}"}`)), []);
