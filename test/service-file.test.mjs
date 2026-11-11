@@ -3,10 +3,11 @@
    the inspector connects with, so a reader that picked another file would tie the mark to the wrong database. */
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { mkdirSync, mkdtempSync, writeFileSync } from "node:fs";
+import { chmodSync, mkdirSync, mkdtempSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { main } from "../lib/setup.mjs";
+import { runDoctor } from "../lib/doctor.mjs";
 import { readService } from "../lib/inspector/pgservice.mjs";
 import { serviceFingerprint } from "../lib/inspector/environment.mjs";
 
@@ -32,6 +33,7 @@ async function setupSays(home, env) {
   };
   assert.equal(await main("setup", { yes: true }, ctx), 0);
   const text = lines.join("\n");
+  if (/can’t be read, so setup can’t tell/.test(text)) return `unreadable, ${text.match(/Your database {2}(\S+) can’t be read/)?.[1]}`;
   return text.match(/The phisc entry is in (\S+)\./)?.[1] ?? `none, add it to ${text.match(/The connection entry: add this to (\S+)/)?.[1]}`;
 }
 
@@ -80,4 +82,43 @@ test("service file: a path that only contains the home folder's path is shown wh
   const sibling = join(`${home}2`, "pg.conf");
   writeFileSync(sibling, entry("db.sibling"));
   assert.equal(await setupSays(home, { PGSERVICEFILE: sibling }), sibling);
+});
+
+/* what doctor says about the [phisc] entry, for this env */
+async function doctorSays(home, env) {
+  const lines = [];
+  await runDoctor({ env, home, offline: true, out: (l) => lines.push(l), which: () => null, run: () => ({ status: 1, stdout: "" }) });
+  return lines.find((l) => l.includes("[phisc] entry"));
+}
+
+// libpq skips a service file that isn't there, but a file it can't open is an error. So a file that is there and
+// can't be read is not "no entry": setup, doctor, the inspector and the mark all say it can't be read.
+test("service file: one that is there but can't be read reads as unreadable, not missing", async (t) => {
+  const home = computer();
+  const cases = [["a folder", join(home, "folder.conf")]];
+  mkdirSync(cases[0][1]);
+  if (process.getuid?.() !== 0 && process.platform !== "win32") {
+    const locked = join(home, "locked.conf");
+    writeFileSync(locked, entry("db.locked"));
+    chmodSync(locked, 0o000);
+    cases.push(["a file with no read permission", locked]);
+  } else t.diagnostic("running as root or on Windows: the permission case is skipped");
+  for (const [what, path] of cases) {
+    const env = { PGSERVICEFILE: path };
+    const shown = path.replace(home, "~");
+    assert.equal(await setupSays(home, env), `unreadable, ${shown}`, what);
+    assert.equal(host(env, home), "service_file_unreadable", what);
+    assert.throws(() => readService("phisc", { env, home }), (e) => e.message === `the Postgres service file ${path} can't be read`, what);
+    assert.equal(serviceFingerprint({ env, home }), "unreadable", what);
+    assert.equal(await doctorSays(home, env), `FAIL  [phisc] entry: the Postgres service file ${path} can't be read.`, what);
+  }
+});
+
+// a path through a regular file (ENOTDIR) can't exist, so it is missing, as for libpq's stat
+test("service file: a path through a regular file reads as missing", async () => {
+  const home = computer();
+  const env = { PGSERVICEFILE: join(home, "other.conf", "pg.conf") };
+  assert.equal(host(env, home), "service_file_missing");
+  assert.equal(serviceFingerprint({ env, home }), null);
+  assert.equal(await doctorSays(home, env), "WARN  [phisc] entry: none, so the database catalog checks won't run. To add it, run npx custosa setup and follow the database steps.");
 });
