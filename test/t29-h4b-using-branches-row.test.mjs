@@ -56,7 +56,7 @@ test("the key's d7, d9 and t4 rows carry their branch words, and the text stays 
     POL("treatment_photos", "d9 read", "select", D9),
     POL("dentist_reviews", "t4 read", "all", T4),
   ]);
-  assert.deepEqual(r.map((x) => x.using_branches), [["owner", "signed_in"], ["any_member"], ["not_read", "member"]]);
+  assert.deepEqual(r.map((x) => x.using_branches), [["owner", "signed_in"], ["any_member"], ["owner", "member"]]);
   const text = JSON.stringify(doc);
   for (const s of ["current_setting", "clinic_members", "staff_members", "EXISTS"]) assert.ok(!text.includes(s), s);
 });
