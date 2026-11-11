@@ -44,6 +44,8 @@ for (const [label, path, text] of [
   ["a minified name", "app/static/js/chart.umd.min.js", SLOW],
   ["a tracked build folder", "wwwroot/lib/bootstrap/dist/js/bootstrap.js", SLOW],
   ["minified text under any name", "public/js/filament/support/support.js", SLOW_MIN],
+  ["a Playwright spec (C196: test files too)", "tests/ui/tests/beta-e2e.spec.js", SLOW],
+  ["a file under tests/", "tests/api/cron-automations.test.js", SLOW],
 ]) {
   test(`C192 item 2: ${label} past its limit is time_limit and keeps its violations, and the collector stays ok`, async () => {
     const res = await runWithSlow(path, text);
@@ -87,7 +89,11 @@ test("C192 item 2: a run whose budget ends on files that aren't app code stays o
 test("C192 item 2: what counts as not app code", () => {
   for (const p of ["a/chart.umd.min.js", "b/x.bundle.js", "b/x-bundle.mjs", "c/jquery.min.cjs", "vendor/a/b.ts", "web/dist/x.js",
     "frontend/node_modules/y/index.js"]) assert.ok(notAppCodePath(p), p);
-  for (const p of ["src/app/api/route.ts", "src/minify.js", "src/bundle.ts", "lib/admin.js", "dist.js", "public/js/app.js"]) {
+  // C196: core's test forms (hosted-core app/core/file_roles.py _TEST_DIRS and _TEST_FILE), in any letter case
+  for (const p of ["tests/api/a.ts", "src/__tests__/x.js", "web/e2e/login.ts", "playwright/fixtures.ts", "src/a.test.tsx",
+    "src/b.spec.mjs", "app/test_views.py", "pkg/x_test.go", "app/UserTest.php", "src/Tests/A.cs", "conftest.py"]) assert.ok(notAppCodePath(p), p);
+  for (const p of ["src/app/api/route.ts", "src/minify.js", "src/bundle.ts", "lib/admin.js", "dist.js", "public/js/app.js",
+    "src/contest.ts", "src/testing-utils.ts", "smarthub/qa/run.mjs", "src/attestation.ts"]) {
     assert.ok(!notAppCodePath(p), p);
   }
   assert.ok(minified("a();".repeat(1000)));
