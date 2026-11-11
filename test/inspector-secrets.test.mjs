@@ -203,7 +203,8 @@ const pemOf = (lines, nl = "\n", indent = "") => [`\x2d----BEGIN PRIVATE KEY----
 
 test("(a, b) a PEM key with escaped \\n, on one line, or indented in YAML is found, with one fingerprint", () => {
   const configDir = temp("custosa-secrets-");
-  const body = Array.from({ length: 5 }, () => rand(64, ALNUM));
+  // Uppercase-only lines, as the note on rand says: the output is all lowercase, so an overlap can only be a leak.
+  const body = Array.from({ length: 5 }, () => rand(64));
   const files = [
     { path: "id.pem", text: pemOf(body) + "\n" },
     { path: "service-account.json", text: JSON.stringify({ type: "service_account", private_key: pemOf(body) }, null, 2) },
@@ -219,6 +220,7 @@ test("(a, b) a PEM key with escaped \\n, on one line, or indented in YAML is fou
   assert.equal(new Set(found.map((s) => s.fingerprint)).size, 1, "same key body, same fingerprint");
 
   const serialized = JSON.stringify(found);
+  assert.ok(!/[A-Z]/.test(serialized), "the output has no uppercase letter, so an overlap with the body is a leak");
   for (const line of body) for (const sub of substrings(line.slice(0, 12))) assert.ok(!serialized.includes(sub));
 });
 
@@ -425,7 +427,8 @@ test("(3) AWS secret: YAML blocks, prefixed and suffixed names, Terraform, ECS a
 
 test("(4) PEM split across a JSON array, Python implicit concatenation, JS + concatenation, or with \\\\n", () => {
   const configDir = temp("custosa-secrets-");
-  const body = Array.from({ length: 4 }, () => rand(64, ALNUM));
+  // Uppercase-only lines, as the note on rand says: the output is all lowercase, so an overlap can only be a leak.
+  const body = Array.from({ length: 4 }, () => rand(64));
   const lines = ["\x2d----BEGIN PRIVATE KEY-----", ...body, "-----END PRIVATE KEY-----"];
   const files = [
     { path: "pretty.json", text: JSON.stringify({ key: lines }, null, 2) },
@@ -439,6 +442,7 @@ test("(4) PEM split across a JSON array, Python implicit concatenation, JS + con
     ["pretty.json", 3]].map(([p, l]) => ["pem-private-key", p, l]));
   assert.equal(new Set(found.map((s) => s.fingerprint)).size, 1);
   const serialized = JSON.stringify(found);
+  assert.ok(!/[A-Z]/.test(serialized), "the output has no uppercase letter, so an overlap with the body is a leak");
   for (const line of body) for (const sub of substrings(line.slice(0, 12))) assert.ok(!serialized.includes(sub));
 });
 
