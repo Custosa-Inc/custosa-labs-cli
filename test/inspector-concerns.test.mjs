@@ -298,7 +298,9 @@ test("A raising call that may have run but got no readable answer says its texts
     try {
       const out = await runCheck({ goal: "check", concerns: [{ ...A, note: TEXT_A }] }, { roots: [root] });
       assert.ok(out.error, JSON.stringify(out).slice(0, 200));
-      assert.deepEqual(out.local_notes, [CONCERN_NOTES.concern_texts_unanswered], out.error);
+      // T29-P2-C211 med 1: an unreadable answer keeps its own note (why it couldn't be read) before the call's
+      const own = reply.raw ? ["The evaluator's reply (HTTP 200) was not a JSON object."] : [];
+      assert.deepEqual(out.local_notes, [...own, CONCERN_NOTES.concern_texts_unanswered], out.error);
     } finally { await s.close(); }
   }
 });
