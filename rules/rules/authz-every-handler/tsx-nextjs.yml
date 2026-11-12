@@ -1157,6 +1157,38 @@ control:
                                 pattern:
                                   context: const $GUSER = 0
                                   selector: identifier
+                              not:
+                                has:
+                                  stopBy: end
+                                  any:
+                                  - kind: identifier
+                                    not:
+                                      pattern:
+                                        context: const $GUSER = 0
+                                        selector: identifier
+                                  - kind: binary_expression
+                                  - kind: ternary_expression
+                                  - kind: template_string
+                                  - kind: array
+                                  - kind: sequence_expression
+                                  - kind: call_expression
+                                  - kind: arrow_function
+                                  - kind: function_expression
+                                  - kind: object
+                                  - kind: await_expression
+                                  - kind: assignment_expression
+                                  - kind: augmented_assignment_expression
+                                  - kind: new_expression
+                                  - kind: as_expression
+                                  - kind: satisfies_expression
+                                  - kind: this
+                                  - kind: comment
+                                  - kind: update_expression
+                                  - kind: yield_expression
+                                  - kind: unary_expression
+                                    not:
+                                      kind: unary_expression
+                                      regex: '^!'
                             - kind: binary_expression
                               any:
                               - pattern: '$_ === null'
@@ -1166,21 +1198,159 @@ control:
                               - pattern: '$_ === void 0'
                               - pattern: '$_ == void 0'
                               has:
-                                stopBy: end
-                                kind: identifier
-                                pattern:
-                                  context: const $GUSER = 0
-                                  selector: identifier
+                                field: left
+                                any:
+                                - kind: identifier
+                                  pattern:
+                                    context: const $GUSER = 0
+                                    selector: identifier
+                                - all:
+                                  - any:
+                                    - kind: member_expression
+                                    - kind: subscript_expression
+                                    - kind: non_null_expression
+                                    - kind: parenthesized_expression
+                                  - has:
+                                      stopBy: end
+                                      kind: identifier
+                                      pattern:
+                                        context: const $GUSER = 0
+                                        selector: identifier
+                                  - not:
+                                      has:
+                                        stopBy: end
+                                        any:
+                                        - kind: identifier
+                                          not:
+                                            pattern:
+                                              context: const $GUSER = 0
+                                              selector: identifier
+                                        - kind: binary_expression
+                                        - kind: ternary_expression
+                                        - kind: template_string
+                                        - kind: array
+                                        - kind: sequence_expression
+                                        - kind: call_expression
+                                        - kind: arrow_function
+                                        - kind: function_expression
+                                        - kind: object
+                                        - kind: await_expression
+                                        - kind: assignment_expression
+                                        - kind: augmented_assignment_expression
+                                        - kind: new_expression
+                                        - kind: as_expression
+                                        - kind: satisfies_expression
+                                        - kind: this
+                                        - kind: comment
+                                        - kind: update_expression
+                                        - kind: yield_expression
+                                        - kind: unary_expression
+                              not:
+                                has:
+                                  stopBy: end
+                                  kind: comment
                             - kind: binary_expression
-                              any:
-                              - pattern: '$_ !== $_'
-                              - pattern: '$_ != $_'
-                              has:
-                                stopBy: end
-                                kind: identifier
-                                pattern:
-                                  context: const $GUSER = 0
-                                  selector: identifier
+                              all:
+                              - any:
+                                - pattern: '$_ !== $_'
+                                - pattern: '$_ != $_'
+                              - any:
+                                - has:
+                                    field: left
+                                    any:
+                                    - kind: identifier
+                                      pattern:
+                                        context: const $GUSER = 0
+                                        selector: identifier
+                                    - all:
+                                      - any:
+                                        - kind: member_expression
+                                        - kind: subscript_expression
+                                        - kind: non_null_expression
+                                        - kind: parenthesized_expression
+                                      - has:
+                                          stopBy: end
+                                          kind: identifier
+                                          pattern:
+                                            context: const $GUSER = 0
+                                            selector: identifier
+                                      - not:
+                                          has:
+                                            stopBy: end
+                                            any:
+                                            - kind: identifier
+                                              not:
+                                                pattern:
+                                                  context: const $GUSER = 0
+                                                  selector: identifier
+                                            - kind: binary_expression
+                                            - kind: ternary_expression
+                                            - kind: template_string
+                                            - kind: array
+                                            - kind: sequence_expression
+                                            - kind: call_expression
+                                            - kind: arrow_function
+                                            - kind: function_expression
+                                            - kind: object
+                                            - kind: await_expression
+                                            - kind: assignment_expression
+                                            - kind: augmented_assignment_expression
+                                            - kind: new_expression
+                                            - kind: as_expression
+                                            - kind: satisfies_expression
+                                            - kind: this
+                                            - kind: comment
+                                            - kind: update_expression
+                                            - kind: yield_expression
+                                            - kind: unary_expression
+                                - has:
+                                    field: right
+                                    any:
+                                    - kind: identifier
+                                      pattern:
+                                        context: const $GUSER = 0
+                                        selector: identifier
+                                    - all:
+                                      - any:
+                                        - kind: member_expression
+                                        - kind: subscript_expression
+                                        - kind: non_null_expression
+                                        - kind: parenthesized_expression
+                                      - has:
+                                          stopBy: end
+                                          kind: identifier
+                                          pattern:
+                                            context: const $GUSER = 0
+                                            selector: identifier
+                                      - not:
+                                          has:
+                                            stopBy: end
+                                            any:
+                                            - kind: identifier
+                                              not:
+                                                pattern:
+                                                  context: const $GUSER = 0
+                                                  selector: identifier
+                                            - kind: binary_expression
+                                            - kind: ternary_expression
+                                            - kind: template_string
+                                            - kind: array
+                                            - kind: sequence_expression
+                                            - kind: call_expression
+                                            - kind: arrow_function
+                                            - kind: function_expression
+                                            - kind: object
+                                            - kind: await_expression
+                                            - kind: assignment_expression
+                                            - kind: augmented_assignment_expression
+                                            - kind: new_expression
+                                            - kind: as_expression
+                                            - kind: satisfies_expression
+                                            - kind: this
+                                            - kind: comment
+                                            - kind: update_expression
+                                            - kind: yield_expression
+                                            - kind: unary_expression
                               not:
                                 any:
                                 - has:
@@ -1232,6 +1402,12 @@ control:
                                           pattern:
                                             context: const $GUSER = 0
                                             selector: identifier
+                                - has:
+                                    stopBy: end
+                                    kind: comment
+                                - has:
+                                    stopBy: end
+                                    kind: sequence_expression
                           - pattern: '$_ || $_'
                             has:
                               any:
@@ -1243,6 +1419,38 @@ control:
                                   pattern:
                                     context: const $GUSER = 0
                                     selector: identifier
+                                not:
+                                  has:
+                                    stopBy: end
+                                    any:
+                                    - kind: identifier
+                                      not:
+                                        pattern:
+                                          context: const $GUSER = 0
+                                          selector: identifier
+                                    - kind: binary_expression
+                                    - kind: ternary_expression
+                                    - kind: template_string
+                                    - kind: array
+                                    - kind: sequence_expression
+                                    - kind: call_expression
+                                    - kind: arrow_function
+                                    - kind: function_expression
+                                    - kind: object
+                                    - kind: await_expression
+                                    - kind: assignment_expression
+                                    - kind: augmented_assignment_expression
+                                    - kind: new_expression
+                                    - kind: as_expression
+                                    - kind: satisfies_expression
+                                    - kind: this
+                                    - kind: comment
+                                    - kind: update_expression
+                                    - kind: yield_expression
+                                    - kind: unary_expression
+                                      not:
+                                        kind: unary_expression
+                                        regex: '^!'
                               - kind: binary_expression
                                 any:
                                 - pattern: '$_ === null'
@@ -1252,21 +1460,159 @@ control:
                                 - pattern: '$_ === void 0'
                                 - pattern: '$_ == void 0'
                                 has:
-                                  stopBy: end
-                                  kind: identifier
-                                  pattern:
-                                    context: const $GUSER = 0
-                                    selector: identifier
+                                  field: left
+                                  any:
+                                  - kind: identifier
+                                    pattern:
+                                      context: const $GUSER = 0
+                                      selector: identifier
+                                  - all:
+                                    - any:
+                                      - kind: member_expression
+                                      - kind: subscript_expression
+                                      - kind: non_null_expression
+                                      - kind: parenthesized_expression
+                                    - has:
+                                        stopBy: end
+                                        kind: identifier
+                                        pattern:
+                                          context: const $GUSER = 0
+                                          selector: identifier
+                                    - not:
+                                        has:
+                                          stopBy: end
+                                          any:
+                                          - kind: identifier
+                                            not:
+                                              pattern:
+                                                context: const $GUSER = 0
+                                                selector: identifier
+                                          - kind: binary_expression
+                                          - kind: ternary_expression
+                                          - kind: template_string
+                                          - kind: array
+                                          - kind: sequence_expression
+                                          - kind: call_expression
+                                          - kind: arrow_function
+                                          - kind: function_expression
+                                          - kind: object
+                                          - kind: await_expression
+                                          - kind: assignment_expression
+                                          - kind: augmented_assignment_expression
+                                          - kind: new_expression
+                                          - kind: as_expression
+                                          - kind: satisfies_expression
+                                          - kind: this
+                                          - kind: comment
+                                          - kind: update_expression
+                                          - kind: yield_expression
+                                          - kind: unary_expression
+                                not:
+                                  has:
+                                    stopBy: end
+                                    kind: comment
                               - kind: binary_expression
-                                any:
-                                - pattern: '$_ !== $_'
-                                - pattern: '$_ != $_'
-                                has:
-                                  stopBy: end
-                                  kind: identifier
-                                  pattern:
-                                    context: const $GUSER = 0
-                                    selector: identifier
+                                all:
+                                - any:
+                                  - pattern: '$_ !== $_'
+                                  - pattern: '$_ != $_'
+                                - any:
+                                  - has:
+                                      field: left
+                                      any:
+                                      - kind: identifier
+                                        pattern:
+                                          context: const $GUSER = 0
+                                          selector: identifier
+                                      - all:
+                                        - any:
+                                          - kind: member_expression
+                                          - kind: subscript_expression
+                                          - kind: non_null_expression
+                                          - kind: parenthesized_expression
+                                        - has:
+                                            stopBy: end
+                                            kind: identifier
+                                            pattern:
+                                              context: const $GUSER = 0
+                                              selector: identifier
+                                        - not:
+                                            has:
+                                              stopBy: end
+                                              any:
+                                              - kind: identifier
+                                                not:
+                                                  pattern:
+                                                    context: const $GUSER = 0
+                                                    selector: identifier
+                                              - kind: binary_expression
+                                              - kind: ternary_expression
+                                              - kind: template_string
+                                              - kind: array
+                                              - kind: sequence_expression
+                                              - kind: call_expression
+                                              - kind: arrow_function
+                                              - kind: function_expression
+                                              - kind: object
+                                              - kind: await_expression
+                                              - kind: assignment_expression
+                                              - kind: augmented_assignment_expression
+                                              - kind: new_expression
+                                              - kind: as_expression
+                                              - kind: satisfies_expression
+                                              - kind: this
+                                              - kind: comment
+                                              - kind: update_expression
+                                              - kind: yield_expression
+                                              - kind: unary_expression
+                                  - has:
+                                      field: right
+                                      any:
+                                      - kind: identifier
+                                        pattern:
+                                          context: const $GUSER = 0
+                                          selector: identifier
+                                      - all:
+                                        - any:
+                                          - kind: member_expression
+                                          - kind: subscript_expression
+                                          - kind: non_null_expression
+                                          - kind: parenthesized_expression
+                                        - has:
+                                            stopBy: end
+                                            kind: identifier
+                                            pattern:
+                                              context: const $GUSER = 0
+                                              selector: identifier
+                                        - not:
+                                            has:
+                                              stopBy: end
+                                              any:
+                                              - kind: identifier
+                                                not:
+                                                  pattern:
+                                                    context: const $GUSER = 0
+                                                    selector: identifier
+                                              - kind: binary_expression
+                                              - kind: ternary_expression
+                                              - kind: template_string
+                                              - kind: array
+                                              - kind: sequence_expression
+                                              - kind: call_expression
+                                              - kind: arrow_function
+                                              - kind: function_expression
+                                              - kind: object
+                                              - kind: await_expression
+                                              - kind: assignment_expression
+                                              - kind: augmented_assignment_expression
+                                              - kind: new_expression
+                                              - kind: as_expression
+                                              - kind: satisfies_expression
+                                              - kind: this
+                                              - kind: comment
+                                              - kind: update_expression
+                                              - kind: yield_expression
+                                              - kind: unary_expression
                                 not:
                                   any:
                                   - has:
@@ -1318,6 +1664,12 @@ control:
                                             pattern:
                                               context: const $GUSER = 0
                                               selector: identifier
+                                  - has:
+                                      stopBy: end
+                                      kind: comment
+                                  - has:
+                                      stopBy: end
+                                      kind: sequence_expression
                           - pattern: '$_ || $_'
                             has:
                               pattern: '$_ || $_'
@@ -1331,6 +1683,38 @@ control:
                                     pattern:
                                       context: const $GUSER = 0
                                       selector: identifier
+                                  not:
+                                    has:
+                                      stopBy: end
+                                      any:
+                                      - kind: identifier
+                                        not:
+                                          pattern:
+                                            context: const $GUSER = 0
+                                            selector: identifier
+                                      - kind: binary_expression
+                                      - kind: ternary_expression
+                                      - kind: template_string
+                                      - kind: array
+                                      - kind: sequence_expression
+                                      - kind: call_expression
+                                      - kind: arrow_function
+                                      - kind: function_expression
+                                      - kind: object
+                                      - kind: await_expression
+                                      - kind: assignment_expression
+                                      - kind: augmented_assignment_expression
+                                      - kind: new_expression
+                                      - kind: as_expression
+                                      - kind: satisfies_expression
+                                      - kind: this
+                                      - kind: comment
+                                      - kind: update_expression
+                                      - kind: yield_expression
+                                      - kind: unary_expression
+                                        not:
+                                          kind: unary_expression
+                                          regex: '^!'
                                 - kind: binary_expression
                                   any:
                                   - pattern: '$_ === null'
@@ -1340,21 +1724,159 @@ control:
                                   - pattern: '$_ === void 0'
                                   - pattern: '$_ == void 0'
                                   has:
-                                    stopBy: end
-                                    kind: identifier
-                                    pattern:
-                                      context: const $GUSER = 0
-                                      selector: identifier
+                                    field: left
+                                    any:
+                                    - kind: identifier
+                                      pattern:
+                                        context: const $GUSER = 0
+                                        selector: identifier
+                                    - all:
+                                      - any:
+                                        - kind: member_expression
+                                        - kind: subscript_expression
+                                        - kind: non_null_expression
+                                        - kind: parenthesized_expression
+                                      - has:
+                                          stopBy: end
+                                          kind: identifier
+                                          pattern:
+                                            context: const $GUSER = 0
+                                            selector: identifier
+                                      - not:
+                                          has:
+                                            stopBy: end
+                                            any:
+                                            - kind: identifier
+                                              not:
+                                                pattern:
+                                                  context: const $GUSER = 0
+                                                  selector: identifier
+                                            - kind: binary_expression
+                                            - kind: ternary_expression
+                                            - kind: template_string
+                                            - kind: array
+                                            - kind: sequence_expression
+                                            - kind: call_expression
+                                            - kind: arrow_function
+                                            - kind: function_expression
+                                            - kind: object
+                                            - kind: await_expression
+                                            - kind: assignment_expression
+                                            - kind: augmented_assignment_expression
+                                            - kind: new_expression
+                                            - kind: as_expression
+                                            - kind: satisfies_expression
+                                            - kind: this
+                                            - kind: comment
+                                            - kind: update_expression
+                                            - kind: yield_expression
+                                            - kind: unary_expression
+                                  not:
+                                    has:
+                                      stopBy: end
+                                      kind: comment
                                 - kind: binary_expression
-                                  any:
-                                  - pattern: '$_ !== $_'
-                                  - pattern: '$_ != $_'
-                                  has:
-                                    stopBy: end
-                                    kind: identifier
-                                    pattern:
-                                      context: const $GUSER = 0
-                                      selector: identifier
+                                  all:
+                                  - any:
+                                    - pattern: '$_ !== $_'
+                                    - pattern: '$_ != $_'
+                                  - any:
+                                    - has:
+                                        field: left
+                                        any:
+                                        - kind: identifier
+                                          pattern:
+                                            context: const $GUSER = 0
+                                            selector: identifier
+                                        - all:
+                                          - any:
+                                            - kind: member_expression
+                                            - kind: subscript_expression
+                                            - kind: non_null_expression
+                                            - kind: parenthesized_expression
+                                          - has:
+                                              stopBy: end
+                                              kind: identifier
+                                              pattern:
+                                                context: const $GUSER = 0
+                                                selector: identifier
+                                          - not:
+                                              has:
+                                                stopBy: end
+                                                any:
+                                                - kind: identifier
+                                                  not:
+                                                    pattern:
+                                                      context: const $GUSER = 0
+                                                      selector: identifier
+                                                - kind: binary_expression
+                                                - kind: ternary_expression
+                                                - kind: template_string
+                                                - kind: array
+                                                - kind: sequence_expression
+                                                - kind: call_expression
+                                                - kind: arrow_function
+                                                - kind: function_expression
+                                                - kind: object
+                                                - kind: await_expression
+                                                - kind: assignment_expression
+                                                - kind: augmented_assignment_expression
+                                                - kind: new_expression
+                                                - kind: as_expression
+                                                - kind: satisfies_expression
+                                                - kind: this
+                                                - kind: comment
+                                                - kind: update_expression
+                                                - kind: yield_expression
+                                                - kind: unary_expression
+                                    - has:
+                                        field: right
+                                        any:
+                                        - kind: identifier
+                                          pattern:
+                                            context: const $GUSER = 0
+                                            selector: identifier
+                                        - all:
+                                          - any:
+                                            - kind: member_expression
+                                            - kind: subscript_expression
+                                            - kind: non_null_expression
+                                            - kind: parenthesized_expression
+                                          - has:
+                                              stopBy: end
+                                              kind: identifier
+                                              pattern:
+                                                context: const $GUSER = 0
+                                                selector: identifier
+                                          - not:
+                                              has:
+                                                stopBy: end
+                                                any:
+                                                - kind: identifier
+                                                  not:
+                                                    pattern:
+                                                      context: const $GUSER = 0
+                                                      selector: identifier
+                                                - kind: binary_expression
+                                                - kind: ternary_expression
+                                                - kind: template_string
+                                                - kind: array
+                                                - kind: sequence_expression
+                                                - kind: call_expression
+                                                - kind: arrow_function
+                                                - kind: function_expression
+                                                - kind: object
+                                                - kind: await_expression
+                                                - kind: assignment_expression
+                                                - kind: augmented_assignment_expression
+                                                - kind: new_expression
+                                                - kind: as_expression
+                                                - kind: satisfies_expression
+                                                - kind: this
+                                                - kind: comment
+                                                - kind: update_expression
+                                                - kind: yield_expression
+                                                - kind: unary_expression
                                   not:
                                     any:
                                     - has:
@@ -1406,6 +1928,12 @@ control:
                                               pattern:
                                                 context: const $GUSER = 0
                                                 selector: identifier
+                                    - has:
+                                        stopBy: end
+                                        kind: comment
+                                    - has:
+                                        stopBy: end
+                                        kind: sequence_expression
                     - has:
                         field: consequence
                         any:
