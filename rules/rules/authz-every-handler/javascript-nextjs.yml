@@ -2119,12 +2119,72 @@ control:
                 has:
                   kind: call_expression
                   regex: ^(redirect|permanentRedirect|notFound|unauthorized|forbidden)\(
+                  all:
+                  - has:
+                      field: function
+                      kind: identifier
+                      pattern:
+                        context: const $NRX1 = 0
+                        selector: identifier
+                  - inside:
+                      kind: program
+                      stopBy: end
+                      has:
+                        kind: import_statement
+                        all:
+                        - has:
+                            field: source
+                            kind: string
+                            regex: '^[''"]next/navigation[''"]$'
+                        - has:
+                            stopBy: end
+                            kind: import_specifier
+                            not:
+                              has:
+                                field: alias
+                                kind: identifier
+                            has:
+                              field: name
+                              kind: identifier
+                              pattern:
+                                context: const $NRX1 = 0
+                                selector: identifier
               - kind: expression_statement
                 has:
                   kind: await_expression
                   has:
                     kind: call_expression
                     regex: ^(redirect|permanentRedirect|notFound|unauthorized|forbidden)\(
+                    all:
+                    - has:
+                        field: function
+                        kind: identifier
+                        pattern:
+                          context: const $NRX2 = 0
+                          selector: identifier
+                    - inside:
+                        kind: program
+                        stopBy: end
+                        has:
+                          kind: import_statement
+                          all:
+                          - has:
+                              field: source
+                              kind: string
+                              regex: '^[''"]next/navigation[''"]$'
+                          - has:
+                              stopBy: end
+                              kind: import_specifier
+                              not:
+                                has:
+                                  field: alias
+                                  kind: identifier
+                              has:
+                                field: name
+                                kind: identifier
+                                pattern:
+                                  context: const $NRX2 = 0
+                                  selector: identifier
               - kind: statement_block
                 has:
                   any:
@@ -2134,12 +2194,72 @@ control:
                     has:
                       kind: call_expression
                       regex: ^(redirect|permanentRedirect|notFound|unauthorized|forbidden)\(
+                      all:
+                      - has:
+                          field: function
+                          kind: identifier
+                          pattern:
+                            context: const $NRX3 = 0
+                            selector: identifier
+                      - inside:
+                          kind: program
+                          stopBy: end
+                          has:
+                            kind: import_statement
+                            all:
+                            - has:
+                                field: source
+                                kind: string
+                                regex: '^[''"]next/navigation[''"]$'
+                            - has:
+                                stopBy: end
+                                kind: import_specifier
+                                not:
+                                  has:
+                                    field: alias
+                                    kind: identifier
+                                has:
+                                  field: name
+                                  kind: identifier
+                                  pattern:
+                                    context: const $NRX3 = 0
+                                    selector: identifier
                   - kind: expression_statement
                     has:
                       kind: await_expression
                       has:
                         kind: call_expression
                         regex: ^(redirect|permanentRedirect|notFound|unauthorized|forbidden)\(
+                        all:
+                        - has:
+                            field: function
+                            kind: identifier
+                            pattern:
+                              context: const $NRX4 = 0
+                              selector: identifier
+                        - inside:
+                            kind: program
+                            stopBy: end
+                            has:
+                              kind: import_statement
+                              all:
+                              - has:
+                                  field: source
+                                  kind: string
+                                  regex: '^[''"]next/navigation[''"]$'
+                              - has:
+                                  stopBy: end
+                                  kind: import_specifier
+                                  not:
+                                    has:
+                                      field: alias
+                                      kind: identifier
+                                  has:
+                                    field: name
+                                    kind: identifier
+                                    pattern:
+                                      context: const $NRX4 = 0
+                                      selector: identifier
       - all:
         - has:
             stopBy: end
