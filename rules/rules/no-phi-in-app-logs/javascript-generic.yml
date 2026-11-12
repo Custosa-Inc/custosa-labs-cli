@@ -23,6 +23,10 @@ rule:
         - any:
           - kind: member_expression
             regex: '^(req|request|ctx\.request|ctx|event)\??\.(body|query|params|rawBody)$'
+          - kind: member_expression
+            regex: '^(req|request|ctx\.request|ctx)\??\.originalUrl$'
+          - kind: identifier
+            regex: '^originalUrl$'
           - kind: call_expression
             regex: '^(c\.req|ctx\.req|req|request)\??\.(json|text|formData|parseBody)\(\)$'
           - kind: await_expression
@@ -177,10 +181,155 @@ rule:
             regex: '\[\s*[''\x22](ssn|SSN|dob|DOB|dateOfBirth|date_of_birth|birthDate|diagnosis|mrn|MRN|firstName|lastName|first_name|last_name)[''\x22]\s*\]$'
           - kind: spread_element
             regex: '^\.\.\.(patient|patients|patientData|patientRecord|patientRow|currentPatient)$'
+          - all:
+            - kind: member_expression
+            - regex: '\??\.(email|emailAddress|email_address|phone|phoneNumber|phone_number|mobile|mobileNumber|mobile_number)$'
+            - not:
+                kind: member_expression
+                regex: '(?i)^(process\.env|env|\w*config|this\??\.config|settings|smtp|twilio\w*|mailer|transporter|clinic|practice|organization|org|tenant)\??\.'
+          - all:
+            - kind: identifier
+            - regex: '^(email|emailAddress|email_address|phone|phoneNumber|phone_number|mobile|mobileNumber|mobile_number|[a-z][A-Za-z]*(Email|Phone|PhoneNumber)|[a-z][a-z0-9_]*_(email|phone|phone_number))$'
+            - not:
+                kind: identifier
+                regex: '^(from|sender|support|admin|smtp|noReply|noreply|replyTo|company|system|default|test|sample|example|mask|masked|hash|hashed|redact|redacted|obfuscat|safe|valid|invalid|template|welcome|reset|verify|verified|twilio|mailer|transporter|clinic|practice|organization|org|tenant|is[A-Z_]|has[A-Z_]|should[A-Z_])'
+            - not:
+                any:
+                - inside:
+                    kind: member_expression
+                    field: object
+                - inside:
+                    kind: subscript_expression
+                    field: object
+                - inside:
+                    kind: call_expression
+                    field: function
+          - all:
+            - kind: shorthand_property_identifier
+            - regex: '^(email|emailAddress|email_address|phone|phoneNumber|phone_number|mobile|mobileNumber|mobile_number|[a-z][A-Za-z]*(Email|Phone|PhoneNumber)|[a-z][a-z0-9_]*_(email|phone|phone_number))$'
+            - not:
+                kind: shorthand_property_identifier
+                regex: '^(from|sender|support|admin|smtp|noReply|noreply|replyTo|company|system|default|test|sample|example|mask|masked|hash|hashed|redact|redacted|obfuscat|safe|valid|invalid|template|welcome|reset|verify|verified|twilio|mailer|transporter|clinic|practice|organization|org|tenant|is[A-Z_]|has[A-Z_]|should[A-Z_])'
+          - kind: shorthand_property_identifier
+            regex: '^(user|users|currentUser|current_user|vitals|medications|prescriptions|allergies|labValues|lab_values|labResults|lab_results)$'
+          - all:
+            - kind: identifier
+            - regex: '^(user|users|currentUser|current_user|vitals|medications|prescriptions|allergies|labValues|lab_values|labResults|lab_results)$'
+            - not:
+                any:
+                - inside:
+                    kind: member_expression
+                    field: object
+                - inside:
+                    kind: subscript_expression
+                    field: object
+                - inside:
+                    kind: call_expression
+                    field: function
+          - all:
+            - kind: identifier
+            - pattern:
+                context: 'const $REC = 0'
+                selector: identifier
+            - not:
+                any:
+                - inside:
+                    kind: member_expression
+                    field: object
+                - inside:
+                    kind: subscript_expression
+                    field: object
+                - inside:
+                    kind: call_expression
+                    field: function
+            - inside:
+                stopBy:
+                  any:
+                  - kind: function_declaration
+                  - kind: arrow_function
+                  - kind: function_expression
+                  - kind: method_definition
+                kind: statement_block
+                inside:
+                  any:
+                  - kind: function_declaration
+                  - kind: arrow_function
+                  - kind: function_expression
+                  - kind: method_definition
+                has:
+                  stopBy: end
+                  kind: pair
+                  all:
+                  - pattern:
+                      context: '({ data: $REC })'
+                      selector: pair
+                  - inside:
+                      kind: object
+                      inside:
+                        kind: arguments
+                        inside:
+                          kind: call_expression
+                          has:
+                            field: function
+                            kind: member_expression
+                            regex: '(?i)\.(user|users|patient|patients|person|people|member|members|reading|readings|vital|vitals|appointment|appointments|profile|profiles|contact|contacts)\.(create|createMany|update|updateMany|upsert)$'
         - not:
             inside:
               kind: member_expression
               field: object
+        - not:
+            inside:
+              stopBy:
+                not:
+                  any:
+                  - kind: parenthesized_expression
+                  - kind: binary_expression
+                    any:
+                    - pattern: '$_ || $_'
+                    - pattern: '$_ ?? $_'
+              any:
+              - kind: member_expression
+              - kind: subscript_expression
+              - kind: unary_expression
+              - kind: binary_expression
+                any:
+                - pattern: '$_ === $_'
+                - pattern: '$_ !== $_'
+                - pattern: '$_ == $_'
+                - pattern: '$_ != $_'
+                - pattern: '$_ < $_'
+                - pattern: '$_ > $_'
+                - pattern: '$_ <= $_'
+                - pattern: '$_ >= $_'
+                - pattern: '$_ instanceof $_'
+                - pattern: '$_ in $_'
+              - kind: ternary_expression
+                all:
+                - has:
+                    field: consequence
+                    any: &lit
+                    - kind: string
+                    - kind: number
+                    - kind: 'true'
+                    - kind: 'false'
+                    - kind: 'null'
+                    - kind: undefined
+                - has:
+                    field: alternative
+                    any: *lit
+              - kind: arguments
+                inside:
+                  kind: call_expression
+                  not:
+                    has:
+                      field: function
+                      any:
+                      - kind: member_expression
+                        regex: '^(console|logger|log|LOG|Logger|pino|winston|globalLogger|this\.logger|this\.log|this\._logger|req\.log|request\.log|ctx\.log|fastify\.log|app\.log|server\.log)(\.child\([^)]*\))?\.(log|info|debug|warn|error|trace|fatal|verbose|silly)$|^JSON\.stringify$|^util\.inspect$'
+                      - kind: identifier
+                        regex: '^(String|inspect)$'
+                      - kind: subscript_expression
+                        regex: '^console\[[''\x22](log|info|debug|warn|error|trace)[''\x22]\]$'
         - not:
             inside:
               kind: arguments
