@@ -23,6 +23,10 @@ rule:
         - any:
           - kind: member_expression
             regex: '^(req|request|ctx\.request|ctx|event)\??\.(body|query|params|rawBody)$'
+          - kind: member_expression
+            regex: '^(req|request|ctx\.request|ctx)\??\.originalUrl$'
+          - kind: identifier
+            regex: '^originalUrl$'
           - kind: call_expression
             regex: '^(c\.req|ctx\.req|req|request)\??\.(json|text|formData|parseBody)\(\)$'
           - kind: await_expression
@@ -177,6 +181,87 @@ rule:
             regex: '\[\s*[''\x22](ssn|SSN|dob|DOB|dateOfBirth|date_of_birth|birthDate|diagnosis|mrn|MRN|firstName|lastName|first_name|last_name)[''\x22]\s*\]$'
           - kind: spread_element
             regex: '^\.\.\.(patient|patients|patientData|patientRecord|patientRow|currentPatient)$'
+          - all:
+            - kind: member_expression
+            - regex: '\??\.(email|emailAddress|email_address|phone|phoneNumber|phone_number|mobile|mobileNumber|mobile_number)$'
+            - not:
+                kind: member_expression
+                regex: '^(process\.env|env|config|this\.config|settings|smtp)\??\.'
+          - all:
+            - kind: identifier
+            - regex: '^(email|emailAddress|phone|phoneNumber|mobile|mobileNumber|[a-z][A-Za-z]*(Email|Phone|PhoneNumber))$'
+            - not:
+                kind: identifier
+                regex: '^(from|sender|support|admin|smtp|noReply|noreply|replyTo|company|system|default|test|sample|example)'
+            - not:
+                any:
+                - inside:
+                    kind: member_expression
+                    field: object
+                - inside:
+                    kind: subscript_expression
+                    field: object
+                - inside:
+                    kind: call_expression
+                    field: function
+          - all:
+            - kind: shorthand_property_identifier
+            - regex: '^(email|emailAddress|phone|phoneNumber|mobile|mobileNumber|[a-z][A-Za-z]*(Email|Phone|PhoneNumber))$'
+            - not:
+                kind: shorthand_property_identifier
+                regex: '^(from|sender|support|admin|smtp|noReply|noreply|replyTo|company|system|default|test|sample|example)'
+          - kind: shorthand_property_identifier
+            regex: '^(user|users|currentUser|vitals)$'
+          - all:
+            - kind: identifier
+            - regex: '^(user|users|currentUser|vitals)$'
+            - not:
+                any:
+                - inside:
+                    kind: member_expression
+                    field: object
+                - inside:
+                    kind: subscript_expression
+                    field: object
+                - inside:
+                    kind: call_expression
+                    field: function
+          - all:
+            - kind: identifier
+            - pattern:
+                context: 'const $REC = 0'
+                selector: identifier
+            - not:
+                any:
+                - inside:
+                    kind: member_expression
+                    field: object
+                - inside:
+                    kind: subscript_expression
+                    field: object
+                - inside:
+                    kind: call_expression
+                    field: function
+            - inside:
+                stopBy: end
+                kind: statement_block
+                has:
+                  stopBy: end
+                  kind: pair
+                  all:
+                  - pattern:
+                      context: '({ data: $REC })'
+                      selector: pair
+                  - inside:
+                      kind: object
+                      inside:
+                        kind: arguments
+                        inside:
+                          kind: call_expression
+                          has:
+                            field: function
+                            kind: member_expression
+                            regex: '\.(create|createMany|update|updateMany|upsert)$'
         - not:
             inside:
               kind: member_expression

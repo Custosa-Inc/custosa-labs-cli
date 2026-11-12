@@ -97,6 +97,30 @@ rule:
                 - inside:
                     kind: keyword_argument
                     field: name
+          - all:
+            - kind: attribute
+            - regex: '\.(email|email_address|phone|phone_number|mobile|mobile_number)$'
+            - not:
+                kind: attribute
+                regex: '^(settings|config|app\.config|current_app\.config|os\.environ)\.'
+          - all:
+            - kind: identifier
+            - regex: '^(email|email_address|phone|phone_number|mobile|mobile_number|[a-z][a-z0-9_]*_(email|phone|phone_number)|vitals|lab_values|lab_value_rows|lab_results|medications|prescriptions|allergies)$'
+            - not:
+                kind: identifier
+                regex: '^(from|sender|support|admin|smtp|noreply|no_reply|reply_to|company|system|default|test|sample|example|default_from)_'
+            - not:
+                any:
+                - inside:
+                    kind: attribute
+                - inside:
+                    kind: subscript
+                    field: value
+                - inside:
+                    kind: keyword_argument
+                    field: name
+          - kind: call
+            regex: '^[A-Za-z_][A-Za-z0-9_.]*\.get\(\s*[''"](vitals|lab_values|lab_results|medications|prescriptions|allergies|diagnosis|diagnoses|ssn|dob|date_of_birth)[''"]'
         - not:
             any:
             - inside:
