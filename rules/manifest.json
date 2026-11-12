@@ -1,5 +1,5 @@
 {
-  "ruleset_id": "2026-11-12.76af17e3",
+  "ruleset_id": "2026-11-12.72cccd4d",
   "min_engine": "0.45.3",
   "files": [
     {
@@ -428,7 +428,7 @@
     },
     {
       "path": "rules/authz-every-handler/tsx-nextjs.yml",
-      "sha256": "3214452cec39d4a0fea2bde5e300f5a08ec1518703642fc15134acfc1667576c"
+      "sha256": "807fb0f9e027983b4161a43f3f5cecf74ae34b2125543f5c9d0cb3f39be5af5a"
     },
     {
       "path": "rules/authz-every-handler/typescript-express.yml",
@@ -440,7 +440,7 @@
     },
     {
       "path": "rules/authz-every-handler/typescript-nextjs.yml",
-      "sha256": "0d7e30d86cac704249900dd21eccfa4f6201014c248917baf184a3ffa0acda92"
+      "sha256": "81d779cb3116f6afd201a52d3009b5c55d8701e712f0f0c18901cbd6f32be55c"
     },
     {
       "path": "rules/break-glass-access/javascript-generic.yml",
