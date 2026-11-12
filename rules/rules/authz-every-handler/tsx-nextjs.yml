@@ -738,6 +738,9 @@ control:
     # inequality or a null test, alone or as an operand of an or. A config, input or other-value check, an equality,
     # an inverted test and a never-true one are not. A local or parameter of the same name in the action shadows the
     # guard, so that call is not one.
+    # T29-P1-C287: every path through the helper throws or returns at its end. Its last return may be followed by
+    # comments. A top-level if that neither throws, redirects nor calls notFound (a role check that only logs), or a
+    # top-level try that throws in its body and whose catch never throws, makes it no guard.
     # T29-P1-C288: a side in parentheses is read as what it holds and void 0 as undefined; a run of nots is a denial
     # when it is odd, through parentheses too. A bare arrow parameter shadows the guard; a default value doesn't.
     - kind: call_expression
@@ -1420,6 +1423,51 @@ control:
                               regex: '^(redirect|permanentRedirect|notFound)\('
                 - not:
                     has:
+                      kind: if_statement
+                      not:
+                        has:
+                          field: consequence
+                          any:
+                          - kind: throw_statement
+                          - kind: expression_statement
+                            regex: '^(redirect|permanentRedirect|notFound)\('
+                          - kind: statement_block
+                            has:
+                              any:
+                              - kind: throw_statement
+                              - kind: expression_statement
+                                regex: '^(redirect|permanentRedirect|notFound)\('
+                - not:
+                    has:
+                      kind: try_statement
+                      all:
+                      - has:
+                          field: body
+                          has:
+                            stopBy:
+                              any:
+                              - kind: arrow_function
+                              - kind: function_expression
+                              - kind: function_declaration
+                              - kind: method_definition
+                            any:
+                            - kind: throw_statement
+                            - kind: call_expression
+                              regex: '^(redirect|permanentRedirect|notFound)\('
+                      - has:
+                          field: handler
+                          kind: catch_clause
+                          not:
+                            has:
+                              stopBy:
+                                any:
+                                - kind: arrow_function
+                                - kind: function_expression
+                                - kind: function_declaration
+                                - kind: method_definition
+                              kind: throw_statement
+                - not:
+                    has:
                       stopBy:
                         any:
                         - kind: arrow_function
@@ -1435,13 +1483,53 @@ control:
                               kind: function_declaration
                         - precedes:
                             stopBy: neighbor
-                            not:
+                            any:
+                            - not:
+                                precedes:
+                                  stopBy: neighbor
+                                  any:
+                                  - kind: comment
+                                  - not:
+                                      kind: comment
+                            - kind: comment
                               precedes:
                                 stopBy: neighbor
-                                any:
-                                - kind: comment
-                                - not:
-                                    kind: comment
+                                not:
+                                  precedes:
+                                    stopBy: neighbor
+                                    any:
+                                    - kind: comment
+                                    - not:
+                                        kind: comment
+                            - kind: comment
+                              precedes:
+                                stopBy: neighbor
+                                kind: comment
+                                precedes:
+                                  stopBy: neighbor
+                                  not:
+                                    precedes:
+                                      stopBy: neighbor
+                                      any:
+                                      - kind: comment
+                                      - not:
+                                          kind: comment
+                            - kind: comment
+                              precedes:
+                                stopBy: neighbor
+                                kind: comment
+                                precedes:
+                                  stopBy: neighbor
+                                  kind: comment
+                                  precedes:
+                                    stopBy: neighbor
+                                    not:
+                                      precedes:
+                                        stopBy: neighbor
+                                        any:
+                                        - kind: comment
+                                        - not:
+                                            kind: comment
     not:
       inside:
         stopBy:
