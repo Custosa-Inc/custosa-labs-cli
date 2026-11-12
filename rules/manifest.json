@@ -1,5 +1,5 @@
 {
-  "ruleset_id": "2026-11-12.78c34e65",
+  "ruleset_id": "2026-11-12.1743cd57",
   "min_engine": "0.45.3",
   "files": [
     {
@@ -1336,7 +1336,7 @@
     },
     {
       "path": "rules/security-events-logged/python-generic.yml",
-      "sha256": "451baf988b12d68ccb3d0109a4db950b1bc80f769f14a54cc94e6be2a2de65bb"
+      "sha256": "92e248dd0b85b296548c3cc750487a438d943ed7dc42ff7180d7d0f25bf51ba3"
     },
     {
       "path": "rules/security-events-logged/ruby-generic.yml",
@@ -1392,11 +1392,11 @@
     },
     {
       "path": "rules/session-cookie-flags/typescript-nextjs.yml",
-      "sha256": "ac59c9122f37d19a6efdcb5fd719a351039af074696b232a5c520a2d645cc1d4"
+      "sha256": "bfae980f600ec17e6dc6329d5f0d8c3cd17858a5c9f8d531d62a5435ff6b54c6"
     },
     {
       "path": "rules/session-cookie-flags/typescript-supabase.yml",
-      "sha256": "f0d58de8426631c4bd636c8e29f25d3b5db790f73949b77bafcd356c620fe799"
+      "sha256": "3438f5aa46374425c5f111809dec86dcc6621ed343fec5a356bf1fb54aa7a7e7"
     },
     {
       "path": "rules/session-cookie-flags/yaml-spring.yml",
