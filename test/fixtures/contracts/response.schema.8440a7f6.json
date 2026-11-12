@@ -3799,7 +3799,7 @@
           }
         },
         "verdicts_unsettled": {
-          "description": "T29-P1-C204 item 3 (live look 1, L3): absent when every decided verdict (pass, fail, not_applicable) the session holds settled the lines it could. Otherwise one entry per practice and why, by practice_id then why, at most 100: the verdict's state and reason (as the line's assistant shows), how many of the practice's lines it left as they were (lines), and those lines' own words (how), which say what would settle them. why: answer_conflict (the verdict and a no_subject location answer disagree), rules_saw_nothing (only a not_applicable with refs naming what it rests on, or a person, settles it), refused (the check's facts contradict it, or its code couldn't be checked), held_by_the_check (open for a reason the check clears itself), no_bound_ref (a pass or not_applicable needs refs the check gave out or cited), fail_on_own_answer (the fail rests on the assistant's not_present location answer), fail_observed (an observed fail stands), facts_needed (a verdict on the whole practice leaves a line that still has facts_needed; the facts it names settle it, T29-P1-C222 L2), not_in_refs (on a practice with per-line facts a verdict on the whole practice settles only the lines its refs name, and names none of these, T29-P1-C232 F2), decided_by_facts (on those practices Custosa decided the line from the assistant's cited facts, and a verdict on the whole practice never moves such a line, T29-P1-C237 H2).",
+          "description": "T29-P1-C204 item 3 (live look 1, L3): absent when every decided verdict (pass, fail, not_applicable) the session holds settled the lines it could. Otherwise one entry per practice and why, by practice_id then why, at most 100: the verdict's state and reason (as the line's assistant shows), how many of the practice's lines it left as they were (lines), and those lines' own words (how), which say what would settle them. why: answer_conflict (the verdict and a no_subject location answer disagree), rules_saw_nothing (only a not_applicable with refs naming what it rests on, or a person, settles it), refused (the check's facts contradict it, or its code couldn't be checked), held_by_the_check (open for a reason the check clears itself), no_bound_ref (a pass or not_applicable needs refs the check gave out or cited), fail_on_own_answer (the fail rests on the assistant's not_present location answer), fail_observed (an observed fail stands), facts_needed (a verdict on the whole practice leaves a line that still has facts_needed; the facts it names settle it, T29-P1-C222 L2), not_in_refs (on a practice with per-line facts a verdict on the whole practice settles only the lines its refs name, and names none of these, T29-P1-C232 F2), decided_by_facts (on those practices Custosa decided the line from the assistant's cited facts, and a verdict on the whole practice never moves such a line, T29-P1-C237 H2), held_for_person (the cited facts give a role guard and no stored record by an id, so the line is open for the person; a pass or not_applicable never settles it and a fail that names it does, T29-P1-C246).",
           "type": "array",
           "minItems": 1,
           "maxItems": 100,
@@ -3843,7 +3843,8 @@
                   "fail_observed",
                   "facts_needed",
                   "not_in_refs",
-                  "decided_by_facts"
+                  "decided_by_facts",
+                  "held_for_person"
                 ]
               },
               "lines": {
