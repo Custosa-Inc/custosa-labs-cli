@@ -1242,7 +1242,7 @@
       }
     },
     "readiness": {
-      "description": "Contract A (T29 r1): readiness counts practices, not objects. A practice's state is the worst of its results: fail, then open (needs_review, unknown or error), then pass, then not_applicable; a practice whose registry applies_to matches the app with no reading is unread, never pass, and one whose applies_to doesn't match is out of the practice counts, the score and ready (unless any of its results is other than a pass or not_applicable, or is a hold; a practice is out only on a positive read of another platform or stack by the inspector's own collectors (an empty, unrecognised or assistant-written read takes nothing out)); counts and by_severity still count every result, as the findings lines list them. ready only with at least one pass practice, every practice pass or not_applicable (no fail, no open item at any severity, no unread practice) and no unresolved assistant concern; a confirmed open concern makes the practice it names open, or counts as one more open line. percent is verified by Custosa (E1 or E2); score counts every pass practice and always travels with score_label; pass_by_grade and breakdown say who decided; practice_counts counts the practices by state and severity, and by_practice gives each practice's line. A person's decision recorded without an option is shown, never counted. Production readiness (ready with environment production) needs environment value production from source setup; from source answer the state is not_ready in production.",
+      "description": "Contract A (T29 r1): readiness counts practices, not objects. A practice's state is the worst of its results: fail, then open (needs_review, unknown or error), then pass, then not_applicable; a practice whose registry applies_to matches the app with no reading is unread, never pass, and one whose applies_to doesn't match is out of the practice counts, the score and ready (unless any of its results is other than a pass or not_applicable, or is a hold; a practice is out only on a positive read of another platform or stack by the inspector's own collectors (an empty, unrecognised or assistant-written read takes nothing out)); counts and by_severity still count every result, as the findings lines list them. ready only with at least one pass practice, every practice pass or not_applicable (no fail, no open item at any severity, no unread practice) and no unresolved assistant concern; a confirmed open concern makes the practice it names open, or counts as one more open line. percent is verified by Custosa (E1 or E2); score counts every pass practice and always travels with score_label; pass_by_grade and breakdown say who decided; practice_counts counts the practices by state and severity, and by_practice gives each practice's line. A person's decision recorded without an option is shown, never counted. Production readiness (ready with environment production) needs environment value production from source setup; from source answer the state is not_ready in production. T29-P1-C255 (a): its practice lines (by_practice, one per practice counted: state, the weakest grade its pass or not_applicable rests on, severity) are the named list readiness.by_practice, not on the reply; index.practices has each practice's state, severity and grade.",
       "type": "object",
       "additionalProperties": false,
       "required": [
@@ -1258,7 +1258,6 @@
         "environment",
         "pass_by_grade",
         "practice_counts",
-        "by_practice",
         "concern_lines",
         "verified_state",
         "score",
@@ -1879,58 +1878,6 @@
                   "type": "integer",
                   "minimum": 0
                 }
-              }
-            }
-          }
-        },
-        "by_practice": {
-          "description": "One line per practice counted (contract A), sorted by practice id: its state, the weakest grade its pass or not_applicable rests on (null for fail, open and unread) and its severity. Practice numbers, never compared with the index's result_counts.",
-          "type": "array",
-          "maxItems": 1000,
-          "items": {
-            "type": "object",
-            "additionalProperties": false,
-            "required": [
-              "practice_id",
-              "state",
-              "grade",
-              "severity"
-            ],
-            "properties": {
-              "practice_id": {
-                "$ref": "https://custosa.com/schemas/fact-document/2#/$defs/identifier"
-              },
-              "state": {
-                "type": "string",
-                "enum": [
-                  "fail",
-                  "open",
-                  "unread",
-                  "pass",
-                  "not_applicable"
-                ]
-              },
-              "grade": {
-                "type": [
-                  "string",
-                  "null"
-                ],
-                "enum": [
-                  "custosa",
-                  "custosa_on_cited_facts",
-                  "person_decided",
-                  "assistant_decided",
-                  null
-                ]
-              },
-              "severity": {
-                "type": "string",
-                "enum": [
-                  "critical",
-                  "high",
-                  "medium",
-                  "low"
-                ]
               }
             }
           }
@@ -3799,7 +3746,7 @@
           }
         },
         "verdicts_unsettled": {
-          "description": "T29-P1-C204 item 3 (live look 1, L3): absent when every decided verdict (pass, fail, not_applicable) the session holds settled the lines it could. Otherwise one entry per practice and why, by practice_id then why, at most 100: the verdict's state and reason (as the line's assistant shows), how many of the practice's lines it left as they were (lines), and those lines' own words (how), which say what would settle them. why: answer_conflict (the verdict and a no_subject location answer disagree), rules_saw_nothing (only a not_applicable with refs naming what it rests on, or a person, settles it), refused (the check's facts contradict it, or its code couldn't be checked), held_by_the_check (open for a reason the check clears itself), no_bound_ref (a pass or not_applicable needs refs the check gave out or cited), fail_on_own_answer (the fail rests on the assistant's not_present location answer), fail_observed (an observed fail stands), facts_needed (a verdict on the whole practice leaves a line that still has facts_needed; the facts it names settle it, T29-P1-C222 L2), not_in_refs (on a practice with per-line facts a verdict on the whole practice settles only the lines its refs name, and names none of these, T29-P1-C232 F2), decided_by_facts (on those practices Custosa decided the line from the assistant's cited facts, and a verdict on the whole practice never moves such a line, T29-P1-C237 H2), held_for_person (the cited facts give a role guard and no stored record by an id, so the line is open for the person; a pass or not_applicable never settles it and a fail that names it does, T29-P1-C246).",
+          "description": "T29-P1-C204 item 3 (live look 1, L3): absent when every decided verdict (pass, fail, not_applicable) the session holds settled the lines it could. Otherwise one entry per practice and why, by practice_id then why, at most 100: the verdict's state, how many of the practice's lines it left as they were (lines). Only on the reply to the call that sent verdicts; the lines' own words, which say what would settle them, are in unsettled_how by why, said once (T29-P1-C253). The named list verdicts_unsettled (index.lists) holds every entry whole with the verdict's reason (as the line's assistant shows) and its how (T29-P1-C255 (b)), on every reply while the session has one. why: answer_conflict (the verdict and a no_subject location answer disagree), rules_saw_nothing (only a not_applicable with refs naming what it rests on, or a person, settles it), refused (the check's facts contradict it, or its code couldn't be checked), held_by_the_check (open for a reason the check clears itself), no_bound_ref (a pass or not_applicable needs refs the check gave out or cited), fail_on_own_answer (the fail rests on the assistant's not_present location answer), fail_observed (an observed fail stands), facts_needed (a verdict on the whole practice leaves a line that still has facts_needed; the facts it names settle it, T29-P1-C222 L2), not_in_refs (on a practice with per-line facts a verdict on the whole practice settles only the lines its refs name, and names none of these, T29-P1-C232 F2), decided_by_facts (on those practices Custosa decided the line from the assistant's cited facts, and a verdict on the whole practice never moves such a line, T29-P1-C237 H2), held_for_person (the cited facts give a role guard and no stored record by an id, so the line is open for the person; a pass or not_applicable never settles it and a fail that names it does, T29-P1-C246).",
           "type": "array",
           "minItems": 1,
           "maxItems": 100,
@@ -3809,10 +3756,8 @@
             "required": [
               "practice_id",
               "state",
-              "reason",
               "why",
-              "lines",
-              "how"
+              "lines"
             ],
             "properties": {
               "practice_id": {
@@ -3825,11 +3770,6 @@
                   "fail",
                   "not_applicable"
                 ]
-              },
-              "reason": {
-                "type": "string",
-                "minLength": 1,
-                "maxLength": 300
               },
               "why": {
                 "type": "string",
@@ -3850,12 +3790,35 @@
               "lines": {
                 "type": "integer",
                 "minimum": 1
-              },
-              "how": {
-                "type": "string",
-                "minLength": 1,
-                "maxLength": 600
               }
+            }
+          }
+        },
+        "unsettled_how": {
+          "description": "T29-P1-C253 (live look 5 M1): with verdicts_unsettled only: for each why its entries carry, the lines' own words once, which say what would settle them. A facts_needed how points at the entry's practice's guidance.",
+          "type": "object",
+          "additionalProperties": false,
+          "minProperties": 1,
+          "propertyNames": {
+            "enum": [
+              "answer_conflict",
+              "rules_saw_nothing",
+              "refused",
+              "held_by_the_check",
+              "no_bound_ref",
+              "fail_on_own_answer",
+              "fail_observed",
+              "facts_needed",
+              "not_in_refs",
+              "decided_by_facts",
+              "held_for_person"
+            ]
+          },
+          "patternProperties": {
+            "^[a-z_]+$": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 700
             }
           }
         },
@@ -5147,6 +5110,16 @@
                   "low"
                 ]
               },
+              "grade": {
+                "description": "T29-P1-C255 (a): the weakest grade the practice's pass or not_applicable rests on, as readiness.by_practice gives it (the named list readiness.by_practice); absent where it is null (fail, open and unread).",
+                "type": "string",
+                "enum": [
+                  "custosa",
+                  "custosa_on_cited_facts",
+                  "person_decided",
+                  "assistant_decided"
+                ]
+              },
               "counts": {
                 "type": "object",
                 "additionalProperties": false,
@@ -5243,8 +5216,7 @@
             "required": [
               "practice_id",
               "count",
-              "reasons",
-              "select"
+              "reasons"
             ],
             "properties": {
               "practice_id": {
@@ -5262,11 +5234,9 @@
                   "type": "string",
                   "maxLength": 1000
                 }
-              },
-              "select": {
-                "$ref": "#/$defs/result_selector"
               }
-            }
+            },
+            "description": "T29-P1-C255 (c): one line per practice with open results; its selector is the practice id, {\"practice\": practice_id}."
           }
         },
         "questions": {

@@ -32,8 +32,11 @@ test("an entry that still carries its own how reads as before", () => {
   assert.match(text, /^- refused, 1 practice: mobile-keychain-storage not_applicable \(1 line\)\. Your assistant's verdict/m);
 });
 
-test("get_result takes the list verdicts_unsettled and one entry of it", () => {
+test("get_result takes the lists verdicts_unsettled and readiness.by_practice, and one entry of each", () => {
   const pattern = new RegExp(RESULT_INPUT_SCHEMA.properties.select.properties.list.pattern);
-  for (const name of ["verdicts_unsettled", "verdicts_unsettled#12"]) assert.ok(pattern.test(name), name);
+  for (const name of ["verdicts_unsettled", "verdicts_unsettled#12", "readiness.by_practice", "readiness.by_practice#3"]) {
+    assert.ok(pattern.test(name), name);
+  }
+  assert.ok(!pattern.test("readiness.by_area"));
   assert.ok(!pattern.test("verdicts_unsettled.x"));
 });

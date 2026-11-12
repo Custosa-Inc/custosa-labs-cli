@@ -8,11 +8,15 @@ import { EVALUATE_OK } from "./stub-evaluator.mjs";
 
 const HOW = "Your assistant's verdict didn't settle this: a pass or not applicable needs refs naming the file, line, table or setting it rests on, one the check gave out or cited. It stays open, with the verdict beside it.";
 const ITEM = { practice_id: "audit-log", state: "not_applicable", reason: "No such feature in this project.", why: "no_bound_ref", lines: 3, how: HOW };
+// T29-P1-C253 and C255 (b): the reply's entries carry no how and no reason; each how is in unsettled_how, once by why
+const SHOWN = { practice_id: "audit-log", state: "not_applicable", why: "no_bound_ref", lines: 3 };
 
 test("the response schema takes verdicts_unsettled and refuses an unknown why", () => {
-  assert.equal(validateResponse({ ...EVALUATE_OK, verdicts_unsettled: [ITEM] }), null);
-  assert.notEqual(validateResponse({ ...EVALUATE_OK, verdicts_unsettled: [{ ...ITEM, why: "other" }] }), null);
+  assert.equal(validateResponse({ ...EVALUATE_OK, verdicts_unsettled: [SHOWN], unsettled_how: { no_bound_ref: HOW } }), null);
+  assert.notEqual(validateResponse({ ...EVALUATE_OK, verdicts_unsettled: [{ ...SHOWN, why: "other" }] }), null);
   assert.notEqual(validateResponse({ ...EVALUATE_OK, verdicts_unsettled: [] }), null);
+  assert.notEqual(validateResponse({ ...EVALUATE_OK, verdicts_unsettled: [ITEM] }), null, "how and reason are on the named list only");
+  assert.notEqual(validateResponse({ ...EVALUATE_OK, verdicts_unsettled: [SHOWN], unsettled_how: { other: HOW } }), null);
 });
 
 test("the text names each unsettled verdict with why and the lines' words", () => {
