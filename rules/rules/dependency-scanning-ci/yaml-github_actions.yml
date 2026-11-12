@@ -100,7 +100,7 @@ rule:
             regex: poetry\s+check\s+--lock\b[^\n]*\|
         - not:
             kind: block_mapping_pair
-            regex: \bset\s+\+e\b
+            regex: \bset\s+(\+[a-zA-Z]*e[a-zA-Z]*|\+o\s+errexit)\b
     - all:
       - kind: block_mapping_pair
         has:
@@ -114,7 +114,7 @@ rule:
             regex: poetry\s+check\s+--lock\b[^\n]*\|
         - not:
             kind: block_mapping_pair
-            regex: \bset\s+\+e\b
+            regex: \bset\s+(\+[a-zA-Z]*e[a-zA-Z]*|\+o\s+errexit)\b
       - not:
           any:
           - inside:
@@ -342,7 +342,8 @@ min_engine: 0.45.3
 # scan-npm: a step in a workflow that runs on every pull request (no branch or path filter), with no if: and
 # continue-on-error absent or false, that runs npm audit (threshold absent, low, moderate or high), pnpm audit or yarn
 # npm audit, or osv-scanner, snyk test or trivy (exit code non-zero) naming an npm lockfile and fails the job on high
-# or critical findings. Evidence: the scan piece for npm.
+# or critical findings: under a shell that stops on a failed command (GitHub's bash -e on a Linux or macOS runner,
+# shell: bash or sh, a template with -e), or else as the run's last command. Evidence: the scan piece for npm.
 id: dependency-scanning-ci.yaml-github_actions.scan-npm
 practice_id: dependency-scanning-ci
 language: yaml
@@ -400,7 +401,13 @@ rule:
           regex: (?s:^run\s*:\s*(?:[&!][^\s]*[ \t]+)*(?:>[-+0-9]*.*|[^\s|>#&!].*|)(npm\s+audit|pnpm\s+audit|yarn\s+npm\s+audit)\b(?:\$'(?:[^'\\]|\\(?s:.))*'|[^&'\"\\|<>]|\\(?s:.)|\"(?:[^\"\\]|\\(?s:.)|\$\([^()]*\))*\"|'[^']*'|&&|&>|[<>]&|[<>][^&]|[<>]$|\|\|?)*&([^&>]|$))
       - not:
           kind: block_mapping_pair
-          regex: \bset\s+\+e\b
+          regex: \bset\s+(\+[a-zA-Z]*e[a-zA-Z]*|\+o\s+errexit)\b
+      - not:
+          kind: block_mapping_pair
+          regex: \btrap\b[^\n]*\b(EXIT|ERR|0)\b
+      - not:
+          kind: block_mapping_pair
+          regex: \|\|\s*(npm\s+audit|pnpm\s+audit|yarn\s+npm\s+audit)\b
       - not:
           kind: block_mapping_pair
           regex: npm\s+audit\s+(fix|signatures)\b
@@ -498,7 +505,13 @@ rule:
           regex: (?s:^run\s*:\s*(?:[&!][^\s]*[ \t]+)*(?:>[-+0-9]*.*|[^\s|>#&!].*|)(osv-scanner|snyk\s+test|trivy\s+(fs|filesystem|repo|repository|rootfs))\b(?:\$'(?:[^'\\]|\\(?s:.))*'|[^&'\"\\|<>]|\\(?s:.)|\"(?:[^\"\\]|\\(?s:.)|\$\([^()]*\))*\"|'[^']*'|&&|&>|[<>]&|[<>][^&]|[<>]$|\|\|?)*&([^&>]|$))
       - not:
           kind: block_mapping_pair
-          regex: \bset\s+\+e\b
+          regex: \bset\s+(\+[a-zA-Z]*e[a-zA-Z]*|\+o\s+errexit)\b
+      - not:
+          kind: block_mapping_pair
+          regex: \btrap\b[^\n]*\b(EXIT|ERR|0)\b
+      - not:
+          kind: block_mapping_pair
+          regex: \|\|\s*(osv-scanner|snyk\s+test|trivy\s+(fs|filesystem|repo|repository|rootfs))\b
       - not:
           all:
           - kind: block_mapping_pair
@@ -579,7 +592,13 @@ rule:
           regex: (?s:^run\s*:\s*(?:[&!][^\s]*[ \t]+)*(?:>[-+0-9]*.*|[^\s|>#&!].*|)(osv-scanner|snyk\s+test|trivy\s+(fs|filesystem|repo|repository|rootfs))\b(?:\$'(?:[^'\\]|\\(?s:.))*'|[^&'\"\\|<>]|\\(?s:.)|\"(?:[^\"\\]|\\(?s:.)|\$\([^()]*\))*\"|'[^']*'|&&|&>|[<>]&|[<>][^&]|[<>]$|\|\|?)*&([^&>]|$))
       - not:
           kind: block_mapping_pair
-          regex: \bset\s+\+e\b
+          regex: \bset\s+(\+[a-zA-Z]*e[a-zA-Z]*|\+o\s+errexit)\b
+      - not:
+          kind: block_mapping_pair
+          regex: \btrap\b[^\n]*\b(EXIT|ERR|0)\b
+      - not:
+          kind: block_mapping_pair
+          regex: \|\|\s*(osv-scanner|snyk\s+test|trivy\s+(fs|filesystem|repo|repository|rootfs))\b
       - not:
           kind: block_mapping_pair
           regex: (trivy\b([^\n]*(\\|&&|\|\|?)[ \t\r]*\n)*[^\n]*--exit-code(=|[ \t]+)['\"]?([^1-9\s'\"]|[1-9][0-9]{3,}|[3-9][0-9]{2}|2[6-9][0-9]|25[6-9]|(25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[1-9][0-9]?)[^\s'\";&|0-9])|(?s:^run\s*:\s*(?:[&!][^\s]*[ \t]+)*(?:>[-+0-9]*.*|[^\s|>#&!].*|)trivy\b.*--exit-code(=|[ \t]+)['\"]?([^1-9\s'\"]|[1-9][0-9]{3,}|[3-9][0-9]{2}|2[6-9][0-9]|25[6-9]|(25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[1-9][0-9]?)[^\s'\";&|0-9])))
@@ -841,11 +860,468 @@ rule:
                     not:
                       kind: block_mapping_pair
                       regex: '\b(branches|branches-ignore|paths|paths-ignore)\s*:'
+  - any:
+    - any:
+      - any:
+        - inside:
+            stopBy: end
+            kind: block_sequence_item
+            inside:
+              kind: block_sequence
+              inside:
+                kind: block_node
+                inside:
+                  kind: block_mapping_pair
+                  has:
+                    field: key
+                    kind: flow_node
+                    regex: ^(steps)$
+            has:
+              kind: block_node
+              has:
+                kind: block_mapping
+                has:
+                  kind: block_mapping_pair
+                  has:
+                    field: key
+                    kind: flow_node
+                    regex: ^(shell)$
+                  regex: ^shell\s*:\s*(?:['\"]?(?:bash|sh)['\"]?[ \t]*(?:#[^\n]*)?(?:$|\r?\n|[,}])|['\"]?(?:/[\w./-]*/)?(?:bash|sh|dash|zsh|ksh)(?:[ \t]+[^\s{][^\s]*)*?[ \t]+(?:-[a-zA-Z]*e[a-zA-Z]*|-o[ \t]+errexit)(?:[ \t]+[^\s{][^\s]*)*[ \t]+\{0\})
+        - all:
+          - not:
+              inside:
+                stopBy: end
+                kind: block_sequence_item
+                inside:
+                  kind: block_sequence
+                  inside:
+                    kind: block_node
+                    inside:
+                      kind: block_mapping_pair
+                      has:
+                        field: key
+                        kind: flow_node
+                        regex: ^(steps)$
+                has:
+                  kind: block_node
+                  has:
+                    kind: block_mapping
+                    has:
+                      kind: block_mapping_pair
+                      has:
+                        field: key
+                        kind: flow_node
+                        regex: ^(shell)$
+          - inside:
+              stopBy: end
+              kind: block_mapping_pair
+              inside:
+                kind: block_mapping
+                inside:
+                  kind: block_node
+                  inside:
+                    kind: block_mapping_pair
+                    has:
+                      field: key
+                      kind: flow_node
+                      regex: ^(jobs)$
+              has:
+                kind: block_node
+                has:
+                  kind: block_mapping
+                  has:
+                    kind: block_mapping_pair
+                    has:
+                      field: key
+                      kind: flow_node
+                      regex: ^(defaults)$
+                    regex: \bshell\s*:\s*(?:['\"]?(?:bash|sh)['\"]?[ \t]*(?:#[^\n]*)?(?:$|\r?\n|[,}])|['\"]?(?:/[\w./-]*/)?(?:bash|sh|dash|zsh|ksh)(?:[ \t]+[^\s{][^\s]*)*?[ \t]+(?:-[a-zA-Z]*e[a-zA-Z]*|-o[ \t]+errexit)(?:[ \t]+[^\s{][^\s]*)*[ \t]+\{0\})
+        - all:
+          - not:
+              inside:
+                stopBy: end
+                kind: block_sequence_item
+                inside:
+                  kind: block_sequence
+                  inside:
+                    kind: block_node
+                    inside:
+                      kind: block_mapping_pair
+                      has:
+                        field: key
+                        kind: flow_node
+                        regex: ^(steps)$
+                has:
+                  kind: block_node
+                  has:
+                    kind: block_mapping
+                    has:
+                      kind: block_mapping_pair
+                      has:
+                        field: key
+                        kind: flow_node
+                        regex: ^(shell)$
+          - not:
+              inside:
+                stopBy: end
+                kind: block_mapping_pair
+                inside:
+                  kind: block_mapping
+                  inside:
+                    kind: block_node
+                    inside:
+                      kind: block_mapping_pair
+                      has:
+                        field: key
+                        kind: flow_node
+                        regex: ^(jobs)$
+                has:
+                  kind: block_node
+                  has:
+                    kind: block_mapping
+                    has:
+                      kind: block_mapping_pair
+                      has:
+                        field: key
+                        kind: flow_node
+                        regex: ^(defaults)$
+                      regex: \bshell\s*:\s*
+          - inside:
+              stopBy: end
+              kind: document
+              has:
+                kind: block_node
+                has:
+                  kind: block_mapping
+                  has:
+                    kind: block_mapping_pair
+                    has:
+                      field: key
+                      kind: flow_node
+                      regex: ^(defaults)$
+                    regex: \bshell\s*:\s*(?:['\"]?(?:bash|sh)['\"]?[ \t]*(?:#[^\n]*)?(?:$|\r?\n|[,}])|['\"]?(?:/[\w./-]*/)?(?:bash|sh|dash|zsh|ksh)(?:[ \t]+[^\s{][^\s]*)*?[ \t]+(?:-[a-zA-Z]*e[a-zA-Z]*|-o[ \t]+errexit)(?:[ \t]+[^\s{][^\s]*)*[ \t]+\{0\})
+      - all:
+        - all:
+          - not:
+              inside:
+                stopBy: end
+                kind: block_sequence_item
+                inside:
+                  kind: block_sequence
+                  inside:
+                    kind: block_node
+                    inside:
+                      kind: block_mapping_pair
+                      has:
+                        field: key
+                        kind: flow_node
+                        regex: ^(steps)$
+                has:
+                  kind: block_node
+                  has:
+                    kind: block_mapping
+                    has:
+                      kind: block_mapping_pair
+                      has:
+                        field: key
+                        kind: flow_node
+                        regex: ^(shell)$
+          - not:
+              inside:
+                stopBy: end
+                kind: block_mapping_pair
+                inside:
+                  kind: block_mapping
+                  inside:
+                    kind: block_node
+                    inside:
+                      kind: block_mapping_pair
+                      has:
+                        field: key
+                        kind: flow_node
+                        regex: ^(jobs)$
+                has:
+                  kind: block_node
+                  has:
+                    kind: block_mapping
+                    has:
+                      kind: block_mapping_pair
+                      has:
+                        field: key
+                        kind: flow_node
+                        regex: ^(defaults)$
+                      regex: \bshell\s*:\s*
+          - not:
+              inside:
+                stopBy: end
+                kind: document
+                has:
+                  kind: block_node
+                  has:
+                    kind: block_mapping
+                    has:
+                      kind: block_mapping_pair
+                      has:
+                        field: key
+                        kind: flow_node
+                        regex: ^(defaults)$
+                      regex: \bshell\s*:\s*
+        - inside:
+            stopBy: end
+            kind: block_mapping_pair
+            inside:
+              kind: block_mapping
+              inside:
+                kind: block_node
+                inside:
+                  kind: block_mapping_pair
+                  has:
+                    field: key
+                    kind: flow_node
+                    regex: ^(jobs)$
+            has:
+              kind: block_node
+              has:
+                kind: block_mapping
+                has:
+                  kind: block_mapping_pair
+                  has:
+                    field: key
+                    kind: flow_node
+                    regex: ^(runs-on)$
+                  regex: ^runs-on\s*:\s*['\"]?(ubuntu|macos)-[\w.-]+['\"]?[ \t]*(#[^\n]*)?$
+    - all:
+      - any:
+        - any:
+          - inside:
+              stopBy: end
+              kind: block_sequence_item
+              inside:
+                kind: block_sequence
+                inside:
+                  kind: block_node
+                  inside:
+                    kind: block_mapping_pair
+                    has:
+                      field: key
+                      kind: flow_node
+                      regex: ^(steps)$
+              has:
+                kind: block_node
+                has:
+                  kind: block_mapping
+                  has:
+                    kind: block_mapping_pair
+                    has:
+                      field: key
+                      kind: flow_node
+                      regex: ^(shell)$
+                    regex: ^shell\s*:\s*(?:(?:['\"]?(?:bash|sh)['\"]?[ \t]*(?:#[^\n]*)?(?:$|\r?\n|[,}])|['\"]?(?:/[\w./-]*/)?(?:bash|sh|dash|zsh|ksh)(?:[ \t]+[^\s{][^\s]*)*?[ \t]+(?:-[a-zA-Z]*e[a-zA-Z]*|-o[ \t]+errexit)(?:[ \t]+[^\s{][^\s]*)*[ \t]+\{0\})|['\"]?(?:/[\w./-]*/)?(?:bash|sh|dash|zsh|ksh)[ \t][^\n{]*\{0\}|['\"]?(?:pwsh|powershell)['\"]?[ \t]*(?:#[^\n]*)?(?:$|\r?\n|[,}]))
+          - all:
+            - not:
+                inside:
+                  stopBy: end
+                  kind: block_sequence_item
+                  inside:
+                    kind: block_sequence
+                    inside:
+                      kind: block_node
+                      inside:
+                        kind: block_mapping_pair
+                        has:
+                          field: key
+                          kind: flow_node
+                          regex: ^(steps)$
+                  has:
+                    kind: block_node
+                    has:
+                      kind: block_mapping
+                      has:
+                        kind: block_mapping_pair
+                        has:
+                          field: key
+                          kind: flow_node
+                          regex: ^(shell)$
+            - inside:
+                stopBy: end
+                kind: block_mapping_pair
+                inside:
+                  kind: block_mapping
+                  inside:
+                    kind: block_node
+                    inside:
+                      kind: block_mapping_pair
+                      has:
+                        field: key
+                        kind: flow_node
+                        regex: ^(jobs)$
+                has:
+                  kind: block_node
+                  has:
+                    kind: block_mapping
+                    has:
+                      kind: block_mapping_pair
+                      has:
+                        field: key
+                        kind: flow_node
+                        regex: ^(defaults)$
+                      regex: \bshell\s*:\s*(?:(?:['\"]?(?:bash|sh)['\"]?[ \t]*(?:#[^\n]*)?(?:$|\r?\n|[,}])|['\"]?(?:/[\w./-]*/)?(?:bash|sh|dash|zsh|ksh)(?:[ \t]+[^\s{][^\s]*)*?[ \t]+(?:-[a-zA-Z]*e[a-zA-Z]*|-o[ \t]+errexit)(?:[ \t]+[^\s{][^\s]*)*[ \t]+\{0\})|['\"]?(?:/[\w./-]*/)?(?:bash|sh|dash|zsh|ksh)[ \t][^\n{]*\{0\}|['\"]?(?:pwsh|powershell)['\"]?[ \t]*(?:#[^\n]*)?(?:$|\r?\n|[,}]))
+          - all:
+            - not:
+                inside:
+                  stopBy: end
+                  kind: block_sequence_item
+                  inside:
+                    kind: block_sequence
+                    inside:
+                      kind: block_node
+                      inside:
+                        kind: block_mapping_pair
+                        has:
+                          field: key
+                          kind: flow_node
+                          regex: ^(steps)$
+                  has:
+                    kind: block_node
+                    has:
+                      kind: block_mapping
+                      has:
+                        kind: block_mapping_pair
+                        has:
+                          field: key
+                          kind: flow_node
+                          regex: ^(shell)$
+            - not:
+                inside:
+                  stopBy: end
+                  kind: block_mapping_pair
+                  inside:
+                    kind: block_mapping
+                    inside:
+                      kind: block_node
+                      inside:
+                        kind: block_mapping_pair
+                        has:
+                          field: key
+                          kind: flow_node
+                          regex: ^(jobs)$
+                  has:
+                    kind: block_node
+                    has:
+                      kind: block_mapping
+                      has:
+                        kind: block_mapping_pair
+                        has:
+                          field: key
+                          kind: flow_node
+                          regex: ^(defaults)$
+                        regex: \bshell\s*:\s*
+            - inside:
+                stopBy: end
+                kind: document
+                has:
+                  kind: block_node
+                  has:
+                    kind: block_mapping
+                    has:
+                      kind: block_mapping_pair
+                      has:
+                        field: key
+                        kind: flow_node
+                        regex: ^(defaults)$
+                      regex: \bshell\s*:\s*(?:(?:['\"]?(?:bash|sh)['\"]?[ \t]*(?:#[^\n]*)?(?:$|\r?\n|[,}])|['\"]?(?:/[\w./-]*/)?(?:bash|sh|dash|zsh|ksh)(?:[ \t]+[^\s{][^\s]*)*?[ \t]+(?:-[a-zA-Z]*e[a-zA-Z]*|-o[ \t]+errexit)(?:[ \t]+[^\s{][^\s]*)*[ \t]+\{0\})|['\"]?(?:/[\w./-]*/)?(?:bash|sh|dash|zsh|ksh)[ \t][^\n{]*\{0\}|['\"]?(?:pwsh|powershell)['\"]?[ \t]*(?:#[^\n]*)?(?:$|\r?\n|[,}]))
+        - all:
+          - not:
+              inside:
+                stopBy: end
+                kind: block_sequence_item
+                inside:
+                  kind: block_sequence
+                  inside:
+                    kind: block_node
+                    inside:
+                      kind: block_mapping_pair
+                      has:
+                        field: key
+                        kind: flow_node
+                        regex: ^(steps)$
+                has:
+                  kind: block_node
+                  has:
+                    kind: block_mapping
+                    has:
+                      kind: block_mapping_pair
+                      has:
+                        field: key
+                        kind: flow_node
+                        regex: ^(shell)$
+          - not:
+              inside:
+                stopBy: end
+                kind: block_mapping_pair
+                inside:
+                  kind: block_mapping
+                  inside:
+                    kind: block_node
+                    inside:
+                      kind: block_mapping_pair
+                      has:
+                        field: key
+                        kind: flow_node
+                        regex: ^(jobs)$
+                has:
+                  kind: block_node
+                  has:
+                    kind: block_mapping
+                    has:
+                      kind: block_mapping_pair
+                      has:
+                        field: key
+                        kind: flow_node
+                        regex: ^(defaults)$
+                      regex: \bshell\s*:\s*
+          - not:
+              inside:
+                stopBy: end
+                kind: document
+                has:
+                  kind: block_node
+                  has:
+                    kind: block_mapping
+                    has:
+                      kind: block_mapping_pair
+                      has:
+                        field: key
+                        kind: flow_node
+                        regex: ^(defaults)$
+                      regex: \bshell\s*:\s*
+      - any:
+        - all:
+          - kind: block_mapping_pair
+            has:
+              field: key
+              kind: flow_node
+              regex: ^(run)$
+            regex: (?:^run\s*:\s*(?:[&!][^\s]*[ \t]+)*[|>]?[-+0-9]*[ \t]*(?:#[^\n]*)?\n|[^\\|&\n][ \t\r]*\n|^run\s*:\s*(?:[&!][^\s]*[ \t]+)*)[ \t]*(?:[^\n#]*(?:;|&&)[ \t]*)?(?:(npm\s+audit|pnpm\s+audit|yarn\s+npm\s+audit)\b|(?:(osv-scanner|snyk\s+test)\b|trivy\b)(?:[^&;|\n\\#'\"`]|'[^'\n]*'|\"[^\"\n`\\]*\"|>&|&&)*(package-lock\.json|npm-shrinkwrap\.json|pnpm-lock\.yaml|yarn\.lock|bun\.lockb?)\b)(?:[^&;|\n\\#'\"`]|'[^'\n]*'|\"[^\"\n`\\]*\"|>&|&&)*(?:[ \t\r]+#[^\n]*)?(?:\s|#[^\n]*)*$
+          - not:
+              kind: block_mapping_pair
+              regex: ^run\s*:\s*(?:[&!][^\s]*[ \t]+)*(>|[^\s|>#&!][^\n]*\n)
+        - all:
+          - kind: block_mapping_pair
+            has:
+              field: key
+              kind: flow_node
+              regex: ^(run)$
+            regex: (?:^run\s*:\s*(?:[&!][^\s]*[ \t]+)*(?:>[^\n]*\n)?|\n[ \t\r]*\r?\n)\s*(?:[^#]*?(?:;|&&)\s*)?(?:(npm\s+audit|pnpm\s+audit|yarn\s+npm\s+audit)\b|(?:(osv-scanner|snyk\s+test)\b|trivy\b)(?:[^&;|\n\\#'\"`]|'[^'\n]*'|\"[^\"\n`\\]*\"|>&|&&)*(package-lock\.json|npm-shrinkwrap\.json|pnpm-lock\.yaml|yarn\.lock|bun\.lockb?)\b)(?:[^&;|\n\\#'\"`]|'[^'\n]*'|\"[^\"\n`\\]*\"|>&|&&)*(?:[ \t\r]+#[^\n]*)?(?:\s|#[^\n]*)*$
+          - kind: block_mapping_pair
+            regex: ^run\s*:\s*(?:[&!][^\s]*[ \t]+)*(>|[^\s|>#&!][^\n]*\n)
 min_engine: 0.45.3
 ---
 # scan-pip: a step in a workflow that runs on every pull request (no branch or path filter), with no if: and
 # continue-on-error absent or false, that runs pip-audit, or osv-scanner, snyk test or trivy (exit code non-zero)
-# naming a pip lockfile and fails the job on high or critical findings. Evidence: the scan piece for pip.
+# naming a pip lockfile and fails the job on high or critical findings: under a shell that stops on a failed command
+# (GitHub's bash -e on a Linux or macOS runner, shell: bash or sh, a template with -e), or else as the run's last
+# command. Evidence: the scan piece for pip.
 id: dependency-scanning-ci.yaml-github_actions.scan-pip
 practice_id: dependency-scanning-ci
 language: yaml
@@ -903,7 +1379,13 @@ rule:
           regex: (?s:^run\s*:\s*(?:[&!][^\s]*[ \t]+)*(?:>[-+0-9]*.*|[^\s|>#&!].*|)pip-audit\b(?:\$'(?:[^'\\]|\\(?s:.))*'|[^&'\"\\|<>]|\\(?s:.)|\"(?:[^\"\\]|\\(?s:.)|\$\([^()]*\))*\"|'[^']*'|&&|&>|[<>]&|[<>][^&]|[<>]$|\|\|?)*&([^&>]|$))
       - not:
           kind: block_mapping_pair
-          regex: \bset\s+\+e\b
+          regex: \bset\s+(\+[a-zA-Z]*e[a-zA-Z]*|\+o\s+errexit)\b
+      - not:
+          kind: block_mapping_pair
+          regex: \btrap\b[^\n]*\b(EXIT|ERR|0)\b
+      - not:
+          kind: block_mapping_pair
+          regex: \|\|\s*pip-audit\b
       - not:
           kind: block_mapping_pair
           regex: npm\s+audit\s+(fix|signatures)\b
@@ -1001,7 +1483,13 @@ rule:
           regex: (?s:^run\s*:\s*(?:[&!][^\s]*[ \t]+)*(?:>[-+0-9]*.*|[^\s|>#&!].*|)(osv-scanner|snyk\s+test|trivy\s+(fs|filesystem|repo|repository|rootfs))\b(?:\$'(?:[^'\\]|\\(?s:.))*'|[^&'\"\\|<>]|\\(?s:.)|\"(?:[^\"\\]|\\(?s:.)|\$\([^()]*\))*\"|'[^']*'|&&|&>|[<>]&|[<>][^&]|[<>]$|\|\|?)*&([^&>]|$))
       - not:
           kind: block_mapping_pair
-          regex: \bset\s+\+e\b
+          regex: \bset\s+(\+[a-zA-Z]*e[a-zA-Z]*|\+o\s+errexit)\b
+      - not:
+          kind: block_mapping_pair
+          regex: \btrap\b[^\n]*\b(EXIT|ERR|0)\b
+      - not:
+          kind: block_mapping_pair
+          regex: \|\|\s*(osv-scanner|snyk\s+test|trivy\s+(fs|filesystem|repo|repository|rootfs))\b
       - not:
           all:
           - kind: block_mapping_pair
@@ -1082,7 +1570,13 @@ rule:
           regex: (?s:^run\s*:\s*(?:[&!][^\s]*[ \t]+)*(?:>[-+0-9]*.*|[^\s|>#&!].*|)(osv-scanner|snyk\s+test|trivy\s+(fs|filesystem|repo|repository|rootfs))\b(?:\$'(?:[^'\\]|\\(?s:.))*'|[^&'\"\\|<>]|\\(?s:.)|\"(?:[^\"\\]|\\(?s:.)|\$\([^()]*\))*\"|'[^']*'|&&|&>|[<>]&|[<>][^&]|[<>]$|\|\|?)*&([^&>]|$))
       - not:
           kind: block_mapping_pair
-          regex: \bset\s+\+e\b
+          regex: \bset\s+(\+[a-zA-Z]*e[a-zA-Z]*|\+o\s+errexit)\b
+      - not:
+          kind: block_mapping_pair
+          regex: \btrap\b[^\n]*\b(EXIT|ERR|0)\b
+      - not:
+          kind: block_mapping_pair
+          regex: \|\|\s*(osv-scanner|snyk\s+test|trivy\s+(fs|filesystem|repo|repository|rootfs))\b
       - not:
           kind: block_mapping_pair
           regex: (trivy\b([^\n]*(\\|&&|\|\|?)[ \t\r]*\n)*[^\n]*--exit-code(=|[ \t]+)['\"]?([^1-9\s'\"]|[1-9][0-9]{3,}|[3-9][0-9]{2}|2[6-9][0-9]|25[6-9]|(25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[1-9][0-9]?)[^\s'\";&|0-9])|(?s:^run\s*:\s*(?:[&!][^\s]*[ \t]+)*(?:>[-+0-9]*.*|[^\s|>#&!].*|)trivy\b.*--exit-code(=|[ \t]+)['\"]?([^1-9\s'\"]|[1-9][0-9]{3,}|[3-9][0-9]{2}|2[6-9][0-9]|25[6-9]|(25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[1-9][0-9]?)[^\s'\";&|0-9])))
@@ -1344,11 +1838,468 @@ rule:
                     not:
                       kind: block_mapping_pair
                       regex: '\b(branches|branches-ignore|paths|paths-ignore)\s*:'
+  - any:
+    - any:
+      - any:
+        - inside:
+            stopBy: end
+            kind: block_sequence_item
+            inside:
+              kind: block_sequence
+              inside:
+                kind: block_node
+                inside:
+                  kind: block_mapping_pair
+                  has:
+                    field: key
+                    kind: flow_node
+                    regex: ^(steps)$
+            has:
+              kind: block_node
+              has:
+                kind: block_mapping
+                has:
+                  kind: block_mapping_pair
+                  has:
+                    field: key
+                    kind: flow_node
+                    regex: ^(shell)$
+                  regex: ^shell\s*:\s*(?:['\"]?(?:bash|sh)['\"]?[ \t]*(?:#[^\n]*)?(?:$|\r?\n|[,}])|['\"]?(?:/[\w./-]*/)?(?:bash|sh|dash|zsh|ksh)(?:[ \t]+[^\s{][^\s]*)*?[ \t]+(?:-[a-zA-Z]*e[a-zA-Z]*|-o[ \t]+errexit)(?:[ \t]+[^\s{][^\s]*)*[ \t]+\{0\})
+        - all:
+          - not:
+              inside:
+                stopBy: end
+                kind: block_sequence_item
+                inside:
+                  kind: block_sequence
+                  inside:
+                    kind: block_node
+                    inside:
+                      kind: block_mapping_pair
+                      has:
+                        field: key
+                        kind: flow_node
+                        regex: ^(steps)$
+                has:
+                  kind: block_node
+                  has:
+                    kind: block_mapping
+                    has:
+                      kind: block_mapping_pair
+                      has:
+                        field: key
+                        kind: flow_node
+                        regex: ^(shell)$
+          - inside:
+              stopBy: end
+              kind: block_mapping_pair
+              inside:
+                kind: block_mapping
+                inside:
+                  kind: block_node
+                  inside:
+                    kind: block_mapping_pair
+                    has:
+                      field: key
+                      kind: flow_node
+                      regex: ^(jobs)$
+              has:
+                kind: block_node
+                has:
+                  kind: block_mapping
+                  has:
+                    kind: block_mapping_pair
+                    has:
+                      field: key
+                      kind: flow_node
+                      regex: ^(defaults)$
+                    regex: \bshell\s*:\s*(?:['\"]?(?:bash|sh)['\"]?[ \t]*(?:#[^\n]*)?(?:$|\r?\n|[,}])|['\"]?(?:/[\w./-]*/)?(?:bash|sh|dash|zsh|ksh)(?:[ \t]+[^\s{][^\s]*)*?[ \t]+(?:-[a-zA-Z]*e[a-zA-Z]*|-o[ \t]+errexit)(?:[ \t]+[^\s{][^\s]*)*[ \t]+\{0\})
+        - all:
+          - not:
+              inside:
+                stopBy: end
+                kind: block_sequence_item
+                inside:
+                  kind: block_sequence
+                  inside:
+                    kind: block_node
+                    inside:
+                      kind: block_mapping_pair
+                      has:
+                        field: key
+                        kind: flow_node
+                        regex: ^(steps)$
+                has:
+                  kind: block_node
+                  has:
+                    kind: block_mapping
+                    has:
+                      kind: block_mapping_pair
+                      has:
+                        field: key
+                        kind: flow_node
+                        regex: ^(shell)$
+          - not:
+              inside:
+                stopBy: end
+                kind: block_mapping_pair
+                inside:
+                  kind: block_mapping
+                  inside:
+                    kind: block_node
+                    inside:
+                      kind: block_mapping_pair
+                      has:
+                        field: key
+                        kind: flow_node
+                        regex: ^(jobs)$
+                has:
+                  kind: block_node
+                  has:
+                    kind: block_mapping
+                    has:
+                      kind: block_mapping_pair
+                      has:
+                        field: key
+                        kind: flow_node
+                        regex: ^(defaults)$
+                      regex: \bshell\s*:\s*
+          - inside:
+              stopBy: end
+              kind: document
+              has:
+                kind: block_node
+                has:
+                  kind: block_mapping
+                  has:
+                    kind: block_mapping_pair
+                    has:
+                      field: key
+                      kind: flow_node
+                      regex: ^(defaults)$
+                    regex: \bshell\s*:\s*(?:['\"]?(?:bash|sh)['\"]?[ \t]*(?:#[^\n]*)?(?:$|\r?\n|[,}])|['\"]?(?:/[\w./-]*/)?(?:bash|sh|dash|zsh|ksh)(?:[ \t]+[^\s{][^\s]*)*?[ \t]+(?:-[a-zA-Z]*e[a-zA-Z]*|-o[ \t]+errexit)(?:[ \t]+[^\s{][^\s]*)*[ \t]+\{0\})
+      - all:
+        - all:
+          - not:
+              inside:
+                stopBy: end
+                kind: block_sequence_item
+                inside:
+                  kind: block_sequence
+                  inside:
+                    kind: block_node
+                    inside:
+                      kind: block_mapping_pair
+                      has:
+                        field: key
+                        kind: flow_node
+                        regex: ^(steps)$
+                has:
+                  kind: block_node
+                  has:
+                    kind: block_mapping
+                    has:
+                      kind: block_mapping_pair
+                      has:
+                        field: key
+                        kind: flow_node
+                        regex: ^(shell)$
+          - not:
+              inside:
+                stopBy: end
+                kind: block_mapping_pair
+                inside:
+                  kind: block_mapping
+                  inside:
+                    kind: block_node
+                    inside:
+                      kind: block_mapping_pair
+                      has:
+                        field: key
+                        kind: flow_node
+                        regex: ^(jobs)$
+                has:
+                  kind: block_node
+                  has:
+                    kind: block_mapping
+                    has:
+                      kind: block_mapping_pair
+                      has:
+                        field: key
+                        kind: flow_node
+                        regex: ^(defaults)$
+                      regex: \bshell\s*:\s*
+          - not:
+              inside:
+                stopBy: end
+                kind: document
+                has:
+                  kind: block_node
+                  has:
+                    kind: block_mapping
+                    has:
+                      kind: block_mapping_pair
+                      has:
+                        field: key
+                        kind: flow_node
+                        regex: ^(defaults)$
+                      regex: \bshell\s*:\s*
+        - inside:
+            stopBy: end
+            kind: block_mapping_pair
+            inside:
+              kind: block_mapping
+              inside:
+                kind: block_node
+                inside:
+                  kind: block_mapping_pair
+                  has:
+                    field: key
+                    kind: flow_node
+                    regex: ^(jobs)$
+            has:
+              kind: block_node
+              has:
+                kind: block_mapping
+                has:
+                  kind: block_mapping_pair
+                  has:
+                    field: key
+                    kind: flow_node
+                    regex: ^(runs-on)$
+                  regex: ^runs-on\s*:\s*['\"]?(ubuntu|macos)-[\w.-]+['\"]?[ \t]*(#[^\n]*)?$
+    - all:
+      - any:
+        - any:
+          - inside:
+              stopBy: end
+              kind: block_sequence_item
+              inside:
+                kind: block_sequence
+                inside:
+                  kind: block_node
+                  inside:
+                    kind: block_mapping_pair
+                    has:
+                      field: key
+                      kind: flow_node
+                      regex: ^(steps)$
+              has:
+                kind: block_node
+                has:
+                  kind: block_mapping
+                  has:
+                    kind: block_mapping_pair
+                    has:
+                      field: key
+                      kind: flow_node
+                      regex: ^(shell)$
+                    regex: ^shell\s*:\s*(?:(?:['\"]?(?:bash|sh)['\"]?[ \t]*(?:#[^\n]*)?(?:$|\r?\n|[,}])|['\"]?(?:/[\w./-]*/)?(?:bash|sh|dash|zsh|ksh)(?:[ \t]+[^\s{][^\s]*)*?[ \t]+(?:-[a-zA-Z]*e[a-zA-Z]*|-o[ \t]+errexit)(?:[ \t]+[^\s{][^\s]*)*[ \t]+\{0\})|['\"]?(?:/[\w./-]*/)?(?:bash|sh|dash|zsh|ksh)[ \t][^\n{]*\{0\}|['\"]?(?:pwsh|powershell)['\"]?[ \t]*(?:#[^\n]*)?(?:$|\r?\n|[,}]))
+          - all:
+            - not:
+                inside:
+                  stopBy: end
+                  kind: block_sequence_item
+                  inside:
+                    kind: block_sequence
+                    inside:
+                      kind: block_node
+                      inside:
+                        kind: block_mapping_pair
+                        has:
+                          field: key
+                          kind: flow_node
+                          regex: ^(steps)$
+                  has:
+                    kind: block_node
+                    has:
+                      kind: block_mapping
+                      has:
+                        kind: block_mapping_pair
+                        has:
+                          field: key
+                          kind: flow_node
+                          regex: ^(shell)$
+            - inside:
+                stopBy: end
+                kind: block_mapping_pair
+                inside:
+                  kind: block_mapping
+                  inside:
+                    kind: block_node
+                    inside:
+                      kind: block_mapping_pair
+                      has:
+                        field: key
+                        kind: flow_node
+                        regex: ^(jobs)$
+                has:
+                  kind: block_node
+                  has:
+                    kind: block_mapping
+                    has:
+                      kind: block_mapping_pair
+                      has:
+                        field: key
+                        kind: flow_node
+                        regex: ^(defaults)$
+                      regex: \bshell\s*:\s*(?:(?:['\"]?(?:bash|sh)['\"]?[ \t]*(?:#[^\n]*)?(?:$|\r?\n|[,}])|['\"]?(?:/[\w./-]*/)?(?:bash|sh|dash|zsh|ksh)(?:[ \t]+[^\s{][^\s]*)*?[ \t]+(?:-[a-zA-Z]*e[a-zA-Z]*|-o[ \t]+errexit)(?:[ \t]+[^\s{][^\s]*)*[ \t]+\{0\})|['\"]?(?:/[\w./-]*/)?(?:bash|sh|dash|zsh|ksh)[ \t][^\n{]*\{0\}|['\"]?(?:pwsh|powershell)['\"]?[ \t]*(?:#[^\n]*)?(?:$|\r?\n|[,}]))
+          - all:
+            - not:
+                inside:
+                  stopBy: end
+                  kind: block_sequence_item
+                  inside:
+                    kind: block_sequence
+                    inside:
+                      kind: block_node
+                      inside:
+                        kind: block_mapping_pair
+                        has:
+                          field: key
+                          kind: flow_node
+                          regex: ^(steps)$
+                  has:
+                    kind: block_node
+                    has:
+                      kind: block_mapping
+                      has:
+                        kind: block_mapping_pair
+                        has:
+                          field: key
+                          kind: flow_node
+                          regex: ^(shell)$
+            - not:
+                inside:
+                  stopBy: end
+                  kind: block_mapping_pair
+                  inside:
+                    kind: block_mapping
+                    inside:
+                      kind: block_node
+                      inside:
+                        kind: block_mapping_pair
+                        has:
+                          field: key
+                          kind: flow_node
+                          regex: ^(jobs)$
+                  has:
+                    kind: block_node
+                    has:
+                      kind: block_mapping
+                      has:
+                        kind: block_mapping_pair
+                        has:
+                          field: key
+                          kind: flow_node
+                          regex: ^(defaults)$
+                        regex: \bshell\s*:\s*
+            - inside:
+                stopBy: end
+                kind: document
+                has:
+                  kind: block_node
+                  has:
+                    kind: block_mapping
+                    has:
+                      kind: block_mapping_pair
+                      has:
+                        field: key
+                        kind: flow_node
+                        regex: ^(defaults)$
+                      regex: \bshell\s*:\s*(?:(?:['\"]?(?:bash|sh)['\"]?[ \t]*(?:#[^\n]*)?(?:$|\r?\n|[,}])|['\"]?(?:/[\w./-]*/)?(?:bash|sh|dash|zsh|ksh)(?:[ \t]+[^\s{][^\s]*)*?[ \t]+(?:-[a-zA-Z]*e[a-zA-Z]*|-o[ \t]+errexit)(?:[ \t]+[^\s{][^\s]*)*[ \t]+\{0\})|['\"]?(?:/[\w./-]*/)?(?:bash|sh|dash|zsh|ksh)[ \t][^\n{]*\{0\}|['\"]?(?:pwsh|powershell)['\"]?[ \t]*(?:#[^\n]*)?(?:$|\r?\n|[,}]))
+        - all:
+          - not:
+              inside:
+                stopBy: end
+                kind: block_sequence_item
+                inside:
+                  kind: block_sequence
+                  inside:
+                    kind: block_node
+                    inside:
+                      kind: block_mapping_pair
+                      has:
+                        field: key
+                        kind: flow_node
+                        regex: ^(steps)$
+                has:
+                  kind: block_node
+                  has:
+                    kind: block_mapping
+                    has:
+                      kind: block_mapping_pair
+                      has:
+                        field: key
+                        kind: flow_node
+                        regex: ^(shell)$
+          - not:
+              inside:
+                stopBy: end
+                kind: block_mapping_pair
+                inside:
+                  kind: block_mapping
+                  inside:
+                    kind: block_node
+                    inside:
+                      kind: block_mapping_pair
+                      has:
+                        field: key
+                        kind: flow_node
+                        regex: ^(jobs)$
+                has:
+                  kind: block_node
+                  has:
+                    kind: block_mapping
+                    has:
+                      kind: block_mapping_pair
+                      has:
+                        field: key
+                        kind: flow_node
+                        regex: ^(defaults)$
+                      regex: \bshell\s*:\s*
+          - not:
+              inside:
+                stopBy: end
+                kind: document
+                has:
+                  kind: block_node
+                  has:
+                    kind: block_mapping
+                    has:
+                      kind: block_mapping_pair
+                      has:
+                        field: key
+                        kind: flow_node
+                        regex: ^(defaults)$
+                      regex: \bshell\s*:\s*
+      - any:
+        - all:
+          - kind: block_mapping_pair
+            has:
+              field: key
+              kind: flow_node
+              regex: ^(run)$
+            regex: (?:^run\s*:\s*(?:[&!][^\s]*[ \t]+)*[|>]?[-+0-9]*[ \t]*(?:#[^\n]*)?\n|[^\\|&\n][ \t\r]*\n|^run\s*:\s*(?:[&!][^\s]*[ \t]+)*)[ \t]*(?:[^\n#]*(?:;|&&)[ \t]*)?(?:pip-audit\b|(?:(osv-scanner|snyk\s+test)\b|trivy\b)(?:[^&;|\n\\#'\"`]|'[^'\n]*'|\"[^\"\n`\\]*\"|>&|&&)*(requirements[\w.-]*\.txt|poetry\.lock|Pipfile\.lock|uv\.lock|pylock[\w.-]*\.toml)\b)(?:[^&;|\n\\#'\"`]|'[^'\n]*'|\"[^\"\n`\\]*\"|>&|&&)*(?:[ \t\r]+#[^\n]*)?(?:\s|#[^\n]*)*$
+          - not:
+              kind: block_mapping_pair
+              regex: ^run\s*:\s*(?:[&!][^\s]*[ \t]+)*(>|[^\s|>#&!][^\n]*\n)
+        - all:
+          - kind: block_mapping_pair
+            has:
+              field: key
+              kind: flow_node
+              regex: ^(run)$
+            regex: (?:^run\s*:\s*(?:[&!][^\s]*[ \t]+)*(?:>[^\n]*\n)?|\n[ \t\r]*\r?\n)\s*(?:[^#]*?(?:;|&&)\s*)?(?:pip-audit\b|(?:(osv-scanner|snyk\s+test)\b|trivy\b)(?:[^&;|\n\\#'\"`]|'[^'\n]*'|\"[^\"\n`\\]*\"|>&|&&)*(requirements[\w.-]*\.txt|poetry\.lock|Pipfile\.lock|uv\.lock|pylock[\w.-]*\.toml)\b)(?:[^&;|\n\\#'\"`]|'[^'\n]*'|\"[^\"\n`\\]*\"|>&|&&)*(?:[ \t\r]+#[^\n]*)?(?:\s|#[^\n]*)*$
+          - kind: block_mapping_pair
+            regex: ^run\s*:\s*(?:[&!][^\s]*[ \t]+)*(>|[^\s|>#&!][^\n]*\n)
 min_engine: 0.45.3
 ---
 # scan-bundler: a step in a workflow that runs on every pull request (no branch or path filter), with no if: and
 # continue-on-error absent or false, that runs osv-scanner, snyk test or trivy (exit code non-zero) naming a bundler
-# lockfile or manifest and fails the job on high or critical findings. Evidence: the scan piece for bundler.
+# lockfile or manifest and fails the job on high or critical findings: under a shell that stops on a failed command
+# (GitHub's bash -e on a Linux or macOS runner, shell: bash or sh, a template with -e), or else as the run's last
+# command. Evidence: the scan piece for bundler.
 id: dependency-scanning-ci.yaml-github_actions.scan-bundler
 practice_id: dependency-scanning-ci
 language: yaml
@@ -1406,7 +2357,13 @@ rule:
           regex: (?s:^run\s*:\s*(?:[&!][^\s]*[ \t]+)*(?:>[-+0-9]*.*|[^\s|>#&!].*|)(osv-scanner|snyk\s+test|trivy\s+(fs|filesystem|repo|repository|rootfs))\b(?:\$'(?:[^'\\]|\\(?s:.))*'|[^&'\"\\|<>]|\\(?s:.)|\"(?:[^\"\\]|\\(?s:.)|\$\([^()]*\))*\"|'[^']*'|&&|&>|[<>]&|[<>][^&]|[<>]$|\|\|?)*&([^&>]|$))
       - not:
           kind: block_mapping_pair
-          regex: \bset\s+\+e\b
+          regex: \bset\s+(\+[a-zA-Z]*e[a-zA-Z]*|\+o\s+errexit)\b
+      - not:
+          kind: block_mapping_pair
+          regex: \btrap\b[^\n]*\b(EXIT|ERR|0)\b
+      - not:
+          kind: block_mapping_pair
+          regex: \|\|\s*(osv-scanner|snyk\s+test|trivy\s+(fs|filesystem|repo|repository|rootfs))\b
       - not:
           all:
           - kind: block_mapping_pair
@@ -1487,7 +2444,13 @@ rule:
           regex: (?s:^run\s*:\s*(?:[&!][^\s]*[ \t]+)*(?:>[-+0-9]*.*|[^\s|>#&!].*|)(osv-scanner|snyk\s+test|trivy\s+(fs|filesystem|repo|repository|rootfs))\b(?:\$'(?:[^'\\]|\\(?s:.))*'|[^&'\"\\|<>]|\\(?s:.)|\"(?:[^\"\\]|\\(?s:.)|\$\([^()]*\))*\"|'[^']*'|&&|&>|[<>]&|[<>][^&]|[<>]$|\|\|?)*&([^&>]|$))
       - not:
           kind: block_mapping_pair
-          regex: \bset\s+\+e\b
+          regex: \bset\s+(\+[a-zA-Z]*e[a-zA-Z]*|\+o\s+errexit)\b
+      - not:
+          kind: block_mapping_pair
+          regex: \btrap\b[^\n]*\b(EXIT|ERR|0)\b
+      - not:
+          kind: block_mapping_pair
+          regex: \|\|\s*(osv-scanner|snyk\s+test|trivy\s+(fs|filesystem|repo|repository|rootfs))\b
       - not:
           kind: block_mapping_pair
           regex: (trivy\b([^\n]*(\\|&&|\|\|?)[ \t\r]*\n)*[^\n]*--exit-code(=|[ \t]+)['\"]?([^1-9\s'\"]|[1-9][0-9]{3,}|[3-9][0-9]{2}|2[6-9][0-9]|25[6-9]|(25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[1-9][0-9]?)[^\s'\";&|0-9])|(?s:^run\s*:\s*(?:[&!][^\s]*[ \t]+)*(?:>[-+0-9]*.*|[^\s|>#&!].*|)trivy\b.*--exit-code(=|[ \t]+)['\"]?([^1-9\s'\"]|[1-9][0-9]{3,}|[3-9][0-9]{2}|2[6-9][0-9]|25[6-9]|(25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[1-9][0-9]?)[^\s'\";&|0-9])))
@@ -1749,11 +2712,468 @@ rule:
                     not:
                       kind: block_mapping_pair
                       regex: '\b(branches|branches-ignore|paths|paths-ignore)\s*:'
+  - any:
+    - any:
+      - any:
+        - inside:
+            stopBy: end
+            kind: block_sequence_item
+            inside:
+              kind: block_sequence
+              inside:
+                kind: block_node
+                inside:
+                  kind: block_mapping_pair
+                  has:
+                    field: key
+                    kind: flow_node
+                    regex: ^(steps)$
+            has:
+              kind: block_node
+              has:
+                kind: block_mapping
+                has:
+                  kind: block_mapping_pair
+                  has:
+                    field: key
+                    kind: flow_node
+                    regex: ^(shell)$
+                  regex: ^shell\s*:\s*(?:['\"]?(?:bash|sh)['\"]?[ \t]*(?:#[^\n]*)?(?:$|\r?\n|[,}])|['\"]?(?:/[\w./-]*/)?(?:bash|sh|dash|zsh|ksh)(?:[ \t]+[^\s{][^\s]*)*?[ \t]+(?:-[a-zA-Z]*e[a-zA-Z]*|-o[ \t]+errexit)(?:[ \t]+[^\s{][^\s]*)*[ \t]+\{0\})
+        - all:
+          - not:
+              inside:
+                stopBy: end
+                kind: block_sequence_item
+                inside:
+                  kind: block_sequence
+                  inside:
+                    kind: block_node
+                    inside:
+                      kind: block_mapping_pair
+                      has:
+                        field: key
+                        kind: flow_node
+                        regex: ^(steps)$
+                has:
+                  kind: block_node
+                  has:
+                    kind: block_mapping
+                    has:
+                      kind: block_mapping_pair
+                      has:
+                        field: key
+                        kind: flow_node
+                        regex: ^(shell)$
+          - inside:
+              stopBy: end
+              kind: block_mapping_pair
+              inside:
+                kind: block_mapping
+                inside:
+                  kind: block_node
+                  inside:
+                    kind: block_mapping_pair
+                    has:
+                      field: key
+                      kind: flow_node
+                      regex: ^(jobs)$
+              has:
+                kind: block_node
+                has:
+                  kind: block_mapping
+                  has:
+                    kind: block_mapping_pair
+                    has:
+                      field: key
+                      kind: flow_node
+                      regex: ^(defaults)$
+                    regex: \bshell\s*:\s*(?:['\"]?(?:bash|sh)['\"]?[ \t]*(?:#[^\n]*)?(?:$|\r?\n|[,}])|['\"]?(?:/[\w./-]*/)?(?:bash|sh|dash|zsh|ksh)(?:[ \t]+[^\s{][^\s]*)*?[ \t]+(?:-[a-zA-Z]*e[a-zA-Z]*|-o[ \t]+errexit)(?:[ \t]+[^\s{][^\s]*)*[ \t]+\{0\})
+        - all:
+          - not:
+              inside:
+                stopBy: end
+                kind: block_sequence_item
+                inside:
+                  kind: block_sequence
+                  inside:
+                    kind: block_node
+                    inside:
+                      kind: block_mapping_pair
+                      has:
+                        field: key
+                        kind: flow_node
+                        regex: ^(steps)$
+                has:
+                  kind: block_node
+                  has:
+                    kind: block_mapping
+                    has:
+                      kind: block_mapping_pair
+                      has:
+                        field: key
+                        kind: flow_node
+                        regex: ^(shell)$
+          - not:
+              inside:
+                stopBy: end
+                kind: block_mapping_pair
+                inside:
+                  kind: block_mapping
+                  inside:
+                    kind: block_node
+                    inside:
+                      kind: block_mapping_pair
+                      has:
+                        field: key
+                        kind: flow_node
+                        regex: ^(jobs)$
+                has:
+                  kind: block_node
+                  has:
+                    kind: block_mapping
+                    has:
+                      kind: block_mapping_pair
+                      has:
+                        field: key
+                        kind: flow_node
+                        regex: ^(defaults)$
+                      regex: \bshell\s*:\s*
+          - inside:
+              stopBy: end
+              kind: document
+              has:
+                kind: block_node
+                has:
+                  kind: block_mapping
+                  has:
+                    kind: block_mapping_pair
+                    has:
+                      field: key
+                      kind: flow_node
+                      regex: ^(defaults)$
+                    regex: \bshell\s*:\s*(?:['\"]?(?:bash|sh)['\"]?[ \t]*(?:#[^\n]*)?(?:$|\r?\n|[,}])|['\"]?(?:/[\w./-]*/)?(?:bash|sh|dash|zsh|ksh)(?:[ \t]+[^\s{][^\s]*)*?[ \t]+(?:-[a-zA-Z]*e[a-zA-Z]*|-o[ \t]+errexit)(?:[ \t]+[^\s{][^\s]*)*[ \t]+\{0\})
+      - all:
+        - all:
+          - not:
+              inside:
+                stopBy: end
+                kind: block_sequence_item
+                inside:
+                  kind: block_sequence
+                  inside:
+                    kind: block_node
+                    inside:
+                      kind: block_mapping_pair
+                      has:
+                        field: key
+                        kind: flow_node
+                        regex: ^(steps)$
+                has:
+                  kind: block_node
+                  has:
+                    kind: block_mapping
+                    has:
+                      kind: block_mapping_pair
+                      has:
+                        field: key
+                        kind: flow_node
+                        regex: ^(shell)$
+          - not:
+              inside:
+                stopBy: end
+                kind: block_mapping_pair
+                inside:
+                  kind: block_mapping
+                  inside:
+                    kind: block_node
+                    inside:
+                      kind: block_mapping_pair
+                      has:
+                        field: key
+                        kind: flow_node
+                        regex: ^(jobs)$
+                has:
+                  kind: block_node
+                  has:
+                    kind: block_mapping
+                    has:
+                      kind: block_mapping_pair
+                      has:
+                        field: key
+                        kind: flow_node
+                        regex: ^(defaults)$
+                      regex: \bshell\s*:\s*
+          - not:
+              inside:
+                stopBy: end
+                kind: document
+                has:
+                  kind: block_node
+                  has:
+                    kind: block_mapping
+                    has:
+                      kind: block_mapping_pair
+                      has:
+                        field: key
+                        kind: flow_node
+                        regex: ^(defaults)$
+                      regex: \bshell\s*:\s*
+        - inside:
+            stopBy: end
+            kind: block_mapping_pair
+            inside:
+              kind: block_mapping
+              inside:
+                kind: block_node
+                inside:
+                  kind: block_mapping_pair
+                  has:
+                    field: key
+                    kind: flow_node
+                    regex: ^(jobs)$
+            has:
+              kind: block_node
+              has:
+                kind: block_mapping
+                has:
+                  kind: block_mapping_pair
+                  has:
+                    field: key
+                    kind: flow_node
+                    regex: ^(runs-on)$
+                  regex: ^runs-on\s*:\s*['\"]?(ubuntu|macos)-[\w.-]+['\"]?[ \t]*(#[^\n]*)?$
+    - all:
+      - any:
+        - any:
+          - inside:
+              stopBy: end
+              kind: block_sequence_item
+              inside:
+                kind: block_sequence
+                inside:
+                  kind: block_node
+                  inside:
+                    kind: block_mapping_pair
+                    has:
+                      field: key
+                      kind: flow_node
+                      regex: ^(steps)$
+              has:
+                kind: block_node
+                has:
+                  kind: block_mapping
+                  has:
+                    kind: block_mapping_pair
+                    has:
+                      field: key
+                      kind: flow_node
+                      regex: ^(shell)$
+                    regex: ^shell\s*:\s*(?:(?:['\"]?(?:bash|sh)['\"]?[ \t]*(?:#[^\n]*)?(?:$|\r?\n|[,}])|['\"]?(?:/[\w./-]*/)?(?:bash|sh|dash|zsh|ksh)(?:[ \t]+[^\s{][^\s]*)*?[ \t]+(?:-[a-zA-Z]*e[a-zA-Z]*|-o[ \t]+errexit)(?:[ \t]+[^\s{][^\s]*)*[ \t]+\{0\})|['\"]?(?:/[\w./-]*/)?(?:bash|sh|dash|zsh|ksh)[ \t][^\n{]*\{0\}|['\"]?(?:pwsh|powershell)['\"]?[ \t]*(?:#[^\n]*)?(?:$|\r?\n|[,}]))
+          - all:
+            - not:
+                inside:
+                  stopBy: end
+                  kind: block_sequence_item
+                  inside:
+                    kind: block_sequence
+                    inside:
+                      kind: block_node
+                      inside:
+                        kind: block_mapping_pair
+                        has:
+                          field: key
+                          kind: flow_node
+                          regex: ^(steps)$
+                  has:
+                    kind: block_node
+                    has:
+                      kind: block_mapping
+                      has:
+                        kind: block_mapping_pair
+                        has:
+                          field: key
+                          kind: flow_node
+                          regex: ^(shell)$
+            - inside:
+                stopBy: end
+                kind: block_mapping_pair
+                inside:
+                  kind: block_mapping
+                  inside:
+                    kind: block_node
+                    inside:
+                      kind: block_mapping_pair
+                      has:
+                        field: key
+                        kind: flow_node
+                        regex: ^(jobs)$
+                has:
+                  kind: block_node
+                  has:
+                    kind: block_mapping
+                    has:
+                      kind: block_mapping_pair
+                      has:
+                        field: key
+                        kind: flow_node
+                        regex: ^(defaults)$
+                      regex: \bshell\s*:\s*(?:(?:['\"]?(?:bash|sh)['\"]?[ \t]*(?:#[^\n]*)?(?:$|\r?\n|[,}])|['\"]?(?:/[\w./-]*/)?(?:bash|sh|dash|zsh|ksh)(?:[ \t]+[^\s{][^\s]*)*?[ \t]+(?:-[a-zA-Z]*e[a-zA-Z]*|-o[ \t]+errexit)(?:[ \t]+[^\s{][^\s]*)*[ \t]+\{0\})|['\"]?(?:/[\w./-]*/)?(?:bash|sh|dash|zsh|ksh)[ \t][^\n{]*\{0\}|['\"]?(?:pwsh|powershell)['\"]?[ \t]*(?:#[^\n]*)?(?:$|\r?\n|[,}]))
+          - all:
+            - not:
+                inside:
+                  stopBy: end
+                  kind: block_sequence_item
+                  inside:
+                    kind: block_sequence
+                    inside:
+                      kind: block_node
+                      inside:
+                        kind: block_mapping_pair
+                        has:
+                          field: key
+                          kind: flow_node
+                          regex: ^(steps)$
+                  has:
+                    kind: block_node
+                    has:
+                      kind: block_mapping
+                      has:
+                        kind: block_mapping_pair
+                        has:
+                          field: key
+                          kind: flow_node
+                          regex: ^(shell)$
+            - not:
+                inside:
+                  stopBy: end
+                  kind: block_mapping_pair
+                  inside:
+                    kind: block_mapping
+                    inside:
+                      kind: block_node
+                      inside:
+                        kind: block_mapping_pair
+                        has:
+                          field: key
+                          kind: flow_node
+                          regex: ^(jobs)$
+                  has:
+                    kind: block_node
+                    has:
+                      kind: block_mapping
+                      has:
+                        kind: block_mapping_pair
+                        has:
+                          field: key
+                          kind: flow_node
+                          regex: ^(defaults)$
+                        regex: \bshell\s*:\s*
+            - inside:
+                stopBy: end
+                kind: document
+                has:
+                  kind: block_node
+                  has:
+                    kind: block_mapping
+                    has:
+                      kind: block_mapping_pair
+                      has:
+                        field: key
+                        kind: flow_node
+                        regex: ^(defaults)$
+                      regex: \bshell\s*:\s*(?:(?:['\"]?(?:bash|sh)['\"]?[ \t]*(?:#[^\n]*)?(?:$|\r?\n|[,}])|['\"]?(?:/[\w./-]*/)?(?:bash|sh|dash|zsh|ksh)(?:[ \t]+[^\s{][^\s]*)*?[ \t]+(?:-[a-zA-Z]*e[a-zA-Z]*|-o[ \t]+errexit)(?:[ \t]+[^\s{][^\s]*)*[ \t]+\{0\})|['\"]?(?:/[\w./-]*/)?(?:bash|sh|dash|zsh|ksh)[ \t][^\n{]*\{0\}|['\"]?(?:pwsh|powershell)['\"]?[ \t]*(?:#[^\n]*)?(?:$|\r?\n|[,}]))
+        - all:
+          - not:
+              inside:
+                stopBy: end
+                kind: block_sequence_item
+                inside:
+                  kind: block_sequence
+                  inside:
+                    kind: block_node
+                    inside:
+                      kind: block_mapping_pair
+                      has:
+                        field: key
+                        kind: flow_node
+                        regex: ^(steps)$
+                has:
+                  kind: block_node
+                  has:
+                    kind: block_mapping
+                    has:
+                      kind: block_mapping_pair
+                      has:
+                        field: key
+                        kind: flow_node
+                        regex: ^(shell)$
+          - not:
+              inside:
+                stopBy: end
+                kind: block_mapping_pair
+                inside:
+                  kind: block_mapping
+                  inside:
+                    kind: block_node
+                    inside:
+                      kind: block_mapping_pair
+                      has:
+                        field: key
+                        kind: flow_node
+                        regex: ^(jobs)$
+                has:
+                  kind: block_node
+                  has:
+                    kind: block_mapping
+                    has:
+                      kind: block_mapping_pair
+                      has:
+                        field: key
+                        kind: flow_node
+                        regex: ^(defaults)$
+                      regex: \bshell\s*:\s*
+          - not:
+              inside:
+                stopBy: end
+                kind: document
+                has:
+                  kind: block_node
+                  has:
+                    kind: block_mapping
+                    has:
+                      kind: block_mapping_pair
+                      has:
+                        field: key
+                        kind: flow_node
+                        regex: ^(defaults)$
+                      regex: \bshell\s*:\s*
+      - any:
+        - all:
+          - kind: block_mapping_pair
+            has:
+              field: key
+              kind: flow_node
+              regex: ^(run)$
+            regex: (?:^run\s*:\s*(?:[&!][^\s]*[ \t]+)*[|>]?[-+0-9]*[ \t]*(?:#[^\n]*)?\n|[^\\|&\n][ \t\r]*\n|^run\s*:\s*(?:[&!][^\s]*[ \t]+)*)[ \t]*(?:[^\n#]*(?:;|&&)[ \t]*)?(?:(osv-scanner|snyk\s+test)\b|trivy\b)(?:[^&;|\n\\#'\"`]|'[^'\n]*'|\"[^\"\n`\\]*\"|>&|&&)*Gemfile\.lock\b(?:[^&;|\n\\#'\"`]|'[^'\n]*'|\"[^\"\n`\\]*\"|>&|&&)*(?:[ \t\r]+#[^\n]*)?(?:\s|#[^\n]*)*$
+          - not:
+              kind: block_mapping_pair
+              regex: ^run\s*:\s*(?:[&!][^\s]*[ \t]+)*(>|[^\s|>#&!][^\n]*\n)
+        - all:
+          - kind: block_mapping_pair
+            has:
+              field: key
+              kind: flow_node
+              regex: ^(run)$
+            regex: (?:^run\s*:\s*(?:[&!][^\s]*[ \t]+)*(?:>[^\n]*\n)?|\n[ \t\r]*\r?\n)\s*(?:[^#]*?(?:;|&&)\s*)?(?:(osv-scanner|snyk\s+test)\b|trivy\b)(?:[^&;|\n\\#'\"`]|'[^'\n]*'|\"[^\"\n`\\]*\"|>&|&&)*Gemfile\.lock\b(?:[^&;|\n\\#'\"`]|'[^'\n]*'|\"[^\"\n`\\]*\"|>&|&&)*(?:[ \t\r]+#[^\n]*)?(?:\s|#[^\n]*)*$
+          - kind: block_mapping_pair
+            regex: ^run\s*:\s*(?:[&!][^\s]*[ \t]+)*(>|[^\s|>#&!][^\n]*\n)
 min_engine: 0.45.3
 ---
 # scan-gomod: a step in a workflow that runs on every pull request (no branch or path filter), with no if: and
 # continue-on-error absent or false, that runs osv-scanner, snyk test or trivy (exit code non-zero) naming a gomod
-# lockfile or manifest and fails the job on high or critical findings. Evidence: the scan piece for gomod.
+# lockfile or manifest and fails the job on high or critical findings: under a shell that stops on a failed command
+# (GitHub's bash -e on a Linux or macOS runner, shell: bash or sh, a template with -e), or else as the run's last
+# command. Evidence: the scan piece for gomod.
 id: dependency-scanning-ci.yaml-github_actions.scan-gomod
 practice_id: dependency-scanning-ci
 language: yaml
@@ -1811,7 +3231,13 @@ rule:
           regex: (?s:^run\s*:\s*(?:[&!][^\s]*[ \t]+)*(?:>[-+0-9]*.*|[^\s|>#&!].*|)(osv-scanner|snyk\s+test|trivy\s+(fs|filesystem|repo|repository|rootfs))\b(?:\$'(?:[^'\\]|\\(?s:.))*'|[^&'\"\\|<>]|\\(?s:.)|\"(?:[^\"\\]|\\(?s:.)|\$\([^()]*\))*\"|'[^']*'|&&|&>|[<>]&|[<>][^&]|[<>]$|\|\|?)*&([^&>]|$))
       - not:
           kind: block_mapping_pair
-          regex: \bset\s+\+e\b
+          regex: \bset\s+(\+[a-zA-Z]*e[a-zA-Z]*|\+o\s+errexit)\b
+      - not:
+          kind: block_mapping_pair
+          regex: \btrap\b[^\n]*\b(EXIT|ERR|0)\b
+      - not:
+          kind: block_mapping_pair
+          regex: \|\|\s*(osv-scanner|snyk\s+test|trivy\s+(fs|filesystem|repo|repository|rootfs))\b
       - not:
           all:
           - kind: block_mapping_pair
@@ -1892,7 +3318,13 @@ rule:
           regex: (?s:^run\s*:\s*(?:[&!][^\s]*[ \t]+)*(?:>[-+0-9]*.*|[^\s|>#&!].*|)(osv-scanner|snyk\s+test|trivy\s+(fs|filesystem|repo|repository|rootfs))\b(?:\$'(?:[^'\\]|\\(?s:.))*'|[^&'\"\\|<>]|\\(?s:.)|\"(?:[^\"\\]|\\(?s:.)|\$\([^()]*\))*\"|'[^']*'|&&|&>|[<>]&|[<>][^&]|[<>]$|\|\|?)*&([^&>]|$))
       - not:
           kind: block_mapping_pair
-          regex: \bset\s+\+e\b
+          regex: \bset\s+(\+[a-zA-Z]*e[a-zA-Z]*|\+o\s+errexit)\b
+      - not:
+          kind: block_mapping_pair
+          regex: \btrap\b[^\n]*\b(EXIT|ERR|0)\b
+      - not:
+          kind: block_mapping_pair
+          regex: \|\|\s*(osv-scanner|snyk\s+test|trivy\s+(fs|filesystem|repo|repository|rootfs))\b
       - not:
           kind: block_mapping_pair
           regex: (trivy\b([^\n]*(\\|&&|\|\|?)[ \t\r]*\n)*[^\n]*--exit-code(=|[ \t]+)['\"]?([^1-9\s'\"]|[1-9][0-9]{3,}|[3-9][0-9]{2}|2[6-9][0-9]|25[6-9]|(25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[1-9][0-9]?)[^\s'\";&|0-9])|(?s:^run\s*:\s*(?:[&!][^\s]*[ \t]+)*(?:>[-+0-9]*.*|[^\s|>#&!].*|)trivy\b.*--exit-code(=|[ \t]+)['\"]?([^1-9\s'\"]|[1-9][0-9]{3,}|[3-9][0-9]{2}|2[6-9][0-9]|25[6-9]|(25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[1-9][0-9]?)[^\s'\";&|0-9])))
@@ -2154,11 +3586,468 @@ rule:
                     not:
                       kind: block_mapping_pair
                       regex: '\b(branches|branches-ignore|paths|paths-ignore)\s*:'
+  - any:
+    - any:
+      - any:
+        - inside:
+            stopBy: end
+            kind: block_sequence_item
+            inside:
+              kind: block_sequence
+              inside:
+                kind: block_node
+                inside:
+                  kind: block_mapping_pair
+                  has:
+                    field: key
+                    kind: flow_node
+                    regex: ^(steps)$
+            has:
+              kind: block_node
+              has:
+                kind: block_mapping
+                has:
+                  kind: block_mapping_pair
+                  has:
+                    field: key
+                    kind: flow_node
+                    regex: ^(shell)$
+                  regex: ^shell\s*:\s*(?:['\"]?(?:bash|sh)['\"]?[ \t]*(?:#[^\n]*)?(?:$|\r?\n|[,}])|['\"]?(?:/[\w./-]*/)?(?:bash|sh|dash|zsh|ksh)(?:[ \t]+[^\s{][^\s]*)*?[ \t]+(?:-[a-zA-Z]*e[a-zA-Z]*|-o[ \t]+errexit)(?:[ \t]+[^\s{][^\s]*)*[ \t]+\{0\})
+        - all:
+          - not:
+              inside:
+                stopBy: end
+                kind: block_sequence_item
+                inside:
+                  kind: block_sequence
+                  inside:
+                    kind: block_node
+                    inside:
+                      kind: block_mapping_pair
+                      has:
+                        field: key
+                        kind: flow_node
+                        regex: ^(steps)$
+                has:
+                  kind: block_node
+                  has:
+                    kind: block_mapping
+                    has:
+                      kind: block_mapping_pair
+                      has:
+                        field: key
+                        kind: flow_node
+                        regex: ^(shell)$
+          - inside:
+              stopBy: end
+              kind: block_mapping_pair
+              inside:
+                kind: block_mapping
+                inside:
+                  kind: block_node
+                  inside:
+                    kind: block_mapping_pair
+                    has:
+                      field: key
+                      kind: flow_node
+                      regex: ^(jobs)$
+              has:
+                kind: block_node
+                has:
+                  kind: block_mapping
+                  has:
+                    kind: block_mapping_pair
+                    has:
+                      field: key
+                      kind: flow_node
+                      regex: ^(defaults)$
+                    regex: \bshell\s*:\s*(?:['\"]?(?:bash|sh)['\"]?[ \t]*(?:#[^\n]*)?(?:$|\r?\n|[,}])|['\"]?(?:/[\w./-]*/)?(?:bash|sh|dash|zsh|ksh)(?:[ \t]+[^\s{][^\s]*)*?[ \t]+(?:-[a-zA-Z]*e[a-zA-Z]*|-o[ \t]+errexit)(?:[ \t]+[^\s{][^\s]*)*[ \t]+\{0\})
+        - all:
+          - not:
+              inside:
+                stopBy: end
+                kind: block_sequence_item
+                inside:
+                  kind: block_sequence
+                  inside:
+                    kind: block_node
+                    inside:
+                      kind: block_mapping_pair
+                      has:
+                        field: key
+                        kind: flow_node
+                        regex: ^(steps)$
+                has:
+                  kind: block_node
+                  has:
+                    kind: block_mapping
+                    has:
+                      kind: block_mapping_pair
+                      has:
+                        field: key
+                        kind: flow_node
+                        regex: ^(shell)$
+          - not:
+              inside:
+                stopBy: end
+                kind: block_mapping_pair
+                inside:
+                  kind: block_mapping
+                  inside:
+                    kind: block_node
+                    inside:
+                      kind: block_mapping_pair
+                      has:
+                        field: key
+                        kind: flow_node
+                        regex: ^(jobs)$
+                has:
+                  kind: block_node
+                  has:
+                    kind: block_mapping
+                    has:
+                      kind: block_mapping_pair
+                      has:
+                        field: key
+                        kind: flow_node
+                        regex: ^(defaults)$
+                      regex: \bshell\s*:\s*
+          - inside:
+              stopBy: end
+              kind: document
+              has:
+                kind: block_node
+                has:
+                  kind: block_mapping
+                  has:
+                    kind: block_mapping_pair
+                    has:
+                      field: key
+                      kind: flow_node
+                      regex: ^(defaults)$
+                    regex: \bshell\s*:\s*(?:['\"]?(?:bash|sh)['\"]?[ \t]*(?:#[^\n]*)?(?:$|\r?\n|[,}])|['\"]?(?:/[\w./-]*/)?(?:bash|sh|dash|zsh|ksh)(?:[ \t]+[^\s{][^\s]*)*?[ \t]+(?:-[a-zA-Z]*e[a-zA-Z]*|-o[ \t]+errexit)(?:[ \t]+[^\s{][^\s]*)*[ \t]+\{0\})
+      - all:
+        - all:
+          - not:
+              inside:
+                stopBy: end
+                kind: block_sequence_item
+                inside:
+                  kind: block_sequence
+                  inside:
+                    kind: block_node
+                    inside:
+                      kind: block_mapping_pair
+                      has:
+                        field: key
+                        kind: flow_node
+                        regex: ^(steps)$
+                has:
+                  kind: block_node
+                  has:
+                    kind: block_mapping
+                    has:
+                      kind: block_mapping_pair
+                      has:
+                        field: key
+                        kind: flow_node
+                        regex: ^(shell)$
+          - not:
+              inside:
+                stopBy: end
+                kind: block_mapping_pair
+                inside:
+                  kind: block_mapping
+                  inside:
+                    kind: block_node
+                    inside:
+                      kind: block_mapping_pair
+                      has:
+                        field: key
+                        kind: flow_node
+                        regex: ^(jobs)$
+                has:
+                  kind: block_node
+                  has:
+                    kind: block_mapping
+                    has:
+                      kind: block_mapping_pair
+                      has:
+                        field: key
+                        kind: flow_node
+                        regex: ^(defaults)$
+                      regex: \bshell\s*:\s*
+          - not:
+              inside:
+                stopBy: end
+                kind: document
+                has:
+                  kind: block_node
+                  has:
+                    kind: block_mapping
+                    has:
+                      kind: block_mapping_pair
+                      has:
+                        field: key
+                        kind: flow_node
+                        regex: ^(defaults)$
+                      regex: \bshell\s*:\s*
+        - inside:
+            stopBy: end
+            kind: block_mapping_pair
+            inside:
+              kind: block_mapping
+              inside:
+                kind: block_node
+                inside:
+                  kind: block_mapping_pair
+                  has:
+                    field: key
+                    kind: flow_node
+                    regex: ^(jobs)$
+            has:
+              kind: block_node
+              has:
+                kind: block_mapping
+                has:
+                  kind: block_mapping_pair
+                  has:
+                    field: key
+                    kind: flow_node
+                    regex: ^(runs-on)$
+                  regex: ^runs-on\s*:\s*['\"]?(ubuntu|macos)-[\w.-]+['\"]?[ \t]*(#[^\n]*)?$
+    - all:
+      - any:
+        - any:
+          - inside:
+              stopBy: end
+              kind: block_sequence_item
+              inside:
+                kind: block_sequence
+                inside:
+                  kind: block_node
+                  inside:
+                    kind: block_mapping_pair
+                    has:
+                      field: key
+                      kind: flow_node
+                      regex: ^(steps)$
+              has:
+                kind: block_node
+                has:
+                  kind: block_mapping
+                  has:
+                    kind: block_mapping_pair
+                    has:
+                      field: key
+                      kind: flow_node
+                      regex: ^(shell)$
+                    regex: ^shell\s*:\s*(?:(?:['\"]?(?:bash|sh)['\"]?[ \t]*(?:#[^\n]*)?(?:$|\r?\n|[,}])|['\"]?(?:/[\w./-]*/)?(?:bash|sh|dash|zsh|ksh)(?:[ \t]+[^\s{][^\s]*)*?[ \t]+(?:-[a-zA-Z]*e[a-zA-Z]*|-o[ \t]+errexit)(?:[ \t]+[^\s{][^\s]*)*[ \t]+\{0\})|['\"]?(?:/[\w./-]*/)?(?:bash|sh|dash|zsh|ksh)[ \t][^\n{]*\{0\}|['\"]?(?:pwsh|powershell)['\"]?[ \t]*(?:#[^\n]*)?(?:$|\r?\n|[,}]))
+          - all:
+            - not:
+                inside:
+                  stopBy: end
+                  kind: block_sequence_item
+                  inside:
+                    kind: block_sequence
+                    inside:
+                      kind: block_node
+                      inside:
+                        kind: block_mapping_pair
+                        has:
+                          field: key
+                          kind: flow_node
+                          regex: ^(steps)$
+                  has:
+                    kind: block_node
+                    has:
+                      kind: block_mapping
+                      has:
+                        kind: block_mapping_pair
+                        has:
+                          field: key
+                          kind: flow_node
+                          regex: ^(shell)$
+            - inside:
+                stopBy: end
+                kind: block_mapping_pair
+                inside:
+                  kind: block_mapping
+                  inside:
+                    kind: block_node
+                    inside:
+                      kind: block_mapping_pair
+                      has:
+                        field: key
+                        kind: flow_node
+                        regex: ^(jobs)$
+                has:
+                  kind: block_node
+                  has:
+                    kind: block_mapping
+                    has:
+                      kind: block_mapping_pair
+                      has:
+                        field: key
+                        kind: flow_node
+                        regex: ^(defaults)$
+                      regex: \bshell\s*:\s*(?:(?:['\"]?(?:bash|sh)['\"]?[ \t]*(?:#[^\n]*)?(?:$|\r?\n|[,}])|['\"]?(?:/[\w./-]*/)?(?:bash|sh|dash|zsh|ksh)(?:[ \t]+[^\s{][^\s]*)*?[ \t]+(?:-[a-zA-Z]*e[a-zA-Z]*|-o[ \t]+errexit)(?:[ \t]+[^\s{][^\s]*)*[ \t]+\{0\})|['\"]?(?:/[\w./-]*/)?(?:bash|sh|dash|zsh|ksh)[ \t][^\n{]*\{0\}|['\"]?(?:pwsh|powershell)['\"]?[ \t]*(?:#[^\n]*)?(?:$|\r?\n|[,}]))
+          - all:
+            - not:
+                inside:
+                  stopBy: end
+                  kind: block_sequence_item
+                  inside:
+                    kind: block_sequence
+                    inside:
+                      kind: block_node
+                      inside:
+                        kind: block_mapping_pair
+                        has:
+                          field: key
+                          kind: flow_node
+                          regex: ^(steps)$
+                  has:
+                    kind: block_node
+                    has:
+                      kind: block_mapping
+                      has:
+                        kind: block_mapping_pair
+                        has:
+                          field: key
+                          kind: flow_node
+                          regex: ^(shell)$
+            - not:
+                inside:
+                  stopBy: end
+                  kind: block_mapping_pair
+                  inside:
+                    kind: block_mapping
+                    inside:
+                      kind: block_node
+                      inside:
+                        kind: block_mapping_pair
+                        has:
+                          field: key
+                          kind: flow_node
+                          regex: ^(jobs)$
+                  has:
+                    kind: block_node
+                    has:
+                      kind: block_mapping
+                      has:
+                        kind: block_mapping_pair
+                        has:
+                          field: key
+                          kind: flow_node
+                          regex: ^(defaults)$
+                        regex: \bshell\s*:\s*
+            - inside:
+                stopBy: end
+                kind: document
+                has:
+                  kind: block_node
+                  has:
+                    kind: block_mapping
+                    has:
+                      kind: block_mapping_pair
+                      has:
+                        field: key
+                        kind: flow_node
+                        regex: ^(defaults)$
+                      regex: \bshell\s*:\s*(?:(?:['\"]?(?:bash|sh)['\"]?[ \t]*(?:#[^\n]*)?(?:$|\r?\n|[,}])|['\"]?(?:/[\w./-]*/)?(?:bash|sh|dash|zsh|ksh)(?:[ \t]+[^\s{][^\s]*)*?[ \t]+(?:-[a-zA-Z]*e[a-zA-Z]*|-o[ \t]+errexit)(?:[ \t]+[^\s{][^\s]*)*[ \t]+\{0\})|['\"]?(?:/[\w./-]*/)?(?:bash|sh|dash|zsh|ksh)[ \t][^\n{]*\{0\}|['\"]?(?:pwsh|powershell)['\"]?[ \t]*(?:#[^\n]*)?(?:$|\r?\n|[,}]))
+        - all:
+          - not:
+              inside:
+                stopBy: end
+                kind: block_sequence_item
+                inside:
+                  kind: block_sequence
+                  inside:
+                    kind: block_node
+                    inside:
+                      kind: block_mapping_pair
+                      has:
+                        field: key
+                        kind: flow_node
+                        regex: ^(steps)$
+                has:
+                  kind: block_node
+                  has:
+                    kind: block_mapping
+                    has:
+                      kind: block_mapping_pair
+                      has:
+                        field: key
+                        kind: flow_node
+                        regex: ^(shell)$
+          - not:
+              inside:
+                stopBy: end
+                kind: block_mapping_pair
+                inside:
+                  kind: block_mapping
+                  inside:
+                    kind: block_node
+                    inside:
+                      kind: block_mapping_pair
+                      has:
+                        field: key
+                        kind: flow_node
+                        regex: ^(jobs)$
+                has:
+                  kind: block_node
+                  has:
+                    kind: block_mapping
+                    has:
+                      kind: block_mapping_pair
+                      has:
+                        field: key
+                        kind: flow_node
+                        regex: ^(defaults)$
+                      regex: \bshell\s*:\s*
+          - not:
+              inside:
+                stopBy: end
+                kind: document
+                has:
+                  kind: block_node
+                  has:
+                    kind: block_mapping
+                    has:
+                      kind: block_mapping_pair
+                      has:
+                        field: key
+                        kind: flow_node
+                        regex: ^(defaults)$
+                      regex: \bshell\s*:\s*
+      - any:
+        - all:
+          - kind: block_mapping_pair
+            has:
+              field: key
+              kind: flow_node
+              regex: ^(run)$
+            regex: (?:^run\s*:\s*(?:[&!][^\s]*[ \t]+)*[|>]?[-+0-9]*[ \t]*(?:#[^\n]*)?\n|[^\\|&\n][ \t\r]*\n|^run\s*:\s*(?:[&!][^\s]*[ \t]+)*)[ \t]*(?:[^\n#]*(?:;|&&)[ \t]*)?(?:(osv-scanner|snyk\s+test)\b|trivy\b)(?:[^&;|\n\\#'\"`]|'[^'\n]*'|\"[^\"\n`\\]*\"|>&|&&)*go\.(sum|mod)\b(?:[^&;|\n\\#'\"`]|'[^'\n]*'|\"[^\"\n`\\]*\"|>&|&&)*(?:[ \t\r]+#[^\n]*)?(?:\s|#[^\n]*)*$
+          - not:
+              kind: block_mapping_pair
+              regex: ^run\s*:\s*(?:[&!][^\s]*[ \t]+)*(>|[^\s|>#&!][^\n]*\n)
+        - all:
+          - kind: block_mapping_pair
+            has:
+              field: key
+              kind: flow_node
+              regex: ^(run)$
+            regex: (?:^run\s*:\s*(?:[&!][^\s]*[ \t]+)*(?:>[^\n]*\n)?|\n[ \t\r]*\r?\n)\s*(?:[^#]*?(?:;|&&)\s*)?(?:(osv-scanner|snyk\s+test)\b|trivy\b)(?:[^&;|\n\\#'\"`]|'[^'\n]*'|\"[^\"\n`\\]*\"|>&|&&)*go\.(sum|mod)\b(?:[^&;|\n\\#'\"`]|'[^'\n]*'|\"[^\"\n`\\]*\"|>&|&&)*(?:[ \t\r]+#[^\n]*)?(?:\s|#[^\n]*)*$
+          - kind: block_mapping_pair
+            regex: ^run\s*:\s*(?:[&!][^\s]*[ \t]+)*(>|[^\s|>#&!][^\n]*\n)
 min_engine: 0.45.3
 ---
 # scan-maven: a step in a workflow that runs on every pull request (no branch or path filter), with no if: and
 # continue-on-error absent or false, that runs osv-scanner, snyk test or trivy (exit code non-zero) naming a maven
-# lockfile or manifest and fails the job on high or critical findings. Evidence: the scan piece for maven.
+# lockfile or manifest and fails the job on high or critical findings: under a shell that stops on a failed command
+# (GitHub's bash -e on a Linux or macOS runner, shell: bash or sh, a template with -e), or else as the run's last
+# command. Evidence: the scan piece for maven.
 id: dependency-scanning-ci.yaml-github_actions.scan-maven
 practice_id: dependency-scanning-ci
 language: yaml
@@ -2216,7 +4105,13 @@ rule:
           regex: (?s:^run\s*:\s*(?:[&!][^\s]*[ \t]+)*(?:>[-+0-9]*.*|[^\s|>#&!].*|)(osv-scanner|snyk\s+test|trivy\s+(fs|filesystem|repo|repository|rootfs))\b(?:\$'(?:[^'\\]|\\(?s:.))*'|[^&'\"\\|<>]|\\(?s:.)|\"(?:[^\"\\]|\\(?s:.)|\$\([^()]*\))*\"|'[^']*'|&&|&>|[<>]&|[<>][^&]|[<>]$|\|\|?)*&([^&>]|$))
       - not:
           kind: block_mapping_pair
-          regex: \bset\s+\+e\b
+          regex: \bset\s+(\+[a-zA-Z]*e[a-zA-Z]*|\+o\s+errexit)\b
+      - not:
+          kind: block_mapping_pair
+          regex: \btrap\b[^\n]*\b(EXIT|ERR|0)\b
+      - not:
+          kind: block_mapping_pair
+          regex: \|\|\s*(osv-scanner|snyk\s+test|trivy\s+(fs|filesystem|repo|repository|rootfs))\b
       - not:
           all:
           - kind: block_mapping_pair
@@ -2297,7 +4192,13 @@ rule:
           regex: (?s:^run\s*:\s*(?:[&!][^\s]*[ \t]+)*(?:>[-+0-9]*.*|[^\s|>#&!].*|)(osv-scanner|snyk\s+test|trivy\s+(fs|filesystem|repo|repository|rootfs))\b(?:\$'(?:[^'\\]|\\(?s:.))*'|[^&'\"\\|<>]|\\(?s:.)|\"(?:[^\"\\]|\\(?s:.)|\$\([^()]*\))*\"|'[^']*'|&&|&>|[<>]&|[<>][^&]|[<>]$|\|\|?)*&([^&>]|$))
       - not:
           kind: block_mapping_pair
-          regex: \bset\s+\+e\b
+          regex: \bset\s+(\+[a-zA-Z]*e[a-zA-Z]*|\+o\s+errexit)\b
+      - not:
+          kind: block_mapping_pair
+          regex: \btrap\b[^\n]*\b(EXIT|ERR|0)\b
+      - not:
+          kind: block_mapping_pair
+          regex: \|\|\s*(osv-scanner|snyk\s+test|trivy\s+(fs|filesystem|repo|repository|rootfs))\b
       - not:
           kind: block_mapping_pair
           regex: (trivy\b([^\n]*(\\|&&|\|\|?)[ \t\r]*\n)*[^\n]*--exit-code(=|[ \t]+)['\"]?([^1-9\s'\"]|[1-9][0-9]{3,}|[3-9][0-9]{2}|2[6-9][0-9]|25[6-9]|(25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[1-9][0-9]?)[^\s'\";&|0-9])|(?s:^run\s*:\s*(?:[&!][^\s]*[ \t]+)*(?:>[-+0-9]*.*|[^\s|>#&!].*|)trivy\b.*--exit-code(=|[ \t]+)['\"]?([^1-9\s'\"]|[1-9][0-9]{3,}|[3-9][0-9]{2}|2[6-9][0-9]|25[6-9]|(25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[1-9][0-9]?)[^\s'\";&|0-9])))
@@ -2559,11 +4460,468 @@ rule:
                     not:
                       kind: block_mapping_pair
                       regex: '\b(branches|branches-ignore|paths|paths-ignore)\s*:'
+  - any:
+    - any:
+      - any:
+        - inside:
+            stopBy: end
+            kind: block_sequence_item
+            inside:
+              kind: block_sequence
+              inside:
+                kind: block_node
+                inside:
+                  kind: block_mapping_pair
+                  has:
+                    field: key
+                    kind: flow_node
+                    regex: ^(steps)$
+            has:
+              kind: block_node
+              has:
+                kind: block_mapping
+                has:
+                  kind: block_mapping_pair
+                  has:
+                    field: key
+                    kind: flow_node
+                    regex: ^(shell)$
+                  regex: ^shell\s*:\s*(?:['\"]?(?:bash|sh)['\"]?[ \t]*(?:#[^\n]*)?(?:$|\r?\n|[,}])|['\"]?(?:/[\w./-]*/)?(?:bash|sh|dash|zsh|ksh)(?:[ \t]+[^\s{][^\s]*)*?[ \t]+(?:-[a-zA-Z]*e[a-zA-Z]*|-o[ \t]+errexit)(?:[ \t]+[^\s{][^\s]*)*[ \t]+\{0\})
+        - all:
+          - not:
+              inside:
+                stopBy: end
+                kind: block_sequence_item
+                inside:
+                  kind: block_sequence
+                  inside:
+                    kind: block_node
+                    inside:
+                      kind: block_mapping_pair
+                      has:
+                        field: key
+                        kind: flow_node
+                        regex: ^(steps)$
+                has:
+                  kind: block_node
+                  has:
+                    kind: block_mapping
+                    has:
+                      kind: block_mapping_pair
+                      has:
+                        field: key
+                        kind: flow_node
+                        regex: ^(shell)$
+          - inside:
+              stopBy: end
+              kind: block_mapping_pair
+              inside:
+                kind: block_mapping
+                inside:
+                  kind: block_node
+                  inside:
+                    kind: block_mapping_pair
+                    has:
+                      field: key
+                      kind: flow_node
+                      regex: ^(jobs)$
+              has:
+                kind: block_node
+                has:
+                  kind: block_mapping
+                  has:
+                    kind: block_mapping_pair
+                    has:
+                      field: key
+                      kind: flow_node
+                      regex: ^(defaults)$
+                    regex: \bshell\s*:\s*(?:['\"]?(?:bash|sh)['\"]?[ \t]*(?:#[^\n]*)?(?:$|\r?\n|[,}])|['\"]?(?:/[\w./-]*/)?(?:bash|sh|dash|zsh|ksh)(?:[ \t]+[^\s{][^\s]*)*?[ \t]+(?:-[a-zA-Z]*e[a-zA-Z]*|-o[ \t]+errexit)(?:[ \t]+[^\s{][^\s]*)*[ \t]+\{0\})
+        - all:
+          - not:
+              inside:
+                stopBy: end
+                kind: block_sequence_item
+                inside:
+                  kind: block_sequence
+                  inside:
+                    kind: block_node
+                    inside:
+                      kind: block_mapping_pair
+                      has:
+                        field: key
+                        kind: flow_node
+                        regex: ^(steps)$
+                has:
+                  kind: block_node
+                  has:
+                    kind: block_mapping
+                    has:
+                      kind: block_mapping_pair
+                      has:
+                        field: key
+                        kind: flow_node
+                        regex: ^(shell)$
+          - not:
+              inside:
+                stopBy: end
+                kind: block_mapping_pair
+                inside:
+                  kind: block_mapping
+                  inside:
+                    kind: block_node
+                    inside:
+                      kind: block_mapping_pair
+                      has:
+                        field: key
+                        kind: flow_node
+                        regex: ^(jobs)$
+                has:
+                  kind: block_node
+                  has:
+                    kind: block_mapping
+                    has:
+                      kind: block_mapping_pair
+                      has:
+                        field: key
+                        kind: flow_node
+                        regex: ^(defaults)$
+                      regex: \bshell\s*:\s*
+          - inside:
+              stopBy: end
+              kind: document
+              has:
+                kind: block_node
+                has:
+                  kind: block_mapping
+                  has:
+                    kind: block_mapping_pair
+                    has:
+                      field: key
+                      kind: flow_node
+                      regex: ^(defaults)$
+                    regex: \bshell\s*:\s*(?:['\"]?(?:bash|sh)['\"]?[ \t]*(?:#[^\n]*)?(?:$|\r?\n|[,}])|['\"]?(?:/[\w./-]*/)?(?:bash|sh|dash|zsh|ksh)(?:[ \t]+[^\s{][^\s]*)*?[ \t]+(?:-[a-zA-Z]*e[a-zA-Z]*|-o[ \t]+errexit)(?:[ \t]+[^\s{][^\s]*)*[ \t]+\{0\})
+      - all:
+        - all:
+          - not:
+              inside:
+                stopBy: end
+                kind: block_sequence_item
+                inside:
+                  kind: block_sequence
+                  inside:
+                    kind: block_node
+                    inside:
+                      kind: block_mapping_pair
+                      has:
+                        field: key
+                        kind: flow_node
+                        regex: ^(steps)$
+                has:
+                  kind: block_node
+                  has:
+                    kind: block_mapping
+                    has:
+                      kind: block_mapping_pair
+                      has:
+                        field: key
+                        kind: flow_node
+                        regex: ^(shell)$
+          - not:
+              inside:
+                stopBy: end
+                kind: block_mapping_pair
+                inside:
+                  kind: block_mapping
+                  inside:
+                    kind: block_node
+                    inside:
+                      kind: block_mapping_pair
+                      has:
+                        field: key
+                        kind: flow_node
+                        regex: ^(jobs)$
+                has:
+                  kind: block_node
+                  has:
+                    kind: block_mapping
+                    has:
+                      kind: block_mapping_pair
+                      has:
+                        field: key
+                        kind: flow_node
+                        regex: ^(defaults)$
+                      regex: \bshell\s*:\s*
+          - not:
+              inside:
+                stopBy: end
+                kind: document
+                has:
+                  kind: block_node
+                  has:
+                    kind: block_mapping
+                    has:
+                      kind: block_mapping_pair
+                      has:
+                        field: key
+                        kind: flow_node
+                        regex: ^(defaults)$
+                      regex: \bshell\s*:\s*
+        - inside:
+            stopBy: end
+            kind: block_mapping_pair
+            inside:
+              kind: block_mapping
+              inside:
+                kind: block_node
+                inside:
+                  kind: block_mapping_pair
+                  has:
+                    field: key
+                    kind: flow_node
+                    regex: ^(jobs)$
+            has:
+              kind: block_node
+              has:
+                kind: block_mapping
+                has:
+                  kind: block_mapping_pair
+                  has:
+                    field: key
+                    kind: flow_node
+                    regex: ^(runs-on)$
+                  regex: ^runs-on\s*:\s*['\"]?(ubuntu|macos)-[\w.-]+['\"]?[ \t]*(#[^\n]*)?$
+    - all:
+      - any:
+        - any:
+          - inside:
+              stopBy: end
+              kind: block_sequence_item
+              inside:
+                kind: block_sequence
+                inside:
+                  kind: block_node
+                  inside:
+                    kind: block_mapping_pair
+                    has:
+                      field: key
+                      kind: flow_node
+                      regex: ^(steps)$
+              has:
+                kind: block_node
+                has:
+                  kind: block_mapping
+                  has:
+                    kind: block_mapping_pair
+                    has:
+                      field: key
+                      kind: flow_node
+                      regex: ^(shell)$
+                    regex: ^shell\s*:\s*(?:(?:['\"]?(?:bash|sh)['\"]?[ \t]*(?:#[^\n]*)?(?:$|\r?\n|[,}])|['\"]?(?:/[\w./-]*/)?(?:bash|sh|dash|zsh|ksh)(?:[ \t]+[^\s{][^\s]*)*?[ \t]+(?:-[a-zA-Z]*e[a-zA-Z]*|-o[ \t]+errexit)(?:[ \t]+[^\s{][^\s]*)*[ \t]+\{0\})|['\"]?(?:/[\w./-]*/)?(?:bash|sh|dash|zsh|ksh)[ \t][^\n{]*\{0\}|['\"]?(?:pwsh|powershell)['\"]?[ \t]*(?:#[^\n]*)?(?:$|\r?\n|[,}]))
+          - all:
+            - not:
+                inside:
+                  stopBy: end
+                  kind: block_sequence_item
+                  inside:
+                    kind: block_sequence
+                    inside:
+                      kind: block_node
+                      inside:
+                        kind: block_mapping_pair
+                        has:
+                          field: key
+                          kind: flow_node
+                          regex: ^(steps)$
+                  has:
+                    kind: block_node
+                    has:
+                      kind: block_mapping
+                      has:
+                        kind: block_mapping_pair
+                        has:
+                          field: key
+                          kind: flow_node
+                          regex: ^(shell)$
+            - inside:
+                stopBy: end
+                kind: block_mapping_pair
+                inside:
+                  kind: block_mapping
+                  inside:
+                    kind: block_node
+                    inside:
+                      kind: block_mapping_pair
+                      has:
+                        field: key
+                        kind: flow_node
+                        regex: ^(jobs)$
+                has:
+                  kind: block_node
+                  has:
+                    kind: block_mapping
+                    has:
+                      kind: block_mapping_pair
+                      has:
+                        field: key
+                        kind: flow_node
+                        regex: ^(defaults)$
+                      regex: \bshell\s*:\s*(?:(?:['\"]?(?:bash|sh)['\"]?[ \t]*(?:#[^\n]*)?(?:$|\r?\n|[,}])|['\"]?(?:/[\w./-]*/)?(?:bash|sh|dash|zsh|ksh)(?:[ \t]+[^\s{][^\s]*)*?[ \t]+(?:-[a-zA-Z]*e[a-zA-Z]*|-o[ \t]+errexit)(?:[ \t]+[^\s{][^\s]*)*[ \t]+\{0\})|['\"]?(?:/[\w./-]*/)?(?:bash|sh|dash|zsh|ksh)[ \t][^\n{]*\{0\}|['\"]?(?:pwsh|powershell)['\"]?[ \t]*(?:#[^\n]*)?(?:$|\r?\n|[,}]))
+          - all:
+            - not:
+                inside:
+                  stopBy: end
+                  kind: block_sequence_item
+                  inside:
+                    kind: block_sequence
+                    inside:
+                      kind: block_node
+                      inside:
+                        kind: block_mapping_pair
+                        has:
+                          field: key
+                          kind: flow_node
+                          regex: ^(steps)$
+                  has:
+                    kind: block_node
+                    has:
+                      kind: block_mapping
+                      has:
+                        kind: block_mapping_pair
+                        has:
+                          field: key
+                          kind: flow_node
+                          regex: ^(shell)$
+            - not:
+                inside:
+                  stopBy: end
+                  kind: block_mapping_pair
+                  inside:
+                    kind: block_mapping
+                    inside:
+                      kind: block_node
+                      inside:
+                        kind: block_mapping_pair
+                        has:
+                          field: key
+                          kind: flow_node
+                          regex: ^(jobs)$
+                  has:
+                    kind: block_node
+                    has:
+                      kind: block_mapping
+                      has:
+                        kind: block_mapping_pair
+                        has:
+                          field: key
+                          kind: flow_node
+                          regex: ^(defaults)$
+                        regex: \bshell\s*:\s*
+            - inside:
+                stopBy: end
+                kind: document
+                has:
+                  kind: block_node
+                  has:
+                    kind: block_mapping
+                    has:
+                      kind: block_mapping_pair
+                      has:
+                        field: key
+                        kind: flow_node
+                        regex: ^(defaults)$
+                      regex: \bshell\s*:\s*(?:(?:['\"]?(?:bash|sh)['\"]?[ \t]*(?:#[^\n]*)?(?:$|\r?\n|[,}])|['\"]?(?:/[\w./-]*/)?(?:bash|sh|dash|zsh|ksh)(?:[ \t]+[^\s{][^\s]*)*?[ \t]+(?:-[a-zA-Z]*e[a-zA-Z]*|-o[ \t]+errexit)(?:[ \t]+[^\s{][^\s]*)*[ \t]+\{0\})|['\"]?(?:/[\w./-]*/)?(?:bash|sh|dash|zsh|ksh)[ \t][^\n{]*\{0\}|['\"]?(?:pwsh|powershell)['\"]?[ \t]*(?:#[^\n]*)?(?:$|\r?\n|[,}]))
+        - all:
+          - not:
+              inside:
+                stopBy: end
+                kind: block_sequence_item
+                inside:
+                  kind: block_sequence
+                  inside:
+                    kind: block_node
+                    inside:
+                      kind: block_mapping_pair
+                      has:
+                        field: key
+                        kind: flow_node
+                        regex: ^(steps)$
+                has:
+                  kind: block_node
+                  has:
+                    kind: block_mapping
+                    has:
+                      kind: block_mapping_pair
+                      has:
+                        field: key
+                        kind: flow_node
+                        regex: ^(shell)$
+          - not:
+              inside:
+                stopBy: end
+                kind: block_mapping_pair
+                inside:
+                  kind: block_mapping
+                  inside:
+                    kind: block_node
+                    inside:
+                      kind: block_mapping_pair
+                      has:
+                        field: key
+                        kind: flow_node
+                        regex: ^(jobs)$
+                has:
+                  kind: block_node
+                  has:
+                    kind: block_mapping
+                    has:
+                      kind: block_mapping_pair
+                      has:
+                        field: key
+                        kind: flow_node
+                        regex: ^(defaults)$
+                      regex: \bshell\s*:\s*
+          - not:
+              inside:
+                stopBy: end
+                kind: document
+                has:
+                  kind: block_node
+                  has:
+                    kind: block_mapping
+                    has:
+                      kind: block_mapping_pair
+                      has:
+                        field: key
+                        kind: flow_node
+                        regex: ^(defaults)$
+                      regex: \bshell\s*:\s*
+      - any:
+        - all:
+          - kind: block_mapping_pair
+            has:
+              field: key
+              kind: flow_node
+              regex: ^(run)$
+            regex: (?:^run\s*:\s*(?:[&!][^\s]*[ \t]+)*[|>]?[-+0-9]*[ \t]*(?:#[^\n]*)?\n|[^\\|&\n][ \t\r]*\n|^run\s*:\s*(?:[&!][^\s]*[ \t]+)*)[ \t]*(?:[^\n#]*(?:;|&&)[ \t]*)?(?:(osv-scanner|snyk\s+test)\b|trivy\b)(?:[^&;|\n\\#'\"`]|'[^'\n]*'|\"[^\"\n`\\]*\"|>&|&&)*pom\.xml\b(?:[^&;|\n\\#'\"`]|'[^'\n]*'|\"[^\"\n`\\]*\"|>&|&&)*(?:[ \t\r]+#[^\n]*)?(?:\s|#[^\n]*)*$
+          - not:
+              kind: block_mapping_pair
+              regex: ^run\s*:\s*(?:[&!][^\s]*[ \t]+)*(>|[^\s|>#&!][^\n]*\n)
+        - all:
+          - kind: block_mapping_pair
+            has:
+              field: key
+              kind: flow_node
+              regex: ^(run)$
+            regex: (?:^run\s*:\s*(?:[&!][^\s]*[ \t]+)*(?:>[^\n]*\n)?|\n[ \t\r]*\r?\n)\s*(?:[^#]*?(?:;|&&)\s*)?(?:(osv-scanner|snyk\s+test)\b|trivy\b)(?:[^&;|\n\\#'\"`]|'[^'\n]*'|\"[^\"\n`\\]*\"|>&|&&)*pom\.xml\b(?:[^&;|\n\\#'\"`]|'[^'\n]*'|\"[^\"\n`\\]*\"|>&|&&)*(?:[ \t\r]+#[^\n]*)?(?:\s|#[^\n]*)*$
+          - kind: block_mapping_pair
+            regex: ^run\s*:\s*(?:[&!][^\s]*[ \t]+)*(>|[^\s|>#&!][^\n]*\n)
 min_engine: 0.45.3
 ---
 # scan-gradle: a step in a workflow that runs on every pull request (no branch or path filter), with no if: and
 # continue-on-error absent or false, that runs osv-scanner, snyk test or trivy (exit code non-zero) naming a gradle
-# lockfile or manifest and fails the job on high or critical findings. Evidence: the scan piece for gradle.
+# lockfile or manifest and fails the job on high or critical findings: under a shell that stops on a failed command
+# (GitHub's bash -e on a Linux or macOS runner, shell: bash or sh, a template with -e), or else as the run's last
+# command. Evidence: the scan piece for gradle.
 id: dependency-scanning-ci.yaml-github_actions.scan-gradle
 practice_id: dependency-scanning-ci
 language: yaml
@@ -2621,7 +4979,13 @@ rule:
           regex: (?s:^run\s*:\s*(?:[&!][^\s]*[ \t]+)*(?:>[-+0-9]*.*|[^\s|>#&!].*|)(osv-scanner|snyk\s+test|trivy\s+(fs|filesystem|repo|repository|rootfs))\b(?:\$'(?:[^'\\]|\\(?s:.))*'|[^&'\"\\|<>]|\\(?s:.)|\"(?:[^\"\\]|\\(?s:.)|\$\([^()]*\))*\"|'[^']*'|&&|&>|[<>]&|[<>][^&]|[<>]$|\|\|?)*&([^&>]|$))
       - not:
           kind: block_mapping_pair
-          regex: \bset\s+\+e\b
+          regex: \bset\s+(\+[a-zA-Z]*e[a-zA-Z]*|\+o\s+errexit)\b
+      - not:
+          kind: block_mapping_pair
+          regex: \btrap\b[^\n]*\b(EXIT|ERR|0)\b
+      - not:
+          kind: block_mapping_pair
+          regex: \|\|\s*(osv-scanner|snyk\s+test|trivy\s+(fs|filesystem|repo|repository|rootfs))\b
       - not:
           all:
           - kind: block_mapping_pair
@@ -2702,7 +5066,13 @@ rule:
           regex: (?s:^run\s*:\s*(?:[&!][^\s]*[ \t]+)*(?:>[-+0-9]*.*|[^\s|>#&!].*|)(osv-scanner|snyk\s+test|trivy\s+(fs|filesystem|repo|repository|rootfs))\b(?:\$'(?:[^'\\]|\\(?s:.))*'|[^&'\"\\|<>]|\\(?s:.)|\"(?:[^\"\\]|\\(?s:.)|\$\([^()]*\))*\"|'[^']*'|&&|&>|[<>]&|[<>][^&]|[<>]$|\|\|?)*&([^&>]|$))
       - not:
           kind: block_mapping_pair
-          regex: \bset\s+\+e\b
+          regex: \bset\s+(\+[a-zA-Z]*e[a-zA-Z]*|\+o\s+errexit)\b
+      - not:
+          kind: block_mapping_pair
+          regex: \btrap\b[^\n]*\b(EXIT|ERR|0)\b
+      - not:
+          kind: block_mapping_pair
+          regex: \|\|\s*(osv-scanner|snyk\s+test|trivy\s+(fs|filesystem|repo|repository|rootfs))\b
       - not:
           kind: block_mapping_pair
           regex: (trivy\b([^\n]*(\\|&&|\|\|?)[ \t\r]*\n)*[^\n]*--exit-code(=|[ \t]+)['\"]?([^1-9\s'\"]|[1-9][0-9]{3,}|[3-9][0-9]{2}|2[6-9][0-9]|25[6-9]|(25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[1-9][0-9]?)[^\s'\";&|0-9])|(?s:^run\s*:\s*(?:[&!][^\s]*[ \t]+)*(?:>[-+0-9]*.*|[^\s|>#&!].*|)trivy\b.*--exit-code(=|[ \t]+)['\"]?([^1-9\s'\"]|[1-9][0-9]{3,}|[3-9][0-9]{2}|2[6-9][0-9]|25[6-9]|(25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[1-9][0-9]?)[^\s'\";&|0-9])))
@@ -2964,12 +5334,469 @@ rule:
                     not:
                       kind: block_mapping_pair
                       regex: '\b(branches|branches-ignore|paths|paths-ignore)\s*:'
+  - any:
+    - any:
+      - any:
+        - inside:
+            stopBy: end
+            kind: block_sequence_item
+            inside:
+              kind: block_sequence
+              inside:
+                kind: block_node
+                inside:
+                  kind: block_mapping_pair
+                  has:
+                    field: key
+                    kind: flow_node
+                    regex: ^(steps)$
+            has:
+              kind: block_node
+              has:
+                kind: block_mapping
+                has:
+                  kind: block_mapping_pair
+                  has:
+                    field: key
+                    kind: flow_node
+                    regex: ^(shell)$
+                  regex: ^shell\s*:\s*(?:['\"]?(?:bash|sh)['\"]?[ \t]*(?:#[^\n]*)?(?:$|\r?\n|[,}])|['\"]?(?:/[\w./-]*/)?(?:bash|sh|dash|zsh|ksh)(?:[ \t]+[^\s{][^\s]*)*?[ \t]+(?:-[a-zA-Z]*e[a-zA-Z]*|-o[ \t]+errexit)(?:[ \t]+[^\s{][^\s]*)*[ \t]+\{0\})
+        - all:
+          - not:
+              inside:
+                stopBy: end
+                kind: block_sequence_item
+                inside:
+                  kind: block_sequence
+                  inside:
+                    kind: block_node
+                    inside:
+                      kind: block_mapping_pair
+                      has:
+                        field: key
+                        kind: flow_node
+                        regex: ^(steps)$
+                has:
+                  kind: block_node
+                  has:
+                    kind: block_mapping
+                    has:
+                      kind: block_mapping_pair
+                      has:
+                        field: key
+                        kind: flow_node
+                        regex: ^(shell)$
+          - inside:
+              stopBy: end
+              kind: block_mapping_pair
+              inside:
+                kind: block_mapping
+                inside:
+                  kind: block_node
+                  inside:
+                    kind: block_mapping_pair
+                    has:
+                      field: key
+                      kind: flow_node
+                      regex: ^(jobs)$
+              has:
+                kind: block_node
+                has:
+                  kind: block_mapping
+                  has:
+                    kind: block_mapping_pair
+                    has:
+                      field: key
+                      kind: flow_node
+                      regex: ^(defaults)$
+                    regex: \bshell\s*:\s*(?:['\"]?(?:bash|sh)['\"]?[ \t]*(?:#[^\n]*)?(?:$|\r?\n|[,}])|['\"]?(?:/[\w./-]*/)?(?:bash|sh|dash|zsh|ksh)(?:[ \t]+[^\s{][^\s]*)*?[ \t]+(?:-[a-zA-Z]*e[a-zA-Z]*|-o[ \t]+errexit)(?:[ \t]+[^\s{][^\s]*)*[ \t]+\{0\})
+        - all:
+          - not:
+              inside:
+                stopBy: end
+                kind: block_sequence_item
+                inside:
+                  kind: block_sequence
+                  inside:
+                    kind: block_node
+                    inside:
+                      kind: block_mapping_pair
+                      has:
+                        field: key
+                        kind: flow_node
+                        regex: ^(steps)$
+                has:
+                  kind: block_node
+                  has:
+                    kind: block_mapping
+                    has:
+                      kind: block_mapping_pair
+                      has:
+                        field: key
+                        kind: flow_node
+                        regex: ^(shell)$
+          - not:
+              inside:
+                stopBy: end
+                kind: block_mapping_pair
+                inside:
+                  kind: block_mapping
+                  inside:
+                    kind: block_node
+                    inside:
+                      kind: block_mapping_pair
+                      has:
+                        field: key
+                        kind: flow_node
+                        regex: ^(jobs)$
+                has:
+                  kind: block_node
+                  has:
+                    kind: block_mapping
+                    has:
+                      kind: block_mapping_pair
+                      has:
+                        field: key
+                        kind: flow_node
+                        regex: ^(defaults)$
+                      regex: \bshell\s*:\s*
+          - inside:
+              stopBy: end
+              kind: document
+              has:
+                kind: block_node
+                has:
+                  kind: block_mapping
+                  has:
+                    kind: block_mapping_pair
+                    has:
+                      field: key
+                      kind: flow_node
+                      regex: ^(defaults)$
+                    regex: \bshell\s*:\s*(?:['\"]?(?:bash|sh)['\"]?[ \t]*(?:#[^\n]*)?(?:$|\r?\n|[,}])|['\"]?(?:/[\w./-]*/)?(?:bash|sh|dash|zsh|ksh)(?:[ \t]+[^\s{][^\s]*)*?[ \t]+(?:-[a-zA-Z]*e[a-zA-Z]*|-o[ \t]+errexit)(?:[ \t]+[^\s{][^\s]*)*[ \t]+\{0\})
+      - all:
+        - all:
+          - not:
+              inside:
+                stopBy: end
+                kind: block_sequence_item
+                inside:
+                  kind: block_sequence
+                  inside:
+                    kind: block_node
+                    inside:
+                      kind: block_mapping_pair
+                      has:
+                        field: key
+                        kind: flow_node
+                        regex: ^(steps)$
+                has:
+                  kind: block_node
+                  has:
+                    kind: block_mapping
+                    has:
+                      kind: block_mapping_pair
+                      has:
+                        field: key
+                        kind: flow_node
+                        regex: ^(shell)$
+          - not:
+              inside:
+                stopBy: end
+                kind: block_mapping_pair
+                inside:
+                  kind: block_mapping
+                  inside:
+                    kind: block_node
+                    inside:
+                      kind: block_mapping_pair
+                      has:
+                        field: key
+                        kind: flow_node
+                        regex: ^(jobs)$
+                has:
+                  kind: block_node
+                  has:
+                    kind: block_mapping
+                    has:
+                      kind: block_mapping_pair
+                      has:
+                        field: key
+                        kind: flow_node
+                        regex: ^(defaults)$
+                      regex: \bshell\s*:\s*
+          - not:
+              inside:
+                stopBy: end
+                kind: document
+                has:
+                  kind: block_node
+                  has:
+                    kind: block_mapping
+                    has:
+                      kind: block_mapping_pair
+                      has:
+                        field: key
+                        kind: flow_node
+                        regex: ^(defaults)$
+                      regex: \bshell\s*:\s*
+        - inside:
+            stopBy: end
+            kind: block_mapping_pair
+            inside:
+              kind: block_mapping
+              inside:
+                kind: block_node
+                inside:
+                  kind: block_mapping_pair
+                  has:
+                    field: key
+                    kind: flow_node
+                    regex: ^(jobs)$
+            has:
+              kind: block_node
+              has:
+                kind: block_mapping
+                has:
+                  kind: block_mapping_pair
+                  has:
+                    field: key
+                    kind: flow_node
+                    regex: ^(runs-on)$
+                  regex: ^runs-on\s*:\s*['\"]?(ubuntu|macos)-[\w.-]+['\"]?[ \t]*(#[^\n]*)?$
+    - all:
+      - any:
+        - any:
+          - inside:
+              stopBy: end
+              kind: block_sequence_item
+              inside:
+                kind: block_sequence
+                inside:
+                  kind: block_node
+                  inside:
+                    kind: block_mapping_pair
+                    has:
+                      field: key
+                      kind: flow_node
+                      regex: ^(steps)$
+              has:
+                kind: block_node
+                has:
+                  kind: block_mapping
+                  has:
+                    kind: block_mapping_pair
+                    has:
+                      field: key
+                      kind: flow_node
+                      regex: ^(shell)$
+                    regex: ^shell\s*:\s*(?:(?:['\"]?(?:bash|sh)['\"]?[ \t]*(?:#[^\n]*)?(?:$|\r?\n|[,}])|['\"]?(?:/[\w./-]*/)?(?:bash|sh|dash|zsh|ksh)(?:[ \t]+[^\s{][^\s]*)*?[ \t]+(?:-[a-zA-Z]*e[a-zA-Z]*|-o[ \t]+errexit)(?:[ \t]+[^\s{][^\s]*)*[ \t]+\{0\})|['\"]?(?:/[\w./-]*/)?(?:bash|sh|dash|zsh|ksh)[ \t][^\n{]*\{0\}|['\"]?(?:pwsh|powershell)['\"]?[ \t]*(?:#[^\n]*)?(?:$|\r?\n|[,}]))
+          - all:
+            - not:
+                inside:
+                  stopBy: end
+                  kind: block_sequence_item
+                  inside:
+                    kind: block_sequence
+                    inside:
+                      kind: block_node
+                      inside:
+                        kind: block_mapping_pair
+                        has:
+                          field: key
+                          kind: flow_node
+                          regex: ^(steps)$
+                  has:
+                    kind: block_node
+                    has:
+                      kind: block_mapping
+                      has:
+                        kind: block_mapping_pair
+                        has:
+                          field: key
+                          kind: flow_node
+                          regex: ^(shell)$
+            - inside:
+                stopBy: end
+                kind: block_mapping_pair
+                inside:
+                  kind: block_mapping
+                  inside:
+                    kind: block_node
+                    inside:
+                      kind: block_mapping_pair
+                      has:
+                        field: key
+                        kind: flow_node
+                        regex: ^(jobs)$
+                has:
+                  kind: block_node
+                  has:
+                    kind: block_mapping
+                    has:
+                      kind: block_mapping_pair
+                      has:
+                        field: key
+                        kind: flow_node
+                        regex: ^(defaults)$
+                      regex: \bshell\s*:\s*(?:(?:['\"]?(?:bash|sh)['\"]?[ \t]*(?:#[^\n]*)?(?:$|\r?\n|[,}])|['\"]?(?:/[\w./-]*/)?(?:bash|sh|dash|zsh|ksh)(?:[ \t]+[^\s{][^\s]*)*?[ \t]+(?:-[a-zA-Z]*e[a-zA-Z]*|-o[ \t]+errexit)(?:[ \t]+[^\s{][^\s]*)*[ \t]+\{0\})|['\"]?(?:/[\w./-]*/)?(?:bash|sh|dash|zsh|ksh)[ \t][^\n{]*\{0\}|['\"]?(?:pwsh|powershell)['\"]?[ \t]*(?:#[^\n]*)?(?:$|\r?\n|[,}]))
+          - all:
+            - not:
+                inside:
+                  stopBy: end
+                  kind: block_sequence_item
+                  inside:
+                    kind: block_sequence
+                    inside:
+                      kind: block_node
+                      inside:
+                        kind: block_mapping_pair
+                        has:
+                          field: key
+                          kind: flow_node
+                          regex: ^(steps)$
+                  has:
+                    kind: block_node
+                    has:
+                      kind: block_mapping
+                      has:
+                        kind: block_mapping_pair
+                        has:
+                          field: key
+                          kind: flow_node
+                          regex: ^(shell)$
+            - not:
+                inside:
+                  stopBy: end
+                  kind: block_mapping_pair
+                  inside:
+                    kind: block_mapping
+                    inside:
+                      kind: block_node
+                      inside:
+                        kind: block_mapping_pair
+                        has:
+                          field: key
+                          kind: flow_node
+                          regex: ^(jobs)$
+                  has:
+                    kind: block_node
+                    has:
+                      kind: block_mapping
+                      has:
+                        kind: block_mapping_pair
+                        has:
+                          field: key
+                          kind: flow_node
+                          regex: ^(defaults)$
+                        regex: \bshell\s*:\s*
+            - inside:
+                stopBy: end
+                kind: document
+                has:
+                  kind: block_node
+                  has:
+                    kind: block_mapping
+                    has:
+                      kind: block_mapping_pair
+                      has:
+                        field: key
+                        kind: flow_node
+                        regex: ^(defaults)$
+                      regex: \bshell\s*:\s*(?:(?:['\"]?(?:bash|sh)['\"]?[ \t]*(?:#[^\n]*)?(?:$|\r?\n|[,}])|['\"]?(?:/[\w./-]*/)?(?:bash|sh|dash|zsh|ksh)(?:[ \t]+[^\s{][^\s]*)*?[ \t]+(?:-[a-zA-Z]*e[a-zA-Z]*|-o[ \t]+errexit)(?:[ \t]+[^\s{][^\s]*)*[ \t]+\{0\})|['\"]?(?:/[\w./-]*/)?(?:bash|sh|dash|zsh|ksh)[ \t][^\n{]*\{0\}|['\"]?(?:pwsh|powershell)['\"]?[ \t]*(?:#[^\n]*)?(?:$|\r?\n|[,}]))
+        - all:
+          - not:
+              inside:
+                stopBy: end
+                kind: block_sequence_item
+                inside:
+                  kind: block_sequence
+                  inside:
+                    kind: block_node
+                    inside:
+                      kind: block_mapping_pair
+                      has:
+                        field: key
+                        kind: flow_node
+                        regex: ^(steps)$
+                has:
+                  kind: block_node
+                  has:
+                    kind: block_mapping
+                    has:
+                      kind: block_mapping_pair
+                      has:
+                        field: key
+                        kind: flow_node
+                        regex: ^(shell)$
+          - not:
+              inside:
+                stopBy: end
+                kind: block_mapping_pair
+                inside:
+                  kind: block_mapping
+                  inside:
+                    kind: block_node
+                    inside:
+                      kind: block_mapping_pair
+                      has:
+                        field: key
+                        kind: flow_node
+                        regex: ^(jobs)$
+                has:
+                  kind: block_node
+                  has:
+                    kind: block_mapping
+                    has:
+                      kind: block_mapping_pair
+                      has:
+                        field: key
+                        kind: flow_node
+                        regex: ^(defaults)$
+                      regex: \bshell\s*:\s*
+          - not:
+              inside:
+                stopBy: end
+                kind: document
+                has:
+                  kind: block_node
+                  has:
+                    kind: block_mapping
+                    has:
+                      kind: block_mapping_pair
+                      has:
+                        field: key
+                        kind: flow_node
+                        regex: ^(defaults)$
+                      regex: \bshell\s*:\s*
+      - any:
+        - all:
+          - kind: block_mapping_pair
+            has:
+              field: key
+              kind: flow_node
+              regex: ^(run)$
+            regex: (?:^run\s*:\s*(?:[&!][^\s]*[ \t]+)*[|>]?[-+0-9]*[ \t]*(?:#[^\n]*)?\n|[^\\|&\n][ \t\r]*\n|^run\s*:\s*(?:[&!][^\s]*[ \t]+)*)[ \t]*(?:[^\n#]*(?:;|&&)[ \t]*)?(?:(osv-scanner|snyk\s+test)\b|trivy\b)(?:[^&;|\n\\#'\"`]|'[^'\n]*'|\"[^\"\n`\\]*\"|>&|&&)*(gradle\.lockfile|build\.gradle(\.kts)?)\b(?:[^&;|\n\\#'\"`]|'[^'\n]*'|\"[^\"\n`\\]*\"|>&|&&)*(?:[ \t\r]+#[^\n]*)?(?:\s|#[^\n]*)*$
+          - not:
+              kind: block_mapping_pair
+              regex: ^run\s*:\s*(?:[&!][^\s]*[ \t]+)*(>|[^\s|>#&!][^\n]*\n)
+        - all:
+          - kind: block_mapping_pair
+            has:
+              field: key
+              kind: flow_node
+              regex: ^(run)$
+            regex: (?:^run\s*:\s*(?:[&!][^\s]*[ \t]+)*(?:>[^\n]*\n)?|\n[ \t\r]*\r?\n)\s*(?:[^#]*?(?:;|&&)\s*)?(?:(osv-scanner|snyk\s+test)\b|trivy\b)(?:[^&;|\n\\#'\"`]|'[^'\n]*'|\"[^\"\n`\\]*\"|>&|&&)*(gradle\.lockfile|build\.gradle(\.kts)?)\b(?:[^&;|\n\\#'\"`]|'[^'\n]*'|\"[^\"\n`\\]*\"|>&|&&)*(?:[ \t\r]+#[^\n]*)?(?:\s|#[^\n]*)*$
+          - kind: block_mapping_pair
+            regex: ^run\s*:\s*(?:[&!][^\s]*[ \t]+)*(>|[^\s|>#&!][^\n]*\n)
 min_engine: 0.45.3
 ---
 # scan-composer: a step in a workflow that runs on every pull request (no branch or path filter), with no if: and
 # continue-on-error absent or false, that runs composer audit (not on another folder by -d or --working-dir, no
 # --ignore-severity), or osv-scanner, snyk test or trivy (exit code non-zero) naming a composer lockfile or manifest
-# and fails the job on high or critical findings. Evidence: the scan piece for composer.
+# and fails the job on high or critical findings: under a shell that stops on a failed command (GitHub's bash -e on a
+# Linux or macOS runner, shell: bash or sh, a template with -e), or else as the run's last command. Evidence: the scan
+# piece for composer.
 id: dependency-scanning-ci.yaml-github_actions.scan-composer
 practice_id: dependency-scanning-ci
 language: yaml
@@ -3027,7 +5854,13 @@ rule:
           regex: (?s:^run\s*:\s*(?:[&!][^\s]*[ \t]+)*(?:>[-+0-9]*.*|[^\s|>#&!].*|)composer\s+audit\b(?:\$'(?:[^'\\]|\\(?s:.))*'|[^&'\"\\|<>]|\\(?s:.)|\"(?:[^\"\\]|\\(?s:.)|\$\([^()]*\))*\"|'[^']*'|&&|&>|[<>]&|[<>][^&]|[<>]$|\|\|?)*&([^&>]|$))
       - not:
           kind: block_mapping_pair
-          regex: \bset\s+\+e\b
+          regex: \bset\s+(\+[a-zA-Z]*e[a-zA-Z]*|\+o\s+errexit)\b
+      - not:
+          kind: block_mapping_pair
+          regex: \btrap\b[^\n]*\b(EXIT|ERR|0)\b
+      - not:
+          kind: block_mapping_pair
+          regex: \|\|\s*composer\s+audit\b
       - not:
           kind: block_mapping_pair
           regex: npm\s+audit\s+(fix|signatures)\b
@@ -3131,7 +5964,13 @@ rule:
           regex: (?s:^run\s*:\s*(?:[&!][^\s]*[ \t]+)*(?:>[-+0-9]*.*|[^\s|>#&!].*|)(osv-scanner|snyk\s+test|trivy\s+(fs|filesystem|repo|repository|rootfs))\b(?:\$'(?:[^'\\]|\\(?s:.))*'|[^&'\"\\|<>]|\\(?s:.)|\"(?:[^\"\\]|\\(?s:.)|\$\([^()]*\))*\"|'[^']*'|&&|&>|[<>]&|[<>][^&]|[<>]$|\|\|?)*&([^&>]|$))
       - not:
           kind: block_mapping_pair
-          regex: \bset\s+\+e\b
+          regex: \bset\s+(\+[a-zA-Z]*e[a-zA-Z]*|\+o\s+errexit)\b
+      - not:
+          kind: block_mapping_pair
+          regex: \btrap\b[^\n]*\b(EXIT|ERR|0)\b
+      - not:
+          kind: block_mapping_pair
+          regex: \|\|\s*(osv-scanner|snyk\s+test|trivy\s+(fs|filesystem|repo|repository|rootfs))\b
       - not:
           all:
           - kind: block_mapping_pair
@@ -3212,7 +6051,13 @@ rule:
           regex: (?s:^run\s*:\s*(?:[&!][^\s]*[ \t]+)*(?:>[-+0-9]*.*|[^\s|>#&!].*|)(osv-scanner|snyk\s+test|trivy\s+(fs|filesystem|repo|repository|rootfs))\b(?:\$'(?:[^'\\]|\\(?s:.))*'|[^&'\"\\|<>]|\\(?s:.)|\"(?:[^\"\\]|\\(?s:.)|\$\([^()]*\))*\"|'[^']*'|&&|&>|[<>]&|[<>][^&]|[<>]$|\|\|?)*&([^&>]|$))
       - not:
           kind: block_mapping_pair
-          regex: \bset\s+\+e\b
+          regex: \bset\s+(\+[a-zA-Z]*e[a-zA-Z]*|\+o\s+errexit)\b
+      - not:
+          kind: block_mapping_pair
+          regex: \btrap\b[^\n]*\b(EXIT|ERR|0)\b
+      - not:
+          kind: block_mapping_pair
+          regex: \|\|\s*(osv-scanner|snyk\s+test|trivy\s+(fs|filesystem|repo|repository|rootfs))\b
       - not:
           kind: block_mapping_pair
           regex: (trivy\b([^\n]*(\\|&&|\|\|?)[ \t\r]*\n)*[^\n]*--exit-code(=|[ \t]+)['\"]?([^1-9\s'\"]|[1-9][0-9]{3,}|[3-9][0-9]{2}|2[6-9][0-9]|25[6-9]|(25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[1-9][0-9]?)[^\s'\";&|0-9])|(?s:^run\s*:\s*(?:[&!][^\s]*[ \t]+)*(?:>[-+0-9]*.*|[^\s|>#&!].*|)trivy\b.*--exit-code(=|[ \t]+)['\"]?([^1-9\s'\"]|[1-9][0-9]{3,}|[3-9][0-9]{2}|2[6-9][0-9]|25[6-9]|(25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[1-9][0-9]?)[^\s'\";&|0-9])))
@@ -3474,6 +6319,461 @@ rule:
                     not:
                       kind: block_mapping_pair
                       regex: '\b(branches|branches-ignore|paths|paths-ignore)\s*:'
+  - any:
+    - any:
+      - any:
+        - inside:
+            stopBy: end
+            kind: block_sequence_item
+            inside:
+              kind: block_sequence
+              inside:
+                kind: block_node
+                inside:
+                  kind: block_mapping_pair
+                  has:
+                    field: key
+                    kind: flow_node
+                    regex: ^(steps)$
+            has:
+              kind: block_node
+              has:
+                kind: block_mapping
+                has:
+                  kind: block_mapping_pair
+                  has:
+                    field: key
+                    kind: flow_node
+                    regex: ^(shell)$
+                  regex: ^shell\s*:\s*(?:['\"]?(?:bash|sh)['\"]?[ \t]*(?:#[^\n]*)?(?:$|\r?\n|[,}])|['\"]?(?:/[\w./-]*/)?(?:bash|sh|dash|zsh|ksh)(?:[ \t]+[^\s{][^\s]*)*?[ \t]+(?:-[a-zA-Z]*e[a-zA-Z]*|-o[ \t]+errexit)(?:[ \t]+[^\s{][^\s]*)*[ \t]+\{0\})
+        - all:
+          - not:
+              inside:
+                stopBy: end
+                kind: block_sequence_item
+                inside:
+                  kind: block_sequence
+                  inside:
+                    kind: block_node
+                    inside:
+                      kind: block_mapping_pair
+                      has:
+                        field: key
+                        kind: flow_node
+                        regex: ^(steps)$
+                has:
+                  kind: block_node
+                  has:
+                    kind: block_mapping
+                    has:
+                      kind: block_mapping_pair
+                      has:
+                        field: key
+                        kind: flow_node
+                        regex: ^(shell)$
+          - inside:
+              stopBy: end
+              kind: block_mapping_pair
+              inside:
+                kind: block_mapping
+                inside:
+                  kind: block_node
+                  inside:
+                    kind: block_mapping_pair
+                    has:
+                      field: key
+                      kind: flow_node
+                      regex: ^(jobs)$
+              has:
+                kind: block_node
+                has:
+                  kind: block_mapping
+                  has:
+                    kind: block_mapping_pair
+                    has:
+                      field: key
+                      kind: flow_node
+                      regex: ^(defaults)$
+                    regex: \bshell\s*:\s*(?:['\"]?(?:bash|sh)['\"]?[ \t]*(?:#[^\n]*)?(?:$|\r?\n|[,}])|['\"]?(?:/[\w./-]*/)?(?:bash|sh|dash|zsh|ksh)(?:[ \t]+[^\s{][^\s]*)*?[ \t]+(?:-[a-zA-Z]*e[a-zA-Z]*|-o[ \t]+errexit)(?:[ \t]+[^\s{][^\s]*)*[ \t]+\{0\})
+        - all:
+          - not:
+              inside:
+                stopBy: end
+                kind: block_sequence_item
+                inside:
+                  kind: block_sequence
+                  inside:
+                    kind: block_node
+                    inside:
+                      kind: block_mapping_pair
+                      has:
+                        field: key
+                        kind: flow_node
+                        regex: ^(steps)$
+                has:
+                  kind: block_node
+                  has:
+                    kind: block_mapping
+                    has:
+                      kind: block_mapping_pair
+                      has:
+                        field: key
+                        kind: flow_node
+                        regex: ^(shell)$
+          - not:
+              inside:
+                stopBy: end
+                kind: block_mapping_pair
+                inside:
+                  kind: block_mapping
+                  inside:
+                    kind: block_node
+                    inside:
+                      kind: block_mapping_pair
+                      has:
+                        field: key
+                        kind: flow_node
+                        regex: ^(jobs)$
+                has:
+                  kind: block_node
+                  has:
+                    kind: block_mapping
+                    has:
+                      kind: block_mapping_pair
+                      has:
+                        field: key
+                        kind: flow_node
+                        regex: ^(defaults)$
+                      regex: \bshell\s*:\s*
+          - inside:
+              stopBy: end
+              kind: document
+              has:
+                kind: block_node
+                has:
+                  kind: block_mapping
+                  has:
+                    kind: block_mapping_pair
+                    has:
+                      field: key
+                      kind: flow_node
+                      regex: ^(defaults)$
+                    regex: \bshell\s*:\s*(?:['\"]?(?:bash|sh)['\"]?[ \t]*(?:#[^\n]*)?(?:$|\r?\n|[,}])|['\"]?(?:/[\w./-]*/)?(?:bash|sh|dash|zsh|ksh)(?:[ \t]+[^\s{][^\s]*)*?[ \t]+(?:-[a-zA-Z]*e[a-zA-Z]*|-o[ \t]+errexit)(?:[ \t]+[^\s{][^\s]*)*[ \t]+\{0\})
+      - all:
+        - all:
+          - not:
+              inside:
+                stopBy: end
+                kind: block_sequence_item
+                inside:
+                  kind: block_sequence
+                  inside:
+                    kind: block_node
+                    inside:
+                      kind: block_mapping_pair
+                      has:
+                        field: key
+                        kind: flow_node
+                        regex: ^(steps)$
+                has:
+                  kind: block_node
+                  has:
+                    kind: block_mapping
+                    has:
+                      kind: block_mapping_pair
+                      has:
+                        field: key
+                        kind: flow_node
+                        regex: ^(shell)$
+          - not:
+              inside:
+                stopBy: end
+                kind: block_mapping_pair
+                inside:
+                  kind: block_mapping
+                  inside:
+                    kind: block_node
+                    inside:
+                      kind: block_mapping_pair
+                      has:
+                        field: key
+                        kind: flow_node
+                        regex: ^(jobs)$
+                has:
+                  kind: block_node
+                  has:
+                    kind: block_mapping
+                    has:
+                      kind: block_mapping_pair
+                      has:
+                        field: key
+                        kind: flow_node
+                        regex: ^(defaults)$
+                      regex: \bshell\s*:\s*
+          - not:
+              inside:
+                stopBy: end
+                kind: document
+                has:
+                  kind: block_node
+                  has:
+                    kind: block_mapping
+                    has:
+                      kind: block_mapping_pair
+                      has:
+                        field: key
+                        kind: flow_node
+                        regex: ^(defaults)$
+                      regex: \bshell\s*:\s*
+        - inside:
+            stopBy: end
+            kind: block_mapping_pair
+            inside:
+              kind: block_mapping
+              inside:
+                kind: block_node
+                inside:
+                  kind: block_mapping_pair
+                  has:
+                    field: key
+                    kind: flow_node
+                    regex: ^(jobs)$
+            has:
+              kind: block_node
+              has:
+                kind: block_mapping
+                has:
+                  kind: block_mapping_pair
+                  has:
+                    field: key
+                    kind: flow_node
+                    regex: ^(runs-on)$
+                  regex: ^runs-on\s*:\s*['\"]?(ubuntu|macos)-[\w.-]+['\"]?[ \t]*(#[^\n]*)?$
+    - all:
+      - any:
+        - any:
+          - inside:
+              stopBy: end
+              kind: block_sequence_item
+              inside:
+                kind: block_sequence
+                inside:
+                  kind: block_node
+                  inside:
+                    kind: block_mapping_pair
+                    has:
+                      field: key
+                      kind: flow_node
+                      regex: ^(steps)$
+              has:
+                kind: block_node
+                has:
+                  kind: block_mapping
+                  has:
+                    kind: block_mapping_pair
+                    has:
+                      field: key
+                      kind: flow_node
+                      regex: ^(shell)$
+                    regex: ^shell\s*:\s*(?:(?:['\"]?(?:bash|sh)['\"]?[ \t]*(?:#[^\n]*)?(?:$|\r?\n|[,}])|['\"]?(?:/[\w./-]*/)?(?:bash|sh|dash|zsh|ksh)(?:[ \t]+[^\s{][^\s]*)*?[ \t]+(?:-[a-zA-Z]*e[a-zA-Z]*|-o[ \t]+errexit)(?:[ \t]+[^\s{][^\s]*)*[ \t]+\{0\})|['\"]?(?:/[\w./-]*/)?(?:bash|sh|dash|zsh|ksh)[ \t][^\n{]*\{0\}|['\"]?(?:pwsh|powershell)['\"]?[ \t]*(?:#[^\n]*)?(?:$|\r?\n|[,}]))
+          - all:
+            - not:
+                inside:
+                  stopBy: end
+                  kind: block_sequence_item
+                  inside:
+                    kind: block_sequence
+                    inside:
+                      kind: block_node
+                      inside:
+                        kind: block_mapping_pair
+                        has:
+                          field: key
+                          kind: flow_node
+                          regex: ^(steps)$
+                  has:
+                    kind: block_node
+                    has:
+                      kind: block_mapping
+                      has:
+                        kind: block_mapping_pair
+                        has:
+                          field: key
+                          kind: flow_node
+                          regex: ^(shell)$
+            - inside:
+                stopBy: end
+                kind: block_mapping_pair
+                inside:
+                  kind: block_mapping
+                  inside:
+                    kind: block_node
+                    inside:
+                      kind: block_mapping_pair
+                      has:
+                        field: key
+                        kind: flow_node
+                        regex: ^(jobs)$
+                has:
+                  kind: block_node
+                  has:
+                    kind: block_mapping
+                    has:
+                      kind: block_mapping_pair
+                      has:
+                        field: key
+                        kind: flow_node
+                        regex: ^(defaults)$
+                      regex: \bshell\s*:\s*(?:(?:['\"]?(?:bash|sh)['\"]?[ \t]*(?:#[^\n]*)?(?:$|\r?\n|[,}])|['\"]?(?:/[\w./-]*/)?(?:bash|sh|dash|zsh|ksh)(?:[ \t]+[^\s{][^\s]*)*?[ \t]+(?:-[a-zA-Z]*e[a-zA-Z]*|-o[ \t]+errexit)(?:[ \t]+[^\s{][^\s]*)*[ \t]+\{0\})|['\"]?(?:/[\w./-]*/)?(?:bash|sh|dash|zsh|ksh)[ \t][^\n{]*\{0\}|['\"]?(?:pwsh|powershell)['\"]?[ \t]*(?:#[^\n]*)?(?:$|\r?\n|[,}]))
+          - all:
+            - not:
+                inside:
+                  stopBy: end
+                  kind: block_sequence_item
+                  inside:
+                    kind: block_sequence
+                    inside:
+                      kind: block_node
+                      inside:
+                        kind: block_mapping_pair
+                        has:
+                          field: key
+                          kind: flow_node
+                          regex: ^(steps)$
+                  has:
+                    kind: block_node
+                    has:
+                      kind: block_mapping
+                      has:
+                        kind: block_mapping_pair
+                        has:
+                          field: key
+                          kind: flow_node
+                          regex: ^(shell)$
+            - not:
+                inside:
+                  stopBy: end
+                  kind: block_mapping_pair
+                  inside:
+                    kind: block_mapping
+                    inside:
+                      kind: block_node
+                      inside:
+                        kind: block_mapping_pair
+                        has:
+                          field: key
+                          kind: flow_node
+                          regex: ^(jobs)$
+                  has:
+                    kind: block_node
+                    has:
+                      kind: block_mapping
+                      has:
+                        kind: block_mapping_pair
+                        has:
+                          field: key
+                          kind: flow_node
+                          regex: ^(defaults)$
+                        regex: \bshell\s*:\s*
+            - inside:
+                stopBy: end
+                kind: document
+                has:
+                  kind: block_node
+                  has:
+                    kind: block_mapping
+                    has:
+                      kind: block_mapping_pair
+                      has:
+                        field: key
+                        kind: flow_node
+                        regex: ^(defaults)$
+                      regex: \bshell\s*:\s*(?:(?:['\"]?(?:bash|sh)['\"]?[ \t]*(?:#[^\n]*)?(?:$|\r?\n|[,}])|['\"]?(?:/[\w./-]*/)?(?:bash|sh|dash|zsh|ksh)(?:[ \t]+[^\s{][^\s]*)*?[ \t]+(?:-[a-zA-Z]*e[a-zA-Z]*|-o[ \t]+errexit)(?:[ \t]+[^\s{][^\s]*)*[ \t]+\{0\})|['\"]?(?:/[\w./-]*/)?(?:bash|sh|dash|zsh|ksh)[ \t][^\n{]*\{0\}|['\"]?(?:pwsh|powershell)['\"]?[ \t]*(?:#[^\n]*)?(?:$|\r?\n|[,}]))
+        - all:
+          - not:
+              inside:
+                stopBy: end
+                kind: block_sequence_item
+                inside:
+                  kind: block_sequence
+                  inside:
+                    kind: block_node
+                    inside:
+                      kind: block_mapping_pair
+                      has:
+                        field: key
+                        kind: flow_node
+                        regex: ^(steps)$
+                has:
+                  kind: block_node
+                  has:
+                    kind: block_mapping
+                    has:
+                      kind: block_mapping_pair
+                      has:
+                        field: key
+                        kind: flow_node
+                        regex: ^(shell)$
+          - not:
+              inside:
+                stopBy: end
+                kind: block_mapping_pair
+                inside:
+                  kind: block_mapping
+                  inside:
+                    kind: block_node
+                    inside:
+                      kind: block_mapping_pair
+                      has:
+                        field: key
+                        kind: flow_node
+                        regex: ^(jobs)$
+                has:
+                  kind: block_node
+                  has:
+                    kind: block_mapping
+                    has:
+                      kind: block_mapping_pair
+                      has:
+                        field: key
+                        kind: flow_node
+                        regex: ^(defaults)$
+                      regex: \bshell\s*:\s*
+          - not:
+              inside:
+                stopBy: end
+                kind: document
+                has:
+                  kind: block_node
+                  has:
+                    kind: block_mapping
+                    has:
+                      kind: block_mapping_pair
+                      has:
+                        field: key
+                        kind: flow_node
+                        regex: ^(defaults)$
+                      regex: \bshell\s*:\s*
+      - any:
+        - all:
+          - kind: block_mapping_pair
+            has:
+              field: key
+              kind: flow_node
+              regex: ^(run)$
+            regex: (?:^run\s*:\s*(?:[&!][^\s]*[ \t]+)*[|>]?[-+0-9]*[ \t]*(?:#[^\n]*)?\n|[^\\|&\n][ \t\r]*\n|^run\s*:\s*(?:[&!][^\s]*[ \t]+)*)[ \t]*(?:[^\n#]*(?:;|&&)[ \t]*)?(?:composer\s+audit\b|(?:(osv-scanner|snyk\s+test)\b|trivy\b)(?:[^&;|\n\\#'\"`]|'[^'\n]*'|\"[^\"\n`\\]*\"|>&|&&)*composer\.lock\b)(?:[^&;|\n\\#'\"`]|'[^'\n]*'|\"[^\"\n`\\]*\"|>&|&&)*(?:[ \t\r]+#[^\n]*)?(?:\s|#[^\n]*)*$
+          - not:
+              kind: block_mapping_pair
+              regex: ^run\s*:\s*(?:[&!][^\s]*[ \t]+)*(>|[^\s|>#&!][^\n]*\n)
+        - all:
+          - kind: block_mapping_pair
+            has:
+              field: key
+              kind: flow_node
+              regex: ^(run)$
+            regex: (?:^run\s*:\s*(?:[&!][^\s]*[ \t]+)*(?:>[^\n]*\n)?|\n[ \t\r]*\r?\n)\s*(?:[^#]*?(?:;|&&)\s*)?(?:composer\s+audit\b|(?:(osv-scanner|snyk\s+test)\b|trivy\b)(?:[^&;|\n\\#'\"`]|'[^'\n]*'|\"[^\"\n`\\]*\"|>&|&&)*composer\.lock\b)(?:[^&;|\n\\#'\"`]|'[^'\n]*'|\"[^\"\n`\\]*\"|>&|&&)*(?:[ \t\r]+#[^\n]*)?(?:\s|#[^\n]*)*$
+          - kind: block_mapping_pair
+            regex: ^run\s*:\s*(?:[&!][^\s]*[ \t]+)*(>|[^\s|>#&!][^\n]*\n)
 min_engine: 0.45.3
 ---
 # scan-all: actions/dependency-review-action on every pull request, failing on high or critical (fail-on-severity
@@ -3834,7 +7134,7 @@ rule:
               regex: poetry\s+check\s+--lock\b[^\n]*\|
           - not:
               kind: block_mapping_pair
-              regex: \bset\s+\+e\b
+              regex: \bset\s+(\+[a-zA-Z]*e[a-zA-Z]*|\+o\s+errexit)\b
       - not:
           all:
           - kind: block_mapping_pair
@@ -3849,7 +7149,7 @@ rule:
                 regex: poetry\s+check\s+--lock\b[^\n]*\|
             - not:
                 kind: block_mapping_pair
-                regex: \bset\s+\+e\b
+                regex: \bset\s+(\+[a-zA-Z]*e[a-zA-Z]*|\+o\s+errexit)\b
           - not:
               any:
               - inside:
@@ -4018,7 +7318,9 @@ rule:
 min_engine: 0.45.3
 ---
 # nonblocking-scan: a scanner that can't fail the job: || true, || exit 0 or || :, continue-on-error: true, a
-# critical-only threshold, or Trivy without a non-zero exit code. Fail.
+# critical-only threshold, Trivy without a non-zero exit code, or, under a shell without -e (a shell: template without
+# it, pwsh, powershell, a Windows runner's default), true, :, exit 0 or echo as the run's last command after it (pwsh
+# and powershell: exit 0). Fail.
 id: dependency-scanning-ci.yaml-github_actions.nonblocking-scan
 practice_id: dependency-scanning-ci
 language: yaml
@@ -4049,6 +7351,459 @@ rule:
           - not:
               kind: block_mapping_pair
               regex: (\r|(?s:^run\s*:\s*>[^\n]*.*\n *\t)|(?s:^run\s*:\s*>[^\n]*\n.*[^ \n][^\n]*\n[ \t]*\n\s*\S)|^run\s*:\s*>[^\n]*(\n *)*\n {1}[^ \n](?s:.*)\n {1} +[^ \n]|^run\s*:\s*>[^\n]*(\n *)*\n {2}[^ \n](?s:.*)\n {2} +[^ \n]|^run\s*:\s*>[^\n]*(\n *)*\n {3}[^ \n](?s:.*)\n {3} +[^ \n]|^run\s*:\s*>[^\n]*(\n *)*\n {4}[^ \n](?s:.*)\n {4} +[^ \n]|^run\s*:\s*>[^\n]*(\n *)*\n {5}[^ \n](?s:.*)\n {5} +[^ \n]|^run\s*:\s*>[^\n]*(\n *)*\n {6}[^ \n](?s:.*)\n {6} +[^ \n]|^run\s*:\s*>[^\n]*(\n *)*\n {7}[^ \n](?s:.*)\n {7} +[^ \n]|^run\s*:\s*>[^\n]*(\n *)*\n {8}[^ \n](?s:.*)\n {8} +[^ \n]|^run\s*:\s*>[^\n]*(\n *)*\n {9}[^ \n](?s:.*)\n {9} +[^ \n]|^run\s*:\s*>[^\n]*(\n *)*\n {10}[^ \n](?s:.*)\n {10} +[^ \n]|^run\s*:\s*>[^\n]*(\n *)*\n {11}[^ \n](?s:.*)\n {11} +[^ \n]|^run\s*:\s*>[^\n]*(\n *)*\n {12}[^ \n](?s:.*)\n {12} +[^ \n]|^run\s*:\s*>[^\n]*(\n *)*\n {13}[^ \n](?s:.*)\n {13} +[^ \n]|^run\s*:\s*>[^\n]*(\n *)*\n {14}[^ \n](?s:.*)\n {14} +[^ \n]|^run\s*:\s*>[^\n]*(\n *)*\n {15}[^ \n](?s:.*)\n {15} +[^ \n]|^run\s*:\s*>[^\n]*(\n *)*\n {16}[^ \n](?s:.*)\n {16} +[^ \n]|^run\s*:\s*>[^\n]*(\n *)*\n {17}[^ \n](?s:.*)\n {17} +[^ \n]|^run\s*:\s*>[^\n]*(\n *)*\n {18}[^ \n](?s:.*)\n {18} +[^ \n]|^run\s*:\s*>[^\n]*(\n *)*\n {19}[^ \n](?s:.*)\n {19} +[^ \n]|^run\s*:\s*>[^\n]*(\n *)*\n {20}[^ \n](?s:.*)\n {20} +[^ \n]|^run\s*:\s*>[^\n]*(\n *)*\n {21}[^ \n](?s:.*)\n {21} +[^ \n]|^run\s*:\s*>[^\n]*(\n *)*\n {22}[^ \n](?s:.*)\n {22} +[^ \n]|^run\s*:\s*>[^\n]*(\n *)*\n {23}[^ \n](?s:.*)\n {23} +[^ \n]|^run\s*:\s*>[^\n]*(\n *)*\n {24}[^ \n](?s:.*)\n {24} +[^ \n]|^run\s*:\s*>[^\n]*(\n *)*\n {25}[^ \n](?s:.*)\n {25} +[^ \n]|^run\s*:\s*>[^\n]*(\n *)*\n {26}[^ \n](?s:.*)\n {26} +[^ \n]|^run\s*:\s*>[^\n]*(\n *)*\n {27}[^ \n](?s:.*)\n {27} +[^ \n]|^run\s*:\s*>[^\n]*(\n *)*\n {28}[^ \n](?s:.*)\n {28} +[^ \n]|^run\s*:\s*>[^\n]*(\n *)*\n {29}[^ \n](?s:.*)\n {29} +[^ \n]|^run\s*:\s*>[^\n]*(\n *)*\n {30}[^ \n](?s:.*)\n {30} +[^ \n]|^run\s*:\s*>[^\n]*(\n *)*\n {31}[^ \n](?s:.*)\n {31} +[^ \n]|^run\s*:\s*>[^\n]*(\n *)*\n {32}[^ \n](?s:.*)\n {32} +[^ \n]|^run\s*:\s*>[^\n]*(\n *)*\n {33}[^ \n](?s:.*)\n {33} +[^ \n]|^run\s*:\s*>[^\n]*(\n *)*\n {34}[^ \n](?s:.*)\n {34} +[^ \n]|^run\s*:\s*>[^\n]*(\n *)*\n {35}[^ \n](?s:.*)\n {35} +[^ \n]|^run\s*:\s*>[^\n]*(\n *)*\n {36}[^ \n](?s:.*)\n {36} +[^ \n]|^run\s*:\s*>[^\n]*(\n *)*\n {37}[^ \n](?s:.*)\n {37} +[^ \n]|^run\s*:\s*>[^\n]*(\n *)*\n {38}[^ \n](?s:.*)\n {38} +[^ \n]|^run\s*:\s*>[^\n]*(\n *)*\n {39}[^ \n](?s:.*)\n {39} +[^ \n]|^run\s*:\s*>[^\n]*(\n *)*\n {40}[^ \n](?s:.*)\n {40} +[^ \n]|^run\s*:\s*>[^\n]*(\n *)*\n {41})
+    - inside:
+        kind: block_mapping
+        inside:
+          kind: block_node
+          inside:
+            kind: block_sequence_item
+            inside:
+              kind: block_sequence
+              inside:
+                kind: block_node
+                inside:
+                  kind: block_mapping_pair
+                  has:
+                    field: key
+                    kind: flow_node
+                    regex: ^(steps)$
+  - all:
+    - any:
+      - all:
+        - kind: block_mapping_pair
+          has:
+            field: key
+            kind: flow_node
+            regex: ^(run)$
+          regex: (?s:(^|\n|&&|;|\|\||run\s*:\s*[|>]?[-+]?\s*)\s*((npm\s+audit|pnpm\s+audit|yarn\s+npm\s+audit)\b|pip-audit\b|composer\s+audit\b|(osv-scanner|snyk\s+test|trivy\s+(fs|filesystem|repo|repository|rootfs))\b)(?:(?:;|[ \t\r]*\n|[ \t]+#[^\n]*\n)|.*(?:;|[^\\&|\s][ \t\r]*\n|[^\\&|\s][ \t]+#[^\n]*\n)))[ \t]*(?:true|:|exit[ \t]+0+|echo(?:[ \t]+[^\n;&|`$()]*)?)[ \t]*(?:;[ \t]*)?(?:[ \t\r]+#[^\n]*)?(?:\s|#[^\n]*)*$
+        - not:
+            kind: block_mapping_pair
+            regex: ^run\s*:\s*(?:[&!][^\s]*[ \t]+)*(>|[^\s|>#&!][^\n]*\n)
+      - all:
+        - kind: block_mapping_pair
+          has:
+            field: key
+            kind: flow_node
+            regex: ^(run)$
+          regex: (?s:(&&|;|\|\||^run\s*:\s*(?:[&!][^\s]*[ \t]+)*(>[^\n]*\n)?|\n[ \t\r]*\r?\n)\s*((npm\s+audit|pnpm\s+audit|yarn\s+npm\s+audit)\b|pip-audit\b|composer\s+audit\b|(osv-scanner|snyk\s+test|trivy\s+(fs|filesystem|repo|repository|rootfs))\b).*(?:;|\n[ \t\r]*\r?\n))\s*(?:true|:|exit[ \t]+0+|echo(?:[ \t]+[^\n;&|`$()]*)?)[ \t]*(?:;[ \t]*)?(?:[ \t\r]+#[^\n]*)?(?:\s|#[^\n]*)*$
+        - kind: block_mapping_pair
+          regex: ^run\s*:\s*(?:[&!][^\s]*[ \t]+)*(>|[^\s|>#&!][^\n]*\n)
+    - any:
+      - inside:
+          stopBy: end
+          kind: block_sequence_item
+          inside:
+            kind: block_sequence
+            inside:
+              kind: block_node
+              inside:
+                kind: block_mapping_pair
+                has:
+                  field: key
+                  kind: flow_node
+                  regex: ^(steps)$
+          has:
+            kind: block_node
+            has:
+              kind: block_mapping
+              has:
+                kind: block_mapping_pair
+                has:
+                  field: key
+                  kind: flow_node
+                  regex: ^(shell)$
+                regex: ^shell\s*:\s*['\"]?(?:/[\w./-]*/)?(?:bash|sh|dash|zsh|ksh)[ \t][^\n{]*\{0\}
+                not:
+                  kind: block_mapping_pair
+                  regex: ^shell\s*:\s*(?:['\"]?(?:bash|sh)['\"]?[ \t]*(?:#[^\n]*)?(?:$|\r?\n|[,}])|['\"]?(?:/[\w./-]*/)?(?:bash|sh|dash|zsh|ksh)(?:[ \t]+[^\s{][^\s]*)*?[ \t]+(?:-[a-zA-Z]*e[a-zA-Z]*|-o[ \t]+errexit)(?:[ \t]+[^\s{][^\s]*)*[ \t]+\{0\})
+      - all:
+        - not:
+            inside:
+              stopBy: end
+              kind: block_sequence_item
+              inside:
+                kind: block_sequence
+                inside:
+                  kind: block_node
+                  inside:
+                    kind: block_mapping_pair
+                    has:
+                      field: key
+                      kind: flow_node
+                      regex: ^(steps)$
+              has:
+                kind: block_node
+                has:
+                  kind: block_mapping
+                  has:
+                    kind: block_mapping_pair
+                    has:
+                      field: key
+                      kind: flow_node
+                      regex: ^(shell)$
+        - inside:
+            stopBy: end
+            kind: block_mapping_pair
+            inside:
+              kind: block_mapping
+              inside:
+                kind: block_node
+                inside:
+                  kind: block_mapping_pair
+                  has:
+                    field: key
+                    kind: flow_node
+                    regex: ^(jobs)$
+            has:
+              kind: block_node
+              has:
+                kind: block_mapping
+                has:
+                  kind: block_mapping_pair
+                  has:
+                    field: key
+                    kind: flow_node
+                    regex: ^(defaults)$
+                  regex: \bshell\s*:\s*['\"]?(?:/[\w./-]*/)?(?:bash|sh|dash|zsh|ksh)[ \t][^\n{]*\{0\}
+                  not:
+                    kind: block_mapping_pair
+                    regex: \bshell\s*:\s*(?:['\"]?(?:bash|sh)['\"]?[ \t]*(?:#[^\n]*)?(?:$|\r?\n|[,}])|['\"]?(?:/[\w./-]*/)?(?:bash|sh|dash|zsh|ksh)(?:[ \t]+[^\s{][^\s]*)*?[ \t]+(?:-[a-zA-Z]*e[a-zA-Z]*|-o[ \t]+errexit)(?:[ \t]+[^\s{][^\s]*)*[ \t]+\{0\})
+      - all:
+        - not:
+            inside:
+              stopBy: end
+              kind: block_sequence_item
+              inside:
+                kind: block_sequence
+                inside:
+                  kind: block_node
+                  inside:
+                    kind: block_mapping_pair
+                    has:
+                      field: key
+                      kind: flow_node
+                      regex: ^(steps)$
+              has:
+                kind: block_node
+                has:
+                  kind: block_mapping
+                  has:
+                    kind: block_mapping_pair
+                    has:
+                      field: key
+                      kind: flow_node
+                      regex: ^(shell)$
+        - not:
+            inside:
+              stopBy: end
+              kind: block_mapping_pair
+              inside:
+                kind: block_mapping
+                inside:
+                  kind: block_node
+                  inside:
+                    kind: block_mapping_pair
+                    has:
+                      field: key
+                      kind: flow_node
+                      regex: ^(jobs)$
+              has:
+                kind: block_node
+                has:
+                  kind: block_mapping
+                  has:
+                    kind: block_mapping_pair
+                    has:
+                      field: key
+                      kind: flow_node
+                      regex: ^(defaults)$
+                    regex: \bshell\s*:\s*
+        - inside:
+            stopBy: end
+            kind: document
+            has:
+              kind: block_node
+              has:
+                kind: block_mapping
+                has:
+                  kind: block_mapping_pair
+                  has:
+                    field: key
+                    kind: flow_node
+                    regex: ^(defaults)$
+                  regex: \bshell\s*:\s*['\"]?(?:/[\w./-]*/)?(?:bash|sh|dash|zsh|ksh)[ \t][^\n{]*\{0\}
+                  not:
+                    kind: block_mapping_pair
+                    regex: \bshell\s*:\s*(?:['\"]?(?:bash|sh)['\"]?[ \t]*(?:#[^\n]*)?(?:$|\r?\n|[,}])|['\"]?(?:/[\w./-]*/)?(?:bash|sh|dash|zsh|ksh)(?:[ \t]+[^\s{][^\s]*)*?[ \t]+(?:-[a-zA-Z]*e[a-zA-Z]*|-o[ \t]+errexit)(?:[ \t]+[^\s{][^\s]*)*[ \t]+\{0\})
+    - inside:
+        kind: block_mapping
+        inside:
+          kind: block_node
+          inside:
+            kind: block_sequence_item
+            inside:
+              kind: block_sequence
+              inside:
+                kind: block_node
+                inside:
+                  kind: block_mapping_pair
+                  has:
+                    field: key
+                    kind: flow_node
+                    regex: ^(steps)$
+  - all:
+    - any:
+      - all:
+        - kind: block_mapping_pair
+          has:
+            field: key
+            kind: flow_node
+            regex: ^(run)$
+          regex: (?s:(^|\n|&&|;|\|\||run\s*:\s*[|>]?[-+]?\s*)\s*((npm\s+audit|pnpm\s+audit|yarn\s+npm\s+audit)\b|pip-audit\b|composer\s+audit\b|(osv-scanner|snyk\s+test|trivy\s+(fs|filesystem|repo|repository|rootfs))\b)(?:(?:;|[ \t\r]*\n|[ \t]+#[^\n]*\n)|.*(?:;|[^\\&|\s][ \t\r]*\n|[^\\&|\s][ \t]+#[^\n]*\n)))[ \t]*exit[ \t]+0+[ \t]*(?:;[ \t]*)?(?:[ \t\r]+#[^\n]*)?(?:\s|#[^\n]*)*$
+        - not:
+            kind: block_mapping_pair
+            regex: ^run\s*:\s*(?:[&!][^\s]*[ \t]+)*(>|[^\s|>#&!][^\n]*\n)
+      - all:
+        - kind: block_mapping_pair
+          has:
+            field: key
+            kind: flow_node
+            regex: ^(run)$
+          regex: (?s:(&&|;|\|\||^run\s*:\s*(?:[&!][^\s]*[ \t]+)*(>[^\n]*\n)?|\n[ \t\r]*\r?\n)\s*((npm\s+audit|pnpm\s+audit|yarn\s+npm\s+audit)\b|pip-audit\b|composer\s+audit\b|(osv-scanner|snyk\s+test|trivy\s+(fs|filesystem|repo|repository|rootfs))\b).*(?:;|\n[ \t\r]*\r?\n))\s*exit[ \t]+0+[ \t]*(?:;[ \t]*)?(?:[ \t\r]+#[^\n]*)?(?:\s|#[^\n]*)*$
+        - kind: block_mapping_pair
+          regex: ^run\s*:\s*(?:[&!][^\s]*[ \t]+)*(>|[^\s|>#&!][^\n]*\n)
+    - any:
+      - any:
+        - inside:
+            stopBy: end
+            kind: block_sequence_item
+            inside:
+              kind: block_sequence
+              inside:
+                kind: block_node
+                inside:
+                  kind: block_mapping_pair
+                  has:
+                    field: key
+                    kind: flow_node
+                    regex: ^(steps)$
+            has:
+              kind: block_node
+              has:
+                kind: block_mapping
+                has:
+                  kind: block_mapping_pair
+                  has:
+                    field: key
+                    kind: flow_node
+                    regex: ^(shell)$
+                  regex: ^shell\s*:\s*['\"]?(?:pwsh|powershell)['\"]?[ \t]*(?:#[^\n]*)?(?:$|\r?\n|[,}])
+        - all:
+          - not:
+              inside:
+                stopBy: end
+                kind: block_sequence_item
+                inside:
+                  kind: block_sequence
+                  inside:
+                    kind: block_node
+                    inside:
+                      kind: block_mapping_pair
+                      has:
+                        field: key
+                        kind: flow_node
+                        regex: ^(steps)$
+                has:
+                  kind: block_node
+                  has:
+                    kind: block_mapping
+                    has:
+                      kind: block_mapping_pair
+                      has:
+                        field: key
+                        kind: flow_node
+                        regex: ^(shell)$
+          - inside:
+              stopBy: end
+              kind: block_mapping_pair
+              inside:
+                kind: block_mapping
+                inside:
+                  kind: block_node
+                  inside:
+                    kind: block_mapping_pair
+                    has:
+                      field: key
+                      kind: flow_node
+                      regex: ^(jobs)$
+              has:
+                kind: block_node
+                has:
+                  kind: block_mapping
+                  has:
+                    kind: block_mapping_pair
+                    has:
+                      field: key
+                      kind: flow_node
+                      regex: ^(defaults)$
+                    regex: \bshell\s*:\s*['\"]?(?:pwsh|powershell)['\"]?[ \t]*(?:#[^\n]*)?(?:$|\r?\n|[,}])
+        - all:
+          - not:
+              inside:
+                stopBy: end
+                kind: block_sequence_item
+                inside:
+                  kind: block_sequence
+                  inside:
+                    kind: block_node
+                    inside:
+                      kind: block_mapping_pair
+                      has:
+                        field: key
+                        kind: flow_node
+                        regex: ^(steps)$
+                has:
+                  kind: block_node
+                  has:
+                    kind: block_mapping
+                    has:
+                      kind: block_mapping_pair
+                      has:
+                        field: key
+                        kind: flow_node
+                        regex: ^(shell)$
+          - not:
+              inside:
+                stopBy: end
+                kind: block_mapping_pair
+                inside:
+                  kind: block_mapping
+                  inside:
+                    kind: block_node
+                    inside:
+                      kind: block_mapping_pair
+                      has:
+                        field: key
+                        kind: flow_node
+                        regex: ^(jobs)$
+                has:
+                  kind: block_node
+                  has:
+                    kind: block_mapping
+                    has:
+                      kind: block_mapping_pair
+                      has:
+                        field: key
+                        kind: flow_node
+                        regex: ^(defaults)$
+                      regex: \bshell\s*:\s*
+          - inside:
+              stopBy: end
+              kind: document
+              has:
+                kind: block_node
+                has:
+                  kind: block_mapping
+                  has:
+                    kind: block_mapping_pair
+                    has:
+                      field: key
+                      kind: flow_node
+                      regex: ^(defaults)$
+                    regex: \bshell\s*:\s*['\"]?(?:pwsh|powershell)['\"]?[ \t]*(?:#[^\n]*)?(?:$|\r?\n|[,}])
+      - all:
+        - all:
+          - not:
+              inside:
+                stopBy: end
+                kind: block_sequence_item
+                inside:
+                  kind: block_sequence
+                  inside:
+                    kind: block_node
+                    inside:
+                      kind: block_mapping_pair
+                      has:
+                        field: key
+                        kind: flow_node
+                        regex: ^(steps)$
+                has:
+                  kind: block_node
+                  has:
+                    kind: block_mapping
+                    has:
+                      kind: block_mapping_pair
+                      has:
+                        field: key
+                        kind: flow_node
+                        regex: ^(shell)$
+          - not:
+              inside:
+                stopBy: end
+                kind: block_mapping_pair
+                inside:
+                  kind: block_mapping
+                  inside:
+                    kind: block_node
+                    inside:
+                      kind: block_mapping_pair
+                      has:
+                        field: key
+                        kind: flow_node
+                        regex: ^(jobs)$
+                has:
+                  kind: block_node
+                  has:
+                    kind: block_mapping
+                    has:
+                      kind: block_mapping_pair
+                      has:
+                        field: key
+                        kind: flow_node
+                        regex: ^(defaults)$
+                      regex: \bshell\s*:\s*
+          - not:
+              inside:
+                stopBy: end
+                kind: document
+                has:
+                  kind: block_node
+                  has:
+                    kind: block_mapping
+                    has:
+                      kind: block_mapping_pair
+                      has:
+                        field: key
+                        kind: flow_node
+                        regex: ^(defaults)$
+                      regex: \bshell\s*:\s*
+        - inside:
+            stopBy: end
+            kind: block_mapping_pair
+            inside:
+              kind: block_mapping
+              inside:
+                kind: block_node
+                inside:
+                  kind: block_mapping_pair
+                  has:
+                    field: key
+                    kind: flow_node
+                    regex: ^(jobs)$
+            has:
+              kind: block_node
+              has:
+                kind: block_mapping
+                has:
+                  kind: block_mapping_pair
+                  has:
+                    field: key
+                    kind: flow_node
+                    regex: ^(runs-on)$
+                  regex: (?i)windows
+                  not:
+                    kind: block_mapping_pair
+                    regex: \$\{\{
     - inside:
         kind: block_mapping
         inside:
@@ -4293,8 +8048,9 @@ min_engine: 0.45.3
 ---
 # osv-scanner-run: a step in a workflow that runs on every pull request (no branch or path filter), with no if: and
 # continue-on-error absent or false, that runs osv-scanner, snyk test or trivy (exit code non-zero) naming a
-# scanner-run lockfile or manifest and fails the job on high or critical findings. Evidence: the scan piece for
-# scanner-run.
+# scanner-run lockfile or manifest and fails the job on high or critical findings: under a shell that stops on a
+# failed command (GitHub's bash -e on a Linux or macOS runner, shell: bash or sh, a template with -e), or else as the
+# run's last command. Evidence: the scan piece for scanner-run.
 id: dependency-scanning-ci.yaml-github_actions.osv-scanner-run
 practice_id: dependency-scanning-ci
 language: yaml
@@ -4330,8 +8086,9 @@ min_engine: 0.45.3
 ---
 # names-scan-config: a step in a workflow that runs on every pull request (no branch or path filter), with no if: and
 # continue-on-error absent or false, that runs osv-scanner, snyk test or trivy (exit code non-zero) naming a
-# scan-config lockfile or manifest and fails the job on high or critical findings. Evidence: the scan piece for
-# scan-config.
+# scan-config lockfile or manifest and fails the job on high or critical findings: under a shell that stops on a
+# failed command (GitHub's bash -e on a Linux or macOS runner, shell: bash or sh, a template with -e), or else as the
+# run's last command. Evidence: the scan piece for scan-config.
 id: dependency-scanning-ci.yaml-github_actions.names-scan-config
 practice_id: dependency-scanning-ci
 language: yaml
