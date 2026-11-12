@@ -764,19 +764,50 @@ control:
                     kind: variable_declarator
                     has:
                       field: name
-                      kind: identifier
-                      pattern:
-                        context: const $GUARD = 0
-                        selector: identifier
+                      any:
+                      - kind: identifier
+                        pattern:
+                          context: const $GUARD = 0
+                          selector: identifier
+                      - has:
+                          stopBy: end
+                          any:
+                          - kind: identifier
+                            pattern:
+                              context: const $GUARD = 0
+                              selector: identifier
+                          - kind: shorthand_property_identifier_pattern
+                            pattern:
+                              context: const { $GUARD } = 0
+                              selector: shorthand_property_identifier_pattern
                 - kind: variable_declaration
                   has:
                     kind: variable_declarator
                     has:
                       field: name
-                      kind: identifier
-                      pattern:
-                        context: const $GUARD = 0
-                        selector: identifier
+                      any:
+                      - kind: identifier
+                        pattern:
+                          context: const $GUARD = 0
+                          selector: identifier
+                      - has:
+                          stopBy: end
+                          any:
+                          - kind: identifier
+                            pattern:
+                              context: const $GUARD = 0
+                              selector: identifier
+                          - kind: shorthand_property_identifier_pattern
+                            pattern:
+                              context: const { $GUARD } = 0
+                              selector: shorthand_property_identifier_pattern
+                - kind: class_declaration
+                  has:
+                    field: name
+                    kind: type_identifier
+                    pattern:
+                      context: class $GUARD {}
+                      selector: type_identifier
                 - kind: function_declaration
                   has:
                     field: name
@@ -793,10 +824,15 @@ control:
                 field: parameters
                 has:
                   stopBy: end
-                  kind: identifier
-                  pattern:
-                    context: const $GUARD = 0
-                    selector: identifier
+                  any:
+                  - kind: identifier
+                    pattern:
+                      context: const $GUARD = 0
+                      selector: identifier
+                  - kind: shorthand_property_identifier_pattern
+                    pattern:
+                      context: const { $GUARD } = 0
+                      selector: shorthand_property_identifier_pattern
       - inside:
           kind: program
           stopBy: end
@@ -849,21 +885,7 @@ control:
                               - pattern: 'jwtVerify($$$)'
                               - pattern: 'jwt.verify($$$)'
                           - kind: call_expression
-                            any:
-                            - pattern: auth()
-                            - pattern: 'getServerSession($$$)'
-                            - pattern: 'getToken($$$)'
-                            - pattern: currentUser()
-                            - pattern: '$C.auth.getUser($$$)'
-                            - pattern: '$C.auth.getClaims($$$)'
-                            - pattern: 'validateRequest($$$)'
-                            - pattern: 'getIronSession($$$)'
-                            - pattern: 'getKindeServerSession($$$)'
-                            - pattern: '$A.api.getSession($$$)'
-                            - pattern: '$A.verifyIdToken($$$)'
-                            - pattern: '$A.verifySessionCookie($$$)'
-                            - pattern: 'jwtVerify($$$)'
-                            - pattern: 'jwt.verify($$$)'
+                            pattern: 'jwt.verify($$$)'
                 - has:
                     kind: if_statement
                     all:
@@ -875,6 +897,10 @@ control:
                           - any:
                             - kind: unary_expression
                               pattern: '!$_'
+                              not:
+                                any:
+                                - pattern: '!!$_'
+                                - pattern: '!(!$_)'
                               has:
                                 stopBy: end
                                 kind: identifier
@@ -883,8 +909,6 @@ control:
                                   selector: identifier
                             - kind: binary_expression
                               any:
-                              - pattern: '$_ !== $_'
-                              - pattern: '$_ != $_'
                               - pattern: '$_ === null'
                               - pattern: '$_ == null'
                               - pattern: '$_ === undefined'
@@ -895,11 +919,68 @@ control:
                                 pattern:
                                   context: const $GUSER = 0
                                   selector: identifier
+                            - kind: binary_expression
+                              any:
+                              - pattern: '$_ !== $_'
+                              - pattern: '$_ != $_'
+                              has:
+                                stopBy: end
+                                kind: identifier
+                                pattern:
+                                  context: const $GUSER = 0
+                                  selector: identifier
+                              not:
+                                any:
+                                - has:
+                                    field: left
+                                    any:
+                                    - kind: 'null'
+                                    - kind: undefined
+                                    - kind: unary_expression
+                                      regex: '^typeof\b'
+                                - has:
+                                    field: right
+                                    any:
+                                    - kind: 'null'
+                                    - kind: undefined
+                                    - kind: unary_expression
+                                      regex: '^typeof\b'
+                                - all:
+                                  - has:
+                                      field: left
+                                      any:
+                                      - kind: identifier
+                                        pattern:
+                                          context: const $GUSER = 0
+                                          selector: identifier
+                                      - has:
+                                          stopBy: end
+                                          kind: identifier
+                                          pattern:
+                                            context: const $GUSER = 0
+                                            selector: identifier
+                                  - has:
+                                      field: right
+                                      any:
+                                      - kind: identifier
+                                        pattern:
+                                          context: const $GUSER = 0
+                                          selector: identifier
+                                      - has:
+                                          stopBy: end
+                                          kind: identifier
+                                          pattern:
+                                            context: const $GUSER = 0
+                                            selector: identifier
                           - pattern: '$_ || $_'
                             has:
                               any:
                               - kind: unary_expression
                                 pattern: '!$_'
+                                not:
+                                  any:
+                                  - pattern: '!!$_'
+                                  - pattern: '!(!$_)'
                                 has:
                                   stopBy: end
                                   kind: identifier
@@ -908,8 +989,6 @@ control:
                                     selector: identifier
                               - kind: binary_expression
                                 any:
-                                - pattern: '$_ !== $_'
-                                - pattern: '$_ != $_'
                                 - pattern: '$_ === null'
                                 - pattern: '$_ == null'
                                 - pattern: '$_ === undefined'
@@ -920,6 +999,59 @@ control:
                                   pattern:
                                     context: const $GUSER = 0
                                     selector: identifier
+                              - kind: binary_expression
+                                any:
+                                - pattern: '$_ !== $_'
+                                - pattern: '$_ != $_'
+                                has:
+                                  stopBy: end
+                                  kind: identifier
+                                  pattern:
+                                    context: const $GUSER = 0
+                                    selector: identifier
+                                not:
+                                  any:
+                                  - has:
+                                      field: left
+                                      any:
+                                      - kind: 'null'
+                                      - kind: undefined
+                                      - kind: unary_expression
+                                        regex: '^typeof\b'
+                                  - has:
+                                      field: right
+                                      any:
+                                      - kind: 'null'
+                                      - kind: undefined
+                                      - kind: unary_expression
+                                        regex: '^typeof\b'
+                                  - all:
+                                    - has:
+                                        field: left
+                                        any:
+                                        - kind: identifier
+                                          pattern:
+                                            context: const $GUSER = 0
+                                            selector: identifier
+                                        - has:
+                                            stopBy: end
+                                            kind: identifier
+                                            pattern:
+                                              context: const $GUSER = 0
+                                              selector: identifier
+                                    - has:
+                                        field: right
+                                        any:
+                                        - kind: identifier
+                                          pattern:
+                                            context: const $GUSER = 0
+                                            selector: identifier
+                                        - has:
+                                            stopBy: end
+                                            kind: identifier
+                                            pattern:
+                                              context: const $GUSER = 0
+                                              selector: identifier
                           - pattern: '$_ || $_'
                             has:
                               pattern: '$_ || $_'
@@ -927,6 +1059,10 @@ control:
                                 any:
                                 - kind: unary_expression
                                   pattern: '!$_'
+                                  not:
+                                    any:
+                                    - pattern: '!!$_'
+                                    - pattern: '!(!$_)'
                                   has:
                                     stopBy: end
                                     kind: identifier
@@ -935,8 +1071,6 @@ control:
                                       selector: identifier
                                 - kind: binary_expression
                                   any:
-                                  - pattern: '$_ !== $_'
-                                  - pattern: '$_ != $_'
                                   - pattern: '$_ === null'
                                   - pattern: '$_ == null'
                                   - pattern: '$_ === undefined'
@@ -947,6 +1081,59 @@ control:
                                     pattern:
                                       context: const $GUSER = 0
                                       selector: identifier
+                                - kind: binary_expression
+                                  any:
+                                  - pattern: '$_ !== $_'
+                                  - pattern: '$_ != $_'
+                                  has:
+                                    stopBy: end
+                                    kind: identifier
+                                    pattern:
+                                      context: const $GUSER = 0
+                                      selector: identifier
+                                  not:
+                                    any:
+                                    - has:
+                                        field: left
+                                        any:
+                                        - kind: 'null'
+                                        - kind: undefined
+                                        - kind: unary_expression
+                                          regex: '^typeof\b'
+                                    - has:
+                                        field: right
+                                        any:
+                                        - kind: 'null'
+                                        - kind: undefined
+                                        - kind: unary_expression
+                                          regex: '^typeof\b'
+                                    - all:
+                                      - has:
+                                          field: left
+                                          any:
+                                          - kind: identifier
+                                            pattern:
+                                              context: const $GUSER = 0
+                                              selector: identifier
+                                          - has:
+                                              stopBy: end
+                                              kind: identifier
+                                              pattern:
+                                                context: const $GUSER = 0
+                                                selector: identifier
+                                      - has:
+                                          field: right
+                                          any:
+                                          - kind: identifier
+                                            pattern:
+                                              context: const $GUSER = 0
+                                              selector: identifier
+                                          - has:
+                                              stopBy: end
+                                              kind: identifier
+                                              pattern:
+                                                context: const $GUSER = 0
+                                                selector: identifier
                     - has:
                         field: consequence
                         any:
