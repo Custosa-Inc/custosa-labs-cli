@@ -734,6 +734,10 @@ control:
     # user, session or role whose consequence throws, redirects or calls notFound, and returns only as its last
     # statement. A helper that only reads or logs the role, returns a boolean, catches its own throw, returns early,
     # or lives in another file or package is not one, and the item stays as before.
+    # T29-P1-C275: the load is a top-level declaration, and the if tests the name it binds as a denial: a not, an
+    # inequality or a null test, alone or as an operand of an or. A config, input or other-value check, an equality,
+    # an inverted test and a never-true one are not. A local or parameter of the same name in the action shadows the
+    # guard, so that call is not one.
     - kind: call_expression
       all:
       - pattern: '$GUARD($$$)'
@@ -748,6 +752,51 @@ control:
               - kind: function_expression
               - kind: function_declaration
               - kind: method_definition
+      - not:
+          inside:
+            stopBy: end
+            any:
+            - kind: statement_block
+              has:
+                any:
+                - kind: lexical_declaration
+                  has:
+                    kind: variable_declarator
+                    has:
+                      field: name
+                      kind: identifier
+                      pattern:
+                        context: const $GUARD = 0
+                        selector: identifier
+                - kind: variable_declaration
+                  has:
+                    kind: variable_declarator
+                    has:
+                      field: name
+                      kind: identifier
+                      pattern:
+                        context: const $GUARD = 0
+                        selector: identifier
+                - kind: function_declaration
+                  has:
+                    field: name
+                    kind: identifier
+                    pattern:
+                      context: const $GUARD = 0
+                      selector: identifier
+            - any:
+              - kind: arrow_function
+              - kind: function_expression
+              - kind: function_declaration
+              - kind: method_definition
+              has:
+                field: parameters
+                has:
+                  stopBy: end
+                  kind: identifier
+                  pattern:
+                    context: const $GUARD = 0
+                    selector: identifier
       - inside:
           kind: program
           stopBy: end
@@ -762,59 +811,142 @@ control:
                 kind: statement_block
                 all:
                 - has:
-                    stopBy:
-                      any:
-                      - kind: arrow_function
-                      - kind: function_expression
-                      - kind: function_declaration
-                      - kind: method_definition
-                    any:
-                    - pattern: auth()
-                    - pattern: 'getServerSession($$$)'
-                    - pattern: 'getToken($$$)'
-                    - pattern: currentUser()
-                    - pattern: '$C.auth.getUser($$$)'
-                    - pattern: '$C.auth.getClaims($$$)'
-                    - pattern: 'validateRequest($$$)'
-                    - pattern: 'getIronSession($$$)'
-                    - pattern: 'getKindeServerSession($$$)'
-                    - pattern: '$A.api.getSession($$$)'
-                    - pattern: '$A.verifyIdToken($$$)'
-                    - pattern: '$A.verifySessionCookie($$$)'
-                    - pattern: 'jwtVerify($$$)'
-                    - pattern: 'jwt.verify($$$)'
-                    not:
-                      inside:
-                        stopBy:
+                    kind: lexical_declaration
+                    has:
+                      kind: variable_declarator
+                      all:
+                      - has:
+                          field: name
                           any:
-                          - kind: arrow_function
-                          - kind: function_expression
-                          - kind: function_declaration
-                          - kind: method_definition
-                        any:
-                        - kind: else_clause
-                        - kind: switch_case
-                        - kind: try_statement
-                        - kind: catch_clause
-                        - kind: for_statement
-                        - kind: for_in_statement
-                        - kind: while_statement
-                        - kind: do_statement
-                        - any:
-                          - kind: statement_block
-                          - kind: expression_statement
-                          - kind: return_statement
-                          inside:
-                            kind: if_statement
-                            field: consequence
-                        - kind: ternary_expression
+                          - kind: identifier
+                            pattern:
+                              context: const $GUSER = 0
+                              selector: identifier
+                          - has:
+                              stopBy: end
+                              kind: shorthand_property_identifier_pattern
+                              pattern:
+                                context: const { $GUSER } = 0
+                                selector: shorthand_property_identifier_pattern
+                      - has:
+                          field: value
+                          any:
+                          - kind: await_expression
+                            has:
+                              any:
+                              - pattern: auth()
+                              - pattern: 'getServerSession($$$)'
+                              - pattern: 'getToken($$$)'
+                              - pattern: currentUser()
+                              - pattern: '$C.auth.getUser($$$)'
+                              - pattern: '$C.auth.getClaims($$$)'
+                              - pattern: 'validateRequest($$$)'
+                              - pattern: 'getIronSession($$$)'
+                              - pattern: 'getKindeServerSession($$$)'
+                              - pattern: '$A.api.getSession($$$)'
+                              - pattern: '$A.verifyIdToken($$$)'
+                              - pattern: '$A.verifySessionCookie($$$)'
+                              - pattern: 'jwtVerify($$$)'
+                              - pattern: 'jwt.verify($$$)'
+                          - kind: call_expression
+                            any:
+                            - pattern: auth()
+                            - pattern: 'getServerSession($$$)'
+                            - pattern: 'getToken($$$)'
+                            - pattern: currentUser()
+                            - pattern: '$C.auth.getUser($$$)'
+                            - pattern: '$C.auth.getClaims($$$)'
+                            - pattern: 'validateRequest($$$)'
+                            - pattern: 'getIronSession($$$)'
+                            - pattern: 'getKindeServerSession($$$)'
+                            - pattern: '$A.api.getSession($$$)'
+                            - pattern: '$A.verifyIdToken($$$)'
+                            - pattern: '$A.verifySessionCookie($$$)'
+                            - pattern: 'jwtVerify($$$)'
+                            - pattern: 'jwt.verify($$$)'
                 - has:
                     kind: if_statement
                     all:
                     - has:
                         field: condition
                         kind: parenthesized_expression
-                        regex: '(?i)(user|session|role|claim|admin|permission|principal|identity|staff|member)'
+                        has:
+                          any:
+                          - any:
+                            - kind: unary_expression
+                              pattern: '!$_'
+                              has:
+                                stopBy: end
+                                kind: identifier
+                                pattern:
+                                  context: const $GUSER = 0
+                                  selector: identifier
+                            - kind: binary_expression
+                              any:
+                              - pattern: '$_ !== $_'
+                              - pattern: '$_ != $_'
+                              - pattern: '$_ === null'
+                              - pattern: '$_ == null'
+                              - pattern: '$_ === undefined'
+                              - pattern: '$_ == undefined'
+                              has:
+                                stopBy: end
+                                kind: identifier
+                                pattern:
+                                  context: const $GUSER = 0
+                                  selector: identifier
+                          - pattern: '$_ || $_'
+                            has:
+                              any:
+                              - kind: unary_expression
+                                pattern: '!$_'
+                                has:
+                                  stopBy: end
+                                  kind: identifier
+                                  pattern:
+                                    context: const $GUSER = 0
+                                    selector: identifier
+                              - kind: binary_expression
+                                any:
+                                - pattern: '$_ !== $_'
+                                - pattern: '$_ != $_'
+                                - pattern: '$_ === null'
+                                - pattern: '$_ == null'
+                                - pattern: '$_ === undefined'
+                                - pattern: '$_ == undefined'
+                                has:
+                                  stopBy: end
+                                  kind: identifier
+                                  pattern:
+                                    context: const $GUSER = 0
+                                    selector: identifier
+                          - pattern: '$_ || $_'
+                            has:
+                              pattern: '$_ || $_'
+                              has:
+                                any:
+                                - kind: unary_expression
+                                  pattern: '!$_'
+                                  has:
+                                    stopBy: end
+                                    kind: identifier
+                                    pattern:
+                                      context: const $GUSER = 0
+                                      selector: identifier
+                                - kind: binary_expression
+                                  any:
+                                  - pattern: '$_ !== $_'
+                                  - pattern: '$_ != $_'
+                                  - pattern: '$_ === null'
+                                  - pattern: '$_ == null'
+                                  - pattern: '$_ === undefined'
+                                  - pattern: '$_ == undefined'
+                                  has:
+                                    stopBy: end
+                                    kind: identifier
+                                    pattern:
+                                      context: const $GUSER = 0
+                                      selector: identifier
                     - has:
                         field: consequence
                         any:
