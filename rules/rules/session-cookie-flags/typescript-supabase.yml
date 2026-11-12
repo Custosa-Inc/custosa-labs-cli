@@ -16,6 +16,12 @@ rule:
           regex: ^(res|response|reply|ctx|c)\.(cookie|setCookie)$
         - kind: member_expression
           regex: (cookies\(\)|\.cookies|cookieStore|cookieJar)\.set$
+    # T29-P1-C295 cause 3: the incoming request's cookies (Next.js middleware) reach no browser
+    - not:
+        has:
+          field: function
+          kind: member_expression
+          regex: ^(req|request)\.cookies\.set$
     - not:
         has:
           field: arguments

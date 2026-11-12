@@ -1,5 +1,5 @@
 {
-  "ruleset_id": "2026-11-12.f803e642",
+  "ruleset_id": "2026-11-12.c889c56b",
   "min_engine": "0.45.3",
   "files": [
     {
@@ -1392,11 +1392,11 @@
     },
     {
       "path": "rules/session-cookie-flags/typescript-nextjs.yml",
-      "sha256": "ac59c9122f37d19a6efdcb5fd719a351039af074696b232a5c520a2d645cc1d4"
+      "sha256": "249b0f608446c7ce15383868c50d58bfb0bcda3c4893625c712b1598413dc652"
     },
     {
       "path": "rules/session-cookie-flags/typescript-supabase.yml",
-      "sha256": "f0d58de8426631c4bd636c8e29f25d3b5db790f73949b77bafcd356c620fe799"
+      "sha256": "4360f0530c01081cfb05d9582b482dfbc4d305ccab30001a42bbb322a1e15859"
     },
     {
       "path": "rules/session-cookie-flags/yaml-spring.yml",
