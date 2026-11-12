@@ -729,6 +729,128 @@ control:
       - pattern: 'createServerComponentClient($$$)'
       - pattern: 'createPagesServerClient($$$)'
       - pattern: createClient()
+    # T29-P1-C261: a guard wrapper this file declares. An awaited call by bare name, not in a try, to a function
+    # declared at the file's top level whose own body loads the signed-in user, has at its top level an if on the
+    # user, session or role whose consequence throws, redirects or calls notFound, and returns only as its last
+    # statement. A helper that only reads or logs the role, returns a boolean, catches its own throw, returns early,
+    # or lives in another file or package is not one, and the item stays as before.
+    - kind: call_expression
+      all:
+      - pattern: '$GUARD($$$)'
+      - inside:
+          kind: await_expression
+      - not:
+          inside:
+            kind: try_statement
+            stopBy:
+              any:
+              - kind: arrow_function
+              - kind: function_expression
+              - kind: function_declaration
+              - kind: method_definition
+      - inside:
+          kind: program
+          stopBy: end
+          has:
+            kind: function_declaration
+            all:
+            - any:
+              - pattern: 'async function $GUARD($$$) { $$$ }'
+              - pattern: 'function $GUARD($$$) { $$$ }'
+            - has:
+                field: body
+                kind: statement_block
+                all:
+                - has:
+                    stopBy:
+                      any:
+                      - kind: arrow_function
+                      - kind: function_expression
+                      - kind: function_declaration
+                      - kind: method_definition
+                    any:
+                    - pattern: auth()
+                    - pattern: 'getServerSession($$$)'
+                    - pattern: 'getToken($$$)'
+                    - pattern: currentUser()
+                    - pattern: '$C.auth.getUser($$$)'
+                    - pattern: '$C.auth.getClaims($$$)'
+                    - pattern: 'validateRequest($$$)'
+                    - pattern: 'getIronSession($$$)'
+                    - pattern: 'getKindeServerSession($$$)'
+                    - pattern: '$A.api.getSession($$$)'
+                    - pattern: '$A.verifyIdToken($$$)'
+                    - pattern: '$A.verifySessionCookie($$$)'
+                    - pattern: 'jwtVerify($$$)'
+                    - pattern: 'jwt.verify($$$)'
+                    not:
+                      inside:
+                        stopBy:
+                          any:
+                          - kind: arrow_function
+                          - kind: function_expression
+                          - kind: function_declaration
+                          - kind: method_definition
+                        any:
+                        - kind: else_clause
+                        - kind: switch_case
+                        - kind: try_statement
+                        - kind: catch_clause
+                        - kind: for_statement
+                        - kind: for_in_statement
+                        - kind: while_statement
+                        - kind: do_statement
+                        - any:
+                          - kind: statement_block
+                          - kind: expression_statement
+                          - kind: return_statement
+                          inside:
+                            kind: if_statement
+                            field: consequence
+                        - kind: ternary_expression
+                - has:
+                    kind: if_statement
+                    all:
+                    - has:
+                        field: condition
+                        kind: parenthesized_expression
+                        regex: '(?i)(user|session|role|claim|admin|permission|principal|identity|staff|member)'
+                    - has:
+                        field: consequence
+                        any:
+                        - kind: throw_statement
+                        - kind: expression_statement
+                          regex: '^(redirect|permanentRedirect|notFound)\('
+                        - kind: statement_block
+                          has:
+                            any:
+                            - kind: throw_statement
+                            - kind: expression_statement
+                              regex: '^(redirect|permanentRedirect|notFound)\('
+                - not:
+                    has:
+                      stopBy:
+                        any:
+                        - kind: arrow_function
+                        - kind: function_expression
+                        - kind: function_declaration
+                        - kind: method_definition
+                      kind: return_statement
+                      not:
+                        all:
+                        - inside:
+                            kind: statement_block
+                            inside:
+                              kind: function_declaration
+                        - precedes:
+                            stopBy: neighbor
+                            not:
+                              precedes:
+                                stopBy: neighbor
+                                any:
+                                - kind: comment
+                                - not:
+                                    kind: comment
     not:
       inside:
         stopBy:
