@@ -738,6 +738,11 @@ control:
     # inequality or a null test, alone or as an operand of an or. A config, input or other-value check, an equality,
     # an inverted test and a never-true one are not. A local or parameter of the same name in the action shadows the
     # guard, so that call is not one.
+    # T29-P1-C287: every path through the helper throws or returns at its end. Its last return may be followed by
+    # comments. A top-level if that neither throws, redirects nor calls notFound (a role check that only logs), or a
+    # top-level try that throws in its body and whose catch never throws, makes it no guard.
+    # T29-P1-C290: redirect, permanentRedirect and notFound are exits only as the file imports them from
+    # next/navigation (they throw), and a return right after an exit is never reached, so it is no early return.
     # T29-P1-C288: a side in parentheses is read as what it holds and void 0 as undefined; a run of nots is a denial
     # when it is odd, through parentheses too. A bare arrow parameter shadows the guard; a default value doesn't.
     - kind: call_expression
@@ -1939,13 +1944,330 @@ control:
                         any:
                         - kind: throw_statement
                         - kind: expression_statement
-                          regex: '^(redirect|permanentRedirect|notFound)\('
+                          all:
+                          - has:
+                              kind: call_expression
+                              has:
+                                field: function
+                                kind: identifier
+                                pattern:
+                                  context: const $NEXIT = 0
+                                  selector: identifier
+                          - inside:
+                              kind: program
+                              stopBy: end
+                              has:
+                                kind: import_statement
+                                all:
+                                - has:
+                                    field: source
+                                    kind: string
+                                    regex: '^[''"]next/navigation[''"]$'
+                                - has:
+                                    stopBy: end
+                                    kind: import_specifier
+                                    any:
+                                    - all:
+                                      - has:
+                                          field: alias
+                                          kind: identifier
+                                          pattern:
+                                            context: const $NEXIT = 0
+                                            selector: identifier
+                                      - has:
+                                          field: name
+                                          kind: identifier
+                                          regex: '^(redirect|permanentRedirect|notFound)$'
+                                    - all:
+                                      - not:
+                                          has:
+                                            field: alias
+                                            kind: identifier
+                                      - has:
+                                          field: name
+                                          kind: identifier
+                                          regex: '^(redirect|permanentRedirect|notFound)$'
+                                          pattern:
+                                            context: const $NEXIT = 0
+                                            selector: identifier
+                          - not:
+                              inside:
+                                stopBy: end
+                                any:
+                                - kind: function_declaration
+                                - kind: arrow_function
+                                - kind: function_expression
+                                - kind: method_definition
+                                has:
+                                  stopBy: end
+                                  any:
+                                  - kind: identifier
+                                    pattern:
+                                      context: const $NEXIT = 0
+                                      selector: identifier
+                                    not:
+                                      inside:
+                                        kind: call_expression
+                                        field: function
+                                  - kind: shorthand_property_identifier_pattern
+                                    pattern:
+                                      context: 'const { $NEXIT } = o'
+                                      selector: shorthand_property_identifier_pattern
                         - kind: statement_block
                           has:
                             any:
                             - kind: throw_statement
                             - kind: expression_statement
+                              all:
+                              - has:
+                                  kind: call_expression
+                                  has:
+                                    field: function
+                                    kind: identifier
+                                    pattern:
+                                      context: const $NEXIT = 0
+                                      selector: identifier
+                              - inside:
+                                  kind: program
+                                  stopBy: end
+                                  has:
+                                    kind: import_statement
+                                    all:
+                                    - has:
+                                        field: source
+                                        kind: string
+                                        regex: '^[''"]next/navigation[''"]$'
+                                    - has:
+                                        stopBy: end
+                                        kind: import_specifier
+                                        any:
+                                        - all:
+                                          - has:
+                                              field: alias
+                                              kind: identifier
+                                              pattern:
+                                                context: const $NEXIT = 0
+                                                selector: identifier
+                                          - has:
+                                              field: name
+                                              kind: identifier
+                                              regex: '^(redirect|permanentRedirect|notFound)$'
+                                        - all:
+                                          - not:
+                                              has:
+                                                field: alias
+                                                kind: identifier
+                                          - has:
+                                              field: name
+                                              kind: identifier
+                                              regex: '^(redirect|permanentRedirect|notFound)$'
+                                              pattern:
+                                                context: const $NEXIT = 0
+                                                selector: identifier
+                              - not:
+                                  inside:
+                                    stopBy: end
+                                    any:
+                                    - kind: function_declaration
+                                    - kind: arrow_function
+                                    - kind: function_expression
+                                    - kind: method_definition
+                                    has:
+                                      stopBy: end
+                                      any:
+                                      - kind: identifier
+                                        pattern:
+                                          context: const $NEXIT = 0
+                                          selector: identifier
+                                        not:
+                                          inside:
+                                            kind: call_expression
+                                            field: function
+                                      - kind: shorthand_property_identifier_pattern
+                                        pattern:
+                                          context: 'const { $NEXIT } = o'
+                                          selector: shorthand_property_identifier_pattern
+                - not:
+                    has:
+                      kind: if_statement
+                      not:
+                        has:
+                          field: consequence
+                          any:
+                          - kind: throw_statement
+                          - kind: expression_statement
+                            all:
+                            - has:
+                                kind: call_expression
+                                has:
+                                  field: function
+                                  kind: identifier
+                                  pattern:
+                                    context: const $NEXIT = 0
+                                    selector: identifier
+                            - inside:
+                                kind: program
+                                stopBy: end
+                                has:
+                                  kind: import_statement
+                                  all:
+                                  - has:
+                                      field: source
+                                      kind: string
+                                      regex: '^[''"]next/navigation[''"]$'
+                                  - has:
+                                      stopBy: end
+                                      kind: import_specifier
+                                      any:
+                                      - all:
+                                        - has:
+                                            field: alias
+                                            kind: identifier
+                                            pattern:
+                                              context: const $NEXIT = 0
+                                              selector: identifier
+                                        - has:
+                                            field: name
+                                            kind: identifier
+                                            regex: '^(redirect|permanentRedirect|notFound)$'
+                                      - all:
+                                        - not:
+                                            has:
+                                              field: alias
+                                              kind: identifier
+                                        - has:
+                                            field: name
+                                            kind: identifier
+                                            regex: '^(redirect|permanentRedirect|notFound)$'
+                                            pattern:
+                                              context: const $NEXIT = 0
+                                              selector: identifier
+                            - not:
+                                inside:
+                                  stopBy: end
+                                  any:
+                                  - kind: function_declaration
+                                  - kind: arrow_function
+                                  - kind: function_expression
+                                  - kind: method_definition
+                                  has:
+                                    stopBy: end
+                                    any:
+                                    - kind: identifier
+                                      pattern:
+                                        context: const $NEXIT = 0
+                                        selector: identifier
+                                      not:
+                                        inside:
+                                          kind: call_expression
+                                          field: function
+                                    - kind: shorthand_property_identifier_pattern
+                                      pattern:
+                                        context: 'const { $NEXIT } = o'
+                                        selector: shorthand_property_identifier_pattern
+                          - kind: statement_block
+                            has:
+                              any:
+                              - kind: throw_statement
+                              - kind: expression_statement
+                                all:
+                                - has:
+                                    kind: call_expression
+                                    has:
+                                      field: function
+                                      kind: identifier
+                                      pattern:
+                                        context: const $NEXIT = 0
+                                        selector: identifier
+                                - inside:
+                                    kind: program
+                                    stopBy: end
+                                    has:
+                                      kind: import_statement
+                                      all:
+                                      - has:
+                                          field: source
+                                          kind: string
+                                          regex: '^[''"]next/navigation[''"]$'
+                                      - has:
+                                          stopBy: end
+                                          kind: import_specifier
+                                          any:
+                                          - all:
+                                            - has:
+                                                field: alias
+                                                kind: identifier
+                                                pattern:
+                                                  context: const $NEXIT = 0
+                                                  selector: identifier
+                                            - has:
+                                                field: name
+                                                kind: identifier
+                                                regex: '^(redirect|permanentRedirect|notFound)$'
+                                          - all:
+                                            - not:
+                                                has:
+                                                  field: alias
+                                                  kind: identifier
+                                            - has:
+                                                field: name
+                                                kind: identifier
+                                                regex: '^(redirect|permanentRedirect|notFound)$'
+                                                pattern:
+                                                  context: const $NEXIT = 0
+                                                  selector: identifier
+                                - not:
+                                    inside:
+                                      stopBy: end
+                                      any:
+                                      - kind: function_declaration
+                                      - kind: arrow_function
+                                      - kind: function_expression
+                                      - kind: method_definition
+                                      has:
+                                        stopBy: end
+                                        any:
+                                        - kind: identifier
+                                          pattern:
+                                            context: const $NEXIT = 0
+                                            selector: identifier
+                                          not:
+                                            inside:
+                                              kind: call_expression
+                                              field: function
+                                        - kind: shorthand_property_identifier_pattern
+                                          pattern:
+                                            context: 'const { $NEXIT } = o'
+                                            selector: shorthand_property_identifier_pattern
+                - not:
+                    has:
+                      kind: try_statement
+                      all:
+                      - has:
+                          field: body
+                          has:
+                            stopBy:
+                              any:
+                              - kind: arrow_function
+                              - kind: function_expression
+                              - kind: function_declaration
+                              - kind: method_definition
+                            any:
+                            - kind: throw_statement
+                            - kind: call_expression
                               regex: '^(redirect|permanentRedirect|notFound)\('
+                      - has:
+                          field: handler
+                          kind: catch_clause
+                          not:
+                            has:
+                              stopBy:
+                                any:
+                                - kind: arrow_function
+                                - kind: function_expression
+                                - kind: function_declaration
+                                - kind: method_definition
+                              kind: throw_statement
                 - not:
                     has:
                       stopBy:
@@ -1956,20 +2278,135 @@ control:
                         - kind: method_definition
                       kind: return_statement
                       not:
-                        all:
-                        - inside:
-                            kind: statement_block
-                            inside:
-                              kind: function_declaration
-                        - precedes:
-                            stopBy: neighbor
-                            not:
-                              precedes:
+                        any:
+                        - all:
+                            - inside:
+                                kind: statement_block
+                                inside:
+                                  kind: function_declaration
+                            - precedes:
                                 stopBy: neighbor
                                 any:
-                                - kind: comment
                                 - not:
+                                    precedes:
+                                      stopBy: neighbor
+                                      any:
+                                      - kind: comment
+                                      - not:
+                                          kind: comment
+                                - kind: comment
+                                  precedes:
+                                    stopBy: neighbor
+                                    not:
+                                      precedes:
+                                        stopBy: neighbor
+                                        any:
+                                        - kind: comment
+                                        - not:
+                                            kind: comment
+                                - kind: comment
+                                  precedes:
+                                    stopBy: neighbor
                                     kind: comment
+                                    precedes:
+                                      stopBy: neighbor
+                                      not:
+                                        precedes:
+                                          stopBy: neighbor
+                                          any:
+                                          - kind: comment
+                                          - not:
+                                              kind: comment
+                                - kind: comment
+                                  precedes:
+                                    stopBy: neighbor
+                                    kind: comment
+                                    precedes:
+                                      stopBy: neighbor
+                                      kind: comment
+                                      precedes:
+                                        stopBy: neighbor
+                                        not:
+                                          precedes:
+                                            stopBy: neighbor
+                                            any:
+                                            - kind: comment
+                                            - not:
+                                                kind: comment
+                        - follows:
+                            stopBy: neighbor
+                            any:
+                            - kind: throw_statement
+                            - kind: expression_statement
+                              all:
+                              - has:
+                                  kind: call_expression
+                                  has:
+                                    field: function
+                                    kind: identifier
+                                    pattern:
+                                      context: const $NEXIT = 0
+                                      selector: identifier
+                              - inside:
+                                  kind: program
+                                  stopBy: end
+                                  has:
+                                    kind: import_statement
+                                    all:
+                                    - has:
+                                        field: source
+                                        kind: string
+                                        regex: '^[''"]next/navigation[''"]$'
+                                    - has:
+                                        stopBy: end
+                                        kind: import_specifier
+                                        any:
+                                        - all:
+                                          - has:
+                                              field: alias
+                                              kind: identifier
+                                              pattern:
+                                                context: const $NEXIT = 0
+                                                selector: identifier
+                                          - has:
+                                              field: name
+                                              kind: identifier
+                                              regex: '^(redirect|permanentRedirect|notFound)$'
+                                        - all:
+                                          - not:
+                                              has:
+                                                field: alias
+                                                kind: identifier
+                                          - has:
+                                              field: name
+                                              kind: identifier
+                                              regex: '^(redirect|permanentRedirect|notFound)$'
+                                              pattern:
+                                                context: const $NEXIT = 0
+                                                selector: identifier
+                              - not:
+                                  inside:
+                                    stopBy: end
+                                    any:
+                                    - kind: function_declaration
+                                    - kind: arrow_function
+                                    - kind: function_expression
+                                    - kind: method_definition
+                                    has:
+                                      stopBy: end
+                                      any:
+                                      - kind: identifier
+                                        pattern:
+                                          context: const $NEXIT = 0
+                                          selector: identifier
+                                        not:
+                                          inside:
+                                            kind: call_expression
+                                            field: function
+                                      - kind: shorthand_property_identifier_pattern
+                                        pattern:
+                                          context: 'const { $NEXIT } = o'
+                                          selector: shorthand_property_identifier_pattern
     not:
       inside:
         stopBy:
