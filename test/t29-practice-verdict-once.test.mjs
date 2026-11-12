@@ -36,12 +36,39 @@ test("with none named, the text says nothing of verdicts", () => {
 });
 
 test("the response schema takes fail_by_practice_verdict, and refuses a count under 2 or an empty list", () => {
-  const body = (named) => ({ ...EVALUATE_OK, index: INDEX(COUNTS({ fail_by_practice_verdict: named })) });
+  const body = (named) => ({ ...EVALUATE_OK, index: INDEX(COUNTS({ fail_by_practice_verdict: named, fail_counting_verdicts_once: 3 })) });
   assert.equal(validateResponse(body(NAMED)), null);
   assert.notEqual(validateResponse(body([{ practice_id: "rls-enabled", count: 1 }])), null);
   assert.notEqual(validateResponse(body([])), null);
   assert.notEqual(validateResponse(body([{ practice_id: "rls-enabled", count: 2, lines: [] }])), null);
+  // T29-P1-C299 item 9: the two fields come as a pair
+  assert.notEqual(validateResponse({ ...EVALUATE_OK, index: INDEX(COUNTS({ fail_by_practice_verdict: NAMED })) }), null);
+  assert.notEqual(validateResponse({ ...EVALUATE_OK, index: INDEX(COUNTS({ fail_counting_verdicts_once: 15 })) }), null);
   const once = (n) => ({ ...EVALUATE_OK, index: INDEX(COUNTS({ fail_by_practice_verdict: NAMED, fail_counting_verdicts_once: n })) });
   assert.equal(validateResponse(once(15)), null);
   assert.notEqual(validateResponse(once(0)), null);
+});
+
+// T29-P1-C299 item 9: the CLI checks the counted-once total against the lines it names, and says so when they differ.
+test("a counted-once total that doesn't match its lines keeps the per-line count and says why", () => {
+  const text = textFor({ ...EVALUATE_OK, index: INDEX(COUNTS({ fail_by_practice_verdict: NAMED,
+    fail_counting_verdicts_once: 14 })) }, { full: false });
+  assert.match(text, /50 failing,/);
+  assert.doesNotMatch(text, /14 failing/);
+  assert.match(text, /^The evaluator's counted-once total \(fail_counting_verdicts_once 14\) doesn't match its lines: 50 failing lines less 31 and 4 for the verdicts named is 15\. Read failing per line\.$/m);
+});
+
+test("a counted-once total with no verdict named keeps the per-line count", () => {
+  const text = textFor({ ...EVALUATE_OK, index: INDEX(COUNTS({ fail_counting_verdicts_once: 15 })) }, { full: false });
+  assert.match(text, /50 failing,/);
+  assert.match(text, /doesn't match its lines/);
+});
+
+// T29-P1-C299 item 10: with the fails grouped, the text says where the lines are and how to read them.
+test("grouped fails say the lines are in fails_grouped, read by each group's selector", () => {
+  const index = { ...INDEX(COUNTS({ fail_by_practice_verdict: NAMED, fail_counting_verdicts_once: 15 })),
+    fails_grouped: [{ practice_id: "phi-responses-not-cached", count: 32, select: { practice_id: "phi-responses-not-cached", state: "fail" } }] };
+  const text = textFor({ ...EVALUATE_OK, index }, { full: false });
+  assert.doesNotMatch(text, /All 50 failing lines are listed\./);
+  assert.match(text, /All 50 failing lines are listed by practice in fails_grouped: read each group's lines with get_result and its select\./);
 });
