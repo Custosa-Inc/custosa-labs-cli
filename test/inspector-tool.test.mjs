@@ -964,6 +964,10 @@ test("T29 o2: result_missing replaces page_missing, and no shipped text names pa
   const PAGING = /get_result_page|page_missing|later page|page 1\b|page\.next|page\.of|\bresend\b/i;
   const hits = files.filter((f) => PAGING.test(readFileSync(join(lib, f), "utf8")));
   hits.push(...["../README.md"].filter((f) => PAGING.test(readFileSync(fileURLToPath(new URL(f, import.meta.url)), "utf8"))));
+  // T29-P1-C275: the command line's own usage text and the shipped skill name get_result too
+  const top = fileURLToPath(new URL("../", import.meta.url));
+  hits.push(...["bin", "skills"].flatMap((d) => readdirSync(join(top, d), { recursive: true }).map((f) => join(d, f)))
+    .filter((f) => /\.(mjs|md)$/.test(f) && PAGING.test(readFileSync(join(top, f), "utf8"))));
   assert.deepEqual(hits, []);
 });
 
