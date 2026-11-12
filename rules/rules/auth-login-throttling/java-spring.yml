@@ -82,3 +82,32 @@ rule:
         - kind: throw_statement
           regex: (?i)(failed_?login|login_?failed|LoginFailed|loginFailure|auth(entication)?_?fail\w*|failed_?attempts?\s*(\+\+|\+=|=\s*\w+\s*\+\s*1)|increment\w*\(\s*['\"]failed)
 min_engine: 0.39.0
+---
+id: auth-login-throttling.java-spring.spoofable-ip-key
+practice_id: auth-login-throttling
+language: java
+frameworks:
+- spring
+kind: violation
+rule:
+  kind: method_declaration
+  has:
+    stopBy: end
+    kind: string_literal
+    regex: (?i)^"x-forwarded-for"$
+  not:
+    kind: method_declaration
+    regex: (?i)(length\s*-\s*1|getLast\(|lastIndexOf\()
+  inside:
+    stopBy: end
+    kind: class_declaration
+    all:
+    - has:
+        field: name
+        kind: identifier
+        regex: (?i)(rate_?limit|throttl|limiter)
+    - has:
+        stopBy: end
+        kind: string_literal
+        regex: (?i)^"[^"]*/(auth|login|log-in|signin|sign-in|sign_in)(/|")
+min_engine: 0.39.0

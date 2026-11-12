@@ -100,6 +100,122 @@ rule:
           regex: (?i)(failed_?login|login_?failed|LoginFailed|loginFailure|auth(entication)?_?fail\w*|failed_?attempts?\s*(\+\+|\+=|=\s*\w+\s*\+\s*1)|increment\w*\(\s*['\"]failed)
 min_engine: 0.39.0
 ---
+id: auth-login-throttling.javascript-express.sign-in-route
+practice_id: auth-login-throttling
+language: javascript
+frameworks:
+- express
+kind: items
+rule:
+  kind: call_expression
+  regex: (?i)^(app|server|routes?|\w*router)\.(post|all)\(\s*['\"`][^'\"`]*/(login|log-in|signin|sign-in|sign_in|authenticate)/?['\"`]\s*,
+control:
+  any:
+  - has:
+      field: arguments
+      has:
+        any:
+        - kind: identifier
+          regex: (?i)(limit|throttl|brute|slow_?down|captcha)
+        - kind: member_expression
+          regex: (?i)(limit|throttl|brute|slow_?down|captcha)
+        - kind: call_expression
+          regex: (?i)^[\w.]*(limit|throttl|brute|slow_?down|captcha)
+  - inside:
+      kind: program
+      stopBy: end
+      has:
+        stopBy: end
+        kind: call_expression
+        regex: (?i)^\w+\.use\((\s*['\"`][^'\"`]*['\"`]\s*,)?\s*[\w.]*(limit|throttl|brute|slow_?down)
+min_engine: 0.39.0
+---
+id: auth-login-throttling.javascript-express.unobserved-route
+practice_id: auth-login-throttling
+language: javascript
+frameworks:
+- express
+kind: evidence
+rule:
+  all:
+  - kind: call_expression
+    regex: (?i)^(app|server|routes?|\w*router)\.(post|all)\(\s*['\"`][^'\"`]*/(login|log-in|signin|sign-in|sign_in|authenticate)/?['\"`]\s*,
+  # an inline handler is the sign-in item itself, so the twin holds only a route that names its handler
+  - not:
+      has:
+        field: arguments
+        has:
+          any:
+          - kind: arrow_function
+          - kind: function_expression
+  - not:
+      any:
+      - has:
+          field: arguments
+          has:
+            any:
+            - kind: identifier
+              regex: (?i)(limit|throttl|brute|slow_?down|captcha)
+            - kind: member_expression
+              regex: (?i)(limit|throttl|brute|slow_?down|captcha)
+            - kind: call_expression
+              regex: (?i)^[\w.]*(limit|throttl|brute|slow_?down|captcha)
+      - inside:
+          kind: program
+          stopBy: end
+          has:
+            stopBy: end
+            kind: call_expression
+            regex: (?i)^\w+\.use\((\s*['\"`][^'\"`]*['\"`]\s*,)?\s*[\w.]*(limit|throttl|brute|slow_?down)
+min_engine: 0.39.0
+---
+id: auth-login-throttling.javascript-express.spoofable-ip-key
+practice_id: auth-login-throttling
+language: javascript
+frameworks:
+- express
+kind: violation
+rule:
+  all:
+  - any:
+    - all:
+      - kind: pair
+      - has:
+          field: key
+          kind: property_identifier
+          regex: ^keyGenerator$
+      - inside:
+          stopBy: end
+          kind: call_expression
+          regex: ^(rateLimit|slowDown)\(
+      - not:
+          kind: pair
+          regex: (?i)(\.pop\(\)|\.at\(\s*-1\s*\)|length\s*-\s*1|\.slice\(\s*-1)
+    - all:
+      - kind: call_expression
+      - has:
+          field: function
+          kind: member_expression
+          regex: (?i)^\w*(limit|throttl|brute)\w*\.(consume|limit|check|hit|penalty|get)$
+      - not:
+          kind: call_expression
+          regex: (?i)(\.pop\(\)|\.at\(\s*-1\s*\)|length\s*-\s*1|\.slice\(\s*-1)
+  - has:
+      stopBy: end
+      kind: string
+      regex: (?i)^['\"]x-forwarded-for['\"]$
+  - inside:
+      stopBy: end
+      kind: program
+      has:
+        stopBy: end
+        any:
+        - kind: identifier
+          regex: (?i)^\w*(log_?in|sign_?in|auth)\w*(limit|throttl)\w*$
+        - kind: string
+          regex: (?i)^['\"][^'\"]*/(auth|login|log-in|signin|sign-in|sign_in)\b
+min_engine: 0.39.0
+---
 id: auth-login-throttling.javascript-express.route-limiter
 practice_id: auth-login-throttling
 language: javascript
