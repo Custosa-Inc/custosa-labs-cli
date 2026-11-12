@@ -738,6 +738,8 @@ control:
     # inequality or a null test, alone or as an operand of an or. A config, input or other-value check, an equality,
     # an inverted test and a never-true one are not. A local or parameter of the same name in the action shadows the
     # guard, so that call is not one.
+    # T29-P1-C288: a side in parentheses is read as what it holds and void 0 as undefined; a run of nots is a denial
+    # when it is odd, through parentheses too. A bare arrow parameter shadows the guard; a default value doesn't.
     - kind: call_expression
       all:
       - pattern: '$GUARD($$$)'
@@ -769,6 +771,55 @@ control:
                         pattern:
                           context: const $GUARD = 0
                           selector: identifier
+                        not:
+                          any:
+                          - all:
+                            - inside:
+                                any:
+                                - kind: assignment_pattern
+                                - kind: object_assignment_pattern
+                                - any:
+                                  - kind: required_parameter
+                                  - kind: optional_parameter
+                                  has:
+                                    field: value
+                                    any:
+                                    - kind: comment
+                                    - not:
+                                        kind: comment
+                            - not:
+                                precedes:
+                                  stopBy: neighbor
+                                  any:
+                                  - kind: comment
+                                  - not:
+                                      kind: comment
+                          - inside:
+                              stopBy:
+                                any:
+                                - kind: formal_parameters
+                                - kind: variable_declarator
+                              all:
+                              - inside:
+                                  any:
+                                  - kind: assignment_pattern
+                                  - kind: object_assignment_pattern
+                                  - any:
+                                    - kind: required_parameter
+                                    - kind: optional_parameter
+                                    has:
+                                      field: value
+                                      any:
+                                      - kind: comment
+                                      - not:
+                                          kind: comment
+                              - not:
+                                  precedes:
+                                    stopBy: neighbor
+                                    any:
+                                    - kind: comment
+                                    - not:
+                                        kind: comment
                       - has:
                           stopBy: end
                           any:
@@ -776,6 +827,55 @@ control:
                             pattern:
                               context: const $GUARD = 0
                               selector: identifier
+                            not:
+                              any:
+                              - all:
+                                - inside:
+                                    any:
+                                    - kind: assignment_pattern
+                                    - kind: object_assignment_pattern
+                                    - any:
+                                      - kind: required_parameter
+                                      - kind: optional_parameter
+                                      has:
+                                        field: value
+                                        any:
+                                        - kind: comment
+                                        - not:
+                                            kind: comment
+                                - not:
+                                    precedes:
+                                      stopBy: neighbor
+                                      any:
+                                      - kind: comment
+                                      - not:
+                                          kind: comment
+                              - inside:
+                                  stopBy:
+                                    any:
+                                    - kind: formal_parameters
+                                    - kind: variable_declarator
+                                  all:
+                                  - inside:
+                                      any:
+                                      - kind: assignment_pattern
+                                      - kind: object_assignment_pattern
+                                      - any:
+                                        - kind: required_parameter
+                                        - kind: optional_parameter
+                                        has:
+                                          field: value
+                                          any:
+                                          - kind: comment
+                                          - not:
+                                              kind: comment
+                                  - not:
+                                      precedes:
+                                        stopBy: neighbor
+                                        any:
+                                        - kind: comment
+                                        - not:
+                                            kind: comment
                           - kind: shorthand_property_identifier_pattern
                             pattern:
                               context: const { $GUARD } = 0
@@ -790,6 +890,55 @@ control:
                         pattern:
                           context: const $GUARD = 0
                           selector: identifier
+                        not:
+                          any:
+                          - all:
+                            - inside:
+                                any:
+                                - kind: assignment_pattern
+                                - kind: object_assignment_pattern
+                                - any:
+                                  - kind: required_parameter
+                                  - kind: optional_parameter
+                                  has:
+                                    field: value
+                                    any:
+                                    - kind: comment
+                                    - not:
+                                        kind: comment
+                            - not:
+                                precedes:
+                                  stopBy: neighbor
+                                  any:
+                                  - kind: comment
+                                  - not:
+                                      kind: comment
+                          - inside:
+                              stopBy:
+                                any:
+                                - kind: formal_parameters
+                                - kind: variable_declarator
+                              all:
+                              - inside:
+                                  any:
+                                  - kind: assignment_pattern
+                                  - kind: object_assignment_pattern
+                                  - any:
+                                    - kind: required_parameter
+                                    - kind: optional_parameter
+                                    has:
+                                      field: value
+                                      any:
+                                      - kind: comment
+                                      - not:
+                                          kind: comment
+                              - not:
+                                  precedes:
+                                    stopBy: neighbor
+                                    any:
+                                    - kind: comment
+                                    - not:
+                                        kind: comment
                       - has:
                           stopBy: end
                           any:
@@ -797,6 +946,55 @@ control:
                             pattern:
                               context: const $GUARD = 0
                               selector: identifier
+                            not:
+                              any:
+                              - all:
+                                - inside:
+                                    any:
+                                    - kind: assignment_pattern
+                                    - kind: object_assignment_pattern
+                                    - any:
+                                      - kind: required_parameter
+                                      - kind: optional_parameter
+                                      has:
+                                        field: value
+                                        any:
+                                        - kind: comment
+                                        - not:
+                                            kind: comment
+                                - not:
+                                    precedes:
+                                      stopBy: neighbor
+                                      any:
+                                      - kind: comment
+                                      - not:
+                                          kind: comment
+                              - inside:
+                                  stopBy:
+                                    any:
+                                    - kind: formal_parameters
+                                    - kind: variable_declarator
+                                  all:
+                                  - inside:
+                                      any:
+                                      - kind: assignment_pattern
+                                      - kind: object_assignment_pattern
+                                      - any:
+                                        - kind: required_parameter
+                                        - kind: optional_parameter
+                                        has:
+                                          field: value
+                                          any:
+                                          - kind: comment
+                                          - not:
+                                              kind: comment
+                                  - not:
+                                      precedes:
+                                        stopBy: neighbor
+                                        any:
+                                        - kind: comment
+                                        - not:
+                                            kind: comment
                           - kind: shorthand_property_identifier_pattern
                             pattern:
                               context: const { $GUARD } = 0
@@ -815,6 +1013,13 @@ control:
                     pattern:
                       context: const $GUARD = 0
                       selector: identifier
+            - kind: arrow_function
+              has:
+                field: parameter
+                kind: identifier
+                pattern:
+                  context: const $GUARD = 0
+                  selector: identifier
             - any:
               - kind: arrow_function
               - kind: function_expression
@@ -829,6 +1034,55 @@ control:
                     pattern:
                       context: const $GUARD = 0
                       selector: identifier
+                    not:
+                      any:
+                      - all:
+                        - inside:
+                            any:
+                            - kind: assignment_pattern
+                            - kind: object_assignment_pattern
+                            - any:
+                              - kind: required_parameter
+                              - kind: optional_parameter
+                              has:
+                                field: value
+                                any:
+                                - kind: comment
+                                - not:
+                                    kind: comment
+                        - not:
+                            precedes:
+                              stopBy: neighbor
+                              any:
+                              - kind: comment
+                              - not:
+                                  kind: comment
+                      - inside:
+                          stopBy:
+                            any:
+                            - kind: formal_parameters
+                            - kind: variable_declarator
+                          all:
+                          - inside:
+                              any:
+                              - kind: assignment_pattern
+                              - kind: object_assignment_pattern
+                              - any:
+                                - kind: required_parameter
+                                - kind: optional_parameter
+                                has:
+                                  field: value
+                                  any:
+                                  - kind: comment
+                                  - not:
+                                      kind: comment
+                          - not:
+                              precedes:
+                                stopBy: neighbor
+                                any:
+                                - kind: comment
+                                - not:
+                                    kind: comment
                   - kind: shorthand_property_identifier_pattern
                     pattern:
                       context: const { $GUARD } = 0
@@ -896,11 +1150,7 @@ control:
                           any:
                           - any:
                             - kind: unary_expression
-                              pattern: '!$_'
-                              not:
-                                any:
-                                - pattern: '!!$_'
-                                - pattern: '!(!$_)'
+                              regex: '^(?:![(\s]*![(\s]*)*![(\s]*[^!(\s]'
                               has:
                                 stopBy: end
                                 kind: identifier
@@ -913,6 +1163,8 @@ control:
                               - pattern: '$_ == null'
                               - pattern: '$_ === undefined'
                               - pattern: '$_ == undefined'
+                              - pattern: '$_ === void 0'
+                              - pattern: '$_ == void 0'
                               has:
                                 stopBy: end
                                 kind: identifier
@@ -938,6 +1190,10 @@ control:
                                     - kind: undefined
                                     - kind: unary_expression
                                       regex: '^typeof\b'
+                                    - kind: unary_expression
+                                      regex: '^void\b'
+                                    - kind: parenthesized_expression
+                                      regex: '^[(\s]*(null|undefined|void|typeof)\b'
                                 - has:
                                     field: right
                                     any:
@@ -945,6 +1201,10 @@ control:
                                     - kind: undefined
                                     - kind: unary_expression
                                       regex: '^typeof\b'
+                                    - kind: unary_expression
+                                      regex: '^void\b'
+                                    - kind: parenthesized_expression
+                                      regex: '^[(\s]*(null|undefined|void|typeof)\b'
                                 - all:
                                   - has:
                                       field: left
@@ -976,11 +1236,7 @@ control:
                             has:
                               any:
                               - kind: unary_expression
-                                pattern: '!$_'
-                                not:
-                                  any:
-                                  - pattern: '!!$_'
-                                  - pattern: '!(!$_)'
+                                regex: '^(?:![(\s]*![(\s]*)*![(\s]*[^!(\s]'
                                 has:
                                   stopBy: end
                                   kind: identifier
@@ -993,6 +1249,8 @@ control:
                                 - pattern: '$_ == null'
                                 - pattern: '$_ === undefined'
                                 - pattern: '$_ == undefined'
+                                - pattern: '$_ === void 0'
+                                - pattern: '$_ == void 0'
                                 has:
                                   stopBy: end
                                   kind: identifier
@@ -1018,6 +1276,10 @@ control:
                                       - kind: undefined
                                       - kind: unary_expression
                                         regex: '^typeof\b'
+                                      - kind: unary_expression
+                                        regex: '^void\b'
+                                      - kind: parenthesized_expression
+                                        regex: '^[(\s]*(null|undefined|void|typeof)\b'
                                   - has:
                                       field: right
                                       any:
@@ -1025,6 +1287,10 @@ control:
                                       - kind: undefined
                                       - kind: unary_expression
                                         regex: '^typeof\b'
+                                      - kind: unary_expression
+                                        regex: '^void\b'
+                                      - kind: parenthesized_expression
+                                        regex: '^[(\s]*(null|undefined|void|typeof)\b'
                                   - all:
                                     - has:
                                         field: left
@@ -1058,11 +1324,7 @@ control:
                               has:
                                 any:
                                 - kind: unary_expression
-                                  pattern: '!$_'
-                                  not:
-                                    any:
-                                    - pattern: '!!$_'
-                                    - pattern: '!(!$_)'
+                                  regex: '^(?:![(\s]*![(\s]*)*![(\s]*[^!(\s]'
                                   has:
                                     stopBy: end
                                     kind: identifier
@@ -1075,6 +1337,8 @@ control:
                                   - pattern: '$_ == null'
                                   - pattern: '$_ === undefined'
                                   - pattern: '$_ == undefined'
+                                  - pattern: '$_ === void 0'
+                                  - pattern: '$_ == void 0'
                                   has:
                                     stopBy: end
                                     kind: identifier
@@ -1100,6 +1364,10 @@ control:
                                         - kind: undefined
                                         - kind: unary_expression
                                           regex: '^typeof\b'
+                                        - kind: unary_expression
+                                          regex: '^void\b'
+                                        - kind: parenthesized_expression
+                                          regex: '^[(\s]*(null|undefined|void|typeof)\b'
                                     - has:
                                         field: right
                                         any:
@@ -1107,6 +1375,10 @@ control:
                                         - kind: undefined
                                         - kind: unary_expression
                                           regex: '^typeof\b'
+                                        - kind: unary_expression
+                                          regex: '^void\b'
+                                        - kind: parenthesized_expression
+                                          regex: '^[(\s]*(null|undefined|void|typeof)\b'
                                     - all:
                                       - has:
                                           field: left
