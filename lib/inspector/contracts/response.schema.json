@@ -5038,6 +5038,30 @@
                 }
               }
             },
+            "fail_by_practice_verdict": {
+              "description": "T29-P1-C271 (a): each practice whose fail lines, two or more, all come from the assistant's one verdict on it (a verdict is practice-level, so it fails every line of its practice), with its line count, largest first. Only a name beside the counts: every count above stays per line, and no line's state moves. A practice with any other fail beside them is not here. Absent when there is none.",
+              "type": "array",
+              "minItems": 1,
+              "maxItems": 2000,
+              "items": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": [
+                  "practice_id",
+                  "count"
+                ],
+                "properties": {
+                  "practice_id": {
+                    "type": "string",
+                    "maxLength": 1000
+                  },
+                  "count": {
+                    "type": "integer",
+                    "minimum": 2
+                  }
+                }
+              }
+            },
             "by_state_and_severity": {
               "type": "array",
               "maxItems": 20000,
