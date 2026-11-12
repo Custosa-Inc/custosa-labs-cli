@@ -5038,6 +5038,11 @@
                 }
               }
             },
+            "fail_counting_verdicts_once": {
+              "description": "T29-P1-C287 item 2: the fail total with each practice in fail_by_practice_verdict counted once (its lines are one assistant verdict). by_state and every other count stay per line and match the fail lines listed; nothing is dropped from the list. Present only beside fail_by_practice_verdict.",
+              "type": "integer",
+              "minimum": 1
+            },
             "fail_by_practice_verdict": {
               "description": "T29-P1-C271 (a): each practice whose fail lines, two or more, all come from the assistant's one verdict on it (a verdict is practice-level, so it fails every line of its practice), with its line count, largest first. Only a name beside the counts: every count above stays per line, and no line's state moves. A practice with any other fail beside them is not here. Absent when there is none.",
               "type": "array",
