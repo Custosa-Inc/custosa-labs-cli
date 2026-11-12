@@ -130,6 +130,37 @@ control:
         regex: (?i)^\w+\.use\((\s*['\"`][^'\"`]*['\"`]\s*,)?\s*[\w.]*(limit|throttl|brute|slow_?down)
 min_engine: 0.39.0
 ---
+id: auth-login-throttling.javascript-express.unobserved-route
+practice_id: auth-login-throttling
+language: javascript
+frameworks:
+- express
+kind: evidence
+rule:
+  all:
+  - kind: call_expression
+    regex: (?i)^(app|server|routes?|\w*router)\.(post|all)\(\s*['\"`][^'\"`]*/(login|log-in|signin|sign-in|sign_in|authenticate)/?['\"`]\s*,
+  - not:
+      any:
+      - has:
+          field: arguments
+          has:
+            any:
+            - kind: identifier
+              regex: (?i)(limit|throttl|brute|slow_?down|captcha)
+            - kind: member_expression
+              regex: (?i)(limit|throttl|brute|slow_?down|captcha)
+            - kind: call_expression
+              regex: (?i)^[\w.]*(limit|throttl|brute|slow_?down|captcha)
+      - inside:
+          kind: program
+          stopBy: end
+          has:
+            stopBy: end
+            kind: call_expression
+            regex: (?i)^\w+\.use\((\s*['\"`][^'\"`]*['\"`]\s*,)?\s*[\w.]*(limit|throttl|brute|slow_?down)
+min_engine: 0.39.0
+---
 id: auth-login-throttling.javascript-express.spoofable-ip-key
 practice_id: auth-login-throttling
 language: javascript
