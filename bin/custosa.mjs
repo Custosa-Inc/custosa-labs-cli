@@ -67,7 +67,7 @@ if (argv[0] === "inspect") {
 } else if (argv[0] === "login" || argv[0] === "logout") {
   // The device sign-in (evaluator_api.md section 3). The token is stored in the config folder and never printed.
   if (argv.length !== 1) {
-    console.error("Usage: custosa login | custosa logout\n\nlogin signs this computer in to PHI Schema Check, a Custosa Labs project, so its tools (check_schema, schema_guidance, get_result_page) can reach the evaluator. logout removes the saved sign-in from this computer, and asks the evaluator to revoke it where the evaluator offers that (not every evaluator does yet).");
+    console.error("Usage: custosa login | custosa logout\n\nlogin signs this computer in to PHI Schema Check, a Custosa Labs project, so its tools (check_schema, schema_guidance, get_result) can reach the evaluator. logout removes the saved sign-in from this computer, and asks the evaluator to revoke it where the evaluator offers that (not every evaluator does yet).");
     process.exitCode = 2;
   } else {
     Promise.all([import("../lib/inspector/auth.mjs"), import("../lib/inspector/client.mjs")])
