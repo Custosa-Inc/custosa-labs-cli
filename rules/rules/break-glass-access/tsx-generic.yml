@@ -1193,49 +1193,389 @@ rule:
                 kind: call_expression
                 regex: ^BreakGlass[A-Za-z0-9_]*(\.|::)(create|insert|upsert)[A-Za-z]*\(
   - not:
-      has:
-        field: body
-        has:
-          stopBy: end
+      all:
+      - not:
           any:
-          - all:
-            - kind: if_statement
-            - has:
-                field: condition
-                has:
-                  stopBy: end
-                  any:
-                  - kind: unary_expression
-                    regex: (?i)^!\s*\(?\s*([A-Za-z0-9_$]+\??\.)*reason(\??\.trim(Start|End)?\(\s*\))?(\??\.length)?\s*\)?$
-                  - kind: binary_expression
-                    regex: (?i)(^|[^A-Za-z0-9_$])([A-Za-z0-9_$]+\??\.)*reason(\??\.trim(Start|End)?\(\s*\))?\s*(===?|!==?)\s*(''|\"\"|``)\s*$
-                  - kind: binary_expression
-                    regex: (?i)^(''|\"\"|``)\s*(===?|!==?)\s*([A-Za-z0-9_$]+\??\.)*reason(\??\.trim(Start|End)?\(\s*\))?\s*$
-                  - kind: binary_expression
-                    regex: (?i)(^|[^A-Za-z0-9_$])([A-Za-z0-9_$]+\??\.)*reason(\??\.trim(Start|End)?\(\s*\))?\??\.length\s*(<=?|>=?|===?|!==?)\s*[0-9]+\s*$
-                  - kind: binary_expression
-                    regex: (?i)^[0-9]+\s*(<=?|>=?|===?|!==?)\s*([A-Za-z0-9_$]+\??\.)*reason(\??\.trim(Start|End)?\(\s*\))?\??\.length\s*$
-            - has:
-                field: consequence
+          - has:
+              field: parameters
+              has:
+                stopBy: end
                 any:
-                - kind: throw_statement
-                - kind: return_statement
+                - kind: required_parameter
+                  regex: ^reason(\s*:[^=]*)?\s*=
+                - kind: object_assignment_pattern
+                  regex: ^reason\s*=
+          - has:
+              field: body
+              has:
+                stopBy: end
+                any:
+                - kind: object_assignment_pattern
+                  regex: ^reason\s*=
+                - kind: assignment_expression
+                  regex: ^reason\s*=
+                - kind: augmented_assignment_expression
+                  regex: ^reason\s*
+                - all:
+                  - kind: variable_declarator
+                    regex: ^reason(\s*:[^=]*)?\s*=[\s\S]*((\|\||\?\?)\s*([^\s'\"`nu]|['\"`][^'\"`]|n[^u]|u[^n])|\?[^.?:][^:]*:\s*['\"`][^'\"`])
+                  - not:
+                      kind: variable_declarator
+                      regex: (\|\||\?\?)\s*(null|undefined)\s*;?$
+      - has:
+          field: body
+          has:
+            all:
+            - any:
+              - any:
+                - all:
+                  - kind: if_statement
+                  - has:
+                      field: condition
+                      has:
+                        stopBy: end
+                        all: &id009
+                        - any:
+                          - kind: unary_expression
+                            regex: ^!\s*\(?\s*([A-Za-z_$][A-Za-z0-9_$]*\??\.)*reason(\??\.trim(Start|End)?\(\s*\))?(\??\.length)?\s*\)?$
+                          - kind: unary_expression
+                            regex: ^!\s*\(\s*([A-Za-z_$][A-Za-z0-9_$]*\??\.)*reason\s*&&\s*([A-Za-z_$][A-Za-z0-9_$]*\??\.)*reason(\??\.trim(Start|End)?\(\s*\))?\s*\)$
+                          - kind: binary_expression
+                            regex: ^([A-Za-z_$][A-Za-z0-9_$]*\??\.)*reason(\??\.trim(Start|End)?\(\s*\))?\s*===?\s*(''|\"\"|``)$
+                          - kind: binary_expression
+                            regex: ^(''|\"\"|``)\s*===?\s*([A-Za-z_$][A-Za-z0-9_$]*\??\.)*reason(\??\.trim(Start|End)?\(\s*\))?$
+                          - kind: binary_expression
+                            regex: ^([A-Za-z_$][A-Za-z0-9_$]*\??\.)*reason(\??\.trim(Start|End)?\(\s*\))?\??\.length\s*(<\s*[1-9][0-9]*|<=\s*[0-9]+|===?\s*0)$
+                          - kind: binary_expression
+                            regex: ^([1-9][0-9]*\s*>|[0-9]+\s*>=|0\s*===?)\s*([A-Za-z_$][A-Za-z0-9_$]*\??\.)*reason(\??\.trim(Start|End)?\(\s*\))?\??\.length$
+                          - all:
+                            - kind: binary_expression
+                              regex: ^([A-Za-z_$][A-Za-z0-9_$]*\??\.)*reason(\??\.trim(Start|End)?\(\s*\))?\??\.length\s*<=?\s*[A-Za-z_$][A-Za-z0-9_$]*$
+                            - has:
+                                field: right
+                                pattern: &id001
+                                  context: const $MIN_LEN = 1
+                                  selector: identifier
+                            - &id002
+                              inside:
+                                stopBy: end
+                                kind: program
+                                has:
+                                  stopBy: end
+                                  all:
+                                  - pattern:
+                                      context: const $MIN_LEN = $MIN_VALUE
+                                      selector: variable_declarator
+                                  - has:
+                                      field: value
+                                      kind: number
+                                      regex: ^[1-9][0-9]*$
+                          - all:
+                            - kind: binary_expression
+                              regex: ^[A-Za-z_$][A-Za-z0-9_$]*\s*>=?\s*([A-Za-z_$][A-Za-z0-9_$]*\??\.)*reason(\??\.trim(Start|End)?\(\s*\))?\??\.length$
+                            - has:
+                                field: left
+                                pattern: *id001
+                            - *id002
+                          - kind: call_expression
+                            regex: ^(_|lodash)\.isEmpty\(\s*([A-Za-z_$][A-Za-z0-9_$]*\??\.)*reason(\??\.trim(Start|End)?\(\s*\))?\s*\)$
+                        - inside:
+                            stopBy:
+                              not:
+                                any:
+                                - kind: parenthesized_expression
+                                - pattern: $_ORL || $_ORR
+                            kind: if_statement
+                  - any:
+                    - not:
+                        has:
+                          field: condition
+                          kind: parenthesized_expression
+                          regex: '&&|\?\?|\?[^.?]'
+                    - has:
+                        field: condition
+                        kind: parenthesized_expression
+                        regex: ^\(\s*!\s*\(\s*([A-Za-z_$][A-Za-z0-9_$]*\??\.)*reason\s*&&\s*([A-Za-z_$][A-Za-z0-9_$]*\??\.)*reason(\??\.trim(Start|End)?\(\s*\))?\s*\)\s*\)$
+                  - has:
+                      field: consequence
+                      all:
+                      - any:
+                        - &id003
+                          kind: throw_statement
+                        - &id004
+                          kind: return_statement
+                        - all:
+                          - kind: statement_block
+                          - has:
+                              any:
+                              - *id003
+                              - *id004
+                      - not: &id007
+                          has: &id013
+                            stopBy: end
+                            kind: call_expression
+                            regex: (?i)^[A-Za-z0-9_$.>:-]*(break_?glass|emergency_?access|emergency_?grant)[A-Za-z0-9_$.>:-]*(\.|->|::)(create|insert|add|grant|upsert)[A-Za-z0-9_]*\(|(?i)^[A-Za-z0-9_$.>:-]*from\(\s*['\"][A-Za-z0-9_]*(break_?glass|emergency)[A-Za-z0-9_]*['\"]\s*\)\s*\.insert\(|(?is)insert\s+into\s+[\"`A-Za-z0-9_.]*(break_?glass|emergency_?(access|grant))
+                - &id011
+                  kind: expression_statement
+                  regex: ^(await\s+)?(assert|invariant)(\.ok|\.strict)?\(\s*(([A-Za-z_$][A-Za-z0-9_$]*\??\.)*reason(\??\.trim(Start|End)?\(\s*\))?(\??\.length)?|([A-Za-z_$][A-Za-z0-9_$]*\??\.)*reason\s*&&\s*([A-Za-z_$][A-Za-z0-9_$]*\??\.)*reason(\??\.trim(Start|End)?\(\s*\))?)\s*(,|\))
+                - &id012
+                  all:
+                  - any:
+                    - kind: expression_statement
+                    - kind: lexical_declaration
+                    - kind: variable_declaration
+                  - has:
+                      stopBy:
+                        any:
+                        - kind: function_declaration
+                        - kind: method_definition
+                        - kind: arrow_function
+                        - kind: function_expression
+                      any:
+                      - all:
+                        - any:
+                          - pattern: $SCHEMA.parse($$$)
+                          - pattern: await $SCHEMA.parseAsync($$$)
+                        - &id008
+                          inside:
+                            stopBy: end
+                            kind: program
+                            has:
+                              stopBy: end
+                              all:
+                              - pattern:
+                                  context: const $SCHEMA = $SCHEMA_VALUE
+                                  selector: variable_declarator
+                              - has:
+                                  field: value
+                                  has:
+                                    stopBy: end
+                                    all:
+                                    - kind: pair
+                                      regex: (?s)^['\"]?reason['\"]?\s*:\s*(z|zod)\s*\.\s*string\(\s*(\{[^{}]*\})?\s*\)(\s*\.\s*(trim|toLowerCase|toUpperCase|max)\([^()]*\))*\s*\.\s*(min\(\s*[1-9][0-9]*\s*(,[^()]*)?\)|nonempty\([^()]*\))
+                                    - not:
+                                        kind: pair
+                                        regex: \.\s*(optional|nullable|nullish|notRequired|default|catch|or|transform|allow|empty|valid|preprocess)\(
+                              - not:
+                                  has:
+                                    field: value
+                                    kind: call_expression
+                                    regex: \.\s*(partial|deepPartial)\(
+                      - all:
+                        - any:
+                          - pattern: $SCHEMA.validateSync($$$)
+                          - pattern: await $SCHEMA.validate($$$)
+                        - inside:
+                            stopBy: end
+                            kind: program
+                            has:
+                              stopBy: end
+                              all:
+                              - pattern:
+                                  context: const $SCHEMA = $SCHEMA_VALUE
+                                  selector: variable_declarator
+                              - has:
+                                  field: value
+                                  has:
+                                    stopBy: end
+                                    all:
+                                    - kind: pair
+                                      regex: (?s)^['\"]?reason['\"]?\s*:\s*(yup|Yup)\s*\.\s*string\(\s*\)[\s\S]*\.\s*required\(
+                                    - not:
+                                        kind: pair
+                                        regex: \.\s*(optional|nullable|nullish|notRequired|default|catch|or|transform|allow|empty|valid|preprocess)\(
+                              - not:
+                                  has:
+                                    field: value
+                                    kind: call_expression
+                                    regex: \.\s*(partial|deepPartial)\(
+                      - all:
+                        - any:
+                          - pattern: await $SCHEMA.validateAsync($$$)
+                          - pattern: Joi.attempt($_JV, $SCHEMA)
+                          - pattern: Joi.assert($_JV, $SCHEMA)
+                        - inside:
+                            stopBy: end
+                            kind: program
+                            has:
+                              stopBy: end
+                              all:
+                              - pattern:
+                                  context: const $SCHEMA = $SCHEMA_VALUE
+                                  selector: variable_declarator
+                              - has:
+                                  field: value
+                                  has:
+                                    stopBy: end
+                                    all:
+                                    - kind: pair
+                                      regex: (?s)^['\"]?reason['\"]?\s*:\s*(Joi|joi)\s*\.\s*string\(\s*\)[\s\S]*\.\s*required\(
+                                    - not:
+                                        kind: pair
+                                        regex: \.\s*(optional|nullable|nullish|notRequired|default|catch|or|transform|allow|empty|valid|preprocess)\(
+                              - not:
+                                  has:
+                                    field: value
+                                    kind: call_expression
+                                    regex: \.\s*(partial|deepPartial)\(
+                - all:
+                  - kind: if_statement
+                  - has:
+                      field: condition
+                      has:
+                        any:
+                        - pattern: '!$PARSED.success'
+                        - pattern: $PARSED.success === false
+                        - pattern: $PARSED.success == false
+                  - has:
+                      field: consequence
+                      all:
+                      - any:
+                        - &id005
+                          kind: throw_statement
+                        - &id006
+                          kind: return_statement
+                        - all:
+                          - kind: statement_block
+                          - has:
+                              any:
+                              - *id005
+                              - *id006
+                      - not: *id007
+                  - inside:
+                      kind: statement_block
+                      has:
+                        any:
+                        - kind: lexical_declaration
+                          has:
+                            all:
+                            - pattern:
+                                context: const $PARSED = $SCHEMA.safeParse($$$)
+                                selector: variable_declarator
+                            - *id008
+                        - kind: lexical_declaration
+                          has:
+                            all:
+                            - pattern:
+                                context: const $PARSED = await $SCHEMA.safeParseAsync($$$)
+                                selector: variable_declarator
+                            - *id008
+              - all:
+                - kind: expression_statement
+                - any:
+                  - has:
+                      pattern: await $GUARD_FN($$$)
+                  - all:
+                    - has:
+                        pattern: $GUARD_FN($$$)
+                    - inside:
+                        stopBy: end
+                        kind: program
+                        has:
+                          stopBy: end
+                          all:
+                          - kind: function_declaration
+                            regex: ^function
+                          - has:
+                              field: name
+                              pattern:
+                                context: function $GUARD_FN() {}
+                                selector: identifier
                 - has:
+                    stopBy: end
+                    kind: arguments
+                    regex: ^\(\s*([A-Za-z_$][A-Za-z0-9_$]*\??\.)*reason\s*[,)]
+                - inside:
+                    stopBy: end
+                    kind: program
+                    has:
+                      stopBy: end
+                      all:
+                      - kind: function_declaration
+                      - has:
+                          field: name
+                          pattern:
+                            context: function $GUARD_FN() {}
+                            selector: identifier
+                      - has:
+                          field: parameters
+                          has:
+                            kind: required_parameter
+                            regex: ^reason(\s*:[^=]*)?$
+                      - has:
+                          field: body
+                          has:
+                            any:
+                            - all:
+                              - kind: if_statement
+                              - has:
+                                  field: condition
+                                  has:
+                                    stopBy: end
+                                    all: *id009
+                              - any:
+                                - not:
+                                    has:
+                                      field: condition
+                                      kind: parenthesized_expression
+                                      regex: '&&|\?\?|\?[^.?]'
+                                - has:
+                                    field: condition
+                                    kind: parenthesized_expression
+                                    regex: ^\(\s*!\s*\(\s*([A-Za-z_$][A-Za-z0-9_$]*\??\.)*reason\s*&&\s*([A-Za-z_$][A-Za-z0-9_$]*\??\.)*reason(\??\.trim(Start|End)?\(\s*\))?\s*\)\s*\)$
+                              - has:
+                                  field: consequence
+                                  all:
+                                  - any:
+                                    - &id010
+                                      kind: throw_statement
+                                    - all:
+                                      - kind: statement_block
+                                      - has:
+                                          any:
+                                          - *id010
+                                  - not: *id007
+                            - *id011
+                            - *id012
+            - precedes:
+                stopBy: neighbor
+                any:
+                - *id007
+                - precedes:
+                    stopBy: neighbor
                     any:
-                    - kind: throw_statement
-                    - kind: return_statement
-          - kind: call_expression
-            regex: (?i)^(assert|invariant)(\.ok|\.strict)?\(\s*[^,)]*reason
-          - kind: call_expression
-            regex: (?i)^(await\s+)?([A-Za-z0-9_$]+\.)*(require|validate|assert|ensure|check)[A-Za-z0-9_]*reason[A-Za-z0-9_]*\(
-  - not:
-      inside:
-        stopBy: end
-        kind: program
-        has:
-          stopBy: end
-          kind: pair
-          regex: (?is)^['\"]?reason['\"]?\s*:\s*(z|zod|yup|Joi|joi)\s*\.\s*string\(\s*\)[\s\S]*\.(min\(\s*[1-9]|nonempty\(|required\()
+                    - *id007
+                    - precedes:
+                        stopBy: neighbor
+                        any:
+                        - *id007
+                        - precedes:
+                            stopBy: neighbor
+                            any:
+                            - *id007
+                            - precedes:
+                                stopBy: neighbor
+                                any:
+                                - *id007
+                                - precedes:
+                                    stopBy: neighbor
+                                    any:
+                                    - *id007
+                                    - precedes:
+                                        stopBy: neighbor
+                                        any:
+                                        - *id007
+                                        - precedes:
+                                            stopBy: neighbor
+                                            any:
+                                            - *id007
+                                            - precedes:
+                                                stopBy: neighbor
+                                                any:
+                                                - *id007
+                                                - precedes:
+                                                    stopBy: neighbor
+                                                    has: *id013
 min_engine: 0.39.0
 ---
 id: break-glass-access.tsx-generic.read-unrecorded
@@ -1251,27 +1591,125 @@ rule:
     - kind: method_definition
     - kind: arrow_function
     - kind: function_expression
-  - has:
-      field: body
-      has:
-        stopBy: end
-        kind: call_expression
-        regex: (?i)(break_?glass|emergency_?access|emergency_?grant)[0-9A-Za-z_]*['\"]?\)?\s*\.\s*(find|get|select|count|fetch|load|lookup|query)[0-9A-Za-z_]*\(|(?i)(^|[^0-9A-Za-z_])(is|has|get|find|check|require|load|fetch|active)[0-9A-Za-z_]*(break_?glass|emergency_?(access|grant))[0-9A-Za-z_]*\(|(?is)select\s[\s\S]*\sfrom\s+[0-9A-Za-z_.\"]*(break_?glass|emergency)
-  - has:
-      field: body
-      has:
-        stopBy: end
-        all:
-        - kind: call_expression
-          regex: (?i)\.(find(Unique|First|Many|One|ById|All)?(OrThrow)?|select|query|execute|\$queryRaw[A-Za-z]*)\(
-        - not:
-            kind: call_expression
-            regex: (?i)break_?glass|emergency|audit|access_?log
-  - not:
-      has:
+  - any:
+    - has:
         field: body
         has:
           stopBy: end
           kind: call_expression
-          regex: (?i)\.(audit[0-9A-Za-z_]*|access_?log[0-9A-Za-z_]*)\.(create|insert|add)[0-9A-Za-z_]*\(|(?-u:\b)(Audit[0-9A-Za-z_]*|AccessLog[0-9A-Za-z_]*)\.(objects\.)?create\(|from\(\s*['\"][0-9A-Za-z_]*audit[0-9A-Za-z_]*['\"]\s*\)\s*\.insert\(|insert\s+into\s+[0-9A-Za-z_]*(audit|log)[0-9A-Za-z_]*|(?i)(^|[^0-9A-Za-z_])(log|record|audit|track|write)[0-9A-Za-z_]*(access|read|view|audit|event)[0-9A-Za-z_]*\(
+          regex: (?i)^[A-Za-z0-9_$.]*(break_?glass|emergency_?access|emergency_?grant)[A-Za-z0-9_$]*['\"]?\)?\s*\.\s*(find|get|select|count|fetch|load|lookup|query|first)[0-9A-Za-z_]*\(|(?i)^(await\s+)?([A-Za-z0-9_$]+\.)*(is|has|get|find|check|require|ensure|assert|load|fetch|verify|active)[0-9A-Za-z_]*(break_?glass|emergency_?access|emergency_?grant)[0-9A-Za-z_]*\(|(?is)select\s[\s\S]*\sfrom\s+[\"`]?[A-Za-z0-9_.]*(break_?glass|emergency_?access|emergency_?grant)|(?i)(\.from|^[A-Za-z0-9_$]+|\.table|\.collection|selectFrom)\(\s*['\"`][A-Za-z0-9_.]*(break_?glass|emergency_?access|emergency_?grant)|^(await\s+)?([A-Za-z0-9_$]+\.)*(get|find|load|fetch|lookup|check|require|ensure)(Active|Current|Valid|Open)?Grant(s|For[A-Za-z0-9_]*)?\(
+    - inside:
+        kind: arguments
+        has:
+          kind: identifier
+          regex: (?i)^(require|check|ensure|with|verify|assert)[A-Za-z0-9_]*(break_?glass|emergency_?access|emergency_?grant)[A-Za-z0-9_]*$
+  - any:
+    - has:
+        field: body
+        has:
+          stopBy: end
+          all: &id005
+          - kind: call_expression
+            regex: (?i)^(await\s+)?[A-Za-z0-9_$.]*(patient|chart|record|encounter|note|observation|medication|prescription|diagnos|allerg|vital|lab_?result|clinical|medical|health|ehr|emr|fhir|phi)[A-Za-z0-9_$]*\s*\.\s*(find[A-Za-z]*|get[A-Za-z]*|select|query|first|fetch[A-Za-z]*|load[A-Za-z]*|read[A-Za-z]*|all|where)\(|(?i)^(await\s+)?([A-Za-z0-9_$]+\.)*(get|load|fetch|read|find|select|query)[A-Za-z0-9_]*(patient|chart|record|encounter|note|observation|medication|prescription|diagnos|allerg|vital|lab_?result|clinical|medical|health|ehr|emr|fhir|phi)[A-Za-z0-9_]*\(|(?i)^[A-Za-z0-9_$.]*\(\s*['\"`][A-Za-z0-9_.]*(patient|chart|record|encounter|note|observation|medication|prescription|diagnos|allerg|vital|lab_?result|clinical|medical|health|ehr|emr|fhir|phi)[A-Za-z0-9_]*['\"`]\s*\)|(?i)\.from\(\s*['\"`]?[A-Za-z0-9_.]*(patient|chart|record|encounter|note|observation|medication|prescription|diagnos|allerg|vital|lab_?result|clinical|medical|health|ehr|emr|fhir|phi)[A-Za-z0-9_]*['\"`]?\s*\)|(?is)^[A-Za-z0-9_$.]*(query|execute|queryRaw|\$queryRaw[A-Za-z]*|unsafe|raw|all|get|sql)\s*(\(|`)\s*['\"`]?\s*select\s[\s\S]*\sfrom\s+[\"`]?[A-Za-z0-9_.]*(patient|chart|record|encounter|note|observation|medication|prescription|diagnos|allerg|vital|lab_?result|clinical|medical|health|ehr|emr|fhir|phi)
+          - not:
+              kind: call_expression
+              regex: (?i)^[A-Za-z0-9_$.]*\.(create|insert|update|upsert|delete|destroy|remove)[A-Za-z]*\(
+          - not:
+              inside:
+                stopBy: &id001
+                  any:
+                  - kind: function_declaration
+                  - kind: method_definition
+                  - kind: arrow_function
+                  - kind: function_expression
+                kind: statement_block
+                has:
+                  all:
+                  - any:
+                    - kind: expression_statement
+                    - kind: lexical_declaration
+                    - kind: variable_declaration
+                  - has:
+                      stopBy: *id001
+                      any:
+                      - all: &id002
+                        - kind: call_expression
+                          regex: (?i)^(await\s+)?[A-Za-z0-9_$.]*(audit|access_?log|phi_?access|disclosure)[A-Za-z0-9_$]*\s*\.\s*(create|insert|add|log|record|write|save|append|push)[A-Za-z0-9_]*\(|(?i)^(await\s+)?([A-Za-z0-9_$]+\.)*[A-Za-z0-9_]*audit[A-Za-z0-9_]*\(|(?i)^(await\s+)?([A-Za-z0-9_$]+\.)*(log|record|save|write|create|add|emit|insert|store)[A-Za-z0-9_]*(access|phi|disclosure|chart_?view|record_?view)[A-Za-z0-9_]*\(|(?i)^(await\s+)?(Audit|AccessLog)[A-Za-z0-9_]*\.(objects\.)?create\(|(?i)(insert\(\s*|insertInto\(\s*['\"`]|from\(\s*['\"`]|^[A-Za-z0-9_$]+\(\s*['\"`])[A-Za-z0-9_]*(audit|access_?log)|(?is)insert\s+into\s+[\"`]?[A-Za-z0-9_.]*(audit|access_?log)
+                        - not:
+                            kind: call_expression
+                            regex: (?i)^(await\s+)?[A-Za-z0-9_$.]*(?i)(denied|denial|fail|reject|refus|error|analytics|track|page_?view|metric|telemetry)
+                        - not:
+                            kind: call_expression
+                            regex: (?i)^(await\s+)?(this\.)?(logger|log|console|winston|pino|bunyan|debug|sentry)\s*\.
+                      - all:
+                        - pattern: $AUDIT_FN($$$)
+                        - inside:
+                            stopBy: end
+                            kind: program
+                            has:
+                              stopBy: end
+                              all:
+                              - kind: function_declaration
+                              - has:
+                                  field: name
+                                  pattern:
+                                    context: function $AUDIT_FN() {}
+                                    selector: identifier
+                              - has:
+                                  field: body
+                                  has:
+                                    all:
+                                    - any:
+                                      - kind: expression_statement
+                                      - kind: lexical_declaration
+                                      - kind: variable_declaration
+                                    - has:
+                                        stopBy: *id001
+                                        all: *id002
+                  - not:
+                      follows:
+                        stopBy: neighbor
+                        any:
+                        - &id003
+                          any: &id004
+                          - kind: return_statement
+                          - kind: throw_statement
+                        - follows:
+                            stopBy: neighbor
+                            any:
+                            - *id003
+                            - follows:
+                                stopBy: neighbor
+                                any:
+                                - *id003
+                                - follows:
+                                    stopBy: neighbor
+                                    any:
+                                    - *id003
+                                    - follows:
+                                        stopBy: neighbor
+                                        any:
+                                        - *id003
+                                        - follows:
+                                            stopBy: neighbor
+                                            any:
+                                            - *id003
+                                            - follows:
+                                                stopBy: neighbor
+                                                any:
+                                                - *id003
+                                                - follows:
+                                                    stopBy: neighbor
+                                                    any:
+                                                    - *id003
+                                                    - follows:
+                                                        stopBy: neighbor
+                                                        any:
+                                                        - *id003
+                                                        - follows:
+                                                            stopBy: neighbor
+                                                            any: *id004
+    - has:
+        field: body
+        all: *id005
 min_engine: 0.39.0
