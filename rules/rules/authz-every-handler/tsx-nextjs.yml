@@ -26,6 +26,9 @@
 #   guard arrow declared under a braceless if (if (id) var g = ...) and never called counts as the control (false
 #   passes); s?.userId === null on auth(), import * as pc from "@prisma/client" with pc.Role.ADMIN, and a logging try
 #   followed only by a comment read as no guard.
+# - From T29-P3-C390: a function declared in the guard under the enum's name (function Role() {}) is no rebinding, so
+#   user?.role !== Role.ADMIN still counts as the control though Role.ADMIN is then undefined (a false pass). A class
+#   declared under the name reads the same way, but it still denies a signed-out caller.
 # - A try whose catch neither throws nor returns counts only when nothing follows it in its block; a nested try, a catch
 #   return inside a block and a guard wrapper whose load sits in a try are no control.
 # - An aliased or namespace next/navigation exit (redirect as go, import * as nav) is no exit, and a data call in a
@@ -9887,12 +9890,20 @@ control:
                                                 field: name
                                                 kind: object_pattern
                                                 has:
-                                                  # also under a default: const { data = null } (T29-P3-C386 low 1)
-                                                  stopBy: end
-                                                  kind: shorthand_property_identifier_pattern
-                                                  pattern:
-                                                    context: const { $R } = 0
-                                                    selector: shorthand_property_identifier_pattern
+                                                  # a direct key, or the left of a default, const { data = null } (T29-P3-C386 low 1); never a key under
+                                                  # another key's pattern, const { data: { user } } (T29-P3-C390 med 1)
+                                                  any:
+                                                  - kind: shorthand_property_identifier_pattern
+                                                    pattern:
+                                                      context: const { $R } = 0
+                                                      selector: shorthand_property_identifier_pattern
+                                                  - kind: object_assignment_pattern
+                                                    has:
+                                                      field: left
+                                                      kind: shorthand_property_identifier_pattern
+                                                      pattern:
+                                                        context: const { $R } = 0
+                                                        selector: shorthand_property_identifier_pattern
                                             - has:
                                                 field: value
                                                 any:
@@ -9944,12 +9955,20 @@ control:
                                                 field: name
                                                 kind: object_pattern
                                                 has:
-                                                  # also under a default: const { data = null } (T29-P3-C386 low 1)
-                                                  stopBy: end
-                                                  kind: shorthand_property_identifier_pattern
-                                                  pattern:
-                                                    context: const { $R } = 0
-                                                    selector: shorthand_property_identifier_pattern
+                                                  # a direct key, or the left of a default, const { data = null } (T29-P3-C386 low 1); never a key under
+                                                  # another key's pattern, const { data: { user } } (T29-P3-C390 med 1)
+                                                  any:
+                                                  - kind: shorthand_property_identifier_pattern
+                                                    pattern:
+                                                      context: const { $R } = 0
+                                                      selector: shorthand_property_identifier_pattern
+                                                  - kind: object_assignment_pattern
+                                                    has:
+                                                      field: left
+                                                      kind: shorthand_property_identifier_pattern
+                                                      pattern:
+                                                        context: const { $R } = 0
+                                                        selector: shorthand_property_identifier_pattern
                                             - has:
                                                 field: value
                                                 any:
@@ -10671,6 +10690,16 @@ control:
                                                       pattern:
                                                         context: const $FIXED = 0
                                                         selector: identifier
+                                                      # a binding place only, never a use in a default's value, a type, a computed key or a callback body
+                                                      # (T29-P3-C390 low 1)
+                                                      any:
+                                                      - inside: {kind: rest_pattern}
+                                                      - inside: {kind: array_pattern}
+                                                      - inside: {kind: pair_pattern, field: value}
+                                                      - inside: {kind: assignment_pattern, field: left}
+                                                      - inside: {kind: object_assignment_pattern, field: left}
+                                                      - inside: {kind: required_parameter, field: pattern}
+                                                      - inside: {kind: optional_parameter, field: pattern}
                                                   - any:
                                                     - kind: object_pattern
                                                     - kind: array_pattern
@@ -10680,6 +10709,16 @@ control:
                                                       pattern:
                                                         context: const $FIXED = 0
                                                         selector: identifier
+                                                      # a binding place only, never a use in a default's value, a type, a computed key or a callback body
+                                                      # (T29-P3-C390 low 1)
+                                                      any:
+                                                      - inside: {kind: rest_pattern}
+                                                      - inside: {kind: array_pattern}
+                                                      - inside: {kind: pair_pattern, field: value}
+                                                      - inside: {kind: assignment_pattern, field: left}
+                                                      - inside: {kind: object_assignment_pattern, field: left}
+                                                      - inside: {kind: required_parameter, field: pattern}
+                                                      - inside: {kind: optional_parameter, field: pattern}
                                           - kind: identifier
                                             pattern:
                                               context: const $FIXED = 0
@@ -10758,6 +10797,16 @@ control:
                                                       pattern:
                                                         context: const $FIXED = 0
                                                         selector: identifier
+                                                      # a binding place only, never a use in a default's value, a type, a computed key or a callback body
+                                                      # (T29-P3-C390 low 1)
+                                                      any:
+                                                      - inside: {kind: rest_pattern}
+                                                      - inside: {kind: array_pattern}
+                                                      - inside: {kind: pair_pattern, field: value}
+                                                      - inside: {kind: assignment_pattern, field: left}
+                                                      - inside: {kind: object_assignment_pattern, field: left}
+                                                      - inside: {kind: required_parameter, field: pattern}
+                                                      - inside: {kind: optional_parameter, field: pattern}
                                                   - any:
                                                     - kind: object_pattern
                                                     - kind: array_pattern
@@ -10767,6 +10816,16 @@ control:
                                                       pattern:
                                                         context: const $FIXED = 0
                                                         selector: identifier
+                                                      # a binding place only, never a use in a default's value, a type, a computed key or a callback body
+                                                      # (T29-P3-C390 low 1)
+                                                      any:
+                                                      - inside: {kind: rest_pattern}
+                                                      - inside: {kind: array_pattern}
+                                                      - inside: {kind: pair_pattern, field: value}
+                                                      - inside: {kind: assignment_pattern, field: left}
+                                                      - inside: {kind: object_assignment_pattern, field: left}
+                                                      - inside: {kind: required_parameter, field: pattern}
+                                                      - inside: {kind: optional_parameter, field: pattern}
                                       - has:
                                           field: right
                                           any:
@@ -10862,6 +10921,16 @@ control:
                                                       pattern:
                                                         context: const $FIXED = 0
                                                         selector: identifier
+                                                      # a binding place only, never a use in a default's value, a type, a computed key or a callback body
+                                                      # (T29-P3-C390 low 1)
+                                                      any:
+                                                      - inside: {kind: rest_pattern}
+                                                      - inside: {kind: array_pattern}
+                                                      - inside: {kind: pair_pattern, field: value}
+                                                      - inside: {kind: assignment_pattern, field: left}
+                                                      - inside: {kind: object_assignment_pattern, field: left}
+                                                      - inside: {kind: required_parameter, field: pattern}
+                                                      - inside: {kind: optional_parameter, field: pattern}
                                                   - any:
                                                     - kind: object_pattern
                                                     - kind: array_pattern
@@ -10871,6 +10940,16 @@ control:
                                                       pattern:
                                                         context: const $FIXED = 0
                                                         selector: identifier
+                                                      # a binding place only, never a use in a default's value, a type, a computed key or a callback body
+                                                      # (T29-P3-C390 low 1)
+                                                      any:
+                                                      - inside: {kind: rest_pattern}
+                                                      - inside: {kind: array_pattern}
+                                                      - inside: {kind: pair_pattern, field: value}
+                                                      - inside: {kind: assignment_pattern, field: left}
+                                                      - inside: {kind: object_assignment_pattern, field: left}
+                                                      - inside: {kind: required_parameter, field: pattern}
+                                                      - inside: {kind: optional_parameter, field: pattern}
                                           - kind: identifier
                                             pattern:
                                               context: const $FIXED = 0
@@ -10949,6 +11028,16 @@ control:
                                                       pattern:
                                                         context: const $FIXED = 0
                                                         selector: identifier
+                                                      # a binding place only, never a use in a default's value, a type, a computed key or a callback body
+                                                      # (T29-P3-C390 low 1)
+                                                      any:
+                                                      - inside: {kind: rest_pattern}
+                                                      - inside: {kind: array_pattern}
+                                                      - inside: {kind: pair_pattern, field: value}
+                                                      - inside: {kind: assignment_pattern, field: left}
+                                                      - inside: {kind: object_assignment_pattern, field: left}
+                                                      - inside: {kind: required_parameter, field: pattern}
+                                                      - inside: {kind: optional_parameter, field: pattern}
                                                   - any:
                                                     - kind: object_pattern
                                                     - kind: array_pattern
@@ -10958,6 +11047,16 @@ control:
                                                       pattern:
                                                         context: const $FIXED = 0
                                                         selector: identifier
+                                                      # a binding place only, never a use in a default's value, a type, a computed key or a callback body
+                                                      # (T29-P3-C390 low 1)
+                                                      any:
+                                                      - inside: {kind: rest_pattern}
+                                                      - inside: {kind: array_pattern}
+                                                      - inside: {kind: pair_pattern, field: value}
+                                                      - inside: {kind: assignment_pattern, field: left}
+                                                      - inside: {kind: object_assignment_pattern, field: left}
+                                                      - inside: {kind: required_parameter, field: pattern}
+                                                      - inside: {kind: optional_parameter, field: pattern}
                           - pattern: '$_ || $_'
                             has:
                               any:
@@ -11052,12 +11151,20 @@ control:
                                                   field: name
                                                   kind: object_pattern
                                                   has:
-                                                    # also under a default: const { data = null } (T29-P3-C386 low 1)
-                                                    stopBy: end
-                                                    kind: shorthand_property_identifier_pattern
-                                                    pattern:
-                                                      context: const { $R } = 0
-                                                      selector: shorthand_property_identifier_pattern
+                                                    # a direct key, or the left of a default, const { data = null } (T29-P3-C386 low 1); never a key under
+                                                    # another key's pattern, const { data: { user } } (T29-P3-C390 med 1)
+                                                    any:
+                                                    - kind: shorthand_property_identifier_pattern
+                                                      pattern:
+                                                        context: const { $R } = 0
+                                                        selector: shorthand_property_identifier_pattern
+                                                    - kind: object_assignment_pattern
+                                                      has:
+                                                        field: left
+                                                        kind: shorthand_property_identifier_pattern
+                                                        pattern:
+                                                          context: const { $R } = 0
+                                                          selector: shorthand_property_identifier_pattern
                                               - has:
                                                   field: value
                                                   any:
@@ -11109,12 +11216,20 @@ control:
                                                   field: name
                                                   kind: object_pattern
                                                   has:
-                                                    # also under a default: const { data = null } (T29-P3-C386 low 1)
-                                                    stopBy: end
-                                                    kind: shorthand_property_identifier_pattern
-                                                    pattern:
-                                                      context: const { $R } = 0
-                                                      selector: shorthand_property_identifier_pattern
+                                                    # a direct key, or the left of a default, const { data = null } (T29-P3-C386 low 1); never a key under
+                                                    # another key's pattern, const { data: { user } } (T29-P3-C390 med 1)
+                                                    any:
+                                                    - kind: shorthand_property_identifier_pattern
+                                                      pattern:
+                                                        context: const { $R } = 0
+                                                        selector: shorthand_property_identifier_pattern
+                                                    - kind: object_assignment_pattern
+                                                      has:
+                                                        field: left
+                                                        kind: shorthand_property_identifier_pattern
+                                                        pattern:
+                                                          context: const { $R } = 0
+                                                          selector: shorthand_property_identifier_pattern
                                               - has:
                                                   field: value
                                                   any:
@@ -11836,6 +11951,16 @@ control:
                                                         pattern:
                                                           context: const $FIXED = 0
                                                           selector: identifier
+                                                        # a binding place only, never a use in a default's value, a type, a computed key or a callback body
+                                                        # (T29-P3-C390 low 1)
+                                                        any:
+                                                        - inside: {kind: rest_pattern}
+                                                        - inside: {kind: array_pattern}
+                                                        - inside: {kind: pair_pattern, field: value}
+                                                        - inside: {kind: assignment_pattern, field: left}
+                                                        - inside: {kind: object_assignment_pattern, field: left}
+                                                        - inside: {kind: required_parameter, field: pattern}
+                                                        - inside: {kind: optional_parameter, field: pattern}
                                                     - any:
                                                       - kind: object_pattern
                                                       - kind: array_pattern
@@ -11845,6 +11970,16 @@ control:
                                                         pattern:
                                                           context: const $FIXED = 0
                                                           selector: identifier
+                                                        # a binding place only, never a use in a default's value, a type, a computed key or a callback body
+                                                        # (T29-P3-C390 low 1)
+                                                        any:
+                                                        - inside: {kind: rest_pattern}
+                                                        - inside: {kind: array_pattern}
+                                                        - inside: {kind: pair_pattern, field: value}
+                                                        - inside: {kind: assignment_pattern, field: left}
+                                                        - inside: {kind: object_assignment_pattern, field: left}
+                                                        - inside: {kind: required_parameter, field: pattern}
+                                                        - inside: {kind: optional_parameter, field: pattern}
                                             - kind: identifier
                                               pattern:
                                                 context: const $FIXED = 0
@@ -11923,6 +12058,16 @@ control:
                                                         pattern:
                                                           context: const $FIXED = 0
                                                           selector: identifier
+                                                        # a binding place only, never a use in a default's value, a type, a computed key or a callback body
+                                                        # (T29-P3-C390 low 1)
+                                                        any:
+                                                        - inside: {kind: rest_pattern}
+                                                        - inside: {kind: array_pattern}
+                                                        - inside: {kind: pair_pattern, field: value}
+                                                        - inside: {kind: assignment_pattern, field: left}
+                                                        - inside: {kind: object_assignment_pattern, field: left}
+                                                        - inside: {kind: required_parameter, field: pattern}
+                                                        - inside: {kind: optional_parameter, field: pattern}
                                                     - any:
                                                       - kind: object_pattern
                                                       - kind: array_pattern
@@ -11932,6 +12077,16 @@ control:
                                                         pattern:
                                                           context: const $FIXED = 0
                                                           selector: identifier
+                                                        # a binding place only, never a use in a default's value, a type, a computed key or a callback body
+                                                        # (T29-P3-C390 low 1)
+                                                        any:
+                                                        - inside: {kind: rest_pattern}
+                                                        - inside: {kind: array_pattern}
+                                                        - inside: {kind: pair_pattern, field: value}
+                                                        - inside: {kind: assignment_pattern, field: left}
+                                                        - inside: {kind: object_assignment_pattern, field: left}
+                                                        - inside: {kind: required_parameter, field: pattern}
+                                                        - inside: {kind: optional_parameter, field: pattern}
                                         - has:
                                             field: right
                                             any:
@@ -12027,6 +12182,16 @@ control:
                                                         pattern:
                                                           context: const $FIXED = 0
                                                           selector: identifier
+                                                        # a binding place only, never a use in a default's value, a type, a computed key or a callback body
+                                                        # (T29-P3-C390 low 1)
+                                                        any:
+                                                        - inside: {kind: rest_pattern}
+                                                        - inside: {kind: array_pattern}
+                                                        - inside: {kind: pair_pattern, field: value}
+                                                        - inside: {kind: assignment_pattern, field: left}
+                                                        - inside: {kind: object_assignment_pattern, field: left}
+                                                        - inside: {kind: required_parameter, field: pattern}
+                                                        - inside: {kind: optional_parameter, field: pattern}
                                                     - any:
                                                       - kind: object_pattern
                                                       - kind: array_pattern
@@ -12036,6 +12201,16 @@ control:
                                                         pattern:
                                                           context: const $FIXED = 0
                                                           selector: identifier
+                                                        # a binding place only, never a use in a default's value, a type, a computed key or a callback body
+                                                        # (T29-P3-C390 low 1)
+                                                        any:
+                                                        - inside: {kind: rest_pattern}
+                                                        - inside: {kind: array_pattern}
+                                                        - inside: {kind: pair_pattern, field: value}
+                                                        - inside: {kind: assignment_pattern, field: left}
+                                                        - inside: {kind: object_assignment_pattern, field: left}
+                                                        - inside: {kind: required_parameter, field: pattern}
+                                                        - inside: {kind: optional_parameter, field: pattern}
                                             - kind: identifier
                                               pattern:
                                                 context: const $FIXED = 0
@@ -12114,6 +12289,16 @@ control:
                                                         pattern:
                                                           context: const $FIXED = 0
                                                           selector: identifier
+                                                        # a binding place only, never a use in a default's value, a type, a computed key or a callback body
+                                                        # (T29-P3-C390 low 1)
+                                                        any:
+                                                        - inside: {kind: rest_pattern}
+                                                        - inside: {kind: array_pattern}
+                                                        - inside: {kind: pair_pattern, field: value}
+                                                        - inside: {kind: assignment_pattern, field: left}
+                                                        - inside: {kind: object_assignment_pattern, field: left}
+                                                        - inside: {kind: required_parameter, field: pattern}
+                                                        - inside: {kind: optional_parameter, field: pattern}
                                                     - any:
                                                       - kind: object_pattern
                                                       - kind: array_pattern
@@ -12123,6 +12308,16 @@ control:
                                                         pattern:
                                                           context: const $FIXED = 0
                                                           selector: identifier
+                                                        # a binding place only, never a use in a default's value, a type, a computed key or a callback body
+                                                        # (T29-P3-C390 low 1)
+                                                        any:
+                                                        - inside: {kind: rest_pattern}
+                                                        - inside: {kind: array_pattern}
+                                                        - inside: {kind: pair_pattern, field: value}
+                                                        - inside: {kind: assignment_pattern, field: left}
+                                                        - inside: {kind: object_assignment_pattern, field: left}
+                                                        - inside: {kind: required_parameter, field: pattern}
+                                                        - inside: {kind: optional_parameter, field: pattern}
                           - pattern: '$_ || $_'
                             has:
                               pattern: '$_ || $_'
@@ -12219,12 +12414,20 @@ control:
                                                     field: name
                                                     kind: object_pattern
                                                     has:
-                                                      # also under a default: const { data = null } (T29-P3-C386 low 1)
-                                                      stopBy: end
-                                                      kind: shorthand_property_identifier_pattern
-                                                      pattern:
-                                                        context: const { $R } = 0
-                                                        selector: shorthand_property_identifier_pattern
+                                                      # a direct key, or the left of a default, const { data = null } (T29-P3-C386 low 1); never a key under
+                                                      # another key's pattern, const { data: { user } } (T29-P3-C390 med 1)
+                                                      any:
+                                                      - kind: shorthand_property_identifier_pattern
+                                                        pattern:
+                                                          context: const { $R } = 0
+                                                          selector: shorthand_property_identifier_pattern
+                                                      - kind: object_assignment_pattern
+                                                        has:
+                                                          field: left
+                                                          kind: shorthand_property_identifier_pattern
+                                                          pattern:
+                                                            context: const { $R } = 0
+                                                            selector: shorthand_property_identifier_pattern
                                                 - has:
                                                     field: value
                                                     any:
@@ -12276,12 +12479,20 @@ control:
                                                     field: name
                                                     kind: object_pattern
                                                     has:
-                                                      # also under a default: const { data = null } (T29-P3-C386 low 1)
-                                                      stopBy: end
-                                                      kind: shorthand_property_identifier_pattern
-                                                      pattern:
-                                                        context: const { $R } = 0
-                                                        selector: shorthand_property_identifier_pattern
+                                                      # a direct key, or the left of a default, const { data = null } (T29-P3-C386 low 1); never a key under
+                                                      # another key's pattern, const { data: { user } } (T29-P3-C390 med 1)
+                                                      any:
+                                                      - kind: shorthand_property_identifier_pattern
+                                                        pattern:
+                                                          context: const { $R } = 0
+                                                          selector: shorthand_property_identifier_pattern
+                                                      - kind: object_assignment_pattern
+                                                        has:
+                                                          field: left
+                                                          kind: shorthand_property_identifier_pattern
+                                                          pattern:
+                                                            context: const { $R } = 0
+                                                            selector: shorthand_property_identifier_pattern
                                                 - has:
                                                     field: value
                                                     any:
@@ -13003,6 +13214,16 @@ control:
                                                           pattern:
                                                             context: const $FIXED = 0
                                                             selector: identifier
+                                                          # a binding place only, never a use in a default's value, a type, a computed key or a callback body
+                                                          # (T29-P3-C390 low 1)
+                                                          any:
+                                                          - inside: {kind: rest_pattern}
+                                                          - inside: {kind: array_pattern}
+                                                          - inside: {kind: pair_pattern, field: value}
+                                                          - inside: {kind: assignment_pattern, field: left}
+                                                          - inside: {kind: object_assignment_pattern, field: left}
+                                                          - inside: {kind: required_parameter, field: pattern}
+                                                          - inside: {kind: optional_parameter, field: pattern}
                                                       - any:
                                                         - kind: object_pattern
                                                         - kind: array_pattern
@@ -13012,6 +13233,16 @@ control:
                                                           pattern:
                                                             context: const $FIXED = 0
                                                             selector: identifier
+                                                          # a binding place only, never a use in a default's value, a type, a computed key or a callback body
+                                                          # (T29-P3-C390 low 1)
+                                                          any:
+                                                          - inside: {kind: rest_pattern}
+                                                          - inside: {kind: array_pattern}
+                                                          - inside: {kind: pair_pattern, field: value}
+                                                          - inside: {kind: assignment_pattern, field: left}
+                                                          - inside: {kind: object_assignment_pattern, field: left}
+                                                          - inside: {kind: required_parameter, field: pattern}
+                                                          - inside: {kind: optional_parameter, field: pattern}
                                               - kind: identifier
                                                 pattern:
                                                   context: const $FIXED = 0
@@ -13090,6 +13321,16 @@ control:
                                                           pattern:
                                                             context: const $FIXED = 0
                                                             selector: identifier
+                                                          # a binding place only, never a use in a default's value, a type, a computed key or a callback body
+                                                          # (T29-P3-C390 low 1)
+                                                          any:
+                                                          - inside: {kind: rest_pattern}
+                                                          - inside: {kind: array_pattern}
+                                                          - inside: {kind: pair_pattern, field: value}
+                                                          - inside: {kind: assignment_pattern, field: left}
+                                                          - inside: {kind: object_assignment_pattern, field: left}
+                                                          - inside: {kind: required_parameter, field: pattern}
+                                                          - inside: {kind: optional_parameter, field: pattern}
                                                       - any:
                                                         - kind: object_pattern
                                                         - kind: array_pattern
@@ -13099,6 +13340,16 @@ control:
                                                           pattern:
                                                             context: const $FIXED = 0
                                                             selector: identifier
+                                                          # a binding place only, never a use in a default's value, a type, a computed key or a callback body
+                                                          # (T29-P3-C390 low 1)
+                                                          any:
+                                                          - inside: {kind: rest_pattern}
+                                                          - inside: {kind: array_pattern}
+                                                          - inside: {kind: pair_pattern, field: value}
+                                                          - inside: {kind: assignment_pattern, field: left}
+                                                          - inside: {kind: object_assignment_pattern, field: left}
+                                                          - inside: {kind: required_parameter, field: pattern}
+                                                          - inside: {kind: optional_parameter, field: pattern}
                                           - has:
                                               field: right
                                               any:
@@ -13194,6 +13445,16 @@ control:
                                                           pattern:
                                                             context: const $FIXED = 0
                                                             selector: identifier
+                                                          # a binding place only, never a use in a default's value, a type, a computed key or a callback body
+                                                          # (T29-P3-C390 low 1)
+                                                          any:
+                                                          - inside: {kind: rest_pattern}
+                                                          - inside: {kind: array_pattern}
+                                                          - inside: {kind: pair_pattern, field: value}
+                                                          - inside: {kind: assignment_pattern, field: left}
+                                                          - inside: {kind: object_assignment_pattern, field: left}
+                                                          - inside: {kind: required_parameter, field: pattern}
+                                                          - inside: {kind: optional_parameter, field: pattern}
                                                       - any:
                                                         - kind: object_pattern
                                                         - kind: array_pattern
@@ -13203,6 +13464,16 @@ control:
                                                           pattern:
                                                             context: const $FIXED = 0
                                                             selector: identifier
+                                                          # a binding place only, never a use in a default's value, a type, a computed key or a callback body
+                                                          # (T29-P3-C390 low 1)
+                                                          any:
+                                                          - inside: {kind: rest_pattern}
+                                                          - inside: {kind: array_pattern}
+                                                          - inside: {kind: pair_pattern, field: value}
+                                                          - inside: {kind: assignment_pattern, field: left}
+                                                          - inside: {kind: object_assignment_pattern, field: left}
+                                                          - inside: {kind: required_parameter, field: pattern}
+                                                          - inside: {kind: optional_parameter, field: pattern}
                                               - kind: identifier
                                                 pattern:
                                                   context: const $FIXED = 0
@@ -13281,6 +13552,16 @@ control:
                                                           pattern:
                                                             context: const $FIXED = 0
                                                             selector: identifier
+                                                          # a binding place only, never a use in a default's value, a type, a computed key or a callback body
+                                                          # (T29-P3-C390 low 1)
+                                                          any:
+                                                          - inside: {kind: rest_pattern}
+                                                          - inside: {kind: array_pattern}
+                                                          - inside: {kind: pair_pattern, field: value}
+                                                          - inside: {kind: assignment_pattern, field: left}
+                                                          - inside: {kind: object_assignment_pattern, field: left}
+                                                          - inside: {kind: required_parameter, field: pattern}
+                                                          - inside: {kind: optional_parameter, field: pattern}
                                                       - any:
                                                         - kind: object_pattern
                                                         - kind: array_pattern
@@ -13290,6 +13571,16 @@ control:
                                                           pattern:
                                                             context: const $FIXED = 0
                                                             selector: identifier
+                                                          # a binding place only, never a use in a default's value, a type, a computed key or a callback body
+                                                          # (T29-P3-C390 low 1)
+                                                          any:
+                                                          - inside: {kind: rest_pattern}
+                                                          - inside: {kind: array_pattern}
+                                                          - inside: {kind: pair_pattern, field: value}
+                                                          - inside: {kind: assignment_pattern, field: left}
+                                                          - inside: {kind: object_assignment_pattern, field: left}
+                                                          - inside: {kind: required_parameter, field: pattern}
+                                                          - inside: {kind: optional_parameter, field: pattern}
                     - has:
                         field: consequence
                         any:
