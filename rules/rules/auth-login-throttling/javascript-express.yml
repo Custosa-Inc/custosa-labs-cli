@@ -107,8 +107,28 @@ frameworks:
 - express
 kind: items
 rule:
-  kind: call_expression
-  regex: (?i)^(app|server|routes?|\w*router)\.(post|all)\(\s*['\"`][^'\"`]*/(login|log-in|signin|sign-in|sign_in|authenticate)/?['\"`]\s*,
+  all:
+  - kind: call_expression
+    regex: (?i)^(app|server|routes?|\w*router)\.(post|all)\(\s*['\"`][^'\"`]*/(login|log-in|signin|sign-in|sign_in|authenticate)/?['\"`]\s*,
+  # an object the file declares as a plain object literal (an HTTP client wrapper named apiRouter) is no router
+  - not:
+      all:
+      - pattern: $R.$M($$$)
+      - inside:
+          stopBy: end
+          kind: program
+          has:
+            stopBy: end
+            kind: variable_declarator
+            all:
+            - has:
+                field: name
+                pattern:
+                  context: const $R = 0
+                  selector: identifier
+            - has:
+                field: value
+                kind: object
 control:
   any:
   - has:
@@ -205,6 +225,25 @@ rule:
                 - kind: call_expression
                   regex: ^(app|server)\.use\(
                 - pattern: $R.use($$$)
+  # an object the file declares as a plain object literal (an HTTP client wrapper named apiRouter) is no router
+  - not:
+      all:
+      - pattern: $R.$M($$$)
+      - inside:
+          stopBy: end
+          kind: program
+          has:
+            stopBy: end
+            kind: variable_declarator
+            all:
+            - has:
+                field: name
+                pattern:
+                  context: const $R = 0
+                  selector: identifier
+            - has:
+                field: value
+                kind: object
 min_engine: 0.39.0
 ---
 id: auth-login-throttling.javascript-express.spoofable-ip-key

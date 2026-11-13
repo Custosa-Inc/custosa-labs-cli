@@ -1,5 +1,5 @@
 {
-  "ruleset_id": "2026-11-13.ba9d7d2c",
+  "ruleset_id": "2026-11-13.1997b9e1",
   "min_engine": "0.45.3",
   "files": [
     {
@@ -280,7 +280,7 @@
     },
     {
       "path": "rules/auth-login-throttling/javascript-express.yml",
-      "sha256": "4c52fcc388b098acef52e0002803d3893bcdf1e990af0150c33a3a7f8376e622"
+      "sha256": "85c1f82706621a7278f925842b20f40e4d623cfa45110649c87003ff017648f9"
     },
     {
       "path": "rules/auth-login-throttling/php-generic.yml",
@@ -308,7 +308,7 @@
     },
     {
       "path": "rules/auth-login-throttling/typescript-express.yml",
-      "sha256": "a452a28deba28fb8f4e0ef1c261646e22ff3abb87e57ca72c06771c077d77566"
+      "sha256": "92170c049b68d9f50411b42cfd53ef89f95715aace1fcb08ee2a6792fe528140"
     },
     {
       "path": "rules/auth-login-throttling/typescript-nextjs.yml",
