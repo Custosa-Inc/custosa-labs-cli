@@ -45,6 +45,9 @@ control:
   has:
     stopBy:
       any:
+      # T29-P1-C346 med 2: a method or a class nested in the action is its own scope
+      - kind: method_definition
+      - kind: class_body
       - kind: function_declaration
         inside:
           kind: statement_block
@@ -174,7 +177,7 @@ rule:
           - has:
               field: property
               kind: property_identifier
-              regex: '^(from|query|rpc|findMany|findUnique|findUniqueOrThrow|findFirst|findFirstOrThrow|upsert|createMany|updateMany|deleteMany|aggregate|groupBy|\$queryRaw|\$executeRaw|\$queryRawUnsafe|\$executeRawUnsafe)$'
+              regex: '^(from|query|rpc|findMany|findUnique|findUniqueOrThrow|findFirst|findFirstOrThrow|upsert|createMany|updateMany|deleteMany|aggregate|groupBy|count|createManyAndReturn|updateManyAndReturn|execute|\$queryRaw|\$executeRaw|\$queryRawUnsafe|\$executeRawUnsafe)$'
           - not:
               has:
                 field: object
@@ -219,6 +222,9 @@ control:
   has:
     stopBy:
       any:
+      # T29-P1-C346 med 2: a method or a class nested in the action is its own scope
+      - kind: method_definition
+      - kind: class_body
       - kind: function_declaration
         inside:
           kind: statement_block
@@ -329,7 +335,7 @@ rule:
             - has:
                 field: property
                 kind: property_identifier
-                regex: ^(from|query|rpc|findMany|findUnique|findUniqueOrThrow|findFirst|findFirstOrThrow|upsert|createMany|updateMany|deleteMany|aggregate|groupBy|\$queryRaw|\$executeRaw|\$queryRawUnsafe|\$executeRawUnsafe)$
+                regex: ^(from|query|rpc|findMany|findUnique|findUniqueOrThrow|findFirst|findFirstOrThrow|upsert|createMany|updateMany|deleteMany|aggregate|groupBy|count|createManyAndReturn|updateManyAndReturn|execute|\$queryRaw|\$executeRaw|\$queryRawUnsafe|\$executeRawUnsafe)$
             - not:
                 has:
                   field: object
@@ -370,7 +376,7 @@ rule:
                 - has:
                     field: property
                     kind: property_identifier
-                    regex: ^(from|query|rpc|findMany|findUnique|findUniqueOrThrow|findFirst|findFirstOrThrow|upsert|createMany|updateMany|deleteMany|aggregate|groupBy|\$queryRaw|\$executeRaw|\$queryRawUnsafe|\$executeRawUnsafe)$
+                    regex: ^(from|query|rpc|findMany|findUnique|findUniqueOrThrow|findFirst|findFirstOrThrow|upsert|createMany|updateMany|deleteMany|aggregate|groupBy|count|createManyAndReturn|updateManyAndReturn|execute|\$queryRaw|\$executeRaw|\$queryRawUnsafe|\$executeRawUnsafe)$
                 - not:
                     has:
                       field: object
@@ -424,7 +430,7 @@ rule:
             - has:
                 field: property
                 kind: property_identifier
-                regex: ^(from|query|rpc|findMany|findUnique|findUniqueOrThrow|findFirst|findFirstOrThrow|upsert|createMany|updateMany|deleteMany|aggregate|groupBy|\$queryRaw|\$executeRaw|\$queryRawUnsafe|\$executeRawUnsafe)$
+                regex: ^(from|query|rpc|findMany|findUnique|findUniqueOrThrow|findFirst|findFirstOrThrow|upsert|createMany|updateMany|deleteMany|aggregate|groupBy|count|createManyAndReturn|updateManyAndReturn|execute|\$queryRaw|\$executeRaw|\$queryRawUnsafe|\$executeRawUnsafe)$
             - not:
                 has:
                   field: object
@@ -452,6 +458,9 @@ control:
   has:
     stopBy:
       any:
+      # T29-P1-C346 med 2: a method or a class nested in the action is its own scope
+      - kind: method_definition
+      - kind: class_body
       - kind: function_declaration
         inside:
           kind: statement_block
@@ -557,7 +566,7 @@ rule:
             - has:
                 field: property
                 kind: property_identifier
-                regex: '^(from|query|rpc|findMany|findUnique|findUniqueOrThrow|findFirst|findFirstOrThrow|upsert|createMany|updateMany|deleteMany|aggregate|groupBy|\$queryRaw|\$executeRaw|\$queryRawUnsafe|\$executeRawUnsafe)$'
+                regex: '^(from|query|rpc|findMany|findUnique|findUniqueOrThrow|findFirst|findFirstOrThrow|upsert|createMany|updateMany|deleteMany|aggregate|groupBy|count|createManyAndReturn|updateManyAndReturn|execute|\$queryRaw|\$executeRaw|\$queryRawUnsafe|\$executeRawUnsafe)$'
             - not:
                 has:
                   field: object
@@ -590,7 +599,7 @@ rule:
             - has:
                 field: property
                 kind: property_identifier
-                regex: '^(from|query|rpc|findMany|findUnique|findUniqueOrThrow|findFirst|findFirstOrThrow|upsert|createMany|updateMany|deleteMany|aggregate|groupBy|\$queryRaw|\$executeRaw|\$queryRawUnsafe|\$executeRawUnsafe)$'
+                regex: '^(from|query|rpc|findMany|findUnique|findUniqueOrThrow|findFirst|findFirstOrThrow|upsert|createMany|updateMany|deleteMany|aggregate|groupBy|count|createManyAndReturn|updateManyAndReturn|execute|\$queryRaw|\$executeRaw|\$queryRawUnsafe|\$executeRawUnsafe)$'
             - not:
                 has:
                   field: object
@@ -629,7 +638,7 @@ rule:
             - has:
                 field: property
                 kind: property_identifier
-                regex: '^(from|query|rpc|findMany|findUnique|findUniqueOrThrow|findFirst|findFirstOrThrow|upsert|createMany|updateMany|deleteMany|aggregate|groupBy|\$queryRaw|\$executeRaw|\$queryRawUnsafe|\$executeRawUnsafe)$'
+                regex: '^(from|query|rpc|findMany|findUnique|findUniqueOrThrow|findFirst|findFirstOrThrow|upsert|createMany|updateMany|deleteMany|aggregate|groupBy|count|createManyAndReturn|updateManyAndReturn|execute|\$queryRaw|\$executeRaw|\$queryRawUnsafe|\$executeRawUnsafe)$'
             - not:
                 has:
                   field: object
@@ -662,7 +671,7 @@ rule:
             - has:
                 field: property
                 kind: property_identifier
-                regex: '^(from|query|rpc|findMany|findUnique|findUniqueOrThrow|findFirst|findFirstOrThrow|upsert|createMany|updateMany|deleteMany|aggregate|groupBy|\$queryRaw|\$executeRaw|\$queryRawUnsafe|\$executeRawUnsafe)$'
+                regex: '^(from|query|rpc|findMany|findUnique|findUniqueOrThrow|findFirst|findFirstOrThrow|upsert|createMany|updateMany|deleteMany|aggregate|groupBy|count|createManyAndReturn|updateManyAndReturn|execute|\$queryRaw|\$executeRaw|\$queryRawUnsafe|\$executeRawUnsafe)$'
             - not:
                 has:
                   field: object
@@ -679,6 +688,9 @@ control:
   has:
     stopBy:
       any:
+      # T29-P1-C346 med 2: a method or a class nested in the action is its own scope
+      - kind: method_definition
+      - kind: class_body
       - kind: function_declaration
         inside:
           kind: statement_block
@@ -779,6 +791,9 @@ control:
   has:
     stopBy:
       any:
+      # T29-P1-C346 med 2: a method or a class nested in the action is its own scope
+      - kind: method_definition
+      - kind: class_body
       - kind: function_declaration
         inside:
           kind: statement_block
@@ -1509,7 +1524,7 @@ rule:
           - has:
               field: property
               kind: property_identifier
-              regex: ^(from|query|rpc|findMany|findUnique|findUniqueOrThrow|findFirst|findFirstOrThrow|upsert|createMany|updateMany|deleteMany|aggregate|groupBy|\$queryRaw|\$executeRaw|\$queryRawUnsafe|\$executeRawUnsafe)$
+              regex: ^(from|query|rpc|findMany|findUnique|findUniqueOrThrow|findFirst|findFirstOrThrow|upsert|createMany|updateMany|deleteMany|aggregate|groupBy|count|createManyAndReturn|updateManyAndReturn|execute|\$queryRaw|\$executeRaw|\$queryRawUnsafe|\$executeRawUnsafe)$
           - not:
               has:
                 field: object
@@ -1625,7 +1640,7 @@ control:
                         - has:
                             field: property
                             kind: property_identifier
-                            regex: ^(from|query|rpc|findMany|findUnique|findUniqueOrThrow|findFirst|findFirstOrThrow|upsert|createMany|updateMany|deleteMany|aggregate|groupBy|\$queryRaw|\$executeRaw|\$queryRawUnsafe|\$executeRawUnsafe)$
+                            regex: ^(from|query|rpc|findMany|findUnique|findUniqueOrThrow|findFirst|findFirstOrThrow|upsert|createMany|updateMany|deleteMany|aggregate|groupBy|count|createManyAndReturn|updateManyAndReturn|execute|\$queryRaw|\$executeRaw|\$queryRawUnsafe|\$executeRawUnsafe)$
                         - not:
                             has:
                               field: object
@@ -1792,7 +1807,7 @@ control:
                       - has:
                           field: property
                           kind: property_identifier
-                          regex: ^(from|query|rpc|findMany|findUnique|findUniqueOrThrow|findFirst|findFirstOrThrow|upsert|createMany|updateMany|deleteMany|aggregate|groupBy|\$queryRaw|\$executeRaw|\$queryRawUnsafe|\$executeRawUnsafe)$
+                          regex: ^(from|query|rpc|findMany|findUnique|findUniqueOrThrow|findFirst|findFirstOrThrow|upsert|createMany|updateMany|deleteMany|aggregate|groupBy|count|createManyAndReturn|updateManyAndReturn|execute|\$queryRaw|\$executeRaw|\$queryRawUnsafe|\$executeRawUnsafe)$
                       - not:
                           has:
                             field: object
@@ -1832,7 +1847,7 @@ control:
                           - has:
                               field: property
                               kind: property_identifier
-                              regex: ^(from|query|rpc|findMany|findUnique|findUniqueOrThrow|findFirst|findFirstOrThrow|upsert|createMany|updateMany|deleteMany|aggregate|groupBy|\$queryRaw|\$executeRaw|\$queryRawUnsafe|\$executeRawUnsafe)$
+                              regex: ^(from|query|rpc|findMany|findUnique|findUniqueOrThrow|findFirst|findFirstOrThrow|upsert|createMany|updateMany|deleteMany|aggregate|groupBy|count|createManyAndReturn|updateManyAndReturn|execute|\$queryRaw|\$executeRaw|\$queryRawUnsafe|\$executeRawUnsafe)$
                           - not:
                               has:
                                 field: object
@@ -1872,7 +1887,7 @@ control:
                               - has:
                                   field: property
                                   kind: property_identifier
-                                  regex: ^(from|query|rpc|findMany|findUnique|findUniqueOrThrow|findFirst|findFirstOrThrow|upsert|createMany|updateMany|deleteMany|aggregate|groupBy|\$queryRaw|\$executeRaw|\$queryRawUnsafe|\$executeRawUnsafe)$
+                                  regex: ^(from|query|rpc|findMany|findUnique|findUniqueOrThrow|findFirst|findFirstOrThrow|upsert|createMany|updateMany|deleteMany|aggregate|groupBy|count|createManyAndReturn|updateManyAndReturn|execute|\$queryRaw|\$executeRaw|\$queryRawUnsafe|\$executeRawUnsafe)$
                               - not:
                                   has:
                                     field: object
@@ -1912,7 +1927,7 @@ control:
                                   - has:
                                       field: property
                                       kind: property_identifier
-                                      regex: ^(from|query|rpc|findMany|findUnique|findUniqueOrThrow|findFirst|findFirstOrThrow|upsert|createMany|updateMany|deleteMany|aggregate|groupBy|\$queryRaw|\$executeRaw|\$queryRawUnsafe|\$executeRawUnsafe)$
+                                      regex: ^(from|query|rpc|findMany|findUnique|findUniqueOrThrow|findFirst|findFirstOrThrow|upsert|createMany|updateMany|deleteMany|aggregate|groupBy|count|createManyAndReturn|updateManyAndReturn|execute|\$queryRaw|\$executeRaw|\$queryRawUnsafe|\$executeRawUnsafe)$
                                   - not:
                                       has:
                                         field: object
@@ -2362,7 +2377,7 @@ control:
                         - has:
                             field: property
                             kind: property_identifier
-                            regex: ^(from|query|rpc|findMany|findUnique|findUniqueOrThrow|findFirst|findFirstOrThrow|upsert|createMany|updateMany|deleteMany|aggregate|groupBy|\$queryRaw|\$executeRaw|\$queryRawUnsafe|\$executeRawUnsafe)$
+                            regex: ^(from|query|rpc|findMany|findUnique|findUniqueOrThrow|findFirst|findFirstOrThrow|upsert|createMany|updateMany|deleteMany|aggregate|groupBy|count|createManyAndReturn|updateManyAndReturn|execute|\$queryRaw|\$executeRaw|\$queryRawUnsafe|\$executeRawUnsafe)$
                         - not:
                             has:
                               field: object
@@ -2479,7 +2494,7 @@ control:
                           - has:
                               field: property
                               kind: property_identifier
-                              regex: ^(from|query|rpc|findMany|findUnique|findUniqueOrThrow|findFirst|findFirstOrThrow|upsert|createMany|updateMany|deleteMany|aggregate|groupBy|\$queryRaw|\$executeRaw|\$queryRawUnsafe|\$executeRawUnsafe)$
+                              regex: ^(from|query|rpc|findMany|findUnique|findUniqueOrThrow|findFirst|findFirstOrThrow|upsert|createMany|updateMany|deleteMany|aggregate|groupBy|count|createManyAndReturn|updateManyAndReturn|execute|\$queryRaw|\$executeRaw|\$queryRawUnsafe|\$executeRawUnsafe)$
                           - not:
                               has:
                                 field: object
@@ -2518,7 +2533,7 @@ control:
                   - has:
                       field: property
                       kind: property_identifier
-                      regex: ^(from|query|rpc|findMany|findUnique|findUniqueOrThrow|findFirst|findFirstOrThrow|upsert|createMany|updateMany|deleteMany|aggregate|groupBy|\$queryRaw|\$executeRaw|\$queryRawUnsafe|\$executeRawUnsafe)$
+                      regex: ^(from|query|rpc|findMany|findUnique|findUniqueOrThrow|findFirst|findFirstOrThrow|upsert|createMany|updateMany|deleteMany|aggregate|groupBy|count|createManyAndReturn|updateManyAndReturn|execute|\$queryRaw|\$executeRaw|\$queryRawUnsafe|\$executeRawUnsafe)$
                   - not:
                       has:
                         field: object
@@ -2578,7 +2593,7 @@ control:
                               - has:
                                   field: property
                                   kind: property_identifier
-                                  regex: ^(from|query|rpc|findMany|findUnique|findUniqueOrThrow|findFirst|findFirstOrThrow|upsert|createMany|updateMany|deleteMany|aggregate|groupBy|\$queryRaw|\$executeRaw|\$queryRawUnsafe|\$executeRawUnsafe)$
+                                  regex: ^(from|query|rpc|findMany|findUnique|findUniqueOrThrow|findFirst|findFirstOrThrow|upsert|createMany|updateMany|deleteMany|aggregate|groupBy|count|createManyAndReturn|updateManyAndReturn|execute|\$queryRaw|\$executeRaw|\$queryRawUnsafe|\$executeRawUnsafe)$
                               - not:
                                   has:
                                     field: object
