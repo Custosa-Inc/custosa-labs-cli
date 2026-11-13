@@ -1,5 +1,5 @@
 {
-  "ruleset_id": "2026-11-12.06070388",
+  "ruleset_id": "2026-11-13.38accd16",
   "min_engine": "0.45.3",
   "files": [
     {
@@ -560,7 +560,7 @@
     },
     {
       "path": "rules/dependency-scanning-ci/yaml-github_actions.yml",
-      "sha256": "85e4b4dab8d28eca69a64f77b63a0e67cd124e996669837843b626c8e60206bd"
+      "sha256": "a19796a14caa3f79620c0c9ed6a4521fe052dab661289ea09428516aae76d52d"
     },
     {
       "path": "rules/edge-function-auth/javascript-supabase.yml",
