@@ -4,6 +4,10 @@
 # token, Clerk's getAuth(req) but never a bare getAuth() or firebase-admin's) or a Supabase client running as the
 # caller, outside any branch. Whether the record check follows is dataflow (needs_review). Wrapped exports (export
 # const GET = withAuth(...)) and handlers defined in another file are left out.
+# Known limits (T29-P3-C385), false passes: an action's inline load has no data-call-before check, so
+# await prisma.draft.delete(...) before const session = await auth() reads as guarded, and so do Drizzle's insert,
+# update and delete forms; the TS and TSX guard-wrapper checks (C338, C346: data calls before or in a catch or
+# finally, the null-field refusal, the fixed-value gate) are not carried to JS.
 id: authz-every-handler.javascript-nextjs.route
 practice_id: authz-every-handler
 language: javascript
@@ -50,7 +54,11 @@ control:
       - kind: class_body
       - kind: function_declaration
         inside:
-          kind: statement_block
+          # or a switch case (T29-P3-C385 med 2)
+          any:
+          - kind: statement_block
+          - kind: switch_case
+          - kind: switch_default
       - any:
         - kind: arrow_function
         - kind: function_expression
@@ -61,7 +69,11 @@ control:
             - kind: lexical_declaration
             - kind: variable_declaration
             inside:
-              kind: statement_block
+              # or a switch case (T29-P3-C385 med 2)
+              any:
+              - kind: statement_block
+              - kind: switch_case
+              - kind: switch_default
     any:
     - any:
       - pattern: auth()
@@ -227,7 +239,11 @@ control:
       - kind: class_body
       - kind: function_declaration
         inside:
-          kind: statement_block
+          # or a switch case (T29-P3-C385 med 2)
+          any:
+          - kind: statement_block
+          - kind: switch_case
+          - kind: switch_default
       - any:
         - kind: arrow_function
         - kind: function_expression
@@ -238,7 +254,11 @@ control:
             - kind: lexical_declaration
             - kind: variable_declaration
             inside:
-              kind: statement_block
+              # or a switch case (T29-P3-C385 med 2)
+              any:
+              - kind: statement_block
+              - kind: switch_case
+              - kind: switch_default
     any:
     - any:
       - pattern: auth()
@@ -463,7 +483,11 @@ control:
       - kind: class_body
       - kind: function_declaration
         inside:
-          kind: statement_block
+          # or a switch case (T29-P3-C385 med 2)
+          any:
+          - kind: statement_block
+          - kind: switch_case
+          - kind: switch_default
       - any:
         - kind: arrow_function
         - kind: function_expression
@@ -474,7 +498,11 @@ control:
             - kind: lexical_declaration
             - kind: variable_declaration
             inside:
-              kind: statement_block
+              # or a switch case (T29-P3-C385 med 2)
+              any:
+              - kind: statement_block
+              - kind: switch_case
+              - kind: switch_default
     any:
     - any:
       - pattern: auth()
@@ -693,7 +721,11 @@ control:
       - kind: class_body
       - kind: function_declaration
         inside:
-          kind: statement_block
+          # or a switch case (T29-P3-C385 med 2)
+          any:
+          - kind: statement_block
+          - kind: switch_case
+          - kind: switch_default
       - any:
         - kind: arrow_function
         - kind: function_expression
@@ -704,7 +736,11 @@ control:
             - kind: lexical_declaration
             - kind: variable_declaration
             inside:
-              kind: statement_block
+              # or a switch case (T29-P3-C385 med 2)
+              any:
+              - kind: statement_block
+              - kind: switch_case
+              - kind: switch_default
     any:
     - any:
       - pattern: auth()
@@ -796,7 +832,11 @@ control:
       - kind: class_body
       - kind: function_declaration
         inside:
-          kind: statement_block
+          # or a switch case (T29-P3-C385 med 2)
+          any:
+          - kind: statement_block
+          - kind: switch_case
+          - kind: switch_default
       - any:
         - kind: arrow_function
         - kind: function_expression
@@ -807,7 +847,11 @@ control:
             - kind: lexical_declaration
             - kind: variable_declaration
             inside:
-              kind: statement_block
+              # or a switch case (T29-P3-C385 med 2)
+              any:
+              - kind: statement_block
+              - kind: switch_case
+              - kind: switch_default
     any:
     - any:
       - pattern: auth()

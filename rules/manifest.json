@@ -1,5 +1,5 @@
 {
-  "ruleset_id": "2026-11-13.e07870d8",
+  "ruleset_id": "2026-11-13.8a1a65d2",
   "min_engine": "0.45.3",
   "files": [
     {
@@ -400,7 +400,7 @@
     },
     {
       "path": "rules/authz-every-handler/javascript-nextjs.yml",
-      "sha256": "fc8dbdc56ab59227045aaae2a39a648500d4ee0fdc9fe0c6c260ae520a8c40d0"
+      "sha256": "4bd0c5b8904829d135f0e3fd25841b0b75edb0a9d0fcbf7c3a63e1d08182122a"
     },
     {
       "path": "rules/authz-every-handler/kotlin-spring.yml",
@@ -428,7 +428,7 @@
     },
     {
       "path": "rules/authz-every-handler/tsx-nextjs.yml",
-      "sha256": "0074ebdfafdbd45341aa13bd732767b550cc746afa768daa8a4f4b8f909d1fc0"
+      "sha256": "6db2e2745bc4d172edaa163974ee04f54e6b4c6d995d3be621c3ffca529c344d"
     },
     {
       "path": "rules/authz-every-handler/typescript-express.yml",
@@ -440,7 +440,7 @@
     },
     {
       "path": "rules/authz-every-handler/typescript-nextjs.yml",
-      "sha256": "1ae731bb67e116fa1315b6ba103603cd4a5c93408303d6fd01a62f827756f6e8"
+      "sha256": "ace9db57546c5fd1eb4e2af5ead861b389af1ef4aeeb142ae914c8306ef3f273"
     },
     {
       "path": "rules/break-glass-access/javascript-generic.yml",
