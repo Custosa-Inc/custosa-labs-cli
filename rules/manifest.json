@@ -1,5 +1,5 @@
 {
-  "ruleset_id": "2026-11-12.a8952719",
+  "ruleset_id": "2026-11-12.c5300a5c",
   "min_engine": "0.45.3",
   "files": [
     {
@@ -400,7 +400,7 @@
     },
     {
       "path": "rules/authz-every-handler/javascript-nextjs.yml",
-      "sha256": "4a5df3aca377a95e0079b9a9d66d9043edb023092a16414761da8e590c71edfe"
+      "sha256": "b74559dc18765dc1cd0713af0c3cdf80d7584ce383220afa48a17ee493b60572"
     },
     {
       "path": "rules/authz-every-handler/kotlin-spring.yml",
@@ -428,7 +428,7 @@
     },
     {
       "path": "rules/authz-every-handler/tsx-nextjs.yml",
-      "sha256": "523f6215331d82d8a1afa885bfe5b6088d7b2e54bef4c57ce4061dff829209ca"
+      "sha256": "695f8ae1ef69a84b5783703c28b96ae6f8e7b25bf7fb3fb315b83790860f0704"
     },
     {
       "path": "rules/authz-every-handler/typescript-express.yml",
@@ -440,7 +440,7 @@
     },
     {
       "path": "rules/authz-every-handler/typescript-nextjs.yml",
-      "sha256": "32c69722b8c69e512902fd2cb9914d933b48704bd8ad982cbf9f3790a78b798f"
+      "sha256": "056e91c1504b99cacfcb620d557d5f56adf9e24ec2ac34ce1da36d9ade7a6e97"
     },
     {
       "path": "rules/break-glass-access/javascript-generic.yml",
@@ -1336,7 +1336,7 @@
     },
     {
       "path": "rules/security-events-logged/python-generic.yml",
-      "sha256": "451baf988b12d68ccb3d0109a4db950b1bc80f769f14a54cc94e6be2a2de65bb"
+      "sha256": "92e248dd0b85b296548c3cc750487a438d943ed7dc42ff7180d7d0f25bf51ba3"
     },
     {
       "path": "rules/security-events-logged/ruby-generic.yml",
@@ -1392,11 +1392,11 @@
     },
     {
       "path": "rules/session-cookie-flags/typescript-nextjs.yml",
-      "sha256": "ac59c9122f37d19a6efdcb5fd719a351039af074696b232a5c520a2d645cc1d4"
+      "sha256": "bfae980f600ec17e6dc6329d5f0d8c3cd17858a5c9f8d531d62a5435ff6b54c6"
     },
     {
       "path": "rules/session-cookie-flags/typescript-supabase.yml",
-      "sha256": "f0d58de8426631c4bd636c8e29f25d3b5db790f73949b77bafcd356c620fe799"
+      "sha256": "3438f5aa46374425c5f111809dec86dcc6621ed343fec5a356bf1fb54aa7a7e7"
     },
     {
       "path": "rules/session-cookie-flags/yaml-spring.yml",
@@ -1626,7 +1626,7 @@
     },
     {
       "path": "contracts/response.schema.json",
-      "sha256": "b3dd07e7c954f635f4b3a9234f44a6979d05a187b4525238e40a57fbdf811c08"
+      "sha256": "8ee099a8b90fddb7982e02dd12c10f12d7d58ffc123df62b75994f0f83177994"
     },
     {
       "path": "contracts/safe_words.txt",
