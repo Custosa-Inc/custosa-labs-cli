@@ -258,6 +258,7 @@
                     "data_shape",
                     "parser",
                     "owner_source",
+                    "server_fields_source",
                     "table",
                     "rls_enabled",
                     "per_user_columns"

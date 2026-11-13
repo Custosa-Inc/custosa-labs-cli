@@ -3049,6 +3049,7 @@
               "data_shape",
               "parser",
               "owner_source",
+              "server_fields_source",
               "table",
               "rls_enabled",
               "per_user_columns"
@@ -3077,6 +3078,7 @@
               "enabled",
               "disabled",
               "listed",
+              "server",
               "unknown"
             ]
           },
@@ -3151,7 +3153,8 @@
                     "handler",
                     "data_shape",
                     "parser",
-                    "owner_source"
+                    "owner_source",
+                    "server_fields_source"
                   ]
                 },
                 "candidate": {
@@ -3344,6 +3347,30 @@
                 "value": {
                   "enum": [
                     "session",
+                    "request",
+                    "none",
+                    "unknown"
+                  ]
+                },
+                "column_names": {
+                  "maxItems": 0
+                }
+              }
+            }
+          },
+          {
+            "if": {
+              "properties": {
+                "field": {
+                  "const": "server_fields_source"
+                }
+              }
+            },
+            "then": {
+              "properties": {
+                "value": {
+                  "enum": [
+                    "server",
                     "request",
                     "none",
                     "unknown"
