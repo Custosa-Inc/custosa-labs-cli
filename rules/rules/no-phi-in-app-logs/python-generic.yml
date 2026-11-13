@@ -97,6 +97,39 @@ rule:
                 - inside:
                     kind: keyword_argument
                     field: name
+          - all:
+            - kind: attribute
+            - regex: '\.(email|email_address|phone|phone_number|mobile|mobile_number)$'
+            # C339 med 1: a business or config root excludes a contact only when no person record sits
+            # between them; a contact read straight off a business object anywhere in the chain is excluded.
+            - not:
+                any:
+                - all:
+                  - kind: attribute
+                    regex: '(?i)^(self\.)?(settings|\w*config|app\.config|current_app\.config|os\.environ|twilio\w*|mailer|transporter|clinic|practice|organization|org|tenant|company|facility|office|hospital|pharmacy)\.'
+                  - not:
+                      kind: attribute
+                      regex: '(?i)\??\.(patients?|users?|members?|people|persons?|customers?|clients?|profiles?|accounts?|owners?|guardians?|caregivers?|recipients?|employees?)(\??\.|\[|!)'
+                - kind: attribute
+                  regex: '(?i)[.?](\w*config|settings|clinic|practice|organization|org|tenant|company|facility|office|hospital|pharmacy)\.(email|email_address|phone|phone_number|mobile|mobile_number)$'
+          - all:
+            - kind: identifier
+            - regex: '^(email|email_address|emailAddress|phone|phone_number|phoneNumber|mobile|mobile_number|mobileNumber|[a-z][a-z0-9_]*_(email|phone|phone_number)|[a-z][A-Za-z0-9]*(Email|Phone|PhoneNumber)|user|users|current_user|currentUser|vitals|lab_values|labValues|lab_value_rows|labValueRows|lab_results|labResults|medications|prescriptions|allergies)$'
+            - not:
+                kind: identifier
+                regex: '^(from|sender|support|admin|smtp|noreply|noReply|no_reply|replyTo|reply_to|company|system|default|test|sample|example|mask|masked|hash|hashed|redact|redacted|obfuscated|safe|valid|invalid|template|welcome|twilio|mailer|transporter|clinic|practice|organization|org|tenant|facility|office|hospital|pharmacy|is|has|should|can|notify|allow|enable)[A-Z_]'
+            - not:
+                any:
+                - inside:
+                    kind: attribute
+                - inside:
+                    kind: subscript
+                    field: value
+                - inside:
+                    kind: keyword_argument
+                    field: name
+          - kind: call
+            regex: '^[A-Za-z_][A-Za-z0-9_.]*\.get\(\s*[''"](vitals|lab_values|lab_results|medications|prescriptions|allergies|diagnosis|diagnoses|ssn|dob|date_of_birth)[''"]'
         - not:
             any:
             - inside:
@@ -105,6 +138,96 @@ rule:
             - inside:
                 kind: call
                 field: function
+        # C339 med 4: a value that is only the test of a conditional (its consequence and alternative are no bare
+        # name), or the left side of and, is never what the line logs.
+        - not:
+            any:
+            - inside:
+                kind: conditional_expression
+                regex: '^\s*(\S*[.(\[\x27\x22][\s\S]*?|None|True|False|\d+)\s+if\s+(not\s+)?\w+\s+else\s+([\s\S]*[.(\[\x27\x22][\s\S]*|None|True|False|\d+)\s*$'
+            - inside:
+                kind: boolean_operator
+                field: left
+                pattern: '$_ and $_'
+        # T29-P1-C311 item 3: through parentheses and boolean operators, a value only tested, counted or iterated is
+        # safe: an attribute or subscript of it, a comparison, a not, a conditional between literals, a comprehension
+        # source, or an argument of a call other than a log call
+        - not:
+            inside:
+              stopBy:
+                not:
+                  any:
+                  - kind: parenthesized_expression
+                  - kind: boolean_operator
+              any:
+              # C339 high 2: an attribute drops the value only when it reads no patient field (nor .get of one), an element
+              # only when that element is then read for such an attribute, and a comprehension source only when the
+              # comprehension yields a projection of the element, never the element itself.
+              - kind: attribute
+                not:
+                  any:
+                  - has:
+                      field: attribute
+                      kind: identifier
+                      regex: '^(name|first_name|last_name|full_name|email|email_address|phone|phone_number|mobile|mobile_number|address|notes|ssn|SSN|dob|date_of_birth|birth_date|birthdate|diagnosis|diagnoses|mrn|medical_record_number|insurance_number|clinical_notes)$'
+                  - all:
+                    - has:
+                        field: attribute
+                        kind: identifier
+                        regex: '^get$'
+                    - inside:
+                        kind: call
+                        field: function
+                        has:
+                          field: arguments
+                          kind: argument_list
+                          regex: '^\(\s*[''"](name|first_name|last_name|full_name|email|email_address|phone|phone_number|mobile|mobile_number|address|notes|ssn|dob|date_of_birth|birth_date|diagnosis|diagnoses|mrn|medical_record_number|insurance_number|clinical_notes)[''"]'
+              - kind: subscript
+                inside:
+                  kind: attribute
+                  field: object
+                  not:
+                    has:
+                      field: attribute
+                      kind: identifier
+                      regex: '^(name|first_name|last_name|full_name|email|email_address|phone|phone_number|mobile|mobile_number|address|notes|ssn|SSN|dob|date_of_birth|birth_date|birthdate|diagnosis|diagnoses|mrn|medical_record_number|insurance_number|clinical_notes)$'
+              - kind: comparison_operator
+              - kind: not_operator
+              - kind: for_in_clause
+                inside:
+                  all:
+                  - any:
+                    - kind: list_comprehension
+                    - kind: set_comprehension
+                    - kind: dictionary_comprehension
+                    - kind: generator_expression
+                  - not:
+                      has:
+                        field: body
+                        any:
+                        - kind: identifier
+                        - kind: pair
+                          has:
+                            field: value
+                            kind: identifier
+                        - kind: attribute
+                          has:
+                            field: attribute
+                            kind: identifier
+                            regex: '^(name|first_name|last_name|full_name|email|email_address|phone|phone_number|mobile|mobile_number|address|notes|ssn|SSN|dob|date_of_birth|birth_date|birthdate|diagnosis|diagnoses|mrn|medical_record_number|insurance_number|clinical_notes)$'
+              - kind: conditional_expression
+                regex: '^\s*(''[^'']*''|"[^"]*"|\d+|True|False|None)\s+if\s[\s\S]*\selse\s+(''[^'']*''|"[^"]*"|\d+|True|False|None)\s*$'
+              - kind: argument_list
+                inside:
+                  kind: call
+                  not:
+                    has:
+                      field: function
+                      any:
+                      - kind: attribute
+                        regex: '^(logger|logging|log|_logger|_log|LOGGER|LOG|self\.logger|self\.log|self\._logger|current_app\.logger|app\.logger|logging\.getLogger\([^)]*\)|structlog\.(?:get_logger|getLogger)\([^)]*\))\.(debug|info|warning|warn|error|exception|critical|log|msg)$|^json\.dumps$|^pprint\.pformat$'
+                      - kind: identifier
+                        regex: '^(print|str|repr|dict|vars)$'
         - not:
             inside:
               kind: argument_list
