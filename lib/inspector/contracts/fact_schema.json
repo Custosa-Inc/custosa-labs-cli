@@ -81,6 +81,14 @@
             "none"
           ],
           "about": "cite where the owner or user id written comes from"
+        },
+        "server_fields_source": {
+          "values": [
+            "server",
+            "request",
+            "none"
+          ],
+          "about": "the status, role, tenant, approval or verified flag, balance or other amount fields the write sets, not the owner id: server when set by server logic, a constant or the session; request when any comes from the request; none when it sets none. Cite where one is set; for none, the write's data"
         }
       }
     },
