@@ -29,6 +29,13 @@
 # - From T29-P3-C390: a function declared in the guard under the enum's name (function Role() {}) is no rebinding, so
 #   user?.role !== Role.ADMIN still counts as the control though Role.ADMIN is then undefined (a false pass). A class
 #   declared under the name reads the same way, but it still denies a signed-out caller.
+# - From T29-P3-C393 low 2 (false fails): const { error, data: { user } } = getUser() (error first) and
+#   { data: { user: u } }, each with ?.id === undefined; const { data } = getUser() with data?.user?.id === undefined; a
+#   whole getUser result checked res.data?.user === null; a catch that destructures the enum's name (catch ({ Role })); and
+#   a callback or nested function in the guard whose parameter has the enum's name ([1].map((Role) => Role),
+#   function inner(Role: number)), which counts as rebinding the guard's Role.
+# - A whole getClaims result read through a member (res.data?.claims === undefined) still counts as a refusal, since
+#   getClaims gives data null to a signed-out caller.
 # - A try whose catch neither throws nor returns counts only when nothing follows it in its block; a nested try, a catch
 #   return inside a block and a guard wrapper whose load sits in a try are no control.
 # - An aliased or namespace next/navigation exit (redirect as go, import * as nav) is no exit, and a data call in a
@@ -9856,6 +9863,10 @@ control:
                                     - any:
                                       # deepest first: $R must bind the chain's root, and any takes the first pattern that matches
                                       - pattern: '$R?.$F?.$G?.$H === undefined'
+                                      # T29-P3-C393 low 1: a whole result read through its data to the null field, res.data?.user or res?.data.user; one that
+                                      # goes on past user with ?. is undefined for a signed-out caller, so it still refuses
+                                      - pattern: '$R.data?.user === undefined'
+                                      - pattern: '$R?.data.user === undefined'
                                       - pattern: '$R?.$F?.$G === undefined'
                                       - pattern: '$R?.$F === undefined'
                                       - pattern: '$R?.[$K] === undefined'
@@ -9921,6 +9932,10 @@ control:
                                     - any:
                                       # deepest first: $R must bind the chain's root, and any takes the first pattern that matches
                                       - pattern: '$R?.$F?.$G?.$H === void 0'
+                                      # T29-P3-C393 low 1: a whole result read through its data to the null field, res.data?.user or res?.data.user; one that
+                                      # goes on past user with ?. is undefined for a signed-out caller, so it still refuses
+                                      - pattern: '$R.data?.user === void 0'
+                                      - pattern: '$R?.data.user === void 0'
                                       - pattern: '$R?.$F?.$G === void 0'
                                       - pattern: '$R?.$F === void 0'
                                       - pattern: '$R?.[$K] === void 0'
@@ -10667,6 +10682,16 @@ control:
                                                 has:
                                                   stopBy: end
                                                   any:
+                                                  # T29-P3-C393 low 1: a for-of or for-in var binds the name for the whole function; a const or let loop and a
+                                                  # catch parameter bind it only inside their block
+                                                  - kind: for_in_statement
+                                                    regex: '^for\s*(await\s*)?\(\s*var\b'
+                                                    has:
+                                                      field: left
+                                                      kind: identifier
+                                                      pattern:
+                                                        context: const $FIXED = 0
+                                                        selector: identifier
                                                   - kind: variable_declarator
                                                     has:
                                                       field: name
@@ -10774,6 +10799,16 @@ control:
                                                 has:
                                                   stopBy: end
                                                   any:
+                                                  # T29-P3-C393 low 1: a for-of or for-in var binds the name for the whole function; a const or let loop and a
+                                                  # catch parameter bind it only inside their block
+                                                  - kind: for_in_statement
+                                                    regex: '^for\s*(await\s*)?\(\s*var\b'
+                                                    has:
+                                                      field: left
+                                                      kind: identifier
+                                                      pattern:
+                                                        context: const $FIXED = 0
+                                                        selector: identifier
                                                   - kind: variable_declarator
                                                     has:
                                                       field: name
@@ -10898,6 +10933,16 @@ control:
                                                 has:
                                                   stopBy: end
                                                   any:
+                                                  # T29-P3-C393 low 1: a for-of or for-in var binds the name for the whole function; a const or let loop and a
+                                                  # catch parameter bind it only inside their block
+                                                  - kind: for_in_statement
+                                                    regex: '^for\s*(await\s*)?\(\s*var\b'
+                                                    has:
+                                                      field: left
+                                                      kind: identifier
+                                                      pattern:
+                                                        context: const $FIXED = 0
+                                                        selector: identifier
                                                   - kind: variable_declarator
                                                     has:
                                                       field: name
@@ -11005,6 +11050,16 @@ control:
                                                 has:
                                                   stopBy: end
                                                   any:
+                                                  # T29-P3-C393 low 1: a for-of or for-in var binds the name for the whole function; a const or let loop and a
+                                                  # catch parameter bind it only inside their block
+                                                  - kind: for_in_statement
+                                                    regex: '^for\s*(await\s*)?\(\s*var\b'
+                                                    has:
+                                                      field: left
+                                                      kind: identifier
+                                                      pattern:
+                                                        context: const $FIXED = 0
+                                                        selector: identifier
                                                   - kind: variable_declarator
                                                     has:
                                                       field: name
@@ -11121,6 +11176,10 @@ control:
                                       - any:
                                         # deepest first: $R must bind the chain's root, and any takes the first pattern that matches
                                         - pattern: '$R?.$F?.$G?.$H === undefined'
+                                        # T29-P3-C393 low 1: a whole result read through its data to the null field, res.data?.user or res?.data.user; one that
+                                        # goes on past user with ?. is undefined for a signed-out caller, so it still refuses
+                                        - pattern: '$R.data?.user === undefined'
+                                        - pattern: '$R?.data.user === undefined'
                                         - pattern: '$R?.$F?.$G === undefined'
                                         - pattern: '$R?.$F === undefined'
                                         - pattern: '$R?.[$K] === undefined'
@@ -11186,6 +11245,10 @@ control:
                                       - any:
                                         # deepest first: $R must bind the chain's root, and any takes the first pattern that matches
                                         - pattern: '$R?.$F?.$G?.$H === void 0'
+                                        # T29-P3-C393 low 1: a whole result read through its data to the null field, res.data?.user or res?.data.user; one that
+                                        # goes on past user with ?. is undefined for a signed-out caller, so it still refuses
+                                        - pattern: '$R.data?.user === void 0'
+                                        - pattern: '$R?.data.user === void 0'
                                         - pattern: '$R?.$F?.$G === void 0'
                                         - pattern: '$R?.$F === void 0'
                                         - pattern: '$R?.[$K] === void 0'
@@ -11932,6 +11995,16 @@ control:
                                                   has:
                                                     stopBy: end
                                                     any:
+                                                    # T29-P3-C393 low 1: a for-of or for-in var binds the name for the whole function; a const or let loop and a
+                                                    # catch parameter bind it only inside their block
+                                                    - kind: for_in_statement
+                                                      regex: '^for\s*(await\s*)?\(\s*var\b'
+                                                      has:
+                                                        field: left
+                                                        kind: identifier
+                                                        pattern:
+                                                          context: const $FIXED = 0
+                                                          selector: identifier
                                                     - kind: variable_declarator
                                                       has:
                                                         field: name
@@ -12039,6 +12112,16 @@ control:
                                                   has:
                                                     stopBy: end
                                                     any:
+                                                    # T29-P3-C393 low 1: a for-of or for-in var binds the name for the whole function; a const or let loop and a
+                                                    # catch parameter bind it only inside their block
+                                                    - kind: for_in_statement
+                                                      regex: '^for\s*(await\s*)?\(\s*var\b'
+                                                      has:
+                                                        field: left
+                                                        kind: identifier
+                                                        pattern:
+                                                          context: const $FIXED = 0
+                                                          selector: identifier
                                                     - kind: variable_declarator
                                                       has:
                                                         field: name
@@ -12163,6 +12246,16 @@ control:
                                                   has:
                                                     stopBy: end
                                                     any:
+                                                    # T29-P3-C393 low 1: a for-of or for-in var binds the name for the whole function; a const or let loop and a
+                                                    # catch parameter bind it only inside their block
+                                                    - kind: for_in_statement
+                                                      regex: '^for\s*(await\s*)?\(\s*var\b'
+                                                      has:
+                                                        field: left
+                                                        kind: identifier
+                                                        pattern:
+                                                          context: const $FIXED = 0
+                                                          selector: identifier
                                                     - kind: variable_declarator
                                                       has:
                                                         field: name
@@ -12270,6 +12363,16 @@ control:
                                                   has:
                                                     stopBy: end
                                                     any:
+                                                    # T29-P3-C393 low 1: a for-of or for-in var binds the name for the whole function; a const or let loop and a
+                                                    # catch parameter bind it only inside their block
+                                                    - kind: for_in_statement
+                                                      regex: '^for\s*(await\s*)?\(\s*var\b'
+                                                      has:
+                                                        field: left
+                                                        kind: identifier
+                                                        pattern:
+                                                          context: const $FIXED = 0
+                                                          selector: identifier
                                                     - kind: variable_declarator
                                                       has:
                                                         field: name
@@ -12388,6 +12491,10 @@ control:
                                         - any:
                                           # deepest first: $R must bind the chain's root, and any takes the first pattern that matches
                                           - pattern: '$R?.$F?.$G?.$H === undefined'
+                                          # T29-P3-C393 low 1: a whole result read through its data to the null field, res.data?.user or res?.data.user; one that
+                                          # goes on past user with ?. is undefined for a signed-out caller, so it still refuses
+                                          - pattern: '$R.data?.user === undefined'
+                                          - pattern: '$R?.data.user === undefined'
                                           - pattern: '$R?.$F?.$G === undefined'
                                           - pattern: '$R?.$F === undefined'
                                           - pattern: '$R?.[$K] === undefined'
@@ -12453,6 +12560,10 @@ control:
                                         - any:
                                           # deepest first: $R must bind the chain's root, and any takes the first pattern that matches
                                           - pattern: '$R?.$F?.$G?.$H === void 0'
+                                          # T29-P3-C393 low 1: a whole result read through its data to the null field, res.data?.user or res?.data.user; one that
+                                          # goes on past user with ?. is undefined for a signed-out caller, so it still refuses
+                                          - pattern: '$R.data?.user === void 0'
+                                          - pattern: '$R?.data.user === void 0'
                                           - pattern: '$R?.$F?.$G === void 0'
                                           - pattern: '$R?.$F === void 0'
                                           - pattern: '$R?.[$K] === void 0'
@@ -13199,6 +13310,16 @@ control:
                                                     has:
                                                       stopBy: end
                                                       any:
+                                                      # T29-P3-C393 low 1: a for-of or for-in var binds the name for the whole function; a const or let loop and a
+                                                      # catch parameter bind it only inside their block
+                                                      - kind: for_in_statement
+                                                        regex: '^for\s*(await\s*)?\(\s*var\b'
+                                                        has:
+                                                          field: left
+                                                          kind: identifier
+                                                          pattern:
+                                                            context: const $FIXED = 0
+                                                            selector: identifier
                                                       - kind: variable_declarator
                                                         has:
                                                           field: name
@@ -13306,6 +13427,16 @@ control:
                                                     has:
                                                       stopBy: end
                                                       any:
+                                                      # T29-P3-C393 low 1: a for-of or for-in var binds the name for the whole function; a const or let loop and a
+                                                      # catch parameter bind it only inside their block
+                                                      - kind: for_in_statement
+                                                        regex: '^for\s*(await\s*)?\(\s*var\b'
+                                                        has:
+                                                          field: left
+                                                          kind: identifier
+                                                          pattern:
+                                                            context: const $FIXED = 0
+                                                            selector: identifier
                                                       - kind: variable_declarator
                                                         has:
                                                           field: name
@@ -13430,6 +13561,16 @@ control:
                                                     has:
                                                       stopBy: end
                                                       any:
+                                                      # T29-P3-C393 low 1: a for-of or for-in var binds the name for the whole function; a const or let loop and a
+                                                      # catch parameter bind it only inside their block
+                                                      - kind: for_in_statement
+                                                        regex: '^for\s*(await\s*)?\(\s*var\b'
+                                                        has:
+                                                          field: left
+                                                          kind: identifier
+                                                          pattern:
+                                                            context: const $FIXED = 0
+                                                            selector: identifier
                                                       - kind: variable_declarator
                                                         has:
                                                           field: name
@@ -13537,6 +13678,16 @@ control:
                                                     has:
                                                       stopBy: end
                                                       any:
+                                                      # T29-P3-C393 low 1: a for-of or for-in var binds the name for the whole function; a const or let loop and a
+                                                      # catch parameter bind it only inside their block
+                                                      - kind: for_in_statement
+                                                        regex: '^for\s*(await\s*)?\(\s*var\b'
+                                                        has:
+                                                          field: left
+                                                          kind: identifier
+                                                          pattern:
+                                                            context: const $FIXED = 0
+                                                            selector: identifier
                                                       - kind: variable_declarator
                                                         has:
                                                           field: name
