@@ -46,6 +46,47 @@ control:
           regex: (?i)((rate_?limit\w*|limiter|throttl\w*)\.(limit|consume|check|hit|attempt|try\w*)\(|\b(check|enforce|apply)\w*(rate_?limit|throttle|lockout)\w*\(|locked_?(at|until)\b|is_?locked|is_?locked_?out|lockout|\bis\w*blocked\w*\(|too_?many_?(login_?)?attempts|failed_?(login_?)?(attempts?|count|logins?)\s*>=?|max_?(failed_?)?(login_?)?attempts|(re)?captcha\w*\.?verify|verify\w*captcha|turnstile|check\w*failed\w*counter\(|RateLimiter::(tooManyAttempts|attempt)|ratelimit\.Allow|\.Allow\(\))
         - kind: throw_statement
           regex: (?i)((rate_?limit\w*|limiter|throttl\w*)\.(limit|consume|check|hit|attempt|try\w*)\(|\b(check|enforce|apply)\w*(rate_?limit|throttle|lockout)\w*\(|locked_?(at|until)\b|is_?locked|is_?locked_?out|lockout|\bis\w*blocked\w*\(|too_?many_?(login_?)?attempts|failed_?(login_?)?(attempts?|count|logins?)\s*>=?|max_?(failed_?)?(login_?)?attempts|(re)?captcha\w*\.?verify|verify\w*captcha|turnstile|check\w*failed\w*counter\(|RateLimiter::(tooManyAttempts|attempt)|ratelimit\.Allow|\.Allow\(\))
+  # an inline handler of a sign-in route that has its control: a limiter among the route's handlers, or one its
+  # router or app uses in the file (the express-rate-limit README shape, T29-P1-C340 med 2)
+  - inside:
+      stopBy: end
+      kind: call_expression
+      regex: (?i)^(app|server|routes?|\w*router)\.(post|all)\(\s*['\"`][^'\"`]*/(login|log-in|signin|sign-in|sign_in|authenticate)/?['\"`]\s*,
+      any:
+      - has:
+          field: arguments
+          has:
+            any:
+            - kind: identifier
+              regex: (?i)(rate_?limit|limiter|throttl|brute|slow_?down|captcha)
+            - kind: member_expression
+              regex: (?i)(rate_?limit|limiter|throttl|brute|slow_?down|captcha)
+            - kind: call_expression
+              regex: (?i)^[\w.]*(rate_?limit|limiter|throttl|brute|slow_?down|captcha)
+            - kind: array
+              has:
+                any:
+                - kind: identifier
+                  regex: (?i)(rate_?limit|limiter|throttl|brute|slow_?down|captcha)
+                - kind: member_expression
+                  regex: (?i)(rate_?limit|limiter|throttl|brute|slow_?down|captcha)
+                - kind: call_expression
+                  regex: (?i)^[\w.]*(rate_?limit|limiter|throttl|brute|slow_?down|captcha)
+      # a limiter the app uses, or this route's own router, with no path or a sign-in prefix (not /uploads)
+      - all:
+        - pattern: $R.$M($$$)
+        - inside:
+            kind: program
+            stopBy: end
+            has:
+              stopBy: end
+              all:
+              - kind: call_expression
+                regex: (?i)^\w+\.use\((\s*['\"`]/?((api|v\d+)/)*((api|v\d+|auth\w*|login|log-in|signin|sign-in|sign_in|authenticate|sessions?|accounts?|users?)/?)*['\"`]\s*,)?\s*[\w.]*(rate_?limit|limiter|throttl|brute|slow_?down)
+              - any:
+                - kind: call_expression
+                  regex: ^(app|server)\.use\(
+                - pattern: $R.use($$$)
   - follows:
       kind: decorator
       regex: ^@(Throttle|UseGuards\(\s*\w*Throttler\w*)
@@ -100,6 +141,756 @@ rule:
           regex: (?i)(failed_?login|login_?failed|LoginFailed|loginFailure|auth(entication)?_?fail\w*|failed_?attempts?\s*(\+\+|\+=|=\s*\w+\s*\+\s*1)|increment\w*\(\s*['\"]failed)
 min_engine: 0.39.0
 ---
+id: auth-login-throttling.typescript-express.sign-in-route
+practice_id: auth-login-throttling
+language: typescript
+frameworks:
+- express
+kind: items
+rule:
+  all:
+  - kind: call_expression
+    regex: (?i)^(app|server|routes?|\w*router)\.(post|all)\(\s*['\"`][^'\"`]*/(login|log-in|signin|sign-in|sign_in|authenticate)/?['\"`]\s*,
+  # an object the file declares as a plain object literal (an HTTP client wrapper named apiRouter) is no router
+  - not:
+      all:
+      - pattern: $R.$M($$$)
+      - inside:
+          stopBy: end
+          kind: program
+          has:
+            stopBy: end
+            kind: variable_declarator
+            # declared outside any function or block, so it is the binding the route's receiver names (T29-P1-C340 med 3)
+            not:
+              inside:
+                stopBy: end
+                any:
+                - kind: statement_block
+                - kind: arrow_function
+                - kind: class_body
+            all:
+            - has:
+                field: name
+                pattern:
+                  context: const $R = 0
+                  selector: identifier
+            - has:
+                field: value
+                kind: object
+control:
+  any:
+  # an inline handler among the route's arguments, at any depth (asyncHandler, catchAsync), that limits itself
+  # the way a sign-in item's control does (T29-P1-C340 high 1)
+  - has:
+      field: arguments
+      has:
+        stopBy: end
+        all:
+        - any:
+          - kind: function_declaration
+          - kind: method_definition
+          - kind: arrow_function
+          - kind: function_expression
+        - has:
+            field: body
+            has:
+              any:
+              - kind: lexical_declaration
+                regex: (?i)((rate_?limit\w*|limiter|throttl\w*)\.(limit|consume|check|hit|attempt|try\w*)\(|\b(check|enforce|apply)\w*(rate_?limit|throttle|lockout)\w*\(|locked_?(at|until)\b|is_?locked|is_?locked_?out|lockout|\bis\w*blocked\w*\(|too_?many_?(login_?)?attempts|failed_?(login_?)?(attempts?|count|logins?)\s*>=?|max_?(failed_?)?(login_?)?attempts|(re)?captcha\w*\.?verify|verify\w*captcha|turnstile|check\w*failed\w*counter\(|RateLimiter::(tooManyAttempts|attempt)|ratelimit\.Allow|\.Allow\(\))
+              - kind: variable_declaration
+                regex: (?i)((rate_?limit\w*|limiter|throttl\w*)\.(limit|consume|check|hit|attempt|try\w*)\(|\b(check|enforce|apply)\w*(rate_?limit|throttle|lockout)\w*\(|locked_?(at|until)\b|is_?locked|is_?locked_?out|lockout|\bis\w*blocked\w*\(|too_?many_?(login_?)?attempts|failed_?(login_?)?(attempts?|count|logins?)\s*>=?|max_?(failed_?)?(login_?)?attempts|(re)?captcha\w*\.?verify|verify\w*captcha|turnstile|check\w*failed\w*counter\(|RateLimiter::(tooManyAttempts|attempt)|ratelimit\.Allow|\.Allow\(\))
+              - kind: expression_statement
+                regex: (?i)((rate_?limit\w*|limiter|throttl\w*)\.(limit|consume|check|hit|attempt|try\w*)\(|\b(check|enforce|apply)\w*(rate_?limit|throttle|lockout)\w*\(|locked_?(at|until)\b|is_?locked|is_?locked_?out|lockout|\bis\w*blocked\w*\(|too_?many_?(login_?)?attempts|failed_?(login_?)?(attempts?|count|logins?)\s*>=?|max_?(failed_?)?(login_?)?attempts|(re)?captcha\w*\.?verify|verify\w*captcha|turnstile|check\w*failed\w*counter\(|RateLimiter::(tooManyAttempts|attempt)|ratelimit\.Allow|\.Allow\(\))
+              - kind: return_statement
+                regex: (?i)((rate_?limit\w*|limiter|throttl\w*)\.(limit|consume|check|hit|attempt|try\w*)\(|\b(check|enforce|apply)\w*(rate_?limit|throttle|lockout)\w*\(|locked_?(at|until)\b|is_?locked|is_?locked_?out|lockout|\bis\w*blocked\w*\(|too_?many_?(login_?)?attempts|failed_?(login_?)?(attempts?|count|logins?)\s*>=?|max_?(failed_?)?(login_?)?attempts|(re)?captcha\w*\.?verify|verify\w*captcha|turnstile|check\w*failed\w*counter\(|RateLimiter::(tooManyAttempts|attempt)|ratelimit\.Allow|\.Allow\(\))
+              - kind: if_statement
+                regex: (?i)((rate_?limit\w*|limiter|throttl\w*)\.(limit|consume|check|hit|attempt|try\w*)\(|\b(check|enforce|apply)\w*(rate_?limit|throttle|lockout)\w*\(|locked_?(at|until)\b|is_?locked|is_?locked_?out|lockout|\bis\w*blocked\w*\(|too_?many_?(login_?)?attempts|failed_?(login_?)?(attempts?|count|logins?)\s*>=?|max_?(failed_?)?(login_?)?attempts|(re)?captcha\w*\.?verify|verify\w*captcha|turnstile|check\w*failed\w*counter\(|RateLimiter::(tooManyAttempts|attempt)|ratelimit\.Allow|\.Allow\(\))
+              - kind: try_statement
+                regex: (?i)((rate_?limit\w*|limiter|throttl\w*)\.(limit|consume|check|hit|attempt|try\w*)\(|\b(check|enforce|apply)\w*(rate_?limit|throttle|lockout)\w*\(|locked_?(at|until)\b|is_?locked|is_?locked_?out|lockout|\bis\w*blocked\w*\(|too_?many_?(login_?)?attempts|failed_?(login_?)?(attempts?|count|logins?)\s*>=?|max_?(failed_?)?(login_?)?attempts|(re)?captcha\w*\.?verify|verify\w*captcha|turnstile|check\w*failed\w*counter\(|RateLimiter::(tooManyAttempts|attempt)|ratelimit\.Allow|\.Allow\(\))
+              - kind: for_statement
+                regex: (?i)((rate_?limit\w*|limiter|throttl\w*)\.(limit|consume|check|hit|attempt|try\w*)\(|\b(check|enforce|apply)\w*(rate_?limit|throttle|lockout)\w*\(|locked_?(at|until)\b|is_?locked|is_?locked_?out|lockout|\bis\w*blocked\w*\(|too_?many_?(login_?)?attempts|failed_?(login_?)?(attempts?|count|logins?)\s*>=?|max_?(failed_?)?(login_?)?attempts|(re)?captcha\w*\.?verify|verify\w*captcha|turnstile|check\w*failed\w*counter\(|RateLimiter::(tooManyAttempts|attempt)|ratelimit\.Allow|\.Allow\(\))
+              - kind: for_in_statement
+                regex: (?i)((rate_?limit\w*|limiter|throttl\w*)\.(limit|consume|check|hit|attempt|try\w*)\(|\b(check|enforce|apply)\w*(rate_?limit|throttle|lockout)\w*\(|locked_?(at|until)\b|is_?locked|is_?locked_?out|lockout|\bis\w*blocked\w*\(|too_?many_?(login_?)?attempts|failed_?(login_?)?(attempts?|count|logins?)\s*>=?|max_?(failed_?)?(login_?)?attempts|(re)?captcha\w*\.?verify|verify\w*captcha|turnstile|check\w*failed\w*counter\(|RateLimiter::(tooManyAttempts|attempt)|ratelimit\.Allow|\.Allow\(\))
+              - kind: while_statement
+                regex: (?i)((rate_?limit\w*|limiter|throttl\w*)\.(limit|consume|check|hit|attempt|try\w*)\(|\b(check|enforce|apply)\w*(rate_?limit|throttle|lockout)\w*\(|locked_?(at|until)\b|is_?locked|is_?locked_?out|lockout|\bis\w*blocked\w*\(|too_?many_?(login_?)?attempts|failed_?(login_?)?(attempts?|count|logins?)\s*>=?|max_?(failed_?)?(login_?)?attempts|(re)?captcha\w*\.?verify|verify\w*captcha|turnstile|check\w*failed\w*counter\(|RateLimiter::(tooManyAttempts|attempt)|ratelimit\.Allow|\.Allow\(\))
+              - kind: switch_statement
+                regex: (?i)((rate_?limit\w*|limiter|throttl\w*)\.(limit|consume|check|hit|attempt|try\w*)\(|\b(check|enforce|apply)\w*(rate_?limit|throttle|lockout)\w*\(|locked_?(at|until)\b|is_?locked|is_?locked_?out|lockout|\bis\w*blocked\w*\(|too_?many_?(login_?)?attempts|failed_?(login_?)?(attempts?|count|logins?)\s*>=?|max_?(failed_?)?(login_?)?attempts|(re)?captcha\w*\.?verify|verify\w*captcha|turnstile|check\w*failed\w*counter\(|RateLimiter::(tooManyAttempts|attempt)|ratelimit\.Allow|\.Allow\(\))
+              - kind: throw_statement
+                regex: (?i)((rate_?limit\w*|limiter|throttl\w*)\.(limit|consume|check|hit|attempt|try\w*)\(|\b(check|enforce|apply)\w*(rate_?limit|throttle|lockout)\w*\(|locked_?(at|until)\b|is_?locked|is_?locked_?out|lockout|\bis\w*blocked\w*\(|too_?many_?(login_?)?attempts|failed_?(login_?)?(attempts?|count|logins?)\s*>=?|max_?(failed_?)?(login_?)?attempts|(re)?captcha\w*\.?verify|verify\w*captcha|turnstile|check\w*failed\w*counter\(|RateLimiter::(tooManyAttempts|attempt)|ratelimit\.Allow|\.Allow\(\))
+  - has:
+      field: arguments
+      has:
+        any:
+        - kind: identifier
+          regex: (?i)(rate_?limit|limiter|throttl|brute|slow_?down|captcha)
+        - kind: member_expression
+          regex: (?i)(rate_?limit|limiter|throttl|brute|slow_?down|captcha)
+        - kind: call_expression
+          regex: (?i)^[\w.]*(rate_?limit|limiter|throttl|brute|slow_?down|captcha)
+        - kind: array
+          has:
+            any:
+            - kind: identifier
+              regex: (?i)(rate_?limit|limiter|throttl|brute|slow_?down|captcha)
+            - kind: member_expression
+              regex: (?i)(rate_?limit|limiter|throttl|brute|slow_?down|captcha)
+            - kind: call_expression
+              regex: (?i)^[\w.]*(rate_?limit|limiter|throttl|brute|slow_?down|captcha)
+  # a limiter the app uses, or this route's own router, with no path or a sign-in prefix (not /uploads)
+  - all:
+    - pattern: $R.$M($$$)
+    - inside:
+        kind: program
+        stopBy: end
+        has:
+          stopBy: end
+          all:
+          - kind: call_expression
+            regex: (?i)^\w+\.use\((\s*['\"`]/?((api|v\d+)/)*((api|v\d+|auth\w*|login|log-in|signin|sign-in|sign_in|authenticate|sessions?|accounts?|users?)/?)*['\"`]\s*,)?\s*[\w.]*(rate_?limit|limiter|throttl|brute|slow_?down)
+          - any:
+            - kind: call_expression
+              regex: ^(app|server)\.use\(
+            - pattern: $R.use($$$)
+min_engine: 0.39.0
+---
+id: auth-login-throttling.typescript-express.unobserved-route
+practice_id: auth-login-throttling
+language: typescript
+frameworks:
+- express
+kind: evidence
+rule:
+  all:
+  - kind: call_expression
+    regex: (?i)^(app|server|routes?|\w*router)\.(post|all)\(\s*['\"`][^'\"`]*/(login|log-in|signin|sign-in|sign_in|authenticate)/?['\"`]\s*,
+  # an inline handler that checks the password, at any depth (asyncHandler, catchAsync, wrap), is the sign-in item
+  # itself and decides the route; any other route, inline or named, is held, since its limiter may be in another file
+  - not:
+      has:
+        field: arguments
+        has:
+          stopBy: end
+          any:
+          - kind: call_expression
+            regex: ^(await\s+)?(\w+\.)*((bcrypt|bcryptjs|argon2)\.(compare|compareSync|verify)|verifyPassword|checkPassword|comparePassword|validatePassword)\(
+          - kind: await_expression
+            regex: ^(await\s+)?(\w+\.)*((bcrypt|bcryptjs|argon2)\.(compare|compareSync|verify)|verifyPassword|checkPassword|comparePassword|validatePassword)\(
+  - not:
+      any:
+      - has:
+          field: arguments
+          has:
+            any:
+            - kind: identifier
+              regex: (?i)(rate_?limit|limiter|throttl|brute|slow_?down|captcha)
+            - kind: member_expression
+              regex: (?i)(rate_?limit|limiter|throttl|brute|slow_?down|captcha)
+            - kind: call_expression
+              regex: (?i)^[\w.]*(rate_?limit|limiter|throttl|brute|slow_?down|captcha)
+            - kind: array
+              has:
+                any:
+                - kind: identifier
+                  regex: (?i)(rate_?limit|limiter|throttl|brute|slow_?down|captcha)
+                - kind: member_expression
+                  regex: (?i)(rate_?limit|limiter|throttl|brute|slow_?down|captcha)
+                - kind: call_expression
+                  regex: (?i)^[\w.]*(rate_?limit|limiter|throttl|brute|slow_?down|captcha)
+      # a limiter the app uses, or this route's own router, with no path or a sign-in prefix (not /uploads)
+      - all:
+        - pattern: $R.$M($$$)
+        - inside:
+            kind: program
+            stopBy: end
+            has:
+              stopBy: end
+              all:
+              - kind: call_expression
+                regex: (?i)^\w+\.use\((\s*['\"`]/?((api|v\d+)/)*((api|v\d+|auth\w*|login|log-in|signin|sign-in|sign_in|authenticate|sessions?|accounts?|users?)/?)*['\"`]\s*,)?\s*[\w.]*(rate_?limit|limiter|throttl|brute|slow_?down)
+              - any:
+                - kind: call_expression
+                  regex: ^(app|server)\.use\(
+                - pattern: $R.use($$$)
+  # an object the file declares as a plain object literal (an HTTP client wrapper named apiRouter) is no router
+  - not:
+      all:
+      - pattern: $R.$M($$$)
+      - inside:
+          stopBy: end
+          kind: program
+          has:
+            stopBy: end
+            kind: variable_declarator
+            # declared outside any function or block, so it is the binding the route's receiver names (T29-P1-C340 med 3)
+            not:
+              inside:
+                stopBy: end
+                any:
+                - kind: statement_block
+                - kind: arrow_function
+                - kind: class_body
+            all:
+            - has:
+                field: name
+                pattern:
+                  context: const $R = 0
+                  selector: identifier
+            - has:
+                field: value
+                kind: object
+min_engine: 0.39.0
+---
+id: auth-login-throttling.typescript-express.spoofable-ip-key
+practice_id: auth-login-throttling
+language: typescript
+frameworks:
+- express
+kind: violation
+rule:
+  all:
+  - any:
+    - all:
+      - kind: pair
+      - has:
+          field: key
+          kind: property_identifier
+          regex: ^keyGenerator$
+      - inside:
+          stopBy: end
+          kind: call_expression
+          regex: ^(rateLimit|slowDown)\(
+      # the first hop is the key (index 0 of the split header, shift() or at(0)), whatever else the text holds;
+      # or the whole header is, with no last-hop or rightmost-N form, no helper it is handed to, and not only tested or logged
+      - any:
+        - all:
+          - kind: pair
+            any:
+            - kind: pair
+              regex: (?s)(\.split\([^)]*\)\s*(\?\.)?\[\s*0\s*\]|\.shift\(\)|\.at\(\s*0\s*\))
+            # index 0 of a variable the file stores a split value in (const hops = xff.split(","); hops[0]), not of any
+            # array: the header's string | string[] idiom (Array.isArray(raw) ? raw[0] : raw) is no first hop (T29-P1-C340 high 2)
+            - kind: pair
+              has:
+                stopBy: end
+                kind: subscript_expression
+                all:
+                - has:
+                    field: index
+                    kind: number
+                    regex: ^0$
+                - has:
+                    field: object
+                    pattern:
+                      context: const $SPLIT_HOPS = 0
+                      selector: identifier
+                - inside:
+                    stopBy: end
+                    kind: program
+                    has:
+                      stopBy: end
+                      kind: variable_declarator
+                      all:
+                      - has:
+                          field: name
+                          pattern:
+                            context: const $SPLIT_HOPS = 0
+                            selector: identifier
+                      - has:
+                          field: value
+                          # a split stored reversed counts from the right (T29-P1-C340 low)
+                          any:
+                          - kind: call_expression
+                            regex: \.split\(
+                            not:
+                              kind: call_expression
+                              regex: \.reverse\(\)
+                          - kind: binary_expression
+                            regex: \.split\(
+                            not:
+                              kind: binary_expression
+                              regex: \.reverse\(\)
+          - has:
+              stopBy: end
+              any:
+              - kind: string
+                regex: (?i)^['\"]x-forwarded-for['\"]$
+              - kind: template_string
+                regex: (?i)^`x-forwarded-for`$
+        - all:
+          - not:
+              kind: pair
+              regex: (?i)(\.pop\(\)|\.at\(\s*-\d+\s*\)|length\s*-\s*\d+|\.slice\(\s*-1\s*\)|lastIndexOf\(|\.reverse\(\))
+          - not:
+              has:
+                stopBy: end
+                kind: call_expression
+                all:
+                - has:
+                    field: function
+                    kind: identifier
+                - not:
+                    has:
+                      field: function
+                      kind: identifier
+                      regex: ^(String|Number)$
+          - has:
+              stopBy: end
+              any:
+              - kind: string
+                regex: (?i)^['\"]x-forwarded-for['\"]$
+              - kind: template_string
+                regex: (?i)^`x-forwarded-for`$
+              not:
+                inside:
+                  stopBy: end
+                  any:
+                  - kind: parenthesized_expression
+                    inside:
+                      kind: if_statement
+                  - kind: call_expression
+                    regex: ^(console|log|logger)\.
+    - all:
+      - kind: method_definition
+      - has:
+          field: name
+          kind: property_identifier
+          regex: ^keyGenerator$
+      - inside:
+          stopBy: end
+          kind: call_expression
+          regex: ^(rateLimit|slowDown)\(
+      # the first hop is the key (index 0 of the split header, shift() or at(0)), whatever else the text holds;
+      # or the whole header is, with no last-hop or rightmost-N form, no helper it is handed to, and not only tested or logged
+      - any:
+        - all:
+          - kind: method_definition
+            any:
+            - kind: method_definition
+              regex: (?s)(\.split\([^)]*\)\s*(\?\.)?\[\s*0\s*\]|\.shift\(\)|\.at\(\s*0\s*\))
+            # index 0 of a variable the file stores a split value in (const hops = xff.split(","); hops[0]), not of any
+            # array: the header's string | string[] idiom (Array.isArray(raw) ? raw[0] : raw) is no first hop (T29-P1-C340 high 2)
+            - kind: method_definition
+              has:
+                stopBy: end
+                kind: subscript_expression
+                all:
+                - has:
+                    field: index
+                    kind: number
+                    regex: ^0$
+                - has:
+                    field: object
+                    pattern:
+                      context: const $SPLIT_HOPS = 0
+                      selector: identifier
+                - inside:
+                    stopBy: end
+                    kind: program
+                    has:
+                      stopBy: end
+                      kind: variable_declarator
+                      all:
+                      - has:
+                          field: name
+                          pattern:
+                            context: const $SPLIT_HOPS = 0
+                            selector: identifier
+                      - has:
+                          field: value
+                          # a split stored reversed counts from the right (T29-P1-C340 low)
+                          any:
+                          - kind: call_expression
+                            regex: \.split\(
+                            not:
+                              kind: call_expression
+                              regex: \.reverse\(\)
+                          - kind: binary_expression
+                            regex: \.split\(
+                            not:
+                              kind: binary_expression
+                              regex: \.reverse\(\)
+          - has:
+              stopBy: end
+              any:
+              - kind: string
+                regex: (?i)^['\"]x-forwarded-for['\"]$
+              - kind: template_string
+                regex: (?i)^`x-forwarded-for`$
+        - all:
+          - not:
+              kind: method_definition
+              regex: (?i)(\.pop\(\)|\.at\(\s*-\d+\s*\)|length\s*-\s*\d+|\.slice\(\s*-1\s*\)|lastIndexOf\(|\.reverse\(\))
+          - not:
+              has:
+                stopBy: end
+                kind: call_expression
+                all:
+                - has:
+                    field: function
+                    kind: identifier
+                - not:
+                    has:
+                      field: function
+                      kind: identifier
+                      regex: ^(String|Number)$
+          - has:
+              stopBy: end
+              any:
+              - kind: string
+                regex: (?i)^['\"]x-forwarded-for['\"]$
+              - kind: template_string
+                regex: (?i)^`x-forwarded-for`$
+              not:
+                inside:
+                  stopBy: end
+                  any:
+                  - kind: parenthesized_expression
+                    inside:
+                      kind: if_statement
+                  - kind: call_expression
+                    regex: ^(console|log|logger)\.
+    - all:
+      - kind: call_expression
+      - has:
+          field: function
+          kind: member_expression
+          regex: (?i)^\w*(limit|throttl|brute)\w*\.(consume|limit|check|hit|penalty|get)$
+      # the first hop is the key (index 0 of the split header, shift() or at(0)), whatever else the text holds;
+      # or the whole header is, with no last-hop or rightmost-N form, no helper it is handed to, and not only tested or logged
+      - any:
+        - all:
+          - kind: call_expression
+            any:
+            - kind: call_expression
+              regex: (?s)(\.split\([^)]*\)\s*(\?\.)?\[\s*0\s*\]|\.shift\(\)|\.at\(\s*0\s*\))
+            # index 0 of a variable the file stores a split value in (const hops = xff.split(","); hops[0]), not of any
+            # array: the header's string | string[] idiom (Array.isArray(raw) ? raw[0] : raw) is no first hop (T29-P1-C340 high 2)
+            - kind: call_expression
+              has:
+                stopBy: end
+                kind: subscript_expression
+                all:
+                - has:
+                    field: index
+                    kind: number
+                    regex: ^0$
+                - has:
+                    field: object
+                    pattern:
+                      context: const $SPLIT_HOPS = 0
+                      selector: identifier
+                - inside:
+                    stopBy: end
+                    kind: program
+                    has:
+                      stopBy: end
+                      kind: variable_declarator
+                      all:
+                      - has:
+                          field: name
+                          pattern:
+                            context: const $SPLIT_HOPS = 0
+                            selector: identifier
+                      - has:
+                          field: value
+                          # a split stored reversed counts from the right (T29-P1-C340 low)
+                          any:
+                          - kind: call_expression
+                            regex: \.split\(
+                            not:
+                              kind: call_expression
+                              regex: \.reverse\(\)
+                          - kind: binary_expression
+                            regex: \.split\(
+                            not:
+                              kind: binary_expression
+                              regex: \.reverse\(\)
+          - has:
+              stopBy: end
+              any:
+              - kind: string
+                regex: (?i)^['\"]x-forwarded-for['\"]$
+              - kind: template_string
+                regex: (?i)^`x-forwarded-for`$
+        - all:
+          - not:
+              kind: call_expression
+              regex: (?i)(\.pop\(\)|\.at\(\s*-\d+\s*\)|length\s*-\s*\d+|\.slice\(\s*-1\s*\)|lastIndexOf\(|\.reverse\(\))
+          - not:
+              has:
+                stopBy: end
+                kind: call_expression
+                all:
+                - has:
+                    field: function
+                    kind: identifier
+                - not:
+                    has:
+                      field: function
+                      kind: identifier
+                      regex: ^(String|Number)$
+          - has:
+              stopBy: end
+              any:
+              - kind: string
+                regex: (?i)^['\"]x-forwarded-for['\"]$
+              - kind: template_string
+                regex: (?i)^`x-forwarded-for`$
+              not:
+                inside:
+                  stopBy: end
+                  any:
+                  - kind: parenthesized_expression
+                    inside:
+                      kind: if_statement
+                  - kind: call_expression
+                    regex: ^(console|log|logger)\.
+    # a keyGenerator naming a function in the same file that takes the first hop
+    - all:
+      - kind: pair
+      - has:
+          field: key
+          kind: property_identifier
+          regex: ^keyGenerator$
+      - inside:
+          stopBy: end
+          kind: call_expression
+          regex: ^(rateLimit|slowDown)\(
+      # or an arrow or function that calls it: keyGenerator: (req) => getIp(req) (T29-P1-C340 med 1)
+      - has:
+          field: value
+          any:
+          - kind: identifier
+            pattern:
+              context: const $F = 0
+              selector: identifier
+          - any:
+            - kind: arrow_function
+            - kind: function_expression
+            has:
+              stopBy: end
+              kind: call_expression
+              has:
+                field: function
+                kind: identifier
+                pattern:
+                  context: const $F = 0
+                  selector: identifier
+      - inside:
+          stopBy: end
+          kind: program
+          has:
+            stopBy: end
+            any:
+            - kind: function_declaration
+              any:
+              - kind: function_declaration
+                regex: (?s)(\.split\([^)]*\)\s*(\?\.)?\[\s*0\s*\]|\.shift\(\)|\.at\(\s*0\s*\))
+              # index 0 of a variable the file stores a split value in (const hops = xff.split(","); hops[0]), not of any
+              # array: the header's string | string[] idiom (Array.isArray(raw) ? raw[0] : raw) is no first hop (T29-P1-C340 high 2)
+              - kind: function_declaration
+                has:
+                  stopBy: end
+                  kind: subscript_expression
+                  all:
+                  - has:
+                      field: index
+                      kind: number
+                      regex: ^0$
+                  - has:
+                      field: object
+                      pattern:
+                        context: const $SPLIT_HOPS = 0
+                        selector: identifier
+                  - inside:
+                      stopBy: end
+                      kind: program
+                      has:
+                        stopBy: end
+                        kind: variable_declarator
+                        all:
+                        - has:
+                            field: name
+                            pattern:
+                              context: const $SPLIT_HOPS = 0
+                              selector: identifier
+                        - has:
+                            field: value
+                            # a split stored reversed counts from the right (T29-P1-C340 low)
+                            any:
+                            - kind: call_expression
+                              regex: \.split\(
+                              not:
+                                kind: call_expression
+                                regex: \.reverse\(\)
+                            - kind: binary_expression
+                              regex: \.split\(
+                              not:
+                                kind: binary_expression
+                                regex: \.reverse\(\)
+              all:
+              - has:
+                  field: name
+                  pattern:
+                    context: const $F = 0
+                    selector: identifier
+              - has:
+                  stopBy: end
+                  any:
+                  - kind: string
+                    regex: (?i)^['\"]x-forwarded-for['\"]$
+                  - kind: template_string
+                    regex: (?i)^`x-forwarded-for`$
+            - kind: variable_declarator
+              any:
+              - kind: variable_declarator
+                regex: (?s)(\.split\([^)]*\)\s*(\?\.)?\[\s*0\s*\]|\.shift\(\)|\.at\(\s*0\s*\))
+              # index 0 of a variable the file stores a split value in (const hops = xff.split(","); hops[0]), not of any
+              # array: the header's string | string[] idiom (Array.isArray(raw) ? raw[0] : raw) is no first hop (T29-P1-C340 high 2)
+              - kind: variable_declarator
+                has:
+                  stopBy: end
+                  kind: subscript_expression
+                  all:
+                  - has:
+                      field: index
+                      kind: number
+                      regex: ^0$
+                  - has:
+                      field: object
+                      pattern:
+                        context: const $SPLIT_HOPS = 0
+                        selector: identifier
+                  - inside:
+                      stopBy: end
+                      kind: program
+                      has:
+                        stopBy: end
+                        kind: variable_declarator
+                        all:
+                        - has:
+                            field: name
+                            pattern:
+                              context: const $SPLIT_HOPS = 0
+                              selector: identifier
+                        - has:
+                            field: value
+                            # a split stored reversed counts from the right (T29-P1-C340 low)
+                            any:
+                            - kind: call_expression
+                              regex: \.split\(
+                              not:
+                                kind: call_expression
+                                regex: \.reverse\(\)
+                            - kind: binary_expression
+                              regex: \.split\(
+                              not:
+                                kind: binary_expression
+                                regex: \.reverse\(\)
+              all:
+              - has:
+                  field: name
+                  pattern:
+                    context: const $F = 0
+                    selector: identifier
+              - has:
+                  stopBy: end
+                  any:
+                  - kind: string
+                    regex: (?i)^['\"]x-forwarded-for['\"]$
+                  - kind: template_string
+                    regex: (?i)^`x-forwarded-for`$
+    # a limiter consuming a variable its function set to the first hop
+    - all:
+      - kind: call_expression
+      - has:
+          field: function
+          kind: member_expression
+          regex: (?i)^\w*(limit|throttl|brute)\w*\.(consume|limit|check|hit|penalty|get)$
+      - has:
+          field: arguments
+          has:
+            kind: identifier
+            pattern:
+              context: const $V = 0
+              selector: identifier
+      - inside:
+          stopBy: end
+          kind: statement_block
+          has:
+            stopBy: end
+            kind: variable_declarator
+            any:
+            - kind: variable_declarator
+              regex: (?s)(\.split\([^)]*\)\s*(\?\.)?\[\s*0\s*\]|\.shift\(\)|\.at\(\s*0\s*\))
+            # index 0 of a variable the file stores a split value in (const hops = xff.split(","); hops[0]), not of any
+            # array: the header's string | string[] idiom (Array.isArray(raw) ? raw[0] : raw) is no first hop (T29-P1-C340 high 2)
+            - kind: variable_declarator
+              has:
+                stopBy: end
+                kind: subscript_expression
+                all:
+                - has:
+                    field: index
+                    kind: number
+                    regex: ^0$
+                - has:
+                    field: object
+                    pattern:
+                      context: const $SPLIT_HOPS = 0
+                      selector: identifier
+                - inside:
+                    stopBy: end
+                    kind: program
+                    has:
+                      stopBy: end
+                      kind: variable_declarator
+                      all:
+                      - has:
+                          field: name
+                          pattern:
+                            context: const $SPLIT_HOPS = 0
+                            selector: identifier
+                      - has:
+                          field: value
+                          # a split stored reversed counts from the right (T29-P1-C340 low)
+                          any:
+                          - kind: call_expression
+                            regex: \.split\(
+                            not:
+                              kind: call_expression
+                              regex: \.reverse\(\)
+                          - kind: binary_expression
+                            regex: \.split\(
+                            not:
+                              kind: binary_expression
+                              regex: \.reverse\(\)
+            all:
+            - has:
+                field: name
+                pattern:
+                  context: const $V = 0
+                  selector: identifier
+            - has:
+                stopBy: end
+                any:
+                - kind: string
+                  regex: (?i)^['\"]x-forwarded-for['\"]$
+                - kind: template_string
+                  regex: (?i)^`x-forwarded-for`$
+  - inside:
+      stopBy: end
+      kind: program
+      has:
+        stopBy: end
+        any:
+        - kind: identifier
+          regex: (?i)^\w*(log_?in|sign_?in|auth)\w*(limit|throttl)\w*$
+        - kind: string
+          regex: (?i)^['\"][^'\"]*/(auth|login|log-in|signin|sign-in|sign_in)\b
+min_engine: 0.39.0
+---
 id: auth-login-throttling.typescript-express.route-limiter
 practice_id: auth-login-throttling
 language: typescript
@@ -109,7 +900,7 @@ kind: evidence
 rule:
   all:
   - kind: call_expression
-    regex: (?i)^\w+\.(post|use|all)\(\s*['\"`][^'\"`]*(login|signin|sign-in|token|auth)[^'\"`]*['\"`]\s*,\s*\w*(limit|throttl)\w*
+    regex: (?i)^\w+\.(post|use|all)\(\s*['\"`][^'\"`]*(login|signin|sign-in|token|auth)[^'\"`]*['\"`]\s*,\s*\w*(rate_?limit|limiter|throttl)\w*
 min_engine: 0.39.0
 ---
 id: auth-login-throttling.typescript-express.limiter-config
