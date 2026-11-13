@@ -23,6 +23,10 @@ rule:
         - any:
           - kind: member_expression
             regex: '^(req|request|ctx\.request|ctx|event)\??\.(body|query|params|rawBody)$'
+          - kind: member_expression
+            regex: '^(req|request|ctx\.request|ctx)\??\.originalUrl$'
+          - kind: identifier
+            regex: '^originalUrl$'
           - kind: call_expression
             regex: '^(c\.req|ctx\.req|req|request)\??\.(json|text|formData|parseBody)\(\)$'
           - kind: await_expression
@@ -162,6 +166,8 @@ rule:
           - all:
             - kind: identifier
             - regex: '^(patient|patients|patientData|patientRecord|patientRow|patientRows|currentPatient)$'
+            # C387 low 2: an element (patients[0]) is a patient too; the walk-up drops it when only a field
+            # that is no patient field is read off it. A string key (patient["id"]) is still a field read.
             - not:
                 any:
                 - inside:
@@ -170,6 +176,9 @@ rule:
                 - inside:
                     kind: subscript_expression
                     field: object
+                    has:
+                      field: index
+                      kind: string
           - all:
             - kind: shorthand_property_identifier
             - regex: '^(patient|patients|patientData|patientRecord|patientRow|patientRows|currentPatient)$'
@@ -177,10 +186,245 @@ rule:
             regex: '\[\s*[''\x22](ssn|SSN|dob|DOB|dateOfBirth|date_of_birth|birthDate|diagnosis|mrn|MRN|firstName|lastName|first_name|last_name)[''\x22]\s*\]$'
           - kind: spread_element
             regex: '^\.\.\.(patient|patients|patientData|patientRecord|patientRow|currentPatient)$'
+          - all:
+            - kind: member_expression
+            - regex: '\??\.(email|emailAddress|email_address|phone|phoneNumber|phone_number|mobile|mobileNumber|mobile_number)$'
+            # C339 med 1: a business or config root excludes a contact only when no person record sits
+            # between them; a contact read straight off a business object anywhere in the chain is excluded.
+            - not:
+                any:
+                - all:
+                  - kind: member_expression
+                    regex: '(?i)^(this\??\.)?(process\.env|env|\w*config|settings|smtp|twilio\w*|mailer|transporter|clinic|practice|organization|org|tenant|company|facility|office|hospital|pharmacy)\??\.'
+                  - not:
+                      kind: member_expression
+                      regex: '(?i)\??\.\w*(patients?|users?|members?|people|persons?|customers?|clients?|contacts?|profiles?|accounts?|owners?|guardians?|caregivers?|recipients?|employees?)\w*(\??\.|\[|!)'
+                - kind: member_expression
+                  regex: '(?i)[.?](\w*config|settings|clinic|practice|organization|org|tenant|company|facility|office|hospital|pharmacy)\??\.(email|emailAddress|email_address|phone|phoneNumber|phone_number|mobile|mobileNumber|mobile_number)$'
+          - all:
+            - kind: identifier
+            - regex: '^(email|emailAddress|email_address|phone|phoneNumber|phone_number|mobile|mobileNumber|mobile_number|[a-z][A-Za-z]*(Email|Phone|PhoneNumber)|[a-z][a-z0-9_]*_(email|phone|phone_number))$'
+            - not:
+                kind: identifier
+                regex: '^(from|sender|support|admin|smtp|noreply|noReply|no_reply|replyTo|reply_to|company|system|default|test|sample|example|mask|masked|hash|hashed|redact|redacted|obfuscated|template|welcome|twilio|mailer|transporter|clinic|practice|organization|org|tenant|facility|office|hospital|pharmacy|is|has|should|can|notify|allow|enable)[A-Z_]'
+            - not:
+                any:
+                - inside:
+                    kind: member_expression
+                    field: object
+                - inside:
+                    kind: subscript_expression
+                    field: object
+                - inside:
+                    kind: call_expression
+                    field: function
+          - all:
+            - kind: shorthand_property_identifier
+            - regex: '^(email|emailAddress|email_address|phone|phoneNumber|phone_number|mobile|mobileNumber|mobile_number|[a-z][A-Za-z]*(Email|Phone|PhoneNumber)|[a-z][a-z0-9_]*_(email|phone|phone_number))$'
+            - not:
+                kind: shorthand_property_identifier
+                regex: '^(from|sender|support|admin|smtp|noreply|noReply|no_reply|replyTo|reply_to|company|system|default|test|sample|example|mask|masked|hash|hashed|redact|redacted|obfuscated|template|welcome|twilio|mailer|transporter|clinic|practice|organization|org|tenant|facility|office|hospital|pharmacy|is|has|should|can|notify|allow|enable)[A-Z_]'
+          - kind: shorthand_property_identifier
+            regex: '^(user|users|currentUser|current_user|vitals|medications|prescriptions|allergies|labValues|lab_values|labResults|lab_results|lab_value_rows|labValueRows)$'
+          - all:
+            - kind: identifier
+            - regex: '^(user|users|currentUser|current_user|vitals|medications|prescriptions|allergies|labValues|lab_values|labResults|lab_results|lab_value_rows|labValueRows)$'
+            - not:
+                any:
+                - inside:
+                    kind: member_expression
+                    field: object
+                - inside:
+                    kind: subscript_expression
+                    field: object
+                - inside:
+                    kind: call_expression
+                    field: function
+          - all:
+            - kind: identifier
+            - pattern:
+                context: 'const $REC = 0'
+                selector: identifier
+            - not:
+                any:
+                - inside:
+                    kind: member_expression
+                    field: object
+                - inside:
+                    kind: subscript_expression
+                    field: object
+                - inside:
+                    kind: call_expression
+                    field: function
+            # C339 med 5: the write is looked for only near the log: in the log's own statement or the 6 before or after
+            # it (comments count), and the same one block out. A long function costs no more than a short one.
+            # Known limit (C387 low 3): a log of the stored record 7 or more statements after the write, 7 or more before
+            # it, or two blocks out (an if, then a for) gives no match. This trades those cases for speed on long functions.
+            - inside:
+                stopBy:
+                  inside:
+                    kind: statement_block
+                all:
+                - inside:
+                    kind: statement_block
+                - any:
+                  - any: &near
+                    - has: &rec
+                        stopBy: end
+                        kind: pair
+                        all:
+                        - pattern:
+                            context: '({ data: $REC })'
+                            selector: pair
+                        - inside:
+                            kind: object
+                            inside:
+                              kind: arguments
+                              inside:
+                                kind: call_expression
+                                has:
+                                  field: function
+                                  kind: member_expression
+                                  regex: '(?i)\.(user|users|patient|patients|person|people|member|members|reading|readings|vital|vitals|appointment|appointments|profile|profiles|contact|contacts)\.(create|createMany|update|updateMany|upsert)$'
+                    - follows:
+                        stopBy: neighbor
+                        any:
+                        - has: *rec
+                        - follows:
+                            stopBy: neighbor
+                            any:
+                            - has: *rec
+                            - follows:
+                                stopBy: neighbor
+                                any:
+                                - has: *rec
+                                - follows:
+                                    stopBy: neighbor
+                                    any:
+                                    - has: *rec
+                                    - follows:
+                                        stopBy: neighbor
+                                        any:
+                                        - has: *rec
+                                        - follows:
+                                            stopBy: neighbor
+                                            has: *rec
+                    - precedes:
+                        stopBy: neighbor
+                        any:
+                        - has: *rec
+                        - precedes:
+                            stopBy: neighbor
+                            any:
+                            - has: *rec
+                            - precedes:
+                                stopBy: neighbor
+                                any:
+                                - has: *rec
+                                - precedes:
+                                    stopBy: neighbor
+                                    any:
+                                    - has: *rec
+                                    - precedes:
+                                        stopBy: neighbor
+                                        any:
+                                        - has: *rec
+                                        - precedes:
+                                            stopBy: neighbor
+                                            has: *rec
+                  - inside:
+                      stopBy:
+                        inside:
+                          kind: statement_block
+                      all:
+                      - inside:
+                          kind: statement_block
+                      - any: *near
         - not:
             inside:
               kind: member_expression
               field: object
+        # C339 med 4: a value that is only the test of a ternary, or the left side of &&, is never what the line logs.
+        - not:
+            any:
+            - inside:
+                kind: ternary_expression
+                field: condition
+            - inside:
+                kind: binary_expression
+                field: left
+                pattern: '$_ && $_'
+        - not:
+            inside:
+              stopBy:
+                not:
+                  any:
+                  - kind: parenthesized_expression
+                  - kind: non_null_expression
+                  - kind: as_expression
+                  - kind: satisfies_expression
+                  - kind: binary_expression
+                    any:
+                    - pattern: '$_ || $_'
+                    - pattern: '$_ ?? $_'
+              any:
+              # C339 high 1: a member read drops the value only when it reads no patient field, and an element
+              # read only when that element is then read for such a member.
+              - kind: member_expression
+                not:
+                  has:
+                    field: property
+                    kind: property_identifier
+                    regex: '^(name|firstName|lastName|first_name|last_name|fullName|full_name|email|emailAddress|email_address|phone|phoneNumber|phone_number|mobile|mobileNumber|mobile_number|address|notes|ssn|SSN|socialSecurityNumber|social_security_number|dob|DOB|dateOfBirth|date_of_birth|birthDate|birth_date|diagnosis|diagnoses|mrn|MRN|medicalRecordNumber|medical_record_number|insuranceNumber|insurance_number|clinicalNotes|clinical_notes)$'
+              - kind: subscript_expression
+                inside:
+                  kind: member_expression
+                  field: object
+                  not:
+                    has:
+                      field: property
+                      kind: property_identifier
+                      regex: '^(name|firstName|lastName|first_name|last_name|fullName|full_name|email|emailAddress|email_address|phone|phoneNumber|phone_number|mobile|mobileNumber|mobile_number|address|notes|ssn|SSN|socialSecurityNumber|social_security_number|dob|DOB|dateOfBirth|date_of_birth|birthDate|birth_date|diagnosis|diagnoses|mrn|MRN|medicalRecordNumber|medical_record_number|insuranceNumber|insurance_number|clinicalNotes|clinical_notes)$'
+              - kind: unary_expression
+              - kind: binary_expression
+                any:
+                - pattern: '$_ === $_'
+                - pattern: '$_ !== $_'
+                - pattern: '$_ == $_'
+                - pattern: '$_ != $_'
+                - pattern: '$_ < $_'
+                - pattern: '$_ > $_'
+                - pattern: '$_ <= $_'
+                - pattern: '$_ >= $_'
+                - pattern: '$_ instanceof $_'
+                - pattern: '$_ in $_'
+              - kind: ternary_expression
+                all:
+                - has:
+                    field: consequence
+                    any: &lit
+                    - kind: string
+                    - kind: number
+                    - kind: 'true'
+                    - kind: 'false'
+                    - kind: 'null'
+                    - kind: undefined
+                - has:
+                    field: alternative
+                    any: *lit
+              - kind: arguments
+                inside:
+                  kind: call_expression
+                  not:
+                    has:
+                      field: function
+                      any:
+                      - kind: member_expression
+                        regex: '^(console|logger|log|LOG|Logger|pino|winston|globalLogger|this\.logger|this\.log|this\._logger|req\.log|request\.log|ctx\.log|fastify\.log|app\.log|server\.log)(\.child\([^)]*\))?\.(log|info|debug|warn|error|trace|fatal|verbose|silly)$|^JSON\.stringify$|^util\.inspect$'
+                      - kind: identifier
+                        regex: '^(String|inspect)$'
+                      - kind: subscript_expression
+                        regex: '^console\[[''\x22](log|info|debug|warn|error|trace)[''\x22]\]$'
         - not:
             inside:
               kind: arguments

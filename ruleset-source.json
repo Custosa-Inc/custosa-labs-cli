@@ -1,6 +1,6 @@
 {
-  "ruleset_id": "2026-11-13.aa515655",
-  "content_sha256": "aa515655ae4bc86744b1707ab59404451f45fe20f28100d2ceb2343fbe7b12ac",
-  "manifest_sha256": "d89ce64140eea204c17a89043f7a4e6de30c49acde8c7bf6b08517eca555d261",
+  "ruleset_id": "2026-11-13.24c73f02",
+  "content_sha256": "24c73f026066f2ecd87a33873d2e4a21e25bdd7f780bc03c78932e134a581e53",
+  "manifest_sha256": "b30b6c3f18de215225532f0902191af1d259f74a1048cf428aa8e13de2e9744c",
   "source": "the evaluator's app/knowledge"
 }
