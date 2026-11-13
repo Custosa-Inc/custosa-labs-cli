@@ -4,19 +4,24 @@
 # token, Clerk's getAuth(req) but never a bare getAuth() or firebase-admin's) or a Supabase client running as the
 # caller, outside any branch. Whether the record check follows is dataflow (needs_review). Wrapped exports (export
 # const GET = withAuth(...)) and handlers defined in another file are left out.
-# Known limits (T29-P1-C338, T29-P1-C346), each a false fail unless it says otherwise:
+# Known limits (T29-P1-C338, T29-P1-C346, T29-P3-C385), each a false fail unless it says otherwise:
 # - request = NextResponse.next() reassigned onto the middleware's parameter is not followed by the request-cookie skip.
 # - The data-call checks read x.insert(y), x.update(y), x.delete(y), x.create(y) and x.delete() on any receiver but a
 #   builtin or a crypto hash, so a Map's or Set's delete, this.cache.delete(id), url.searchParams.delete(...),
 #   x.cookies.delete(...) and this.hmac.update(...) before a guard read as data calls.
 # - Not read as data calls before a guard (false passes): supabaseAdmin.auth.admin calls, @vercel/postgres tagged sql,
-#   Kysely deleteFrom and selectFrom, fetch to /rest/v1, Mongoose findByIdAndDelete, Mongo insertOne, Firestore set.
-#   route-request has no data-call-before check at all.
+#   Kysely deleteFrom and selectFrom without .execute(), fetch to /rest/v1, Mongoose findByIdAndDelete, Mongo
+#   insertOne, Firestore set, and a data client under a builtin name (Object.query(...)). route-request has no
+#   data-call-before check at all.
+# - A data call inside a helper is not seen in a finally or before the guard (false passes): finally { await
+#   releaseLock(id); } or await dropDraft(id); await guard(); where the helper deletes a row.
 # - A fixed role value is a string literal, a file-top const string or a member of an enum imported from Prisma's
-#   client; "admin" as const, a local enum and an imported bare const are not.
-# - A guard's x?.field === undefined counts unless x comes from auth(), validateRequest() or supabase's getUser or
-#   getClaims; an iron-session session.user === undefined, (await currentUser()) ?? redirect(...), a result normalised
-#   ?? undefined, an as cast under the chain and a computed member on null are no denials.
+#   client; "admin" as const, a local enum, an imported bare const and $Enums.Role.ADMIN are not.
+# - A guard's x?.field === undefined counts unless x is bound (const or let, whole, or a shorthand key of a getUser or
+#   getClaims destructure) from auth(), validateRequest() or supabase's getUser or getClaims; an iron-session
+#   session.user === undefined, (await currentUser()) ?? redirect(...), a result normalised ?? undefined, an as cast
+#   under the chain and a computed member on null are no denials. Some real denials on those results are refused too:
+#   Clerk's s?.sessionClaims?.metadata?.role === undefined and next-auth v5's session?.user === undefined on auth().
 # - A try whose catch neither throws nor returns counts only when nothing follows it in its block; a nested try, a catch
 #   return inside a block and a guard wrapper whose load sits in a try are no control.
 # - An aliased or namespace next/navigation exit (redirect as go, import * as nav) is no exit, and a data call in a
@@ -68,7 +73,11 @@ control:
       - kind: class_body
       - kind: function_declaration
         inside:
-          kind: statement_block
+          # or a switch case (T29-P3-C385 med 2)
+          any:
+          - kind: statement_block
+          - kind: switch_case
+          - kind: switch_default
       - any:
         - kind: arrow_function
         - kind: function_expression
@@ -79,7 +88,11 @@ control:
             - kind: lexical_declaration
             - kind: variable_declaration
             inside:
-              kind: statement_block
+              # or a switch case (T29-P3-C385 med 2)
+              any:
+              - kind: statement_block
+              - kind: switch_case
+              - kind: switch_default
     any:
     - any:
       - pattern: auth()
@@ -245,7 +258,11 @@ control:
       - kind: class_body
       - kind: function_declaration
         inside:
-          kind: statement_block
+          # or a switch case (T29-P3-C385 med 2)
+          any:
+          - kind: statement_block
+          - kind: switch_case
+          - kind: switch_default
       - any:
         - kind: arrow_function
         - kind: function_expression
@@ -256,7 +273,11 @@ control:
             - kind: lexical_declaration
             - kind: variable_declaration
             inside:
-              kind: statement_block
+              # or a switch case (T29-P3-C385 med 2)
+              any:
+              - kind: statement_block
+              - kind: switch_case
+              - kind: switch_default
     any:
     - any:
       - pattern: auth()
@@ -481,7 +502,11 @@ control:
       - kind: class_body
       - kind: function_declaration
         inside:
-          kind: statement_block
+          # or a switch case (T29-P3-C385 med 2)
+          any:
+          - kind: statement_block
+          - kind: switch_case
+          - kind: switch_default
       - any:
         - kind: arrow_function
         - kind: function_expression
@@ -492,7 +517,11 @@ control:
             - kind: lexical_declaration
             - kind: variable_declaration
             inside:
-              kind: statement_block
+              # or a switch case (T29-P3-C385 med 2)
+              any:
+              - kind: statement_block
+              - kind: switch_case
+              - kind: switch_default
     any:
     - any:
       - pattern: auth()
@@ -711,7 +740,11 @@ control:
       - kind: class_body
       - kind: function_declaration
         inside:
-          kind: statement_block
+          # or a switch case (T29-P3-C385 med 2)
+          any:
+          - kind: statement_block
+          - kind: switch_case
+          - kind: switch_default
       - any:
         - kind: arrow_function
         - kind: function_expression
@@ -722,7 +755,11 @@ control:
             - kind: lexical_declaration
             - kind: variable_declaration
             inside:
-              kind: statement_block
+              # or a switch case (T29-P3-C385 med 2)
+              any:
+              - kind: statement_block
+              - kind: switch_case
+              - kind: switch_default
     any:
     - all:
       - any:
@@ -824,6 +861,23 @@ control:
                                 - kind: labeled_statement
                                 - kind: statement_block
                                 - kind: empty_statement
+                                # and every other statement kind, so no kind hides a write after the try (T29-P3-C385 med 1)
+                                - kind: generator_function_declaration
+                                - kind: type_alias_declaration
+                                - kind: interface_declaration
+                                - kind: enum_declaration
+                                - kind: abstract_class_declaration
+                                - kind: function_signature
+                                - kind: module
+                                - kind: internal_module
+                                - kind: ambient_declaration
+                                - kind: import_alias
+                                - kind: import_statement
+                                - kind: export_statement
+                                - kind: debugger_statement
+                                - kind: with_statement
+                                - kind: break_statement
+                                - kind: continue_statement
                         - not:
                             has:
                               field: handler
@@ -2525,6 +2579,23 @@ control:
                                   - kind: labeled_statement
                                   - kind: statement_block
                                   - kind: empty_statement
+                                  # and every other statement kind, so no kind hides a write after the try (T29-P3-C385 med 1)
+                                  - kind: generator_function_declaration
+                                  - kind: type_alias_declaration
+                                  - kind: interface_declaration
+                                  - kind: enum_declaration
+                                  - kind: abstract_class_declaration
+                                  - kind: function_signature
+                                  - kind: module
+                                  - kind: internal_module
+                                  - kind: ambient_declaration
+                                  - kind: import_alias
+                                  - kind: import_statement
+                                  - kind: export_statement
+                                  - kind: debugger_statement
+                                  - kind: with_statement
+                                  - kind: break_statement
+                                  - kind: continue_statement
                           - not:
                               has:
                                 field: handler
@@ -4224,6 +4295,23 @@ control:
                             - kind: labeled_statement
                             - kind: statement_block
                             - kind: empty_statement
+                            # and every other statement kind, so no kind hides a write after the try (T29-P3-C385 med 1)
+                            - kind: generator_function_declaration
+                            - kind: type_alias_declaration
+                            - kind: interface_declaration
+                            - kind: enum_declaration
+                            - kind: abstract_class_declaration
+                            - kind: function_signature
+                            - kind: module
+                            - kind: internal_module
+                            - kind: ambient_declaration
+                            - kind: import_alias
+                            - kind: import_statement
+                            - kind: export_statement
+                            - kind: debugger_statement
+                            - kind: with_statement
+                            - kind: break_statement
+                            - kind: continue_statement
                     - not:
                         has:
                           field: handler
@@ -5925,6 +6013,23 @@ control:
                               - kind: labeled_statement
                               - kind: statement_block
                               - kind: empty_statement
+                              # and every other statement kind, so no kind hides a write after the try (T29-P3-C385 med 1)
+                              - kind: generator_function_declaration
+                              - kind: type_alias_declaration
+                              - kind: interface_declaration
+                              - kind: enum_declaration
+                              - kind: abstract_class_declaration
+                              - kind: function_signature
+                              - kind: module
+                              - kind: internal_module
+                              - kind: ambient_declaration
+                              - kind: import_alias
+                              - kind: import_statement
+                              - kind: export_statement
+                              - kind: debugger_statement
+                              - kind: with_statement
+                              - kind: break_statement
+                              - kind: continue_statement
                       - not:
                           has:
                             field: handler
@@ -9746,6 +9851,7 @@ control:
                                       - pattern: '$R?.$F?.$G?.$H === undefined'
                                       - pattern: '$R?.$F?.$G === undefined'
                                       - pattern: '$R?.$F === undefined'
+                                      - pattern: '$R?.[$K] === undefined'
                                     - inside:
                                         stopBy: end
                                         any:
@@ -9755,13 +9861,38 @@ control:
                                         - kind: method_definition
                                         has:
                                           stopBy: end
+                                          kind: variable_declarator
+                                          # const or let (T29-P3-C385 high 1)
                                           any:
-                                          - pattern: 'const $R = await auth()'
-                                          - pattern: 'const $R = await validateRequest($$$)'
-                                          - pattern: 'const $R = await $C.auth.getUser($$$)'
-                                          - pattern: 'const $R = await $C.auth.getClaims($$$)'
-                                          - pattern: 'const { $R } = await $C.auth.getUser($$$)'
-                                          - pattern: 'const { $R } = await $C.auth.getClaims($$$)'
+                                          - all:
+                                            - has:
+                                                field: name
+                                                kind: identifier
+                                                pattern:
+                                                  context: const $R = 0
+                                                  selector: identifier
+                                            - has:
+                                                field: value
+                                                any:
+                                                - pattern: 'await auth()'
+                                                - pattern: 'await validateRequest($$$)'
+                                                - pattern: 'await $C.auth.getUser($$$)'
+                                                - pattern: 'await $C.auth.getClaims($$$)'
+                                          # a shorthand key of a destructure with any other keys: const { data, error } = await supabase.auth.getUser()
+                                          - all:
+                                            - has:
+                                                field: name
+                                                kind: object_pattern
+                                                has:
+                                                  kind: shorthand_property_identifier_pattern
+                                                  pattern:
+                                                    context: const { $R } = 0
+                                                    selector: shorthand_property_identifier_pattern
+                                            - has:
+                                                field: value
+                                                any:
+                                                - pattern: 'await $C.auth.getUser($$$)'
+                                                - pattern: 'await $C.auth.getClaims($$$)'
                               - pattern: '$_ == undefined'
                               - all:
                                 - pattern: '$_ === void 0'
@@ -9775,6 +9906,7 @@ control:
                                       - pattern: '$R?.$F?.$G?.$H === void 0'
                                       - pattern: '$R?.$F?.$G === void 0'
                                       - pattern: '$R?.$F === void 0'
+                                      - pattern: '$R?.[$K] === void 0'
                                     - inside:
                                         stopBy: end
                                         any:
@@ -9784,13 +9916,38 @@ control:
                                         - kind: method_definition
                                         has:
                                           stopBy: end
+                                          kind: variable_declarator
+                                          # const or let (T29-P3-C385 high 1)
                                           any:
-                                          - pattern: 'const $R = await auth()'
-                                          - pattern: 'const $R = await validateRequest($$$)'
-                                          - pattern: 'const $R = await $C.auth.getUser($$$)'
-                                          - pattern: 'const $R = await $C.auth.getClaims($$$)'
-                                          - pattern: 'const { $R } = await $C.auth.getUser($$$)'
-                                          - pattern: 'const { $R } = await $C.auth.getClaims($$$)'
+                                          - all:
+                                            - has:
+                                                field: name
+                                                kind: identifier
+                                                pattern:
+                                                  context: const $R = 0
+                                                  selector: identifier
+                                            - has:
+                                                field: value
+                                                any:
+                                                - pattern: 'await auth()'
+                                                - pattern: 'await validateRequest($$$)'
+                                                - pattern: 'await $C.auth.getUser($$$)'
+                                                - pattern: 'await $C.auth.getClaims($$$)'
+                                          # a shorthand key of a destructure with any other keys: const { data, error } = await supabase.auth.getUser()
+                                          - all:
+                                            - has:
+                                                field: name
+                                                kind: object_pattern
+                                                has:
+                                                  kind: shorthand_property_identifier_pattern
+                                                  pattern:
+                                                    context: const { $R } = 0
+                                                    selector: shorthand_property_identifier_pattern
+                                            - has:
+                                                field: value
+                                                any:
+                                                - pattern: 'await $C.auth.getUser($$$)'
+                                                - pattern: 'await $C.auth.getClaims($$$)'
                               - pattern: '$_ == void 0'
                               has:
                                 field: left
@@ -10442,7 +10599,7 @@ control:
                                                 stopBy: end
                                                 has:
                                                   kind: import_statement
-                                                  regex: '[''"](@prisma/client|\.prisma/client|[^''"]*/generated/prisma[^''"]*)[''"]'
+                                                  regex: '[''"](@prisma/client|\.prisma/client|[^''"]*/generated/prisma(/(client|enums|browser))?)[''"]'
                                                   not:
                                                     kind: import_statement
                                                     regex: '^import\s+type\b'
@@ -10451,7 +10608,8 @@ control:
                                                     kind: import_specifier
                                                     not:
                                                       kind: import_specifier
-                                                      regex: '^type\s'
+                                                      # a type, Prisma's namespace or its client class is no enum (T29-P3-C385 low 1)
+                                                      regex: '^(type\s|(Prisma|PrismaClient)\b)'
                                                     any:
                                                     - has:
                                                         field: alias
@@ -10494,6 +10652,27 @@ control:
                                                       context: 'const { $FIXED } = o'
                                                       selector: shorthand_property_identifier_pattern
                                                   - kind: required_parameter
+                                                    has:
+                                                      field: pattern
+                                                      kind: identifier
+                                                      pattern:
+                                                        context: const $FIXED = 0
+                                                        selector: identifier
+                                                  # T29-P3-C385 med 3: a renamed destructure ({ roles: Role }), an array pattern ([Role]) or an optional parameter
+                                                  - kind: pair_pattern
+                                                    has:
+                                                      field: value
+                                                      kind: identifier
+                                                      pattern:
+                                                        context: const $FIXED = 0
+                                                        selector: identifier
+                                                  - kind: array_pattern
+                                                    has:
+                                                      kind: identifier
+                                                      pattern:
+                                                        context: const $FIXED = 0
+                                                        selector: identifier
+                                                  - kind: optional_parameter
                                                     has:
                                                       field: pattern
                                                       kind: identifier
@@ -10563,6 +10742,27 @@ control:
                                                       context: 'const { $FIXED } = o'
                                                       selector: shorthand_property_identifier_pattern
                                                   - kind: required_parameter
+                                                    has:
+                                                      field: pattern
+                                                      kind: identifier
+                                                      pattern:
+                                                        context: const $FIXED = 0
+                                                        selector: identifier
+                                                  # T29-P3-C385 med 3: a renamed destructure ({ roles: Role }), an array pattern ([Role]) or an optional parameter
+                                                  - kind: pair_pattern
+                                                    has:
+                                                      field: value
+                                                      kind: identifier
+                                                      pattern:
+                                                        context: const $FIXED = 0
+                                                        selector: identifier
+                                                  - kind: array_pattern
+                                                    has:
+                                                      kind: identifier
+                                                      pattern:
+                                                        context: const $FIXED = 0
+                                                        selector: identifier
+                                                  - kind: optional_parameter
                                                     has:
                                                       field: pattern
                                                       kind: identifier
@@ -10596,7 +10796,7 @@ control:
                                                 stopBy: end
                                                 has:
                                                   kind: import_statement
-                                                  regex: '[''"](@prisma/client|\.prisma/client|[^''"]*/generated/prisma[^''"]*)[''"]'
+                                                  regex: '[''"](@prisma/client|\.prisma/client|[^''"]*/generated/prisma(/(client|enums|browser))?)[''"]'
                                                   not:
                                                     kind: import_statement
                                                     regex: '^import\s+type\b'
@@ -10605,7 +10805,8 @@ control:
                                                     kind: import_specifier
                                                     not:
                                                       kind: import_specifier
-                                                      regex: '^type\s'
+                                                      # a type, Prisma's namespace or its client class is no enum (T29-P3-C385 low 1)
+                                                      regex: '^(type\s|(Prisma|PrismaClient)\b)'
                                                     any:
                                                     - has:
                                                         field: alias
@@ -10648,6 +10849,27 @@ control:
                                                       context: 'const { $FIXED } = o'
                                                       selector: shorthand_property_identifier_pattern
                                                   - kind: required_parameter
+                                                    has:
+                                                      field: pattern
+                                                      kind: identifier
+                                                      pattern:
+                                                        context: const $FIXED = 0
+                                                        selector: identifier
+                                                  # T29-P3-C385 med 3: a renamed destructure ({ roles: Role }), an array pattern ([Role]) or an optional parameter
+                                                  - kind: pair_pattern
+                                                    has:
+                                                      field: value
+                                                      kind: identifier
+                                                      pattern:
+                                                        context: const $FIXED = 0
+                                                        selector: identifier
+                                                  - kind: array_pattern
+                                                    has:
+                                                      kind: identifier
+                                                      pattern:
+                                                        context: const $FIXED = 0
+                                                        selector: identifier
+                                                  - kind: optional_parameter
                                                     has:
                                                       field: pattern
                                                       kind: identifier
@@ -10717,6 +10939,27 @@ control:
                                                       context: 'const { $FIXED } = o'
                                                       selector: shorthand_property_identifier_pattern
                                                   - kind: required_parameter
+                                                    has:
+                                                      field: pattern
+                                                      kind: identifier
+                                                      pattern:
+                                                        context: const $FIXED = 0
+                                                        selector: identifier
+                                                  # T29-P3-C385 med 3: a renamed destructure ({ roles: Role }), an array pattern ([Role]) or an optional parameter
+                                                  - kind: pair_pattern
+                                                    has:
+                                                      field: value
+                                                      kind: identifier
+                                                      pattern:
+                                                        context: const $FIXED = 0
+                                                        selector: identifier
+                                                  - kind: array_pattern
+                                                    has:
+                                                      kind: identifier
+                                                      pattern:
+                                                        context: const $FIXED = 0
+                                                        selector: identifier
+                                                  - kind: optional_parameter
                                                     has:
                                                       field: pattern
                                                       kind: identifier
@@ -10785,6 +11028,7 @@ control:
                                         - pattern: '$R?.$F?.$G?.$H === undefined'
                                         - pattern: '$R?.$F?.$G === undefined'
                                         - pattern: '$R?.$F === undefined'
+                                        - pattern: '$R?.[$K] === undefined'
                                       - inside:
                                           stopBy: end
                                           any:
@@ -10794,13 +11038,38 @@ control:
                                           - kind: method_definition
                                           has:
                                             stopBy: end
+                                            kind: variable_declarator
+                                            # const or let (T29-P3-C385 high 1)
                                             any:
-                                            - pattern: 'const $R = await auth()'
-                                            - pattern: 'const $R = await validateRequest($$$)'
-                                            - pattern: 'const $R = await $C.auth.getUser($$$)'
-                                            - pattern: 'const $R = await $C.auth.getClaims($$$)'
-                                            - pattern: 'const { $R } = await $C.auth.getUser($$$)'
-                                            - pattern: 'const { $R } = await $C.auth.getClaims($$$)'
+                                            - all:
+                                              - has:
+                                                  field: name
+                                                  kind: identifier
+                                                  pattern:
+                                                    context: const $R = 0
+                                                    selector: identifier
+                                              - has:
+                                                  field: value
+                                                  any:
+                                                  - pattern: 'await auth()'
+                                                  - pattern: 'await validateRequest($$$)'
+                                                  - pattern: 'await $C.auth.getUser($$$)'
+                                                  - pattern: 'await $C.auth.getClaims($$$)'
+                                            # a shorthand key of a destructure with any other keys: const { data, error } = await supabase.auth.getUser()
+                                            - all:
+                                              - has:
+                                                  field: name
+                                                  kind: object_pattern
+                                                  has:
+                                                    kind: shorthand_property_identifier_pattern
+                                                    pattern:
+                                                      context: const { $R } = 0
+                                                      selector: shorthand_property_identifier_pattern
+                                              - has:
+                                                  field: value
+                                                  any:
+                                                  - pattern: 'await $C.auth.getUser($$$)'
+                                                  - pattern: 'await $C.auth.getClaims($$$)'
                                 - pattern: '$_ == undefined'
                                 - all:
                                   - pattern: '$_ === void 0'
@@ -10814,6 +11083,7 @@ control:
                                         - pattern: '$R?.$F?.$G?.$H === void 0'
                                         - pattern: '$R?.$F?.$G === void 0'
                                         - pattern: '$R?.$F === void 0'
+                                        - pattern: '$R?.[$K] === void 0'
                                       - inside:
                                           stopBy: end
                                           any:
@@ -10823,13 +11093,38 @@ control:
                                           - kind: method_definition
                                           has:
                                             stopBy: end
+                                            kind: variable_declarator
+                                            # const or let (T29-P3-C385 high 1)
                                             any:
-                                            - pattern: 'const $R = await auth()'
-                                            - pattern: 'const $R = await validateRequest($$$)'
-                                            - pattern: 'const $R = await $C.auth.getUser($$$)'
-                                            - pattern: 'const $R = await $C.auth.getClaims($$$)'
-                                            - pattern: 'const { $R } = await $C.auth.getUser($$$)'
-                                            - pattern: 'const { $R } = await $C.auth.getClaims($$$)'
+                                            - all:
+                                              - has:
+                                                  field: name
+                                                  kind: identifier
+                                                  pattern:
+                                                    context: const $R = 0
+                                                    selector: identifier
+                                              - has:
+                                                  field: value
+                                                  any:
+                                                  - pattern: 'await auth()'
+                                                  - pattern: 'await validateRequest($$$)'
+                                                  - pattern: 'await $C.auth.getUser($$$)'
+                                                  - pattern: 'await $C.auth.getClaims($$$)'
+                                            # a shorthand key of a destructure with any other keys: const { data, error } = await supabase.auth.getUser()
+                                            - all:
+                                              - has:
+                                                  field: name
+                                                  kind: object_pattern
+                                                  has:
+                                                    kind: shorthand_property_identifier_pattern
+                                                    pattern:
+                                                      context: const { $R } = 0
+                                                      selector: shorthand_property_identifier_pattern
+                                              - has:
+                                                  field: value
+                                                  any:
+                                                  - pattern: 'await $C.auth.getUser($$$)'
+                                                  - pattern: 'await $C.auth.getClaims($$$)'
                                 - pattern: '$_ == void 0'
                                 has:
                                   field: left
@@ -11481,7 +11776,7 @@ control:
                                                   stopBy: end
                                                   has:
                                                     kind: import_statement
-                                                    regex: '[''"](@prisma/client|\.prisma/client|[^''"]*/generated/prisma[^''"]*)[''"]'
+                                                    regex: '[''"](@prisma/client|\.prisma/client|[^''"]*/generated/prisma(/(client|enums|browser))?)[''"]'
                                                     not:
                                                       kind: import_statement
                                                       regex: '^import\s+type\b'
@@ -11490,7 +11785,8 @@ control:
                                                       kind: import_specifier
                                                       not:
                                                         kind: import_specifier
-                                                        regex: '^type\s'
+                                                        # a type, Prisma's namespace or its client class is no enum (T29-P3-C385 low 1)
+                                                        regex: '^(type\s|(Prisma|PrismaClient)\b)'
                                                       any:
                                                       - has:
                                                           field: alias
@@ -11533,6 +11829,27 @@ control:
                                                         context: 'const { $FIXED } = o'
                                                         selector: shorthand_property_identifier_pattern
                                                     - kind: required_parameter
+                                                      has:
+                                                        field: pattern
+                                                        kind: identifier
+                                                        pattern:
+                                                          context: const $FIXED = 0
+                                                          selector: identifier
+                                                    # T29-P3-C385 med 3: a renamed destructure ({ roles: Role }), an array pattern ([Role]) or an optional parameter
+                                                    - kind: pair_pattern
+                                                      has:
+                                                        field: value
+                                                        kind: identifier
+                                                        pattern:
+                                                          context: const $FIXED = 0
+                                                          selector: identifier
+                                                    - kind: array_pattern
+                                                      has:
+                                                        kind: identifier
+                                                        pattern:
+                                                          context: const $FIXED = 0
+                                                          selector: identifier
+                                                    - kind: optional_parameter
                                                       has:
                                                         field: pattern
                                                         kind: identifier
@@ -11602,6 +11919,27 @@ control:
                                                         context: 'const { $FIXED } = o'
                                                         selector: shorthand_property_identifier_pattern
                                                     - kind: required_parameter
+                                                      has:
+                                                        field: pattern
+                                                        kind: identifier
+                                                        pattern:
+                                                          context: const $FIXED = 0
+                                                          selector: identifier
+                                                    # T29-P3-C385 med 3: a renamed destructure ({ roles: Role }), an array pattern ([Role]) or an optional parameter
+                                                    - kind: pair_pattern
+                                                      has:
+                                                        field: value
+                                                        kind: identifier
+                                                        pattern:
+                                                          context: const $FIXED = 0
+                                                          selector: identifier
+                                                    - kind: array_pattern
+                                                      has:
+                                                        kind: identifier
+                                                        pattern:
+                                                          context: const $FIXED = 0
+                                                          selector: identifier
+                                                    - kind: optional_parameter
                                                       has:
                                                         field: pattern
                                                         kind: identifier
@@ -11635,7 +11973,7 @@ control:
                                                   stopBy: end
                                                   has:
                                                     kind: import_statement
-                                                    regex: '[''"](@prisma/client|\.prisma/client|[^''"]*/generated/prisma[^''"]*)[''"]'
+                                                    regex: '[''"](@prisma/client|\.prisma/client|[^''"]*/generated/prisma(/(client|enums|browser))?)[''"]'
                                                     not:
                                                       kind: import_statement
                                                       regex: '^import\s+type\b'
@@ -11644,7 +11982,8 @@ control:
                                                       kind: import_specifier
                                                       not:
                                                         kind: import_specifier
-                                                        regex: '^type\s'
+                                                        # a type, Prisma's namespace or its client class is no enum (T29-P3-C385 low 1)
+                                                        regex: '^(type\s|(Prisma|PrismaClient)\b)'
                                                       any:
                                                       - has:
                                                           field: alias
@@ -11687,6 +12026,27 @@ control:
                                                         context: 'const { $FIXED } = o'
                                                         selector: shorthand_property_identifier_pattern
                                                     - kind: required_parameter
+                                                      has:
+                                                        field: pattern
+                                                        kind: identifier
+                                                        pattern:
+                                                          context: const $FIXED = 0
+                                                          selector: identifier
+                                                    # T29-P3-C385 med 3: a renamed destructure ({ roles: Role }), an array pattern ([Role]) or an optional parameter
+                                                    - kind: pair_pattern
+                                                      has:
+                                                        field: value
+                                                        kind: identifier
+                                                        pattern:
+                                                          context: const $FIXED = 0
+                                                          selector: identifier
+                                                    - kind: array_pattern
+                                                      has:
+                                                        kind: identifier
+                                                        pattern:
+                                                          context: const $FIXED = 0
+                                                          selector: identifier
+                                                    - kind: optional_parameter
                                                       has:
                                                         field: pattern
                                                         kind: identifier
@@ -11756,6 +12116,27 @@ control:
                                                         context: 'const { $FIXED } = o'
                                                         selector: shorthand_property_identifier_pattern
                                                     - kind: required_parameter
+                                                      has:
+                                                        field: pattern
+                                                        kind: identifier
+                                                        pattern:
+                                                          context: const $FIXED = 0
+                                                          selector: identifier
+                                                    # T29-P3-C385 med 3: a renamed destructure ({ roles: Role }), an array pattern ([Role]) or an optional parameter
+                                                    - kind: pair_pattern
+                                                      has:
+                                                        field: value
+                                                        kind: identifier
+                                                        pattern:
+                                                          context: const $FIXED = 0
+                                                          selector: identifier
+                                                    - kind: array_pattern
+                                                      has:
+                                                        kind: identifier
+                                                        pattern:
+                                                          context: const $FIXED = 0
+                                                          selector: identifier
+                                                    - kind: optional_parameter
                                                       has:
                                                         field: pattern
                                                         kind: identifier
@@ -11826,6 +12207,7 @@ control:
                                           - pattern: '$R?.$F?.$G?.$H === undefined'
                                           - pattern: '$R?.$F?.$G === undefined'
                                           - pattern: '$R?.$F === undefined'
+                                          - pattern: '$R?.[$K] === undefined'
                                         - inside:
                                             stopBy: end
                                             any:
@@ -11835,13 +12217,38 @@ control:
                                             - kind: method_definition
                                             has:
                                               stopBy: end
+                                              kind: variable_declarator
+                                              # const or let (T29-P3-C385 high 1)
                                               any:
-                                              - pattern: 'const $R = await auth()'
-                                              - pattern: 'const $R = await validateRequest($$$)'
-                                              - pattern: 'const $R = await $C.auth.getUser($$$)'
-                                              - pattern: 'const $R = await $C.auth.getClaims($$$)'
-                                              - pattern: 'const { $R } = await $C.auth.getUser($$$)'
-                                              - pattern: 'const { $R } = await $C.auth.getClaims($$$)'
+                                              - all:
+                                                - has:
+                                                    field: name
+                                                    kind: identifier
+                                                    pattern:
+                                                      context: const $R = 0
+                                                      selector: identifier
+                                                - has:
+                                                    field: value
+                                                    any:
+                                                    - pattern: 'await auth()'
+                                                    - pattern: 'await validateRequest($$$)'
+                                                    - pattern: 'await $C.auth.getUser($$$)'
+                                                    - pattern: 'await $C.auth.getClaims($$$)'
+                                              # a shorthand key of a destructure with any other keys: const { data, error } = await supabase.auth.getUser()
+                                              - all:
+                                                - has:
+                                                    field: name
+                                                    kind: object_pattern
+                                                    has:
+                                                      kind: shorthand_property_identifier_pattern
+                                                      pattern:
+                                                        context: const { $R } = 0
+                                                        selector: shorthand_property_identifier_pattern
+                                                - has:
+                                                    field: value
+                                                    any:
+                                                    - pattern: 'await $C.auth.getUser($$$)'
+                                                    - pattern: 'await $C.auth.getClaims($$$)'
                                   - pattern: '$_ == undefined'
                                   - all:
                                     - pattern: '$_ === void 0'
@@ -11855,6 +12262,7 @@ control:
                                           - pattern: '$R?.$F?.$G?.$H === void 0'
                                           - pattern: '$R?.$F?.$G === void 0'
                                           - pattern: '$R?.$F === void 0'
+                                          - pattern: '$R?.[$K] === void 0'
                                         - inside:
                                             stopBy: end
                                             any:
@@ -11864,13 +12272,38 @@ control:
                                             - kind: method_definition
                                             has:
                                               stopBy: end
+                                              kind: variable_declarator
+                                              # const or let (T29-P3-C385 high 1)
                                               any:
-                                              - pattern: 'const $R = await auth()'
-                                              - pattern: 'const $R = await validateRequest($$$)'
-                                              - pattern: 'const $R = await $C.auth.getUser($$$)'
-                                              - pattern: 'const $R = await $C.auth.getClaims($$$)'
-                                              - pattern: 'const { $R } = await $C.auth.getUser($$$)'
-                                              - pattern: 'const { $R } = await $C.auth.getClaims($$$)'
+                                              - all:
+                                                - has:
+                                                    field: name
+                                                    kind: identifier
+                                                    pattern:
+                                                      context: const $R = 0
+                                                      selector: identifier
+                                                - has:
+                                                    field: value
+                                                    any:
+                                                    - pattern: 'await auth()'
+                                                    - pattern: 'await validateRequest($$$)'
+                                                    - pattern: 'await $C.auth.getUser($$$)'
+                                                    - pattern: 'await $C.auth.getClaims($$$)'
+                                              # a shorthand key of a destructure with any other keys: const { data, error } = await supabase.auth.getUser()
+                                              - all:
+                                                - has:
+                                                    field: name
+                                                    kind: object_pattern
+                                                    has:
+                                                      kind: shorthand_property_identifier_pattern
+                                                      pattern:
+                                                        context: const { $R } = 0
+                                                        selector: shorthand_property_identifier_pattern
+                                                - has:
+                                                    field: value
+                                                    any:
+                                                    - pattern: 'await $C.auth.getUser($$$)'
+                                                    - pattern: 'await $C.auth.getClaims($$$)'
                                   - pattern: '$_ == void 0'
                                   has:
                                     field: left
@@ -12522,7 +12955,7 @@ control:
                                                     stopBy: end
                                                     has:
                                                       kind: import_statement
-                                                      regex: '[''"](@prisma/client|\.prisma/client|[^''"]*/generated/prisma[^''"]*)[''"]'
+                                                      regex: '[''"](@prisma/client|\.prisma/client|[^''"]*/generated/prisma(/(client|enums|browser))?)[''"]'
                                                       not:
                                                         kind: import_statement
                                                         regex: '^import\s+type\b'
@@ -12531,7 +12964,8 @@ control:
                                                         kind: import_specifier
                                                         not:
                                                           kind: import_specifier
-                                                          regex: '^type\s'
+                                                          # a type, Prisma's namespace or its client class is no enum (T29-P3-C385 low 1)
+                                                          regex: '^(type\s|(Prisma|PrismaClient)\b)'
                                                         any:
                                                         - has:
                                                             field: alias
@@ -12574,6 +13008,27 @@ control:
                                                           context: 'const { $FIXED } = o'
                                                           selector: shorthand_property_identifier_pattern
                                                       - kind: required_parameter
+                                                        has:
+                                                          field: pattern
+                                                          kind: identifier
+                                                          pattern:
+                                                            context: const $FIXED = 0
+                                                            selector: identifier
+                                                      # T29-P3-C385 med 3: a renamed destructure ({ roles: Role }), an array pattern ([Role]) or an optional parameter
+                                                      - kind: pair_pattern
+                                                        has:
+                                                          field: value
+                                                          kind: identifier
+                                                          pattern:
+                                                            context: const $FIXED = 0
+                                                            selector: identifier
+                                                      - kind: array_pattern
+                                                        has:
+                                                          kind: identifier
+                                                          pattern:
+                                                            context: const $FIXED = 0
+                                                            selector: identifier
+                                                      - kind: optional_parameter
                                                         has:
                                                           field: pattern
                                                           kind: identifier
@@ -12643,6 +13098,27 @@ control:
                                                           context: 'const { $FIXED } = o'
                                                           selector: shorthand_property_identifier_pattern
                                                       - kind: required_parameter
+                                                        has:
+                                                          field: pattern
+                                                          kind: identifier
+                                                          pattern:
+                                                            context: const $FIXED = 0
+                                                            selector: identifier
+                                                      # T29-P3-C385 med 3: a renamed destructure ({ roles: Role }), an array pattern ([Role]) or an optional parameter
+                                                      - kind: pair_pattern
+                                                        has:
+                                                          field: value
+                                                          kind: identifier
+                                                          pattern:
+                                                            context: const $FIXED = 0
+                                                            selector: identifier
+                                                      - kind: array_pattern
+                                                        has:
+                                                          kind: identifier
+                                                          pattern:
+                                                            context: const $FIXED = 0
+                                                            selector: identifier
+                                                      - kind: optional_parameter
                                                         has:
                                                           field: pattern
                                                           kind: identifier
@@ -12676,7 +13152,7 @@ control:
                                                     stopBy: end
                                                     has:
                                                       kind: import_statement
-                                                      regex: '[''"](@prisma/client|\.prisma/client|[^''"]*/generated/prisma[^''"]*)[''"]'
+                                                      regex: '[''"](@prisma/client|\.prisma/client|[^''"]*/generated/prisma(/(client|enums|browser))?)[''"]'
                                                       not:
                                                         kind: import_statement
                                                         regex: '^import\s+type\b'
@@ -12685,7 +13161,8 @@ control:
                                                         kind: import_specifier
                                                         not:
                                                           kind: import_specifier
-                                                          regex: '^type\s'
+                                                          # a type, Prisma's namespace or its client class is no enum (T29-P3-C385 low 1)
+                                                          regex: '^(type\s|(Prisma|PrismaClient)\b)'
                                                         any:
                                                         - has:
                                                             field: alias
@@ -12728,6 +13205,27 @@ control:
                                                           context: 'const { $FIXED } = o'
                                                           selector: shorthand_property_identifier_pattern
                                                       - kind: required_parameter
+                                                        has:
+                                                          field: pattern
+                                                          kind: identifier
+                                                          pattern:
+                                                            context: const $FIXED = 0
+                                                            selector: identifier
+                                                      # T29-P3-C385 med 3: a renamed destructure ({ roles: Role }), an array pattern ([Role]) or an optional parameter
+                                                      - kind: pair_pattern
+                                                        has:
+                                                          field: value
+                                                          kind: identifier
+                                                          pattern:
+                                                            context: const $FIXED = 0
+                                                            selector: identifier
+                                                      - kind: array_pattern
+                                                        has:
+                                                          kind: identifier
+                                                          pattern:
+                                                            context: const $FIXED = 0
+                                                            selector: identifier
+                                                      - kind: optional_parameter
                                                         has:
                                                           field: pattern
                                                           kind: identifier
@@ -12797,6 +13295,27 @@ control:
                                                           context: 'const { $FIXED } = o'
                                                           selector: shorthand_property_identifier_pattern
                                                       - kind: required_parameter
+                                                        has:
+                                                          field: pattern
+                                                          kind: identifier
+                                                          pattern:
+                                                            context: const $FIXED = 0
+                                                            selector: identifier
+                                                      # T29-P3-C385 med 3: a renamed destructure ({ roles: Role }), an array pattern ([Role]) or an optional parameter
+                                                      - kind: pair_pattern
+                                                        has:
+                                                          field: value
+                                                          kind: identifier
+                                                          pattern:
+                                                            context: const $FIXED = 0
+                                                            selector: identifier
+                                                      - kind: array_pattern
+                                                        has:
+                                                          kind: identifier
+                                                          pattern:
+                                                            context: const $FIXED = 0
+                                                            selector: identifier
+                                                      - kind: optional_parameter
                                                         has:
                                                           field: pattern
                                                           kind: identifier
@@ -13346,7 +13865,11 @@ control:
       - kind: class_body
       - kind: function_declaration
         inside:
-          kind: statement_block
+          # or a switch case (T29-P3-C385 med 2)
+          any:
+          - kind: statement_block
+          - kind: switch_case
+          - kind: switch_default
       - any:
         - kind: arrow_function
         - kind: function_expression
@@ -13357,7 +13880,11 @@ control:
             - kind: lexical_declaration
             - kind: variable_declaration
             inside:
-              kind: statement_block
+              # or a switch case (T29-P3-C385 med 2)
+              any:
+              - kind: statement_block
+              - kind: switch_case
+              - kind: switch_default
     any:
     - any:
       - pattern: auth()
