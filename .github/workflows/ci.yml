@@ -1,5 +1,5 @@
 # CI for the custosa package: tests, npm audit, OSV-Scanner, the pack check, and a smoke install of the packed
-# tarball on Linux (and on macOS and Windows for main and release tags).
+# tarball on Linux, macOS and Windows.
 #
 # Jobs:
 #   test             npm ci --ignore-scripts, allowlisted install scripts only, npm test, npm run test:blackbox,
@@ -12,7 +12,7 @@
 #                    written: by default gitleaks decodes \uXXXX escapes and would see the escaped fake keys again.
 #                    It also checks that the JSON fixtures keep their fake keys escaped (scripts/escape-fake-keys.mjs).
 #   pack             builds the tarball once; smoke installs exactly that file.
-#   smoke            Linux x Node 20 and 22, plus macOS and Windows on main and release tags: clean install of the
+#   smoke            Linux, macOS and Windows x Node 20 and 22: clean install of the
 #                    tarball into an empty folder, custosa --version, a stdio tools/list round-trip and a local-only
 #                    scan of a fixture project.
 #
@@ -171,9 +171,9 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        # macOS and Windows runners bill at 10x and 2x: full matrix only on main and release tags (release.yml
-        # calls this file, so a tag still needs every OS to pass). Elsewhere Linux only.
-        os: ${{ fromJSON((github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/tags/v')) && '["ubuntu-24.04", "macos-15", "windows-2025"]' || '["ubuntu-24.04"]') }}
+        # Every OS on every ref: this repo is public, so the runners cost nothing, and a branch is checked on
+        # Windows and macOS before it merges rather than after.
+        os: [ubuntu-24.04, macos-15, windows-2025]
         node: [20, 22]
     defaults:
       run:
