@@ -1,5 +1,5 @@
 {
-  "ruleset_id": "2026-11-12.b20ab72b",
+  "ruleset_id": "2026-11-13.ba9d7d2c",
   "min_engine": "0.45.3",
   "files": [
     {
@@ -276,11 +276,11 @@
     },
     {
       "path": "rules/auth-login-throttling/java-spring.yml",
-      "sha256": "31665e5b467f01f71713ce4eba9e84f8fe3dae3afffba72b783abaa044464940"
+      "sha256": "32cf624b1e79dd08dc1fe172d6da8cefada7b8b171cf4ce66695756993b4c470"
     },
     {
       "path": "rules/auth-login-throttling/javascript-express.yml",
-      "sha256": "2f46a1a7b70bff9ed98e6d40ff252b077e8b81cd59994477a73ef8996b328fa4"
+      "sha256": "4c52fcc388b098acef52e0002803d3893bcdf1e990af0150c33a3a7f8376e622"
     },
     {
       "path": "rules/auth-login-throttling/php-generic.yml",
@@ -308,11 +308,11 @@
     },
     {
       "path": "rules/auth-login-throttling/typescript-express.yml",
-      "sha256": "64bacdbeb06b6805232983560e6bb7d957613fc8ccb6e4b196fe88e7d8a53f97"
+      "sha256": "a452a28deba28fb8f4e0ef1c261646e22ff3abb87e57ca72c06771c077d77566"
     },
     {
       "path": "rules/auth-login-throttling/typescript-nextjs.yml",
-      "sha256": "b733adff1fc853a28e1facf87b01296207f44cd7e84313c9dfde38dd04d3e28c"
+      "sha256": "b4f843f2f3cdb9f801e2be3b65a2208edc73347915d96c7690368275853533b8"
     },
     {
       "path": "rules/auth-on-by-default/go-generic.yml",

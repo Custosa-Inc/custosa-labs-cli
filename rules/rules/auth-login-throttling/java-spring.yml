@@ -95,19 +95,31 @@ rule:
     stopBy: end
     kind: string_literal
     regex: (?i)^"x-forwarded-for"$
-  not:
-    kind: method_declaration
-    regex: (?i)(length\s*-\s*1|getLast\(|lastIndexOf\()
+  # the key is the first hop (index 0 of the split header, getFirst() or get(0)), whatever else the method holds; a
+  # header only logged, a trusted-proxy valve and a right-side hop are no first-hop key
+  regex: (?s)(\.split\([^)]*\)\s*\[\s*0\s*\]|\w\s*\[\s*0\s*\]|\.getFirst\(\)|\.get\(\s*0\s*\))
   inside:
     stopBy: end
     kind: class_declaration
     all:
-    - has:
-        field: name
-        kind: identifier
-        regex: (?i)(rate_?limit|throttl|limiter)
-    - has:
-        stopBy: end
-        kind: string_literal
-        regex: (?i)^"[^"]*/(auth|login|log-in|signin|sign-in|sign_in)(/|")
+    # the class limits or locks out sign-in: a limiter, throttle, attempt or lockout class, or one that counts failed
+    # sign-ins or blocks a key; its name alone doesn't decide it
+    - any:
+      - has:
+          field: name
+          kind: identifier
+          regex: (?i)(rate_?limit|throttl|limiter|attempt|lockout|brute)
+      - has:
+          stopBy: end
+          kind: identifier
+          regex: (?i)^(is_?blocked|is_?rate_?limited|login_?failed|on_?login_?failure|record_?failed\w*|try_?consume|lock_?out)$
+    - any:
+      - has:
+          stopBy: end
+          kind: string_literal
+          regex: (?i)^"[^"]*/(auth|login|log-in|signin|sign-in|sign_in)(/|")
+      - has:
+          stopBy: end
+          kind: identifier
+          regex: (?i)^(login|sign_?in|authenticate)\w*$
 min_engine: 0.39.0
