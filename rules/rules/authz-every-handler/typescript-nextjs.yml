@@ -22,6 +22,10 @@
 #   session.user === undefined, (await currentUser()) ?? redirect(...), a result normalised ?? undefined, an as cast
 #   under the chain and a computed member on null are no denials. Some real denials on those results are refused too:
 #   Clerk's s?.sessionClaims?.metadata?.role === undefined and next-auth v5's session?.user === undefined on auth().
+# - From T29-P3-C386: a parenthesized chain, (s?.userId) === undefined on auth(), still counts as a refusal, and a
+#   guard arrow declared under a braceless if (if (id) var g = ...) and never called counts as the control (false
+#   passes); s?.userId === null on auth(), import * as pc from "@prisma/client" with pc.Role.ADMIN, and a logging try
+#   followed only by a comment read as no guard.
 # - A try whose catch neither throws nor returns counts only when nothing follows it in its block; a nested try, a catch
 #   return inside a block and a guard wrapper whose load sits in a try are no control.
 # - An aliased or namespace next/navigation exit (redirect as go, import * as nav) is no exit, and a data call in a
@@ -9884,6 +9888,8 @@ control:
                                                 field: name
                                                 kind: object_pattern
                                                 has:
+                                                  # also under a default: const { data = null } (T29-P3-C386 low 1)
+                                                  stopBy: end
                                                   kind: shorthand_property_identifier_pattern
                                                   pattern:
                                                     context: const { $R } = 0
@@ -9939,6 +9945,8 @@ control:
                                                 field: name
                                                 kind: object_pattern
                                                 has:
+                                                  # also under a default: const { data = null } (T29-P3-C386 low 1)
+                                                  stopBy: end
                                                   kind: shorthand_property_identifier_pattern
                                                   pattern:
                                                     context: const { $R } = 0
@@ -10658,23 +10666,20 @@ control:
                                                       pattern:
                                                         context: const $FIXED = 0
                                                         selector: identifier
-                                                  # T29-P3-C385 med 3: a renamed destructure ({ roles: Role }), an array pattern ([Role]) or an optional parameter
-                                                  - kind: pair_pattern
+                                                  # T29-P3-C385 med 3 and C386 med 1: the name bound anywhere in the guard's parameters (a rest, a default, an optional
+                                                  # or destructured parameter) or in a destructure (renamed, defaulted, rest, array)
+                                                  - kind: formal_parameters
                                                     has:
-                                                      field: value
+                                                      stopBy: end
                                                       kind: identifier
                                                       pattern:
                                                         context: const $FIXED = 0
                                                         selector: identifier
-                                                  - kind: array_pattern
+                                                  - any:
+                                                    - kind: object_pattern
+                                                    - kind: array_pattern
                                                     has:
-                                                      kind: identifier
-                                                      pattern:
-                                                        context: const $FIXED = 0
-                                                        selector: identifier
-                                                  - kind: optional_parameter
-                                                    has:
-                                                      field: pattern
+                                                      stopBy: end
                                                       kind: identifier
                                                       pattern:
                                                         context: const $FIXED = 0
@@ -10748,23 +10753,20 @@ control:
                                                       pattern:
                                                         context: const $FIXED = 0
                                                         selector: identifier
-                                                  # T29-P3-C385 med 3: a renamed destructure ({ roles: Role }), an array pattern ([Role]) or an optional parameter
-                                                  - kind: pair_pattern
+                                                  # T29-P3-C385 med 3 and C386 med 1: the name bound anywhere in the guard's parameters (a rest, a default, an optional
+                                                  # or destructured parameter) or in a destructure (renamed, defaulted, rest, array)
+                                                  - kind: formal_parameters
                                                     has:
-                                                      field: value
+                                                      stopBy: end
                                                       kind: identifier
                                                       pattern:
                                                         context: const $FIXED = 0
                                                         selector: identifier
-                                                  - kind: array_pattern
+                                                  - any:
+                                                    - kind: object_pattern
+                                                    - kind: array_pattern
                                                     has:
-                                                      kind: identifier
-                                                      pattern:
-                                                        context: const $FIXED = 0
-                                                        selector: identifier
-                                                  - kind: optional_parameter
-                                                    has:
-                                                      field: pattern
+                                                      stopBy: end
                                                       kind: identifier
                                                       pattern:
                                                         context: const $FIXED = 0
@@ -10855,23 +10857,20 @@ control:
                                                       pattern:
                                                         context: const $FIXED = 0
                                                         selector: identifier
-                                                  # T29-P3-C385 med 3: a renamed destructure ({ roles: Role }), an array pattern ([Role]) or an optional parameter
-                                                  - kind: pair_pattern
+                                                  # T29-P3-C385 med 3 and C386 med 1: the name bound anywhere in the guard's parameters (a rest, a default, an optional
+                                                  # or destructured parameter) or in a destructure (renamed, defaulted, rest, array)
+                                                  - kind: formal_parameters
                                                     has:
-                                                      field: value
+                                                      stopBy: end
                                                       kind: identifier
                                                       pattern:
                                                         context: const $FIXED = 0
                                                         selector: identifier
-                                                  - kind: array_pattern
+                                                  - any:
+                                                    - kind: object_pattern
+                                                    - kind: array_pattern
                                                     has:
-                                                      kind: identifier
-                                                      pattern:
-                                                        context: const $FIXED = 0
-                                                        selector: identifier
-                                                  - kind: optional_parameter
-                                                    has:
-                                                      field: pattern
+                                                      stopBy: end
                                                       kind: identifier
                                                       pattern:
                                                         context: const $FIXED = 0
@@ -10945,23 +10944,20 @@ control:
                                                       pattern:
                                                         context: const $FIXED = 0
                                                         selector: identifier
-                                                  # T29-P3-C385 med 3: a renamed destructure ({ roles: Role }), an array pattern ([Role]) or an optional parameter
-                                                  - kind: pair_pattern
+                                                  # T29-P3-C385 med 3 and C386 med 1: the name bound anywhere in the guard's parameters (a rest, a default, an optional
+                                                  # or destructured parameter) or in a destructure (renamed, defaulted, rest, array)
+                                                  - kind: formal_parameters
                                                     has:
-                                                      field: value
+                                                      stopBy: end
                                                       kind: identifier
                                                       pattern:
                                                         context: const $FIXED = 0
                                                         selector: identifier
-                                                  - kind: array_pattern
+                                                  - any:
+                                                    - kind: object_pattern
+                                                    - kind: array_pattern
                                                     has:
-                                                      kind: identifier
-                                                      pattern:
-                                                        context: const $FIXED = 0
-                                                        selector: identifier
-                                                  - kind: optional_parameter
-                                                    has:
-                                                      field: pattern
+                                                      stopBy: end
                                                       kind: identifier
                                                       pattern:
                                                         context: const $FIXED = 0
@@ -11061,6 +11057,8 @@ control:
                                                   field: name
                                                   kind: object_pattern
                                                   has:
+                                                    # also under a default: const { data = null } (T29-P3-C386 low 1)
+                                                    stopBy: end
                                                     kind: shorthand_property_identifier_pattern
                                                     pattern:
                                                       context: const { $R } = 0
@@ -11116,6 +11114,8 @@ control:
                                                   field: name
                                                   kind: object_pattern
                                                   has:
+                                                    # also under a default: const { data = null } (T29-P3-C386 low 1)
+                                                    stopBy: end
                                                     kind: shorthand_property_identifier_pattern
                                                     pattern:
                                                       context: const { $R } = 0
@@ -11835,23 +11835,20 @@ control:
                                                         pattern:
                                                           context: const $FIXED = 0
                                                           selector: identifier
-                                                    # T29-P3-C385 med 3: a renamed destructure ({ roles: Role }), an array pattern ([Role]) or an optional parameter
-                                                    - kind: pair_pattern
+                                                    # T29-P3-C385 med 3 and C386 med 1: the name bound anywhere in the guard's parameters (a rest, a default, an optional
+                                                    # or destructured parameter) or in a destructure (renamed, defaulted, rest, array)
+                                                    - kind: formal_parameters
                                                       has:
-                                                        field: value
+                                                        stopBy: end
                                                         kind: identifier
                                                         pattern:
                                                           context: const $FIXED = 0
                                                           selector: identifier
-                                                    - kind: array_pattern
+                                                    - any:
+                                                      - kind: object_pattern
+                                                      - kind: array_pattern
                                                       has:
-                                                        kind: identifier
-                                                        pattern:
-                                                          context: const $FIXED = 0
-                                                          selector: identifier
-                                                    - kind: optional_parameter
-                                                      has:
-                                                        field: pattern
+                                                        stopBy: end
                                                         kind: identifier
                                                         pattern:
                                                           context: const $FIXED = 0
@@ -11925,23 +11922,20 @@ control:
                                                         pattern:
                                                           context: const $FIXED = 0
                                                           selector: identifier
-                                                    # T29-P3-C385 med 3: a renamed destructure ({ roles: Role }), an array pattern ([Role]) or an optional parameter
-                                                    - kind: pair_pattern
+                                                    # T29-P3-C385 med 3 and C386 med 1: the name bound anywhere in the guard's parameters (a rest, a default, an optional
+                                                    # or destructured parameter) or in a destructure (renamed, defaulted, rest, array)
+                                                    - kind: formal_parameters
                                                       has:
-                                                        field: value
+                                                        stopBy: end
                                                         kind: identifier
                                                         pattern:
                                                           context: const $FIXED = 0
                                                           selector: identifier
-                                                    - kind: array_pattern
+                                                    - any:
+                                                      - kind: object_pattern
+                                                      - kind: array_pattern
                                                       has:
-                                                        kind: identifier
-                                                        pattern:
-                                                          context: const $FIXED = 0
-                                                          selector: identifier
-                                                    - kind: optional_parameter
-                                                      has:
-                                                        field: pattern
+                                                        stopBy: end
                                                         kind: identifier
                                                         pattern:
                                                           context: const $FIXED = 0
@@ -12032,23 +12026,20 @@ control:
                                                         pattern:
                                                           context: const $FIXED = 0
                                                           selector: identifier
-                                                    # T29-P3-C385 med 3: a renamed destructure ({ roles: Role }), an array pattern ([Role]) or an optional parameter
-                                                    - kind: pair_pattern
+                                                    # T29-P3-C385 med 3 and C386 med 1: the name bound anywhere in the guard's parameters (a rest, a default, an optional
+                                                    # or destructured parameter) or in a destructure (renamed, defaulted, rest, array)
+                                                    - kind: formal_parameters
                                                       has:
-                                                        field: value
+                                                        stopBy: end
                                                         kind: identifier
                                                         pattern:
                                                           context: const $FIXED = 0
                                                           selector: identifier
-                                                    - kind: array_pattern
+                                                    - any:
+                                                      - kind: object_pattern
+                                                      - kind: array_pattern
                                                       has:
-                                                        kind: identifier
-                                                        pattern:
-                                                          context: const $FIXED = 0
-                                                          selector: identifier
-                                                    - kind: optional_parameter
-                                                      has:
-                                                        field: pattern
+                                                        stopBy: end
                                                         kind: identifier
                                                         pattern:
                                                           context: const $FIXED = 0
@@ -12122,23 +12113,20 @@ control:
                                                         pattern:
                                                           context: const $FIXED = 0
                                                           selector: identifier
-                                                    # T29-P3-C385 med 3: a renamed destructure ({ roles: Role }), an array pattern ([Role]) or an optional parameter
-                                                    - kind: pair_pattern
+                                                    # T29-P3-C385 med 3 and C386 med 1: the name bound anywhere in the guard's parameters (a rest, a default, an optional
+                                                    # or destructured parameter) or in a destructure (renamed, defaulted, rest, array)
+                                                    - kind: formal_parameters
                                                       has:
-                                                        field: value
+                                                        stopBy: end
                                                         kind: identifier
                                                         pattern:
                                                           context: const $FIXED = 0
                                                           selector: identifier
-                                                    - kind: array_pattern
+                                                    - any:
+                                                      - kind: object_pattern
+                                                      - kind: array_pattern
                                                       has:
-                                                        kind: identifier
-                                                        pattern:
-                                                          context: const $FIXED = 0
-                                                          selector: identifier
-                                                    - kind: optional_parameter
-                                                      has:
-                                                        field: pattern
+                                                        stopBy: end
                                                         kind: identifier
                                                         pattern:
                                                           context: const $FIXED = 0
@@ -12240,6 +12228,8 @@ control:
                                                     field: name
                                                     kind: object_pattern
                                                     has:
+                                                      # also under a default: const { data = null } (T29-P3-C386 low 1)
+                                                      stopBy: end
                                                       kind: shorthand_property_identifier_pattern
                                                       pattern:
                                                         context: const { $R } = 0
@@ -12295,6 +12285,8 @@ control:
                                                     field: name
                                                     kind: object_pattern
                                                     has:
+                                                      # also under a default: const { data = null } (T29-P3-C386 low 1)
+                                                      stopBy: end
                                                       kind: shorthand_property_identifier_pattern
                                                       pattern:
                                                         context: const { $R } = 0
@@ -13014,23 +13006,20 @@ control:
                                                           pattern:
                                                             context: const $FIXED = 0
                                                             selector: identifier
-                                                      # T29-P3-C385 med 3: a renamed destructure ({ roles: Role }), an array pattern ([Role]) or an optional parameter
-                                                      - kind: pair_pattern
+                                                      # T29-P3-C385 med 3 and C386 med 1: the name bound anywhere in the guard's parameters (a rest, a default, an optional
+                                                      # or destructured parameter) or in a destructure (renamed, defaulted, rest, array)
+                                                      - kind: formal_parameters
                                                         has:
-                                                          field: value
+                                                          stopBy: end
                                                           kind: identifier
                                                           pattern:
                                                             context: const $FIXED = 0
                                                             selector: identifier
-                                                      - kind: array_pattern
+                                                      - any:
+                                                        - kind: object_pattern
+                                                        - kind: array_pattern
                                                         has:
-                                                          kind: identifier
-                                                          pattern:
-                                                            context: const $FIXED = 0
-                                                            selector: identifier
-                                                      - kind: optional_parameter
-                                                        has:
-                                                          field: pattern
+                                                          stopBy: end
                                                           kind: identifier
                                                           pattern:
                                                             context: const $FIXED = 0
@@ -13104,23 +13093,20 @@ control:
                                                           pattern:
                                                             context: const $FIXED = 0
                                                             selector: identifier
-                                                      # T29-P3-C385 med 3: a renamed destructure ({ roles: Role }), an array pattern ([Role]) or an optional parameter
-                                                      - kind: pair_pattern
+                                                      # T29-P3-C385 med 3 and C386 med 1: the name bound anywhere in the guard's parameters (a rest, a default, an optional
+                                                      # or destructured parameter) or in a destructure (renamed, defaulted, rest, array)
+                                                      - kind: formal_parameters
                                                         has:
-                                                          field: value
+                                                          stopBy: end
                                                           kind: identifier
                                                           pattern:
                                                             context: const $FIXED = 0
                                                             selector: identifier
-                                                      - kind: array_pattern
+                                                      - any:
+                                                        - kind: object_pattern
+                                                        - kind: array_pattern
                                                         has:
-                                                          kind: identifier
-                                                          pattern:
-                                                            context: const $FIXED = 0
-                                                            selector: identifier
-                                                      - kind: optional_parameter
-                                                        has:
-                                                          field: pattern
+                                                          stopBy: end
                                                           kind: identifier
                                                           pattern:
                                                             context: const $FIXED = 0
@@ -13211,23 +13197,20 @@ control:
                                                           pattern:
                                                             context: const $FIXED = 0
                                                             selector: identifier
-                                                      # T29-P3-C385 med 3: a renamed destructure ({ roles: Role }), an array pattern ([Role]) or an optional parameter
-                                                      - kind: pair_pattern
+                                                      # T29-P3-C385 med 3 and C386 med 1: the name bound anywhere in the guard's parameters (a rest, a default, an optional
+                                                      # or destructured parameter) or in a destructure (renamed, defaulted, rest, array)
+                                                      - kind: formal_parameters
                                                         has:
-                                                          field: value
+                                                          stopBy: end
                                                           kind: identifier
                                                           pattern:
                                                             context: const $FIXED = 0
                                                             selector: identifier
-                                                      - kind: array_pattern
+                                                      - any:
+                                                        - kind: object_pattern
+                                                        - kind: array_pattern
                                                         has:
-                                                          kind: identifier
-                                                          pattern:
-                                                            context: const $FIXED = 0
-                                                            selector: identifier
-                                                      - kind: optional_parameter
-                                                        has:
-                                                          field: pattern
+                                                          stopBy: end
                                                           kind: identifier
                                                           pattern:
                                                             context: const $FIXED = 0
@@ -13301,23 +13284,20 @@ control:
                                                           pattern:
                                                             context: const $FIXED = 0
                                                             selector: identifier
-                                                      # T29-P3-C385 med 3: a renamed destructure ({ roles: Role }), an array pattern ([Role]) or an optional parameter
-                                                      - kind: pair_pattern
+                                                      # T29-P3-C385 med 3 and C386 med 1: the name bound anywhere in the guard's parameters (a rest, a default, an optional
+                                                      # or destructured parameter) or in a destructure (renamed, defaulted, rest, array)
+                                                      - kind: formal_parameters
                                                         has:
-                                                          field: value
+                                                          stopBy: end
                                                           kind: identifier
                                                           pattern:
                                                             context: const $FIXED = 0
                                                             selector: identifier
-                                                      - kind: array_pattern
+                                                      - any:
+                                                        - kind: object_pattern
+                                                        - kind: array_pattern
                                                         has:
-                                                          kind: identifier
-                                                          pattern:
-                                                            context: const $FIXED = 0
-                                                            selector: identifier
-                                                      - kind: optional_parameter
-                                                        has:
-                                                          field: pattern
+                                                          stopBy: end
                                                           kind: identifier
                                                           pattern:
                                                             context: const $FIXED = 0

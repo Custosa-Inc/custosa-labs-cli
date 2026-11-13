@@ -8,6 +8,8 @@
 # await prisma.draft.delete(...) before const session = await auth() reads as guarded, and so do Drizzle's insert,
 # update and delete forms; the TS and TSX guard-wrapper checks (C338, C346: data calls before or in a catch or
 # finally, the null-field refusal, the fixed-value gate) are not carried to JS.
+# A guard arrow declared under a braceless if (if (id) var g = async () => {...}) and never called counts
+# as the control (a false pass, T29-P3-C386 low 2).
 id: authz-every-handler.javascript-nextjs.route
 practice_id: authz-every-handler
 language: javascript
