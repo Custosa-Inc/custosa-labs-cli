@@ -56,6 +56,9 @@ min_engine: 0.45.3
 # Known limit (C391 low 3): the patient field list is exact. patient.get("name"), patient.__dict__,
 # patient.patient_name, patient.contact_email and patient.user give no match, and a comprehension over patients that
 # yields p.patient_name, p.contact_email, p.user, p.profile or p.contact drops its source (false passes).
+# Known limit (C394 low 2): a key read off an element counts as one value unless it is a nested-record key (data,
+# contact, profile, details, info and the like), so patients[0]["payload"] gives no match, nor does a patient field
+# two keys below a nested-record key (patients[0]["data"]["contact"]["email"]) (false passes).
 id: no-phi-in-app-logs.python-generic.patient-fields
 practice_id: no-phi-in-app-logs
 language: python
@@ -195,26 +198,95 @@ rule:
                           field: arguments
                           kind: argument_list
                           regex: '^\(\s*[''"](name|first_name|last_name|full_name|email|email_address|phone|phone_number|mobile|mobile_number|address|notes|ssn|dob|date_of_birth|birth_date|diagnosis|diagnoses|mrn|medical_record_number|insurance_number|clinical_notes)[''"]'
+              # C394 old miss: an element then read by .get of a patient field (patients[0].get("email")) is kept.
               - kind: subscript
                 inside:
                   kind: attribute
                   field: object
                   not:
-                    has:
-                      field: attribute
-                      kind: identifier
-                      regex: '^(name|first_name|last_name|full_name|email|email_address|phone|phone_number|mobile|mobile_number|address|notes|ssn|SSN|dob|date_of_birth|birth_date|birthdate|diagnosis|diagnoses|mrn|medical_record_number|insurance_number|clinical_notes)$'
-              # C391 low 1: an element read only by a string key that is no patient field (patients[0]["id"])
+                    any:
+                    - has:
+                        field: attribute
+                        kind: identifier
+                        regex: '^(name|first_name|last_name|full_name|email|email_address|phone|phone_number|mobile|mobile_number|address|notes|ssn|SSN|dob|date_of_birth|birth_date|birthdate|diagnosis|diagnoses|mrn|medical_record_number|insurance_number|clinical_notes)$'
+                    - all:
+                      - has:
+                          field: attribute
+                          kind: identifier
+                          regex: '^get$'
+                      - inside:
+                          kind: call
+                          field: function
+                          has:
+                            field: arguments
+                            kind: argument_list
+                            regex: '^\(\s*[''"](name|first_name|last_name|full_name|email|email_address|phone|phone_number|mobile|mobile_number|address|notes|ssn|dob|date_of_birth|birth_date|diagnosis|diagnoses|mrn|medical_record_number|insurance_number|clinical_notes)[''"]'
+              # C391 low 1, C394 low 2: an element read by a string key that is no patient field (patients[0]["id"]), when
+              # nothing then reads that key's value for a patient field (by key, attribute or .get), and the key holds one
+              # value, or its value is then read for an attribute or key that is no patient field (patients[0]["data"]["id"]).
+              # A nested record logged whole (patients[0]["contact"], patients[0]["data"]) and patients[0]["contact"]["email"]
+              # still fail.
               - kind: subscript
                 inside:
                   kind: subscript
                   field: value
-                  has:
-                    field: subscript
-                    kind: string
-                    not:
+                  all:
+                  - has:
+                      field: subscript
                       kind: string
-                      regex: '^[''"](name|first_name|last_name|full_name|email|email_address|phone|phone_number|mobile|mobile_number|address|notes|ssn|SSN|dob|date_of_birth|birth_date|birthdate|diagnosis|diagnoses|mrn|medical_record_number|insurance_number|clinical_notes)[''"]$'
+                      not:
+                        kind: string
+                        regex: '^[''"](name|first_name|last_name|full_name|email|email_address|phone|phone_number|mobile|mobile_number|address|notes|ssn|SSN|dob|date_of_birth|birth_date|birthdate|diagnosis|diagnoses|mrn|medical_record_number|insurance_number|clinical_notes)[''"]$'
+                  - not:
+                      inside:
+                        kind: subscript
+                        field: value
+                        has:
+                          field: subscript
+                          kind: string
+                          regex: '^[''"](name|first_name|last_name|full_name|email|email_address|phone|phone_number|mobile|mobile_number|address|notes|ssn|SSN|dob|date_of_birth|birth_date|birthdate|diagnosis|diagnoses|mrn|medical_record_number|insurance_number|clinical_notes)[''"]$'
+                  - not:
+                      inside:
+                        kind: attribute
+                        field: object
+                        any:
+                        - has:
+                            field: attribute
+                            kind: identifier
+                            regex: '^(name|first_name|last_name|full_name|email|email_address|phone|phone_number|mobile|mobile_number|address|notes|ssn|SSN|dob|date_of_birth|birth_date|birthdate|diagnosis|diagnoses|mrn|medical_record_number|insurance_number|clinical_notes)$'
+                        - all:
+                          - has:
+                              field: attribute
+                              kind: identifier
+                              regex: '^get$'
+                          - inside:
+                              kind: call
+                              field: function
+                              has:
+                                field: arguments
+                                kind: argument_list
+                                regex: '^\(\s*[''"](name|first_name|last_name|full_name|email|email_address|phone|phone_number|mobile|mobile_number|address|notes|ssn|dob|date_of_birth|birth_date|diagnosis|diagnoses|mrn|medical_record_number|insurance_number|clinical_notes)[''"]'
+                  - any:
+                    - has:
+                        field: subscript
+                        kind: string
+                        not:
+                          kind: string
+                          regex: '^[''"](data|contact|contacts|contact_info|profile|details|info|demographics|person|personal|personal_info|record|attributes|fields|identity|guardian|emergency_contact|insurance|patient|user|owner)[''"]$'
+                    - inside:
+                        kind: attribute
+                        field: object
+                    - inside:
+                        kind: subscript
+                        field: value
+                        has:
+                          field: subscript
+                          kind: string
+                    # or its value is only tested (patients[0]["data"] is None, not patients[0]["data"])
+                    - inside:
+                        kind: comparison_operator
+                    - inside:
+                        kind: not_operator
               - kind: comparison_operator
               - kind: not_operator
               # C387 high 2: the source is dropped only when the body is a plain projection of the element that is no

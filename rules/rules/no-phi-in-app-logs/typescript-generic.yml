@@ -135,6 +135,9 @@ rule:
 min_engine: 0.45.3
 ---
 # Known limit (C391 low 3): the patient field list is exact. patient["email"] gives no match (a false pass).
+# Known limit (C394 low 2): a key read off an element counts as one value unless it is a nested-record key (data,
+# contact, profile, details, info and the like), so patients[0]["payload"] gives no match, nor does a patient field
+# two keys below a nested-record key (patients[0]["data"]["contact"]["email"]) (false passes).
 id: no-phi-in-app-logs.typescript-generic.patient-fields
 practice_id: no-phi-in-app-logs
 language: typescript
@@ -180,6 +183,12 @@ rule:
                     has:
                       field: index
                       kind: string
+          # C394: an element taken with .at(n) is a patient too (patients.at(0), patients.at(0)["email"]); the walk-up
+          # drops it when only a field that is no patient field is read off it.
+          - kind: call_expression
+            regex: '^(patients|patientRows)\??.at\(\s*-?\w+\s*\)$'
+          - kind: member_expression
+            regex: '^(patients|patientRows)\??.at\(\s*-?\w+\s*\)\??\.(name|firstName|lastName|first_name|last_name|fullName|full_name|address|notes)$'
           - all:
             - kind: shorthand_property_identifier
             - regex: '^(patient|patients|patientData|patientRecord|patientRow|patientRows|currentPatient)$'
@@ -389,17 +398,68 @@ rule:
                       field: property
                       kind: property_identifier
                       regex: '^(name|firstName|lastName|first_name|last_name|fullName|full_name|email|emailAddress|email_address|phone|phoneNumber|phone_number|mobile|mobileNumber|mobile_number|address|notes|ssn|SSN|socialSecurityNumber|social_security_number|dob|DOB|dateOfBirth|date_of_birth|birthDate|birth_date|diagnosis|diagnoses|mrn|MRN|medicalRecordNumber|medical_record_number|insuranceNumber|insurance_number|clinicalNotes|clinical_notes)$'
-              # C391 low 1: an element read only by a string key that is no patient field (patients[0]["id"])
+              # C391 low 1, C394 low 2: an element read by a string key that is no patient field (patients[0]["id"]), when
+              # nothing then reads that key's value for a patient field, and the key holds one value, or its value is then
+              # read for a member or key that is no patient field (patients[0]["data"]["id"]). A nested record logged whole
+              # (patients[0]["contact"], patients[0]["data"]) and patients[0]["contact"]["email"] still fail.
               - kind: subscript_expression
                 inside:
                   kind: subscript_expression
                   field: object
-                  has:
-                    field: index
-                    kind: string
-                    not:
+                  all: &keyread
+                  - has:
+                      field: index
                       kind: string
-                      regex: '^[''"](name|firstName|lastName|first_name|last_name|fullName|full_name|email|emailAddress|email_address|phone|phoneNumber|phone_number|mobile|mobileNumber|mobile_number|address|notes|ssn|SSN|socialSecurityNumber|social_security_number|dob|DOB|dateOfBirth|date_of_birth|birthDate|birth_date|diagnosis|diagnoses|mrn|MRN|medicalRecordNumber|medical_record_number|insuranceNumber|insurance_number|clinicalNotes|clinical_notes)[''"]$'
+                      not:
+                        kind: string
+                        regex: '^[''"](name|firstName|lastName|first_name|last_name|fullName|full_name|email|emailAddress|email_address|phone|phoneNumber|phone_number|mobile|mobileNumber|mobile_number|address|notes|ssn|SSN|socialSecurityNumber|social_security_number|dob|DOB|dateOfBirth|date_of_birth|birthDate|birth_date|diagnosis|diagnoses|mrn|MRN|medicalRecordNumber|medical_record_number|insuranceNumber|insurance_number|clinicalNotes|clinical_notes)[''"]$'
+                  - not:
+                      inside:
+                        kind: subscript_expression
+                        field: object
+                        has:
+                          field: index
+                          kind: string
+                          regex: '^[''"](name|firstName|lastName|first_name|last_name|fullName|full_name|email|emailAddress|email_address|phone|phoneNumber|phone_number|mobile|mobileNumber|mobile_number|address|notes|ssn|SSN|socialSecurityNumber|social_security_number|dob|DOB|dateOfBirth|date_of_birth|birthDate|birth_date|diagnosis|diagnoses|mrn|MRN|medicalRecordNumber|medical_record_number|insuranceNumber|insurance_number|clinicalNotes|clinical_notes)[''"]$'
+                  - any:
+                    - has:
+                        field: index
+                        kind: string
+                        not:
+                          kind: string
+                          regex: '^[''"](data|contact|contacts|contactInfo|contact_info|profile|details|info|demographics|person|personal|personalInfo|personal_info|record|attributes|fields|identity|guardian|emergencyContact|emergency_contact|insurance|patient|user|owner)[''"]$'
+                    - inside:
+                        kind: member_expression
+                        field: object
+                        not:
+                          has:
+                            field: property
+                            kind: property_identifier
+                            regex: '^(name|firstName|lastName|first_name|last_name|fullName|full_name|email|emailAddress|email_address|phone|phoneNumber|phone_number|mobile|mobileNumber|mobile_number|address|notes|ssn|SSN|socialSecurityNumber|social_security_number|dob|DOB|dateOfBirth|date_of_birth|birthDate|birth_date|diagnosis|diagnoses|mrn|MRN|medicalRecordNumber|medical_record_number|insuranceNumber|insurance_number|clinicalNotes|clinical_notes)$'
+                    - inside:
+                        kind: subscript_expression
+                        field: object
+                        has:
+                          field: index
+                          kind: string
+                    # or its value is only tested (patients[0]["data"] === null, !patients[0]["data"])
+                    - inside:
+                        kind: binary_expression
+                        any:
+                        - pattern: '$_ === $_'
+                        - pattern: '$_ !== $_'
+                        - pattern: '$_ == $_'
+                        - pattern: '$_ != $_'
+                    - inside:
+                        kind: unary_expression
+                        regex: '^!'
+              # C394: the same for an element taken with .at(n) (patients.at(0)["id"])
+              - kind: subscript_expression
+                all: *keyread
+                has:
+                  field: object
+                  kind: call_expression
+                  regex: '^(patients|patientRows)\??.at\(\s*-?\w+\s*\)$'
               - kind: unary_expression
               - kind: binary_expression
                 any:
