@@ -1222,6 +1222,23 @@ rule:
                   - not:
                       kind: variable_declarator
                       regex: (\|\||\?\?)\s*(null|undefined)\s*;?$
+      - not:
+          has:
+            field: body
+            has:
+              stopBy: end
+              kind: call_expression
+              regex: (?i)^[A-Za-z0-9_$.>:-]*(break_?glass|emergency_?access|emergency_?grant)[A-Za-z0-9_$.>:-]*(\.|->|::)(create|insert|add|grant|upsert)[A-Za-z0-9_]*\(|(?i)^[A-Za-z0-9_$.>:-]*from\(\s*['\"][A-Za-z0-9_]*(break_?glass|emergency)[A-Za-z0-9_]*['\"]\s*\)\s*\.insert\(|(?is)insert\s+into\s+[\"`A-Za-z0-9_.]*(break_?glass|emergency_?(access|grant))
+              has:
+                field: arguments
+                has:
+                  stopBy: end
+                  all: &id005
+                  - kind: pair
+                    regex: '^[''\"]?reason[''\"]?\s*:'
+                  - not:
+                      kind: pair
+                      regex: ^['\"]?reason['\"]?\s*:\s*([A-Za-z_$][A-Za-z0-9_$]*\??\.)*reason(\??\.trim(Start|End)?\(\s*\))?\s*((\?\?|\|\|)[\s\S]*)?$
       - has:
           field: body
           has:
@@ -1234,7 +1251,7 @@ rule:
                       field: condition
                       has:
                         stopBy: end
-                        all: &id009
+                        all:
                         - any:
                           - kind: unary_expression
                             regex: ^!\s*\(?\s*([A-Za-z_$][A-Za-z0-9_$]*\??\.)*reason(\??\.trim(Start|End)?\(\s*\))?(\??\.length)?\s*\)?$
@@ -1260,16 +1277,32 @@ rule:
                               inside:
                                 stopBy: end
                                 kind: program
-                                has:
-                                  stopBy: end
-                                  all:
-                                  - pattern:
-                                      context: const $MIN_LEN = $MIN_VALUE
-                                      selector: variable_declarator
-                                  - has:
-                                      field: value
-                                      kind: number
-                                      regex: ^[1-9][0-9]*$
+                                all:
+                                - has:
+                                    stopBy: end
+                                    all:
+                                    - pattern:
+                                        context: const $MIN_LEN = $MIN_VALUE
+                                        selector: variable_declarator
+                                    - has:
+                                        field: value
+                                        kind: number
+                                        regex: ^[1-9][0-9]*$
+                                    - inside:
+                                        kind: lexical_declaration
+                                - not:
+                                    has:
+                                      stopBy: end
+                                      any:
+                                      - pattern: $MIN_LEN = $_MV
+                                      - pattern: $MIN_LEN += $_MV
+                                      - pattern: $MIN_LEN -= $_MV
+                                      - pattern: $MIN_LEN *= $_MV
+                                      - pattern: $MIN_LEN /= $_MV
+                                      - pattern: $MIN_LEN--
+                                      - pattern: $MIN_LEN++
+                                      - pattern: --$MIN_LEN
+                                      - pattern: ++$MIN_LEN
                           - all:
                             - kind: binary_expression
                               regex: ^[A-Za-z_$][A-Za-z0-9_$]*\s*>=?\s*([A-Za-z_$][A-Za-z0-9_$]*\??\.)*reason(\??\.trim(Start|End)?\(\s*\))?\??\.length$
@@ -1310,16 +1343,15 @@ rule:
                               any:
                               - *id003
                               - *id004
-                      - not: &id007
-                          has: &id013
+                      - not:
+                          has: &id008
                             stopBy: end
                             kind: call_expression
                             regex: (?i)^[A-Za-z0-9_$.>:-]*(break_?glass|emergency_?access|emergency_?grant)[A-Za-z0-9_$.>:-]*(\.|->|::)(create|insert|add|grant|upsert)[A-Za-z0-9_]*\(|(?i)^[A-Za-z0-9_$.>:-]*from\(\s*['\"][A-Za-z0-9_]*(break_?glass|emergency)[A-Za-z0-9_]*['\"]\s*\)\s*\.insert\(|(?is)insert\s+into\s+[\"`A-Za-z0-9_.]*(break_?glass|emergency_?(access|grant))
                 - &id011
                   kind: expression_statement
                   regex: ^(await\s+)?(assert|invariant)(\.ok|\.strict)?\(\s*(([A-Za-z_$][A-Za-z0-9_$]*\??\.)*reason(\??\.trim(Start|End)?\(\s*\))?(\??\.length)?|([A-Za-z_$][A-Za-z0-9_$]*\??\.)*reason\s*&&\s*([A-Za-z_$][A-Za-z0-9_$]*\??\.)*reason(\??\.trim(Start|End)?\(\s*\))?)\s*(,|\))
-                - &id012
-                  all:
+                - all:
                   - any:
                     - kind: expression_statement
                     - kind: lexical_declaration
@@ -1331,93 +1363,199 @@ rule:
                         - kind: method_definition
                         - kind: arrow_function
                         - kind: function_expression
-                      any:
-                      - all:
-                        - any:
-                          - pattern: $SCHEMA.parse($$$)
-                          - pattern: await $SCHEMA.parseAsync($$$)
-                        - &id008
-                          inside:
-                            stopBy: end
-                            kind: program
+                      all:
+                      - any:
+                        - all:
+                          - any:
+                            - pattern: $SCHEMA.parse($$$)
+                            - pattern: await $SCHEMA.parseAsync($$$)
+                          - &id009
+                            inside:
+                              stopBy: end
+                              kind: program
+                              has:
+                                stopBy: end
+                                all:
+                                - pattern:
+                                    context: const $SCHEMA = $SCHEMA_VALUE
+                                    selector: variable_declarator
+                                - has:
+                                    field: value
+                                    any:
+                                    - all:
+                                      - kind: call_expression
+                                        regex: ^(z|zod|yup|Yup|Joi|joi)\s*\.\s*object\(\s*(\)\s*\.\s*(shape|keys)\()?
+                                      - not:
+                                          inside:
+                                            stopBy:
+                                              kind: variable_declarator
+                                            kind: pair
+                                      - has:
+                                          field: arguments
+                                          has:
+                                            kind: object
+                                            has:
+                                              all:
+                                              - kind: pair
+                                                regex: (?s)^['\"]?reason['\"]?\s*:\s*(z|zod)\s*\.\s*string\(\s*(\{[^{}]*\})?\s*\)(\s*\.\s*(trim|toLowerCase|toUpperCase|max)\([^()]*\))*\s*\.\s*(min\(\s*[1-9][0-9]*\s*(,[^()]*)?\)|nonempty\([^()]*\))
+                                              - not:
+                                                  kind: pair
+                                                  regex: \.\s*(optional|nullable|nullish|notRequired|default|catch|or|transform|allow|empty|valid|preprocess)\(
+                                    - has:
+                                        stopBy: end
+                                        all:
+                                        - kind: call_expression
+                                          regex: ^(z|zod|yup|Yup|Joi|joi)\s*\.\s*object\(\s*(\)\s*\.\s*(shape|keys)\()?
+                                        - not:
+                                            inside:
+                                              stopBy:
+                                                kind: variable_declarator
+                                              kind: pair
+                                        - has:
+                                            field: arguments
+                                            has:
+                                              kind: object
+                                              has:
+                                                all:
+                                                - kind: pair
+                                                  regex: (?s)^['\"]?reason['\"]?\s*:\s*(z|zod)\s*\.\s*string\(\s*(\{[^{}]*\})?\s*\)(\s*\.\s*(trim|toLowerCase|toUpperCase|max)\([^()]*\))*\s*\.\s*(min\(\s*[1-9][0-9]*\s*(,[^()]*)?\)|nonempty\([^()]*\))
+                                                - not:
+                                                    kind: pair
+                                                    regex: \.\s*(optional|nullable|nullish|notRequired|default|catch|or|transform|allow|empty|valid|preprocess)\(
+                                - not:
+                                    has:
+                                      field: value
+                                      kind: call_expression
+                                      regex: \.\s*(partial|deepPartial)\(
+                        - all:
+                          - any:
+                            - pattern: $SCHEMA.validateSync($$$)
+                            - pattern: await $SCHEMA.validate($$$)
+                          - inside:
+                              stopBy: end
+                              kind: program
+                              has:
+                                stopBy: end
+                                all:
+                                - pattern:
+                                    context: const $SCHEMA = $SCHEMA_VALUE
+                                    selector: variable_declarator
+                                - has:
+                                    field: value
+                                    any:
+                                    - all:
+                                      - kind: call_expression
+                                        regex: ^(z|zod|yup|Yup|Joi|joi)\s*\.\s*object\(\s*(\)\s*\.\s*(shape|keys)\()?
+                                      - not:
+                                          inside:
+                                            stopBy:
+                                              kind: variable_declarator
+                                            kind: pair
+                                      - has:
+                                          field: arguments
+                                          has:
+                                            kind: object
+                                            has:
+                                              all:
+                                              - kind: pair
+                                                regex: (?s)^['\"]?reason['\"]?\s*:\s*(yup|Yup)\s*\.\s*string\(\s*\)[\s\S]*\.\s*required\(
+                                              - not:
+                                                  kind: pair
+                                                  regex: \.\s*(optional|nullable|nullish|notRequired|default|catch|or|transform|allow|empty|valid|preprocess)\(
+                                    - has:
+                                        stopBy: end
+                                        all:
+                                        - kind: call_expression
+                                          regex: ^(z|zod|yup|Yup|Joi|joi)\s*\.\s*object\(\s*(\)\s*\.\s*(shape|keys)\()?
+                                        - not:
+                                            inside:
+                                              stopBy:
+                                                kind: variable_declarator
+                                              kind: pair
+                                        - has:
+                                            field: arguments
+                                            has:
+                                              kind: object
+                                              has:
+                                                all:
+                                                - kind: pair
+                                                  regex: (?s)^['\"]?reason['\"]?\s*:\s*(yup|Yup)\s*\.\s*string\(\s*\)[\s\S]*\.\s*required\(
+                                                - not:
+                                                    kind: pair
+                                                    regex: \.\s*(optional|nullable|nullish|notRequired|default|catch|or|transform|allow|empty|valid|preprocess)\(
+                                - not:
+                                    has:
+                                      field: value
+                                      kind: call_expression
+                                      regex: \.\s*(partial|deepPartial)\(
+                        - all:
+                          - any:
+                            - pattern: await $SCHEMA.validateAsync($$$)
+                            - pattern: Joi.attempt($_JV, $SCHEMA)
+                            - pattern: Joi.assert($_JV, $SCHEMA)
+                          - inside:
+                              stopBy: end
+                              kind: program
+                              has:
+                                stopBy: end
+                                all:
+                                - pattern:
+                                    context: const $SCHEMA = $SCHEMA_VALUE
+                                    selector: variable_declarator
+                                - has:
+                                    field: value
+                                    any:
+                                    - all:
+                                      - kind: call_expression
+                                        regex: ^(z|zod|yup|Yup|Joi|joi)\s*\.\s*object\(\s*(\)\s*\.\s*(shape|keys)\()?
+                                      - not:
+                                          inside:
+                                            stopBy:
+                                              kind: variable_declarator
+                                            kind: pair
+                                      - has:
+                                          field: arguments
+                                          has:
+                                            kind: object
+                                            has:
+                                              all:
+                                              - kind: pair
+                                                regex: (?s)^['\"]?reason['\"]?\s*:\s*(Joi|joi)\s*\.\s*string\(\s*\)[\s\S]*\.\s*required\(
+                                              - not:
+                                                  kind: pair
+                                                  regex: \.\s*(optional|nullable|nullish|notRequired|default|catch|or|transform|allow|empty|valid|preprocess)\(
+                                    - has:
+                                        stopBy: end
+                                        all:
+                                        - kind: call_expression
+                                          regex: ^(z|zod|yup|Yup|Joi|joi)\s*\.\s*object\(\s*(\)\s*\.\s*(shape|keys)\()?
+                                        - not:
+                                            inside:
+                                              stopBy:
+                                                kind: variable_declarator
+                                              kind: pair
+                                        - has:
+                                            field: arguments
+                                            has:
+                                              kind: object
+                                              has:
+                                                all:
+                                                - kind: pair
+                                                  regex: (?s)^['\"]?reason['\"]?\s*:\s*(Joi|joi)\s*\.\s*string\(\s*\)[\s\S]*\.\s*required\(
+                                                - not:
+                                                    kind: pair
+                                                    regex: \.\s*(optional|nullable|nullish|notRequired|default|catch|or|transform|allow|empty|valid|preprocess)\(
+                                - not:
+                                    has:
+                                      field: value
+                                      kind: call_expression
+                                      regex: \.\s*(partial|deepPartial)\(
+                      - not:
+                          has:
+                            field: arguments
                             has:
                               stopBy: end
-                              all:
-                              - pattern:
-                                  context: const $SCHEMA = $SCHEMA_VALUE
-                                  selector: variable_declarator
-                              - has:
-                                  field: value
-                                  has:
-                                    stopBy: end
-                                    all:
-                                    - kind: pair
-                                      regex: (?s)^['\"]?reason['\"]?\s*:\s*(z|zod)\s*\.\s*string\(\s*(\{[^{}]*\})?\s*\)(\s*\.\s*(trim|toLowerCase|toUpperCase|max)\([^()]*\))*\s*\.\s*(min\(\s*[1-9][0-9]*\s*(,[^()]*)?\)|nonempty\([^()]*\))
-                                    - not:
-                                        kind: pair
-                                        regex: \.\s*(optional|nullable|nullish|notRequired|default|catch|or|transform|allow|empty|valid|preprocess)\(
-                              - not:
-                                  has:
-                                    field: value
-                                    kind: call_expression
-                                    regex: \.\s*(partial|deepPartial)\(
-                      - all:
-                        - any:
-                          - pattern: $SCHEMA.validateSync($$$)
-                          - pattern: await $SCHEMA.validate($$$)
-                        - inside:
-                            stopBy: end
-                            kind: program
-                            has:
-                              stopBy: end
-                              all:
-                              - pattern:
-                                  context: const $SCHEMA = $SCHEMA_VALUE
-                                  selector: variable_declarator
-                              - has:
-                                  field: value
-                                  has:
-                                    stopBy: end
-                                    all:
-                                    - kind: pair
-                                      regex: (?s)^['\"]?reason['\"]?\s*:\s*(yup|Yup)\s*\.\s*string\(\s*\)[\s\S]*\.\s*required\(
-                                    - not:
-                                        kind: pair
-                                        regex: \.\s*(optional|nullable|nullish|notRequired|default|catch|or|transform|allow|empty|valid|preprocess)\(
-                              - not:
-                                  has:
-                                    field: value
-                                    kind: call_expression
-                                    regex: \.\s*(partial|deepPartial)\(
-                      - all:
-                        - any:
-                          - pattern: await $SCHEMA.validateAsync($$$)
-                          - pattern: Joi.attempt($_JV, $SCHEMA)
-                          - pattern: Joi.assert($_JV, $SCHEMA)
-                        - inside:
-                            stopBy: end
-                            kind: program
-                            has:
-                              stopBy: end
-                              all:
-                              - pattern:
-                                  context: const $SCHEMA = $SCHEMA_VALUE
-                                  selector: variable_declarator
-                              - has:
-                                  field: value
-                                  has:
-                                    stopBy: end
-                                    all:
-                                    - kind: pair
-                                      regex: (?s)^['\"]?reason['\"]?\s*:\s*(Joi|joi)\s*\.\s*string\(\s*\)[\s\S]*\.\s*required\(
-                                    - not:
-                                        kind: pair
-                                        regex: \.\s*(optional|nullable|nullish|notRequired|default|catch|or|transform|allow|empty|valid|preprocess)\(
-                              - not:
-                                  has:
-                                    field: value
-                                    kind: call_expression
-                                    regex: \.\s*(partial|deepPartial)\(
+                              all: *id005
                 - all:
                   - kind: if_statement
                   - has:
@@ -1431,17 +1569,18 @@ rule:
                       field: consequence
                       all:
                       - any:
-                        - &id005
-                          kind: throw_statement
                         - &id006
+                          kind: throw_statement
+                        - &id007
                           kind: return_statement
                         - all:
                           - kind: statement_block
                           - has:
                               any:
-                              - *id005
                               - *id006
-                      - not: *id007
+                              - *id007
+                      - not:
+                          has: *id008
                   - inside:
                       kind: statement_block
                       has:
@@ -1452,14 +1591,14 @@ rule:
                             - pattern:
                                 context: const $PARSED = $SCHEMA.safeParse($$$)
                                 selector: variable_declarator
-                            - *id008
+                            - *id009
                         - kind: lexical_declaration
                           has:
                             all:
                             - pattern:
                                 context: const $PARSED = await $SCHEMA.safeParseAsync($$$)
                                 selector: variable_declarator
-                            - *id008
+                            - *id009
               - all:
                 - kind: expression_statement
                 - any:
@@ -1512,7 +1651,43 @@ rule:
                                   field: condition
                                   has:
                                     stopBy: end
-                                    all: *id009
+                                    all:
+                                    - any:
+                                      - kind: unary_expression
+                                        regex: ^!\s*\(?\s*([A-Za-z_$][A-Za-z0-9_$]*\??\.)*reason(\??\.trim(Start|End)?\(\s*\))?(\??\.length)?\s*\)?$
+                                      - kind: unary_expression
+                                        regex: ^!\s*\(\s*([A-Za-z_$][A-Za-z0-9_$]*\??\.)*reason\s*&&\s*([A-Za-z_$][A-Za-z0-9_$]*\??\.)*reason(\??\.trim(Start|End)?\(\s*\))?\s*\)$
+                                      - kind: binary_expression
+                                        regex: ^([A-Za-z_$][A-Za-z0-9_$]*\??\.)*reason(\??\.trim(Start|End)?\(\s*\))?\s*===?\s*(''|\"\"|``)$
+                                      - kind: binary_expression
+                                        regex: ^(''|\"\"|``)\s*===?\s*([A-Za-z_$][A-Za-z0-9_$]*\??\.)*reason(\??\.trim(Start|End)?\(\s*\))?$
+                                      - kind: binary_expression
+                                        regex: ^([A-Za-z_$][A-Za-z0-9_$]*\??\.)*reason(\??\.trim(Start|End)?\(\s*\))?\??\.length\s*(<\s*[1-9][0-9]*|<=\s*[0-9]+|===?\s*0)$
+                                      - kind: binary_expression
+                                        regex: ^([1-9][0-9]*\s*>|[0-9]+\s*>=|0\s*===?)\s*([A-Za-z_$][A-Za-z0-9_$]*\??\.)*reason(\??\.trim(Start|End)?\(\s*\))?\??\.length$
+                                      - all:
+                                        - kind: binary_expression
+                                          regex: ^([A-Za-z_$][A-Za-z0-9_$]*\??\.)*reason(\??\.trim(Start|End)?\(\s*\))?\??\.length\s*<=?\s*[A-Za-z_$][A-Za-z0-9_$]*$
+                                        - has:
+                                            field: right
+                                            pattern: *id001
+                                        - *id002
+                                      - all:
+                                        - kind: binary_expression
+                                          regex: ^[A-Za-z_$][A-Za-z0-9_$]*\s*>=?\s*([A-Za-z_$][A-Za-z0-9_$]*\??\.)*reason(\??\.trim(Start|End)?\(\s*\))?\??\.length$
+                                        - has:
+                                            field: left
+                                            pattern: *id001
+                                        - *id002
+                                      - kind: call_expression
+                                        regex: ^(_|lodash)\.isEmpty\(\s*([A-Za-z_$][A-Za-z0-9_$]*\??\.)*reason(\??\.trim(Start|End)?\(\s*\))?\s*\)$
+                                    - inside:
+                                        stopBy:
+                                          not:
+                                            any:
+                                            - kind: parenthesized_expression
+                                            - pattern: $_ORL || $_ORR
+                                        kind: if_statement
                               - any:
                                 - not:
                                     has:
@@ -1534,48 +1709,196 @@ rule:
                                       - has:
                                           any:
                                           - *id010
-                                  - not: *id007
+                                  - not:
+                                      has: *id008
                             - *id011
-                            - *id012
+                            - all:
+                              - any:
+                                - kind: expression_statement
+                                - kind: lexical_declaration
+                                - kind: variable_declaration
+                              - has:
+                                  stopBy:
+                                    any:
+                                    - kind: function_declaration
+                                    - kind: method_definition
+                                    - kind: arrow_function
+                                    - kind: function_expression
+                                  all:
+                                  - any:
+                                    - all:
+                                      - any:
+                                        - pattern: $SCHEMA.parse($$$)
+                                        - pattern: await $SCHEMA.parseAsync($$$)
+                                      - *id009
+                                    - all:
+                                      - any:
+                                        - pattern: $SCHEMA.validateSync($$$)
+                                        - pattern: await $SCHEMA.validate($$$)
+                                      - inside:
+                                          stopBy: end
+                                          kind: program
+                                          has:
+                                            stopBy: end
+                                            all:
+                                            - pattern:
+                                                context: const $SCHEMA = $SCHEMA_VALUE
+                                                selector: variable_declarator
+                                            - has:
+                                                field: value
+                                                any:
+                                                - all:
+                                                  - kind: call_expression
+                                                    regex: ^(z|zod|yup|Yup|Joi|joi)\s*\.\s*object\(\s*(\)\s*\.\s*(shape|keys)\()?
+                                                  - not:
+                                                      inside:
+                                                        stopBy:
+                                                          kind: variable_declarator
+                                                        kind: pair
+                                                  - has:
+                                                      field: arguments
+                                                      has:
+                                                        kind: object
+                                                        has:
+                                                          all:
+                                                          - kind: pair
+                                                            regex: (?s)^['\"]?reason['\"]?\s*:\s*(yup|Yup)\s*\.\s*string\(\s*\)[\s\S]*\.\s*required\(
+                                                          - not:
+                                                              kind: pair
+                                                              regex: \.\s*(optional|nullable|nullish|notRequired|default|catch|or|transform|allow|empty|valid|preprocess)\(
+                                                - has:
+                                                    stopBy: end
+                                                    all:
+                                                    - kind: call_expression
+                                                      regex: ^(z|zod|yup|Yup|Joi|joi)\s*\.\s*object\(\s*(\)\s*\.\s*(shape|keys)\()?
+                                                    - not:
+                                                        inside:
+                                                          stopBy:
+                                                            kind: variable_declarator
+                                                          kind: pair
+                                                    - has:
+                                                        field: arguments
+                                                        has:
+                                                          kind: object
+                                                          has:
+                                                            all:
+                                                            - kind: pair
+                                                              regex: (?s)^['\"]?reason['\"]?\s*:\s*(yup|Yup)\s*\.\s*string\(\s*\)[\s\S]*\.\s*required\(
+                                                            - not:
+                                                                kind: pair
+                                                                regex: \.\s*(optional|nullable|nullish|notRequired|default|catch|or|transform|allow|empty|valid|preprocess)\(
+                                            - not:
+                                                has:
+                                                  field: value
+                                                  kind: call_expression
+                                                  regex: \.\s*(partial|deepPartial)\(
+                                    - all:
+                                      - any:
+                                        - pattern: await $SCHEMA.validateAsync($$$)
+                                        - pattern: Joi.attempt($_JV, $SCHEMA)
+                                        - pattern: Joi.assert($_JV, $SCHEMA)
+                                      - inside:
+                                          stopBy: end
+                                          kind: program
+                                          has:
+                                            stopBy: end
+                                            all:
+                                            - pattern:
+                                                context: const $SCHEMA = $SCHEMA_VALUE
+                                                selector: variable_declarator
+                                            - has:
+                                                field: value
+                                                any:
+                                                - all:
+                                                  - kind: call_expression
+                                                    regex: ^(z|zod|yup|Yup|Joi|joi)\s*\.\s*object\(\s*(\)\s*\.\s*(shape|keys)\()?
+                                                  - not:
+                                                      inside:
+                                                        stopBy:
+                                                          kind: variable_declarator
+                                                        kind: pair
+                                                  - has:
+                                                      field: arguments
+                                                      has:
+                                                        kind: object
+                                                        has:
+                                                          all:
+                                                          - kind: pair
+                                                            regex: (?s)^['\"]?reason['\"]?\s*:\s*(Joi|joi)\s*\.\s*string\(\s*\)[\s\S]*\.\s*required\(
+                                                          - not:
+                                                              kind: pair
+                                                              regex: \.\s*(optional|nullable|nullish|notRequired|default|catch|or|transform|allow|empty|valid|preprocess)\(
+                                                - has:
+                                                    stopBy: end
+                                                    all:
+                                                    - kind: call_expression
+                                                      regex: ^(z|zod|yup|Yup|Joi|joi)\s*\.\s*object\(\s*(\)\s*\.\s*(shape|keys)\()?
+                                                    - not:
+                                                        inside:
+                                                          stopBy:
+                                                            kind: variable_declarator
+                                                          kind: pair
+                                                    - has:
+                                                        field: arguments
+                                                        has:
+                                                          kind: object
+                                                          has:
+                                                            all:
+                                                            - kind: pair
+                                                              regex: (?s)^['\"]?reason['\"]?\s*:\s*(Joi|joi)\s*\.\s*string\(\s*\)[\s\S]*\.\s*required\(
+                                                            - not:
+                                                                kind: pair
+                                                                regex: \.\s*(optional|nullable|nullish|notRequired|default|catch|or|transform|allow|empty|valid|preprocess)\(
+                                            - not:
+                                                has:
+                                                  field: value
+                                                  kind: call_expression
+                                                  regex: \.\s*(partial|deepPartial)\(
+                                  - not:
+                                      has:
+                                        field: arguments
+                                        has:
+                                          stopBy: end
+                                          all: *id005
             - precedes:
                 stopBy: neighbor
                 any:
-                - *id007
+                - has: *id008
                 - precedes:
                     stopBy: neighbor
                     any:
-                    - *id007
+                    - has: *id008
                     - precedes:
                         stopBy: neighbor
                         any:
-                        - *id007
+                        - has: *id008
                         - precedes:
                             stopBy: neighbor
                             any:
-                            - *id007
+                            - has: *id008
                             - precedes:
                                 stopBy: neighbor
                                 any:
-                                - *id007
+                                - has: *id008
                                 - precedes:
                                     stopBy: neighbor
                                     any:
-                                    - *id007
+                                    - has: *id008
                                     - precedes:
                                         stopBy: neighbor
                                         any:
-                                        - *id007
+                                        - has: *id008
                                         - precedes:
                                             stopBy: neighbor
                                             any:
-                                            - *id007
+                                            - has: *id008
                                             - precedes:
                                                 stopBy: neighbor
                                                 any:
-                                                - *id007
+                                                - has: *id008
                                                 - precedes:
                                                     stopBy: neighbor
-                                                    has: *id013
+                                                    has: *id008
 min_engine: 0.39.0
 ---
 id: break-glass-access.typescript-generic.read-unrecorded
@@ -1608,12 +1931,13 @@ rule:
         field: body
         has:
           stopBy: end
-          all: &id005
-          - kind: call_expression
-            regex: (?i)^(await\s+)?[A-Za-z0-9_$.]*(patient|chart|record|encounter|note|observation|medication|prescription|diagnos|allerg|vital|lab_?result|clinical|medical|health|ehr|emr|fhir|phi)[A-Za-z0-9_$]*\s*\.\s*(find[A-Za-z]*|get[A-Za-z]*|select|query|first|fetch[A-Za-z]*|load[A-Za-z]*|read[A-Za-z]*|all|where)\(|(?i)^(await\s+)?([A-Za-z0-9_$]+\.)*(get|load|fetch|read|find|select|query)[A-Za-z0-9_]*(patient|chart|record|encounter|note|observation|medication|prescription|diagnos|allerg|vital|lab_?result|clinical|medical|health|ehr|emr|fhir|phi)[A-Za-z0-9_]*\(|(?i)^[A-Za-z0-9_$.]*\(\s*['\"`][A-Za-z0-9_.]*(patient|chart|record|encounter|note|observation|medication|prescription|diagnos|allerg|vital|lab_?result|clinical|medical|health|ehr|emr|fhir|phi)[A-Za-z0-9_]*['\"`]\s*\)|(?i)\.from\(\s*['\"`]?[A-Za-z0-9_.]*(patient|chart|record|encounter|note|observation|medication|prescription|diagnos|allerg|vital|lab_?result|clinical|medical|health|ehr|emr|fhir|phi)[A-Za-z0-9_]*['\"`]?\s*\)|(?is)^[A-Za-z0-9_$.]*(query|execute|queryRaw|\$queryRaw[A-Za-z]*|unsafe|raw|all|get|sql)\s*(\(|`)\s*['\"`]?\s*select\s[\s\S]*\sfrom\s+[\"`]?[A-Za-z0-9_.]*(patient|chart|record|encounter|note|observation|medication|prescription|diagnos|allerg|vital|lab_?result|clinical|medical|health|ehr|emr|fhir|phi)
-          - not:
-              kind: call_expression
-              regex: (?i)^[A-Za-z0-9_$.]*\.(create|insert|update|upsert|delete|destroy|remove)[A-Za-z]*\(
+          all:
+          - all: &id003
+            - kind: call_expression
+              regex: (?i)^(await\s+)?[A-Za-z0-9_$.]*(patient|chart|record|encounter|note|observation|medication|prescription|diagnos|allerg|vital|lab_?result|clinical|medical|health|ehr|emr|fhir|phi)[A-Za-z0-9_$]*\s*\.\s*(find[A-Za-z]*|get[A-Za-z]*|select|query|first|fetch[A-Za-z]*|load[A-Za-z]*|read[A-Za-z]*|all|where)\(|(?i)^(await\s+)?([A-Za-z0-9_$]+\.)*(get|load|fetch|read|find|select|query)[A-Za-z0-9_]*(patient|chart|record|encounter|note|observation|medication|prescription|diagnos|allerg|vital|lab_?result|clinical|medical|health|ehr|emr|fhir|phi)[A-Za-z0-9_]*\(|(?i)^[A-Za-z0-9_$.]*\(\s*['\"`][A-Za-z0-9_.]*(patient|chart|record|encounter|note|observation|medication|prescription|diagnos|allerg|vital|lab_?result|clinical|medical|health|ehr|emr|fhir|phi)[A-Za-z0-9_]*['\"`]\s*\)|(?i)\.from\(\s*['\"`]?[A-Za-z0-9_.]*(patient|chart|record|encounter|note|observation|medication|prescription|diagnos|allerg|vital|lab_?result|clinical|medical|health|ehr|emr|fhir|phi)[A-Za-z0-9_]*['\"`]?\s*\)|^(await\s+)?[A-Za-z0-9_$.]*\.(read|search|vread)[A-Za-z]*\(\s*['\"`](Patient|Observation|Encounter|Condition|Procedure|MedicationRequest|MedicationStatement|MedicationAdministration|Medication|AllergyIntolerance|DiagnosticReport|DocumentReference|Immunization|CarePlan|ServiceRequest|Specimen|ImagingStudy|QuestionnaireResponse|Composition|ClinicalImpression|FamilyMemberHistory|RiskAssessment|Coverage|Claim|ExplanationOfBenefit|Communication|Consent|Appointment|EpisodeOfCare|Goal|NutritionOrder|Media|Binary)['\"`/]|(?i)^(await\s+)?(fetch|axios|ky|got|\$fetch|ofetch|[A-Za-z0-9_$]+\.(get|request))\(\s*['\"`][^'\"`]*(patient|chart|record|encounter|note|observation|medication|prescription|diagnos|allerg|vital|lab_?result|clinical|medical|health|ehr|emr|fhir|phi)|(?is)^[A-Za-z0-9_$.]*(query|execute|queryRaw|\$queryRaw[A-Za-z]*|unsafe|raw|all|get|sql)\s*(\(|`)\s*['\"`]?\s*select\s[\s\S]*\sfrom\s+[\"`]?[A-Za-z0-9_.]*(patient|chart|record|encounter|note|observation|medication|prescription|diagnos|allerg|vital|lab_?result|clinical|medical|health|ehr|emr|fhir|phi)
+            - not:
+                kind: call_expression
+                regex: (?i)^[A-Za-z0-9_$.]*\.(create|insert|update|upsert|delete|destroy|remove)[A-Za-z]*\(
           - not:
               inside:
                 stopBy: &id001
@@ -1622,6 +1946,230 @@ rule:
                   - kind: method_definition
                   - kind: arrow_function
                   - kind: function_expression
+                kind: try_statement
+                has:
+                  field: finalizer
+                  has:
+                    field: body
+                    has:
+                      all:
+                      - any:
+                        - kind: expression_statement
+                        - kind: lexical_declaration
+                        - kind: variable_declaration
+                      - has:
+                          stopBy: *id001
+                          any:
+                          - all: &id002
+                            - kind: call_expression
+                              regex: (?i)^(await\s+)?[A-Za-z0-9_$.]*(audit|access_?log|phi_?access|disclosure)[A-Za-z0-9_$]*\s*\.\s*(create|insert|add|log|record|write|save|append|push)[A-Za-z0-9_]*\(|(?i)^(await\s+)?([A-Za-z0-9_$]+\.)*[A-Za-z0-9_]*audit[A-Za-z0-9_]*\(|(?i)^(await\s+)?([A-Za-z0-9_$]+\.)*(log|record|save|write|create|add|emit|insert|store)[A-Za-z0-9_]*(access|phi|disclosure|chart_?view|record_?view)[A-Za-z0-9_]*\(|(?i)^(await\s+)?(Audit|AccessLog)[A-Za-z0-9_]*\.(objects\.)?create\(|(?i)(insert\(\s*|insertInto\(\s*['\"`]|from\(\s*['\"`]|^[A-Za-z0-9_$]+\(\s*['\"`])[A-Za-z0-9_]*(audit|access_?log)|(?is)insert\s+into\s+[\"`]?[A-Za-z0-9_.]*(audit|access_?log)
+                            - not:
+                                kind: call_expression
+                                regex: (?i)^(await\s+)?[A-Za-z0-9_$.]*(?i)(denied|denial|fail|reject|refus|error|analytics|track|page_?view|metric|telemetry)
+                            - not:
+                                kind: call_expression
+                                regex: (?i)^(await\s+)?(this\.)?(logger|log|console|winston|pino|bunyan|debug|sentry)\s*\.
+                            - not:
+                                all:
+                                - pattern: $LOCAL_FN($$$)
+                                - inside:
+                                    stopBy: end
+                                    kind: program
+                                    has:
+                                      stopBy: end
+                                      any:
+                                      - all:
+                                        - kind: function_declaration
+                                        - has:
+                                            field: name
+                                            pattern:
+                                              context: function $LOCAL_FN() {}
+                                              selector: identifier
+                                      - all:
+                                        - kind: variable_declarator
+                                        - has:
+                                            field: name
+                                            pattern:
+                                              context: function $LOCAL_FN() {}
+                                              selector: identifier
+                                        - has:
+                                            field: value
+                                            any:
+                                            - kind: arrow_function
+                                            - kind: function_expression
+                          - all:
+                            - pattern: $AUDIT_FN($$$)
+                            - inside:
+                                stopBy: end
+                                kind: program
+                                has:
+                                  stopBy: end
+                                  any:
+                                  - all:
+                                    - kind: function_declaration
+                                    - has:
+                                        field: name
+                                        pattern:
+                                          context: function $AUDIT_FN() {}
+                                          selector: identifier
+                                    - has:
+                                        field: body
+                                        has:
+                                          all:
+                                          - any:
+                                            - kind: expression_statement
+                                            - kind: lexical_declaration
+                                            - kind: variable_declaration
+                                          - has:
+                                              stopBy: *id001
+                                              all: *id002
+                                  - all:
+                                    - kind: variable_declarator
+                                    - has:
+                                        field: name
+                                        pattern:
+                                          context: function $AUDIT_FN() {}
+                                          selector: identifier
+                                    - has:
+                                        field: value
+                                        all:
+                                        - any:
+                                          - kind: arrow_function
+                                          - kind: function_expression
+                                        - has:
+                                            field: body
+                                            has:
+                                              all:
+                                              - any:
+                                                - kind: expression_statement
+                                                - kind: lexical_declaration
+                                                - kind: variable_declaration
+                                              - has:
+                                                  stopBy: *id001
+                                                  all: *id002
+                      - not:
+                          follows:
+                            stopBy: neighbor
+                            any:
+                            - any:
+                              - kind: return_statement
+                              - kind: throw_statement
+                              - has:
+                                  stopBy: *id001
+                                  kind: return_statement
+                                  has:
+                                    stopBy: *id001
+                                    all: *id003
+                            - follows:
+                                stopBy: neighbor
+                                any:
+                                - any:
+                                  - kind: return_statement
+                                  - kind: throw_statement
+                                  - has:
+                                      stopBy: *id001
+                                      kind: return_statement
+                                      has:
+                                        stopBy: *id001
+                                        all: *id003
+                                - follows:
+                                    stopBy: neighbor
+                                    any:
+                                    - any:
+                                      - kind: return_statement
+                                      - kind: throw_statement
+                                      - has:
+                                          stopBy: *id001
+                                          kind: return_statement
+                                          has:
+                                            stopBy: *id001
+                                            all: *id003
+                                    - follows:
+                                        stopBy: neighbor
+                                        any:
+                                        - any:
+                                          - kind: return_statement
+                                          - kind: throw_statement
+                                          - has:
+                                              stopBy: *id001
+                                              kind: return_statement
+                                              has:
+                                                stopBy: *id001
+                                                all: *id003
+                                        - follows:
+                                            stopBy: neighbor
+                                            any:
+                                            - any:
+                                              - kind: return_statement
+                                              - kind: throw_statement
+                                              - has:
+                                                  stopBy: *id001
+                                                  kind: return_statement
+                                                  has:
+                                                    stopBy: *id001
+                                                    all: *id003
+                                            - follows:
+                                                stopBy: neighbor
+                                                any:
+                                                - any:
+                                                  - kind: return_statement
+                                                  - kind: throw_statement
+                                                  - has:
+                                                      stopBy: *id001
+                                                      kind: return_statement
+                                                      has:
+                                                        stopBy: *id001
+                                                        all: *id003
+                                                - follows:
+                                                    stopBy: neighbor
+                                                    any:
+                                                    - any:
+                                                      - kind: return_statement
+                                                      - kind: throw_statement
+                                                      - has:
+                                                          stopBy: *id001
+                                                          kind: return_statement
+                                                          has:
+                                                            stopBy: *id001
+                                                            all: *id003
+                                                    - follows:
+                                                        stopBy: neighbor
+                                                        any:
+                                                        - any:
+                                                          - kind: return_statement
+                                                          - kind: throw_statement
+                                                          - has:
+                                                              stopBy: *id001
+                                                              kind: return_statement
+                                                              has:
+                                                                stopBy: *id001
+                                                                all: *id003
+                                                        - follows:
+                                                            stopBy: neighbor
+                                                            any:
+                                                            - any:
+                                                              - kind: return_statement
+                                                              - kind: throw_statement
+                                                              - has:
+                                                                  stopBy: *id001
+                                                                  kind: return_statement
+                                                                  has:
+                                                                    stopBy: *id001
+                                                                    all: *id003
+                                                            - follows:
+                                                                stopBy: neighbor
+                                                                any:
+                                                                - kind: return_statement
+                                                                - kind: throw_statement
+                                                                - has:
+                                                                    stopBy: *id001
+                                                                    kind: return_statement
+                                                                    has:
+                                                                      stopBy: *id001
+                                                                      all: *id003
+          - not:
+              inside:
+                stopBy: *id001
                 kind: statement_block
                 has:
                   all:
@@ -1632,15 +2180,7 @@ rule:
                   - has:
                       stopBy: *id001
                       any:
-                      - all: &id002
-                        - kind: call_expression
-                          regex: (?i)^(await\s+)?[A-Za-z0-9_$.]*(audit|access_?log|phi_?access|disclosure)[A-Za-z0-9_$]*\s*\.\s*(create|insert|add|log|record|write|save|append|push)[A-Za-z0-9_]*\(|(?i)^(await\s+)?([A-Za-z0-9_$]+\.)*[A-Za-z0-9_]*audit[A-Za-z0-9_]*\(|(?i)^(await\s+)?([A-Za-z0-9_$]+\.)*(log|record|save|write|create|add|emit|insert|store)[A-Za-z0-9_]*(access|phi|disclosure|chart_?view|record_?view)[A-Za-z0-9_]*\(|(?i)^(await\s+)?(Audit|AccessLog)[A-Za-z0-9_]*\.(objects\.)?create\(|(?i)(insert\(\s*|insertInto\(\s*['\"`]|from\(\s*['\"`]|^[A-Za-z0-9_$]+\(\s*['\"`])[A-Za-z0-9_]*(audit|access_?log)|(?is)insert\s+into\s+[\"`]?[A-Za-z0-9_.]*(audit|access_?log)
-                        - not:
-                            kind: call_expression
-                            regex: (?i)^(await\s+)?[A-Za-z0-9_$.]*(?i)(denied|denial|fail|reject|refus|error|analytics|track|page_?view|metric|telemetry)
-                        - not:
-                            kind: call_expression
-                            regex: (?i)^(await\s+)?(this\.)?(logger|log|console|winston|pino|bunyan|debug|sentry)\s*\.
+                      - all: *id002
                       - all:
                         - pattern: $AUDIT_FN($$$)
                         - inside:
@@ -1648,7 +2188,384 @@ rule:
                             kind: program
                             has:
                               stopBy: end
-                              all:
+                              any:
+                              - all:
+                                - kind: function_declaration
+                                - has:
+                                    field: name
+                                    pattern:
+                                      context: function $AUDIT_FN() {}
+                                      selector: identifier
+                                - has:
+                                    field: body
+                                    has:
+                                      all:
+                                      - any:
+                                        - kind: expression_statement
+                                        - kind: lexical_declaration
+                                        - kind: variable_declaration
+                                      - has:
+                                          stopBy: *id001
+                                          all: *id002
+                              - all:
+                                - kind: variable_declarator
+                                - has:
+                                    field: name
+                                    pattern:
+                                      context: function $AUDIT_FN() {}
+                                      selector: identifier
+                                - has:
+                                    field: value
+                                    all:
+                                    - any:
+                                      - kind: arrow_function
+                                      - kind: function_expression
+                                    - has:
+                                        field: body
+                                        has:
+                                          all:
+                                          - any:
+                                            - kind: expression_statement
+                                            - kind: lexical_declaration
+                                            - kind: variable_declaration
+                                          - has:
+                                              stopBy: *id001
+                                              all: *id002
+                  - not:
+                      follows:
+                        stopBy: neighbor
+                        any:
+                        - any:
+                          - kind: return_statement
+                          - kind: throw_statement
+                          - has:
+                              stopBy: *id001
+                              kind: return_statement
+                              has:
+                                stopBy: *id001
+                                all: *id003
+                        - follows:
+                            stopBy: neighbor
+                            any:
+                            - any:
+                              - kind: return_statement
+                              - kind: throw_statement
+                              - has:
+                                  stopBy: *id001
+                                  kind: return_statement
+                                  has:
+                                    stopBy: *id001
+                                    all: *id003
+                            - follows:
+                                stopBy: neighbor
+                                any:
+                                - any:
+                                  - kind: return_statement
+                                  - kind: throw_statement
+                                  - has:
+                                      stopBy: *id001
+                                      kind: return_statement
+                                      has:
+                                        stopBy: *id001
+                                        all: *id003
+                                - follows:
+                                    stopBy: neighbor
+                                    any:
+                                    - any:
+                                      - kind: return_statement
+                                      - kind: throw_statement
+                                      - has:
+                                          stopBy: *id001
+                                          kind: return_statement
+                                          has:
+                                            stopBy: *id001
+                                            all: *id003
+                                    - follows:
+                                        stopBy: neighbor
+                                        any:
+                                        - any:
+                                          - kind: return_statement
+                                          - kind: throw_statement
+                                          - has:
+                                              stopBy: *id001
+                                              kind: return_statement
+                                              has:
+                                                stopBy: *id001
+                                                all: *id003
+                                        - follows:
+                                            stopBy: neighbor
+                                            any:
+                                            - any:
+                                              - kind: return_statement
+                                              - kind: throw_statement
+                                              - has:
+                                                  stopBy: *id001
+                                                  kind: return_statement
+                                                  has:
+                                                    stopBy: *id001
+                                                    all: *id003
+                                            - follows:
+                                                stopBy: neighbor
+                                                any:
+                                                - any:
+                                                  - kind: return_statement
+                                                  - kind: throw_statement
+                                                  - has:
+                                                      stopBy: *id001
+                                                      kind: return_statement
+                                                      has:
+                                                        stopBy: *id001
+                                                        all: *id003
+                                                - follows:
+                                                    stopBy: neighbor
+                                                    any:
+                                                    - any:
+                                                      - kind: return_statement
+                                                      - kind: throw_statement
+                                                      - has:
+                                                          stopBy: *id001
+                                                          kind: return_statement
+                                                          has:
+                                                            stopBy: *id001
+                                                            all: *id003
+                                                    - follows:
+                                                        stopBy: neighbor
+                                                        any:
+                                                        - any:
+                                                          - kind: return_statement
+                                                          - kind: throw_statement
+                                                          - has:
+                                                              stopBy: *id001
+                                                              kind: return_statement
+                                                              has:
+                                                                stopBy: *id001
+                                                                all: *id003
+                                                        - follows:
+                                                            stopBy: neighbor
+                                                            any:
+                                                            - kind: return_statement
+                                                            - kind: throw_statement
+                                                            - has:
+                                                                stopBy: *id001
+                                                                kind: return_statement
+                                                                has:
+                                                                  stopBy: *id001
+                                                                  all: *id003
+    - has:
+        field: body
+        all:
+        - all: *id003
+        - not:
+            inside:
+              stopBy: *id001
+              kind: try_statement
+              has:
+                field: finalizer
+                has:
+                  field: body
+                  has:
+                    all:
+                    - any:
+                      - kind: expression_statement
+                      - kind: lexical_declaration
+                      - kind: variable_declaration
+                    - has:
+                        stopBy: *id001
+                        any:
+                        - all: *id002
+                        - all:
+                          - pattern: $AUDIT_FN($$$)
+                          - inside:
+                              stopBy: end
+                              kind: program
+                              has:
+                                stopBy: end
+                                any:
+                                - all:
+                                  - kind: function_declaration
+                                  - has:
+                                      field: name
+                                      pattern:
+                                        context: function $AUDIT_FN() {}
+                                        selector: identifier
+                                  - has:
+                                      field: body
+                                      has:
+                                        all:
+                                        - any:
+                                          - kind: expression_statement
+                                          - kind: lexical_declaration
+                                          - kind: variable_declaration
+                                        - has:
+                                            stopBy: *id001
+                                            all: *id002
+                                - all:
+                                  - kind: variable_declarator
+                                  - has:
+                                      field: name
+                                      pattern:
+                                        context: function $AUDIT_FN() {}
+                                        selector: identifier
+                                  - has:
+                                      field: value
+                                      all:
+                                      - any:
+                                        - kind: arrow_function
+                                        - kind: function_expression
+                                      - has:
+                                          field: body
+                                          has:
+                                            all:
+                                            - any:
+                                              - kind: expression_statement
+                                              - kind: lexical_declaration
+                                              - kind: variable_declaration
+                                            - has:
+                                                stopBy: *id001
+                                                all: *id002
+                    - not:
+                        follows:
+                          stopBy: neighbor
+                          any:
+                          - any:
+                            - kind: return_statement
+                            - kind: throw_statement
+                            - has:
+                                stopBy: *id001
+                                kind: return_statement
+                                has:
+                                  stopBy: *id001
+                                  all: *id003
+                          - follows:
+                              stopBy: neighbor
+                              any:
+                              - any:
+                                - kind: return_statement
+                                - kind: throw_statement
+                                - has:
+                                    stopBy: *id001
+                                    kind: return_statement
+                                    has:
+                                      stopBy: *id001
+                                      all: *id003
+                              - follows:
+                                  stopBy: neighbor
+                                  any:
+                                  - any:
+                                    - kind: return_statement
+                                    - kind: throw_statement
+                                    - has:
+                                        stopBy: *id001
+                                        kind: return_statement
+                                        has:
+                                          stopBy: *id001
+                                          all: *id003
+                                  - follows:
+                                      stopBy: neighbor
+                                      any:
+                                      - any:
+                                        - kind: return_statement
+                                        - kind: throw_statement
+                                        - has:
+                                            stopBy: *id001
+                                            kind: return_statement
+                                            has:
+                                              stopBy: *id001
+                                              all: *id003
+                                      - follows:
+                                          stopBy: neighbor
+                                          any:
+                                          - any:
+                                            - kind: return_statement
+                                            - kind: throw_statement
+                                            - has:
+                                                stopBy: *id001
+                                                kind: return_statement
+                                                has:
+                                                  stopBy: *id001
+                                                  all: *id003
+                                          - follows:
+                                              stopBy: neighbor
+                                              any:
+                                              - any:
+                                                - kind: return_statement
+                                                - kind: throw_statement
+                                                - has:
+                                                    stopBy: *id001
+                                                    kind: return_statement
+                                                    has:
+                                                      stopBy: *id001
+                                                      all: *id003
+                                              - follows:
+                                                  stopBy: neighbor
+                                                  any:
+                                                  - any:
+                                                    - kind: return_statement
+                                                    - kind: throw_statement
+                                                    - has:
+                                                        stopBy: *id001
+                                                        kind: return_statement
+                                                        has:
+                                                          stopBy: *id001
+                                                          all: *id003
+                                                  - follows:
+                                                      stopBy: neighbor
+                                                      any:
+                                                      - any:
+                                                        - kind: return_statement
+                                                        - kind: throw_statement
+                                                        - has:
+                                                            stopBy: *id001
+                                                            kind: return_statement
+                                                            has:
+                                                              stopBy: *id001
+                                                              all: *id003
+                                                      - follows:
+                                                          stopBy: neighbor
+                                                          any:
+                                                          - any:
+                                                            - kind: return_statement
+                                                            - kind: throw_statement
+                                                            - has:
+                                                                stopBy: *id001
+                                                                kind: return_statement
+                                                                has:
+                                                                  stopBy: *id001
+                                                                  all: *id003
+                                                          - follows:
+                                                              stopBy: neighbor
+                                                              any:
+                                                              - kind: return_statement
+                                                              - kind: throw_statement
+                                                              - has:
+                                                                  stopBy: *id001
+                                                                  kind: return_statement
+                                                                  has:
+                                                                    stopBy: *id001
+                                                                    all: *id003
+        - not:
+            inside:
+              stopBy: *id001
+              kind: statement_block
+              has:
+                all:
+                - any:
+                  - kind: expression_statement
+                  - kind: lexical_declaration
+                  - kind: variable_declaration
+                - has:
+                    stopBy: *id001
+                    any:
+                    - all: *id002
+                    - all:
+                      - pattern: $AUDIT_FN($$$)
+                      - inside:
+                          stopBy: end
+                          kind: program
+                          has:
+                            stopBy: end
+                            any:
+                            - all:
                               - kind: function_declaration
                               - has:
                                   field: name
@@ -1666,50 +2583,148 @@ rule:
                                     - has:
                                         stopBy: *id001
                                         all: *id002
-                  - not:
-                      follows:
-                        stopBy: neighbor
-                        any:
-                        - &id003
-                          any: &id004
-                          - kind: return_statement
-                          - kind: throw_statement
-                        - follows:
-                            stopBy: neighbor
-                            any:
-                            - *id003
-                            - follows:
-                                stopBy: neighbor
-                                any:
-                                - *id003
-                                - follows:
-                                    stopBy: neighbor
-                                    any:
-                                    - *id003
-                                    - follows:
-                                        stopBy: neighbor
-                                        any:
-                                        - *id003
-                                        - follows:
-                                            stopBy: neighbor
-                                            any:
-                                            - *id003
-                                            - follows:
-                                                stopBy: neighbor
-                                                any:
-                                                - *id003
-                                                - follows:
-                                                    stopBy: neighbor
-                                                    any:
-                                                    - *id003
-                                                    - follows:
-                                                        stopBy: neighbor
-                                                        any:
-                                                        - *id003
-                                                        - follows:
-                                                            stopBy: neighbor
-                                                            any: *id004
-    - has:
-        field: body
-        all: *id005
+                            - all:
+                              - kind: variable_declarator
+                              - has:
+                                  field: name
+                                  pattern:
+                                    context: function $AUDIT_FN() {}
+                                    selector: identifier
+                              - has:
+                                  field: value
+                                  all:
+                                  - any:
+                                    - kind: arrow_function
+                                    - kind: function_expression
+                                  - has:
+                                      field: body
+                                      has:
+                                        all:
+                                        - any:
+                                          - kind: expression_statement
+                                          - kind: lexical_declaration
+                                          - kind: variable_declaration
+                                        - has:
+                                            stopBy: *id001
+                                            all: *id002
+                - not:
+                    follows:
+                      stopBy: neighbor
+                      any:
+                      - any:
+                        - kind: return_statement
+                        - kind: throw_statement
+                        - has:
+                            stopBy: *id001
+                            kind: return_statement
+                            has:
+                              stopBy: *id001
+                              all: *id003
+                      - follows:
+                          stopBy: neighbor
+                          any:
+                          - any:
+                            - kind: return_statement
+                            - kind: throw_statement
+                            - has:
+                                stopBy: *id001
+                                kind: return_statement
+                                has:
+                                  stopBy: *id001
+                                  all: *id003
+                          - follows:
+                              stopBy: neighbor
+                              any:
+                              - any:
+                                - kind: return_statement
+                                - kind: throw_statement
+                                - has:
+                                    stopBy: *id001
+                                    kind: return_statement
+                                    has:
+                                      stopBy: *id001
+                                      all: *id003
+                              - follows:
+                                  stopBy: neighbor
+                                  any:
+                                  - any:
+                                    - kind: return_statement
+                                    - kind: throw_statement
+                                    - has:
+                                        stopBy: *id001
+                                        kind: return_statement
+                                        has:
+                                          stopBy: *id001
+                                          all: *id003
+                                  - follows:
+                                      stopBy: neighbor
+                                      any:
+                                      - any:
+                                        - kind: return_statement
+                                        - kind: throw_statement
+                                        - has:
+                                            stopBy: *id001
+                                            kind: return_statement
+                                            has:
+                                              stopBy: *id001
+                                              all: *id003
+                                      - follows:
+                                          stopBy: neighbor
+                                          any:
+                                          - any:
+                                            - kind: return_statement
+                                            - kind: throw_statement
+                                            - has:
+                                                stopBy: *id001
+                                                kind: return_statement
+                                                has:
+                                                  stopBy: *id001
+                                                  all: *id003
+                                          - follows:
+                                              stopBy: neighbor
+                                              any:
+                                              - any:
+                                                - kind: return_statement
+                                                - kind: throw_statement
+                                                - has:
+                                                    stopBy: *id001
+                                                    kind: return_statement
+                                                    has:
+                                                      stopBy: *id001
+                                                      all: *id003
+                                              - follows:
+                                                  stopBy: neighbor
+                                                  any:
+                                                  - any:
+                                                    - kind: return_statement
+                                                    - kind: throw_statement
+                                                    - has:
+                                                        stopBy: *id001
+                                                        kind: return_statement
+                                                        has:
+                                                          stopBy: *id001
+                                                          all: *id003
+                                                  - follows:
+                                                      stopBy: neighbor
+                                                      any:
+                                                      - any:
+                                                        - kind: return_statement
+                                                        - kind: throw_statement
+                                                        - has:
+                                                            stopBy: *id001
+                                                            kind: return_statement
+                                                            has:
+                                                              stopBy: *id001
+                                                              all: *id003
+                                                      - follows:
+                                                          stopBy: neighbor
+                                                          any:
+                                                          - kind: return_statement
+                                                          - kind: throw_statement
+                                                          - has:
+                                                              stopBy: *id001
+                                                              kind: return_statement
+                                                              has:
+                                                                stopBy: *id001
+                                                                all: *id003
 min_engine: 0.39.0
