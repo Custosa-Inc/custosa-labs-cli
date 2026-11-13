@@ -98,11 +98,15 @@ rule:
   # the key is the first hop (index 0 of the split header, getFirst() or get(0)), whatever else the method holds; a
   # header only logged, a trusted-proxy valve and a right-side hop are no first-hop key
   any:
-  # a comma split taken at index 0 directly; a split on another separator (the request path on "/") is no header split
-  # (T29-P3-C395 med 1)
+  # a split taken at index 0 directly, unless its separator is a string literal with no comma: a split on another
+  # separator (the request path on "/") is no header split (T29-P3-C395 med 1), but a named separator (SEP, sep) is
+  # read as the header split (T29-P3-C401 med 1). Also the first hop cut by substring(0, indexOf(",")) or taken by
+  # findFirst on a stream of the comma split (T29-P3-C401 low 1)
   - kind: method_declaration
-    regex: (?s)(\.split\(\s*"[^"]*,[^)]*\)\s*\[\s*0\s*\]|\.getFirst\(\)|\.get\(\s*0\s*\))
-  # index 0 of a variable the method stores a comma split in (String[] hops = xff.split(","); hops[0])
+    regex: (?s)(\.split\(\s*(?:[^"\s)]|"[^"]*,)[^()]*(?:\([^()]*\)[^()]*)*\)\s*\[\s*0\s*\]|\.getFirst\(\)|\.get\(\s*0\s*\)|\.substring\(\s*0\s*,\s*\w+\.indexOf\(\s*(?:"[^"]*,|',')|\.split\(\s*(?:[^"\s)]|"[^"]*,)[^;]*\.findFirst\(\))
+  # index 0 of a variable the method stores a header split in (String[] hops = xff.split(","); hops[0]), by its
+  # declaration or a later assignment (hops = xff.split(SEP)), unless the separator is a string literal with no comma
+  # (T29-P3-C401 med 1)
   - has:
       stopBy: end
       kind: array_access
@@ -122,18 +126,31 @@ rule:
           kind: method_declaration
           has:
             stopBy: end
-            kind: variable_declarator
-            all:
-            - has:
-                field: name
-                kind: identifier
-                pattern:
-                  context: int $HOPS = 0;
-                  selector: identifier
-            - has:
-                field: value
-                kind: method_invocation
-                regex: \.split\(\s*"[^"]*,
+            any:
+            - kind: variable_declarator
+              all:
+              - has:
+                  field: name
+                  kind: identifier
+                  pattern:
+                    context: int $HOPS = 0;
+                    selector: identifier
+              - has:
+                  field: value
+                  kind: method_invocation
+                  regex: \.split\(\s*(?:[^"\s)]|"[^"]*,)
+            - kind: assignment_expression
+              all:
+              - has:
+                  field: left
+                  kind: identifier
+                  pattern:
+                    context: int $HOPS = 0;
+                    selector: identifier
+              - has:
+                  field: right
+                  kind: method_invocation
+                  regex: \.split\(\s*(?:[^"\s)]|"[^"]*,)
   # a first hop the class calls only as a log argument (log.warn(..., auditIp())) is no key: the key is
   # something else, such as the username (T29-P1-C340 med 4)
   not:
