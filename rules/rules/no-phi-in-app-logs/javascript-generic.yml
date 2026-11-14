@@ -134,7 +134,9 @@ rule:
               regex: '^(console|logger|log|LOG|Logger|pino|winston|globalLogger|this\.logger|this\.log|this\._logger|req\.log|request\.log|ctx\.log|fastify\.log|app\.log|server\.log)(\.child\([^)]*\))?\.(log|info|debug|warn|error|trace|fatal|verbose|silly)$'
 min_engine: 0.45.3
 ---
-# Known limit (C391 low 3): the patient field list is exact. patient["email"] gives no match (a false pass).
+# Known limit (C391 low 3, T29-P1-C360): the patient field list is still a list. A related record other than user, profile
+# or contact (patient.guardian) and a field read off a root that is no patient name (visit.patient_name) give no match
+# (false passes). Any _email or _phone suffix off the patient fails, patient.clinic_email too (false fails only).
 # Known limit (C394 low 2): a key read off an element counts as one value unless it is a nested-record key (data,
 # contact, profile, details, info and the like), so patients[0]["payload"] gives no match, nor does a patient field
 # two keys below a nested-record key (patients[0]["data"]["contact"]["email"]) (false passes).
@@ -166,7 +168,7 @@ rule:
             - regex: '\.(ssn|SSN|socialSecurityNumber|social_security_number|dob|DOB|dateOfBirth|date_of_birth|birthDate|birth_date|diagnosis|diagnoses|mrn|MRN|medicalRecordNumber|medical_record_number|insuranceNumber|insurance_number|clinicalNotes|clinical_notes)$'
           - all:
             - kind: member_expression
-            - regex: '^(patient|patientData|patientRecord|patientRow|currentPatient)\??\.(name|firstName|lastName|first_name|last_name|fullName|full_name|email|phone|phoneNumber|phone_number|address|notes)$'
+            - regex: '^(patient|patientData|patientRecord|patientRow|currentPatient)\??\.(name|firstName|lastName|first_name|last_name|fullName|full_name|email|phone|phoneNumber|phone_number|address|notes|firstName|lastName|fullName|emailAddress|phoneNumber|mobileNumber|dateOfBirth|birthDate|(?:patient|contact)_(?:name|first_name|last_name|full_name|address|dob)|(?:patient|contact)(?:Name|FirstName|LastName|FullName|Address|Dob)|[a-z][a-z0-9_]*_(?:email|email_address|phone|phone_number|mobile)|[a-z][A-Za-z0-9]*(?:Email|EmailAddress|Phone|PhoneNumber|Mobile)|user|profile|contact)$'
           - all:
             - kind: identifier
             - regex: '^(patient|patients|patientData|patientRecord|patientRow|patientRows|currentPatient)$'
@@ -188,12 +190,15 @@ rule:
           - kind: call_expression
             regex: '^(patients|patientRows)\??.at\(\s*-?\w+\s*\)$'
           - kind: member_expression
-            regex: '^(patients|patientRows)\??.at\(\s*-?\w+\s*\)\??\.(name|firstName|lastName|first_name|last_name|fullName|full_name|address|notes)$'
+            regex: '^(patients|patientRows)\??.at\(\s*-?\w+\s*\)\??\.(name|firstName|lastName|first_name|last_name|fullName|full_name|address|notes|firstName|lastName|fullName|emailAddress|phoneNumber|mobileNumber|dateOfBirth|birthDate|(?:patient|contact)_(?:name|first_name|last_name|full_name|address|dob)|(?:patient|contact)(?:Name|FirstName|LastName|FullName|Address|Dob)|[a-z][a-z0-9_]*_(?:email|email_address|phone|phone_number|mobile)|[a-z][A-Za-z0-9]*(?:Email|EmailAddress|Phone|PhoneNumber|Mobile))$'
           - all:
             - kind: shorthand_property_identifier
             - regex: '^(patient|patients|patientData|patientRecord|patientRow|patientRows|currentPatient)$'
           - kind: subscript_expression
             regex: '\[\s*[''\x22](ssn|SSN|dob|DOB|dateOfBirth|date_of_birth|birthDate|diagnosis|mrn|MRN|firstName|lastName|first_name|last_name)[''\x22]\s*\]$'
+          # C391 low 3: a key read off the patient (patient["email"]) is a field read, as a member read is.
+          - kind: subscript_expression
+            regex: '^(patient|patientData|patientRecord|patientRow|currentPatient)(\?\.)?\[\s*[''\x22](name|firstName|lastName|first_name|last_name|fullName|full_name|email|emailAddress|email_address|phone|phoneNumber|phone_number|mobile|mobileNumber|mobile_number|address|notes|firstName|lastName|fullName|emailAddress|phoneNumber|mobileNumber|dateOfBirth|birthDate|(?:patient|contact)_(?:name|first_name|last_name|full_name|address|dob)|(?:patient|contact)(?:Name|FirstName|LastName|FullName|Address|Dob)|[a-z][a-z0-9_]*_(?:email|email_address|phone|phone_number|mobile)|[a-z][A-Za-z0-9]*(?:Email|EmailAddress|Phone|PhoneNumber|Mobile)|user|profile|contact)[''\x22]\s*\]$'
           - kind: spread_element
             regex: '^\.\.\.(patient|patients|patientData|patientRecord|patientRow|currentPatient)$'
           - all:
@@ -385,7 +390,7 @@ rule:
                   has:
                     field: property
                     kind: property_identifier
-                    regex: '^(name|firstName|lastName|first_name|last_name|fullName|full_name|email|emailAddress|email_address|phone|phoneNumber|phone_number|mobile|mobileNumber|mobile_number|address|notes|ssn|SSN|socialSecurityNumber|social_security_number|dob|DOB|dateOfBirth|date_of_birth|birthDate|birth_date|diagnosis|diagnoses|mrn|MRN|medicalRecordNumber|medical_record_number|insuranceNumber|insurance_number|clinicalNotes|clinical_notes)$'
+                    regex: '^(name|firstName|lastName|first_name|last_name|fullName|full_name|email|emailAddress|email_address|phone|phoneNumber|phone_number|mobile|mobileNumber|mobile_number|address|notes|ssn|SSN|socialSecurityNumber|social_security_number|dob|DOB|dateOfBirth|date_of_birth|birthDate|birth_date|diagnosis|diagnoses|mrn|MRN|medicalRecordNumber|medical_record_number|insuranceNumber|insurance_number|clinicalNotes|clinical_notes|firstName|lastName|fullName|emailAddress|phoneNumber|mobileNumber|dateOfBirth|birthDate|(?:patient|contact)_(?:name|first_name|last_name|full_name|address|dob)|(?:patient|contact)(?:Name|FirstName|LastName|FullName|Address|Dob)|[a-z][a-z0-9_]*_(?:email|email_address|phone|phone_number|mobile)|[a-z][A-Za-z0-9]*(?:Email|EmailAddress|Phone|PhoneNumber|Mobile))$'
               - kind: subscript_expression
                 inside:
                   kind: member_expression
@@ -394,7 +399,7 @@ rule:
                     has:
                       field: property
                       kind: property_identifier
-                      regex: '^(name|firstName|lastName|first_name|last_name|fullName|full_name|email|emailAddress|email_address|phone|phoneNumber|phone_number|mobile|mobileNumber|mobile_number|address|notes|ssn|SSN|socialSecurityNumber|social_security_number|dob|DOB|dateOfBirth|date_of_birth|birthDate|birth_date|diagnosis|diagnoses|mrn|MRN|medicalRecordNumber|medical_record_number|insuranceNumber|insurance_number|clinicalNotes|clinical_notes)$'
+                      regex: '^(name|firstName|lastName|first_name|last_name|fullName|full_name|email|emailAddress|email_address|phone|phoneNumber|phone_number|mobile|mobileNumber|mobile_number|address|notes|ssn|SSN|socialSecurityNumber|social_security_number|dob|DOB|dateOfBirth|date_of_birth|birthDate|birth_date|diagnosis|diagnoses|mrn|MRN|medicalRecordNumber|medical_record_number|insuranceNumber|insurance_number|clinicalNotes|clinical_notes|firstName|lastName|fullName|emailAddress|phoneNumber|mobileNumber|dateOfBirth|birthDate|(?:patient|contact)_(?:name|first_name|last_name|full_name|address|dob)|(?:patient|contact)(?:Name|FirstName|LastName|FullName|Address|Dob)|[a-z][a-z0-9_]*_(?:email|email_address|phone|phone_number|mobile)|[a-z][A-Za-z0-9]*(?:Email|EmailAddress|Phone|PhoneNumber|Mobile))$'
               # C391 low 1, C394 low 2: an element read by a string key that is no patient field (patients[0]["id"]), when
               # nothing then reads that key's value for a patient field, and the key holds one value, or its value is then
               # read for a member or key that is no patient field (patients[0]["data"]["id"]). A nested record logged whole
@@ -409,7 +414,7 @@ rule:
                       kind: string
                       not:
                         kind: string
-                        regex: '^[''"](name|firstName|lastName|first_name|last_name|fullName|full_name|email|emailAddress|email_address|phone|phoneNumber|phone_number|mobile|mobileNumber|mobile_number|address|notes|ssn|SSN|socialSecurityNumber|social_security_number|dob|DOB|dateOfBirth|date_of_birth|birthDate|birth_date|diagnosis|diagnoses|mrn|MRN|medicalRecordNumber|medical_record_number|insuranceNumber|insurance_number|clinicalNotes|clinical_notes)[''"]$'
+                        regex: '^[''"](name|firstName|lastName|first_name|last_name|fullName|full_name|email|emailAddress|email_address|phone|phoneNumber|phone_number|mobile|mobileNumber|mobile_number|address|notes|ssn|SSN|socialSecurityNumber|social_security_number|dob|DOB|dateOfBirth|date_of_birth|birthDate|birth_date|diagnosis|diagnoses|mrn|MRN|medicalRecordNumber|medical_record_number|insuranceNumber|insurance_number|clinicalNotes|clinical_notes|firstName|lastName|fullName|emailAddress|phoneNumber|mobileNumber|dateOfBirth|birthDate|(?:patient|contact)_(?:name|first_name|last_name|full_name|address|dob)|(?:patient|contact)(?:Name|FirstName|LastName|FullName|Address|Dob)|[a-z][a-z0-9_]*_(?:email|email_address|phone|phone_number|mobile)|[a-z][A-Za-z0-9]*(?:Email|EmailAddress|Phone|PhoneNumber|Mobile))[''"]$'
                   - not:
                       inside:
                         kind: subscript_expression
@@ -417,7 +422,7 @@ rule:
                         has:
                           field: index
                           kind: string
-                          regex: '^[''"](name|firstName|lastName|first_name|last_name|fullName|full_name|email|emailAddress|email_address|phone|phoneNumber|phone_number|mobile|mobileNumber|mobile_number|address|notes|ssn|SSN|socialSecurityNumber|social_security_number|dob|DOB|dateOfBirth|date_of_birth|birthDate|birth_date|diagnosis|diagnoses|mrn|MRN|medicalRecordNumber|medical_record_number|insuranceNumber|insurance_number|clinicalNotes|clinical_notes)[''"]$'
+                          regex: '^[''"](name|firstName|lastName|first_name|last_name|fullName|full_name|email|emailAddress|email_address|phone|phoneNumber|phone_number|mobile|mobileNumber|mobile_number|address|notes|ssn|SSN|socialSecurityNumber|social_security_number|dob|DOB|dateOfBirth|date_of_birth|birthDate|birth_date|diagnosis|diagnoses|mrn|MRN|medicalRecordNumber|medical_record_number|insuranceNumber|insurance_number|clinicalNotes|clinical_notes|firstName|lastName|fullName|emailAddress|phoneNumber|mobileNumber|dateOfBirth|birthDate|(?:patient|contact)_(?:name|first_name|last_name|full_name|address|dob)|(?:patient|contact)(?:Name|FirstName|LastName|FullName|Address|Dob)|[a-z][a-z0-9_]*_(?:email|email_address|phone|phone_number|mobile)|[a-z][A-Za-z0-9]*(?:Email|EmailAddress|Phone|PhoneNumber|Mobile))[''"]$'
                   - any:
                     - has:
                         field: index
@@ -432,7 +437,7 @@ rule:
                           has:
                             field: property
                             kind: property_identifier
-                            regex: '^(name|firstName|lastName|first_name|last_name|fullName|full_name|email|emailAddress|email_address|phone|phoneNumber|phone_number|mobile|mobileNumber|mobile_number|address|notes|ssn|SSN|socialSecurityNumber|social_security_number|dob|DOB|dateOfBirth|date_of_birth|birthDate|birth_date|diagnosis|diagnoses|mrn|MRN|medicalRecordNumber|medical_record_number|insuranceNumber|insurance_number|clinicalNotes|clinical_notes)$'
+                            regex: '^(name|firstName|lastName|first_name|last_name|fullName|full_name|email|emailAddress|email_address|phone|phoneNumber|phone_number|mobile|mobileNumber|mobile_number|address|notes|ssn|SSN|socialSecurityNumber|social_security_number|dob|DOB|dateOfBirth|date_of_birth|birthDate|birth_date|diagnosis|diagnoses|mrn|MRN|medicalRecordNumber|medical_record_number|insuranceNumber|insurance_number|clinicalNotes|clinical_notes|firstName|lastName|fullName|emailAddress|phoneNumber|mobileNumber|dateOfBirth|birthDate|(?:patient|contact)_(?:name|first_name|last_name|full_name|address|dob)|(?:patient|contact)(?:Name|FirstName|LastName|FullName|Address|Dob)|[a-z][a-z0-9_]*_(?:email|email_address|phone|phone_number|mobile)|[a-z][A-Za-z0-9]*(?:Email|EmailAddress|Phone|PhoneNumber|Mobile))$'
                     - inside:
                         kind: subscript_expression
                         field: object

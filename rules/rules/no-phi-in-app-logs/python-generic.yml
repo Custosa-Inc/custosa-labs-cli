@@ -53,9 +53,9 @@ rule:
                       regex: '^(print|str|repr|dict)$'
 min_engine: 0.45.3
 ---
-# Known limit (C391 low 3): the patient field list is exact. patient.get("name"), patient.__dict__,
-# patient.patient_name, patient.contact_email and patient.user give no match, and a comprehension over patients that
-# yields p.patient_name, p.contact_email, p.user, p.profile or p.contact drops its source (false passes).
+# Known limit (C391 low 3, T29-P1-C360): the patient field list is still a list. A related record other than user, profile
+# or contact (patient.guardian) and a field read off a root that is no patient name (visit.patient_name) give no match
+# (false passes). Any _email or _phone suffix off the patient fails, patient.clinic_email too (false fails only).
 # Known limit (C394 low 2): a key read off an element counts as one value unless it is a nested-record key (data,
 # contact, profile, details, info and the like), so patients[0]["payload"] gives no match, nor does a patient field
 # two keys below a nested-record key (patients[0]["data"]["contact"]["email"]) (false passes).
@@ -85,11 +85,11 @@ rule:
           - kind: attribute
             regex: '\.(ssn|SSN|dob|date_of_birth|birth_date|birthdate|diagnosis|diagnoses|mrn|medical_record_number|insurance_number|clinical_notes)$'
           - kind: attribute
-            regex: '^(patient|patient_data|patient_record|patient_row|current_patient|self\.patient)\.(name|first_name|last_name|full_name|email|phone|phone_number|address|notes)$'
+            regex: '^(patient|patient_data|patient_record|patient_row|current_patient|self\.patient)\.(name|first_name|last_name|full_name|email|phone|phone_number|address|notes|firstName|lastName|fullName|emailAddress|phoneNumber|mobileNumber|dateOfBirth|birthDate|(?:patient|contact)_(?:name|first_name|last_name|full_name|address|dob)|(?:patient|contact)(?:Name|FirstName|LastName|FullName|Address|Dob)|[a-z][a-z0-9_]*_(?:email|email_address|phone|phone_number|mobile)|[a-z][A-Za-z0-9]*(?:Email|EmailAddress|Phone|PhoneNumber|Mobile)|user|profile|contact|__dict__)$'
           - kind: subscript
             regex: '\[\s*[''"](ssn|dob|date_of_birth|birth_date|diagnosis|mrn|medical_record_number)[''"]\s*\]$'
           - kind: subscript
-            regex: '^(patient|patient_data|patient_record|patient_row|current_patient)\[\s*[''"](name|first_name|last_name|full_name|email|phone|address|notes)[''"]\s*\]$'
+            regex: '^(patient|patient_data|patient_record|patient_row|current_patient)\[\s*[''"](name|first_name|last_name|full_name|email|phone|address|notes|firstName|lastName|fullName|emailAddress|phoneNumber|mobileNumber|dateOfBirth|birthDate|(?:patient|contact)_(?:name|first_name|last_name|full_name|address|dob)|(?:patient|contact)(?:Name|FirstName|LastName|FullName|Address|Dob)|[a-z][a-z0-9_]*_(?:email|email_address|phone|phone_number|mobile)|[a-z][A-Za-z0-9]*(?:Email|EmailAddress|Phone|PhoneNumber|Mobile)|user|profile|contact)[''"]\s*\]$'
           - all:
             - kind: identifier
             - regex: '^(patient|patients|patient_data|patient_record|patient_row|patient_rows|current_patient)$'
@@ -144,6 +144,9 @@ rule:
                     field: name
           - kind: call
             regex: '^[A-Za-z_][A-Za-z0-9_.]*\.get\(\s*[''"](vitals|lab_values|lab_results|medications|prescriptions|allergies|diagnosis|diagnoses|ssn|dob|date_of_birth)[''"]'
+          # C391 low 3: a .get of a patient field off the patient (patient.get("name")) is a field read.
+          - kind: call
+            regex: '^(patient|patient_data|patient_record|patient_row|current_patient|self\.patient)\.get\(\s*[''"](name|first_name|last_name|full_name|email|email_address|phone|phone_number|mobile|mobile_number|address|notes|firstName|lastName|fullName|emailAddress|phoneNumber|mobileNumber|dateOfBirth|birthDate|(?:patient|contact)_(?:name|first_name|last_name|full_name|address|dob)|(?:patient|contact)(?:Name|FirstName|LastName|FullName|Address|Dob)|[a-z][a-z0-9_]*_(?:email|email_address|phone|phone_number|mobile)|[a-z][A-Za-z0-9]*(?:Email|EmailAddress|Phone|PhoneNumber|Mobile)|user|profile|contact)[''"]'
         - not:
             any:
             - inside:
@@ -185,7 +188,7 @@ rule:
                   - has:
                       field: attribute
                       kind: identifier
-                      regex: '^(name|first_name|last_name|full_name|email|email_address|phone|phone_number|mobile|mobile_number|address|notes|ssn|SSN|dob|date_of_birth|birth_date|birthdate|diagnosis|diagnoses|mrn|medical_record_number|insurance_number|clinical_notes)$'
+                      regex: '^(name|first_name|last_name|full_name|email|email_address|phone|phone_number|mobile|mobile_number|address|notes|ssn|SSN|dob|date_of_birth|birth_date|birthdate|diagnosis|diagnoses|mrn|medical_record_number|insurance_number|clinical_notes|firstName|lastName|fullName|emailAddress|phoneNumber|mobileNumber|dateOfBirth|birthDate|(?:patient|contact)_(?:name|first_name|last_name|full_name|address|dob)|(?:patient|contact)(?:Name|FirstName|LastName|FullName|Address|Dob)|[a-z][a-z0-9_]*_(?:email|email_address|phone|phone_number|mobile)|[a-z][A-Za-z0-9]*(?:Email|EmailAddress|Phone|PhoneNumber|Mobile)|__dict__)$'
                   - all:
                     - has:
                         field: attribute
@@ -197,7 +200,7 @@ rule:
                         has:
                           field: arguments
                           kind: argument_list
-                          regex: '^\(\s*[''"](name|first_name|last_name|full_name|email|email_address|phone|phone_number|mobile|mobile_number|address|notes|ssn|dob|date_of_birth|birth_date|diagnosis|diagnoses|mrn|medical_record_number|insurance_number|clinical_notes)[''"]'
+                          regex: '^\(\s*[''"](name|first_name|last_name|full_name|email|email_address|phone|phone_number|mobile|mobile_number|address|notes|ssn|dob|date_of_birth|birth_date|diagnosis|diagnoses|mrn|medical_record_number|insurance_number|clinical_notes|firstName|lastName|fullName|emailAddress|phoneNumber|mobileNumber|dateOfBirth|birthDate|(?:patient|contact)_(?:name|first_name|last_name|full_name|address|dob)|(?:patient|contact)(?:Name|FirstName|LastName|FullName|Address|Dob)|[a-z][a-z0-9_]*_(?:email|email_address|phone|phone_number|mobile)|[a-z][A-Za-z0-9]*(?:Email|EmailAddress|Phone|PhoneNumber|Mobile)|__dict__)[''"]'
               # C394 old miss: an element then read by .get of a patient field (patients[0].get("email")) is kept.
               - kind: subscript
                 inside:
@@ -208,7 +211,7 @@ rule:
                     - has:
                         field: attribute
                         kind: identifier
-                        regex: '^(name|first_name|last_name|full_name|email|email_address|phone|phone_number|mobile|mobile_number|address|notes|ssn|SSN|dob|date_of_birth|birth_date|birthdate|diagnosis|diagnoses|mrn|medical_record_number|insurance_number|clinical_notes)$'
+                        regex: '^(name|first_name|last_name|full_name|email|email_address|phone|phone_number|mobile|mobile_number|address|notes|ssn|SSN|dob|date_of_birth|birth_date|birthdate|diagnosis|diagnoses|mrn|medical_record_number|insurance_number|clinical_notes|firstName|lastName|fullName|emailAddress|phoneNumber|mobileNumber|dateOfBirth|birthDate|(?:patient|contact)_(?:name|first_name|last_name|full_name|address|dob)|(?:patient|contact)(?:Name|FirstName|LastName|FullName|Address|Dob)|[a-z][a-z0-9_]*_(?:email|email_address|phone|phone_number|mobile)|[a-z][A-Za-z0-9]*(?:Email|EmailAddress|Phone|PhoneNumber|Mobile)|__dict__)$'
                     - all:
                       - has:
                           field: attribute
@@ -220,7 +223,7 @@ rule:
                           has:
                             field: arguments
                             kind: argument_list
-                            regex: '^\(\s*[''"](name|first_name|last_name|full_name|email|email_address|phone|phone_number|mobile|mobile_number|address|notes|ssn|dob|date_of_birth|birth_date|diagnosis|diagnoses|mrn|medical_record_number|insurance_number|clinical_notes)[''"]'
+                            regex: '^\(\s*[''"](name|first_name|last_name|full_name|email|email_address|phone|phone_number|mobile|mobile_number|address|notes|ssn|dob|date_of_birth|birth_date|diagnosis|diagnoses|mrn|medical_record_number|insurance_number|clinical_notes|firstName|lastName|fullName|emailAddress|phoneNumber|mobileNumber|dateOfBirth|birthDate|(?:patient|contact)_(?:name|first_name|last_name|full_name|address|dob)|(?:patient|contact)(?:Name|FirstName|LastName|FullName|Address|Dob)|[a-z][a-z0-9_]*_(?:email|email_address|phone|phone_number|mobile)|[a-z][A-Za-z0-9]*(?:Email|EmailAddress|Phone|PhoneNumber|Mobile)|__dict__)[''"]'
               # C391 low 1, C394 low 2: an element read by a string key that is no patient field (patients[0]["id"]), when
               # nothing then reads that key's value for a patient field (by key, attribute or .get), and the key holds one
               # value, or its value is then read for an attribute or key that is no patient field (patients[0]["data"]["id"]).
@@ -236,7 +239,7 @@ rule:
                       kind: string
                       not:
                         kind: string
-                        regex: '^[''"](name|first_name|last_name|full_name|email|email_address|phone|phone_number|mobile|mobile_number|address|notes|ssn|SSN|dob|date_of_birth|birth_date|birthdate|diagnosis|diagnoses|mrn|medical_record_number|insurance_number|clinical_notes)[''"]$'
+                        regex: '^[''"](name|first_name|last_name|full_name|email|email_address|phone|phone_number|mobile|mobile_number|address|notes|ssn|SSN|dob|date_of_birth|birth_date|birthdate|diagnosis|diagnoses|mrn|medical_record_number|insurance_number|clinical_notes|firstName|lastName|fullName|emailAddress|phoneNumber|mobileNumber|dateOfBirth|birthDate|(?:patient|contact)_(?:name|first_name|last_name|full_name|address|dob)|(?:patient|contact)(?:Name|FirstName|LastName|FullName|Address|Dob)|[a-z][a-z0-9_]*_(?:email|email_address|phone|phone_number|mobile)|[a-z][A-Za-z0-9]*(?:Email|EmailAddress|Phone|PhoneNumber|Mobile)|__dict__)[''"]$'
                   - not:
                       inside:
                         kind: subscript
@@ -244,7 +247,7 @@ rule:
                         has:
                           field: subscript
                           kind: string
-                          regex: '^[''"](name|first_name|last_name|full_name|email|email_address|phone|phone_number|mobile|mobile_number|address|notes|ssn|SSN|dob|date_of_birth|birth_date|birthdate|diagnosis|diagnoses|mrn|medical_record_number|insurance_number|clinical_notes)[''"]$'
+                          regex: '^[''"](name|first_name|last_name|full_name|email|email_address|phone|phone_number|mobile|mobile_number|address|notes|ssn|SSN|dob|date_of_birth|birth_date|birthdate|diagnosis|diagnoses|mrn|medical_record_number|insurance_number|clinical_notes|firstName|lastName|fullName|emailAddress|phoneNumber|mobileNumber|dateOfBirth|birthDate|(?:patient|contact)_(?:name|first_name|last_name|full_name|address|dob)|(?:patient|contact)(?:Name|FirstName|LastName|FullName|Address|Dob)|[a-z][a-z0-9_]*_(?:email|email_address|phone|phone_number|mobile)|[a-z][A-Za-z0-9]*(?:Email|EmailAddress|Phone|PhoneNumber|Mobile)|__dict__)[''"]$'
                   - not:
                       inside:
                         kind: attribute
@@ -253,7 +256,7 @@ rule:
                         - has:
                             field: attribute
                             kind: identifier
-                            regex: '^(name|first_name|last_name|full_name|email|email_address|phone|phone_number|mobile|mobile_number|address|notes|ssn|SSN|dob|date_of_birth|birth_date|birthdate|diagnosis|diagnoses|mrn|medical_record_number|insurance_number|clinical_notes)$'
+                            regex: '^(name|first_name|last_name|full_name|email|email_address|phone|phone_number|mobile|mobile_number|address|notes|ssn|SSN|dob|date_of_birth|birth_date|birthdate|diagnosis|diagnoses|mrn|medical_record_number|insurance_number|clinical_notes|firstName|lastName|fullName|emailAddress|phoneNumber|mobileNumber|dateOfBirth|birthDate|(?:patient|contact)_(?:name|first_name|last_name|full_name|address|dob)|(?:patient|contact)(?:Name|FirstName|LastName|FullName|Address|Dob)|[a-z][a-z0-9_]*_(?:email|email_address|phone|phone_number|mobile)|[a-z][A-Za-z0-9]*(?:Email|EmailAddress|Phone|PhoneNumber|Mobile)|__dict__)$'
                         - all:
                           - has:
                               field: attribute
@@ -265,7 +268,7 @@ rule:
                               has:
                                 field: arguments
                                 kind: argument_list
-                                regex: '^\(\s*[''"](name|first_name|last_name|full_name|email|email_address|phone|phone_number|mobile|mobile_number|address|notes|ssn|dob|date_of_birth|birth_date|diagnosis|diagnoses|mrn|medical_record_number|insurance_number|clinical_notes)[''"]'
+                                regex: '^\(\s*[''"](name|first_name|last_name|full_name|email|email_address|phone|phone_number|mobile|mobile_number|address|notes|ssn|dob|date_of_birth|birth_date|diagnosis|diagnoses|mrn|medical_record_number|insurance_number|clinical_notes|firstName|lastName|fullName|emailAddress|phoneNumber|mobileNumber|dateOfBirth|birthDate|(?:patient|contact)_(?:name|first_name|last_name|full_name|address|dob)|(?:patient|contact)(?:Name|FirstName|LastName|FullName|Address|Dob)|[a-z][a-z0-9_]*_(?:email|email_address|phone|phone_number|mobile)|[a-z][A-Za-z0-9]*(?:Email|EmailAddress|Phone|PhoneNumber|Mobile)|__dict__)[''"]'
                   - any:
                     - has:
                         field: subscript
@@ -312,7 +315,7 @@ rule:
                             has:
                               field: attribute
                               kind: identifier
-                              regex: '^(name|first_name|last_name|full_name|email|email_address|phone|phone_number|mobile|mobile_number|address|notes|ssn|SSN|dob|date_of_birth|birth_date|birthdate|diagnosis|diagnoses|mrn|medical_record_number|insurance_number|clinical_notes|get|items|values|keys|to_dict|dict|model_dump|json|__dict__)$'
+                              regex: '^(name|first_name|last_name|full_name|email|email_address|phone|phone_number|mobile|mobile_number|address|notes|ssn|SSN|dob|date_of_birth|birth_date|birthdate|diagnosis|diagnoses|mrn|medical_record_number|insurance_number|clinical_notes|firstName|lastName|fullName|emailAddress|phoneNumber|mobileNumber|dateOfBirth|birthDate|(?:patient|contact)_(?:name|first_name|last_name|full_name|address|dob)|(?:patient|contact)(?:Name|FirstName|LastName|FullName|Address|Dob)|[a-z][a-z0-9_]*_(?:email|email_address|phone|phone_number|mobile)|[a-z][A-Za-z0-9]*(?:Email|EmailAddress|Phone|PhoneNumber|Mobile)|user|profile|contact|get|items|values|keys|to_dict|dict|model_dump|json|__dict__)$'
                       - kind: subscript
                         all:
                         - has:
@@ -325,7 +328,7 @@ rule:
                             has:
                               field: subscript
                               kind: string
-                              regex: '^[''"](name|first_name|last_name|full_name|email|email_address|phone|phone_number|mobile|mobile_number|address|notes|ssn|SSN|dob|date_of_birth|birth_date|birthdate|diagnosis|diagnoses|mrn|medical_record_number|insurance_number|clinical_notes)[''"]$'
+                              regex: '^[''"](name|first_name|last_name|full_name|email|email_address|phone|phone_number|mobile|mobile_number|address|notes|ssn|SSN|dob|date_of_birth|birth_date|birthdate|diagnosis|diagnoses|mrn|medical_record_number|insurance_number|clinical_notes|firstName|lastName|fullName|emailAddress|phoneNumber|mobileNumber|dateOfBirth|birthDate|(?:patient|contact)_(?:name|first_name|last_name|full_name|address|dob)|(?:patient|contact)(?:Name|FirstName|LastName|FullName|Address|Dob)|[a-z][a-z0-9_]*_(?:email|email_address|phone|phone_number|mobile)|[a-z][A-Za-z0-9]*(?:Email|EmailAddress|Phone|PhoneNumber|Mobile)|user|profile|contact)[''"]$'
                       - kind: call
                         all:
                         - has:
@@ -340,7 +343,7 @@ rule:
                             has:
                               field: arguments
                               kind: argument_list
-                              regex: '^\(\s*[''"](name|first_name|last_name|full_name|email|email_address|phone|phone_number|mobile|mobile_number|address|notes|ssn|SSN|dob|date_of_birth|birth_date|birthdate|diagnosis|diagnoses|mrn|medical_record_number|insurance_number|clinical_notes)[''"]'
+                              regex: '^\(\s*[''"](name|first_name|last_name|full_name|email|email_address|phone|phone_number|mobile|mobile_number|address|notes|ssn|SSN|dob|date_of_birth|birth_date|birthdate|diagnosis|diagnoses|mrn|medical_record_number|insurance_number|clinical_notes|firstName|lastName|fullName|emailAddress|phoneNumber|mobileNumber|dateOfBirth|birthDate|(?:patient|contact)_(?:name|first_name|last_name|full_name|address|dob)|(?:patient|contact)(?:Name|FirstName|LastName|FullName|Address|Dob)|[a-z][a-z0-9_]*_(?:email|email_address|phone|phone_number|mobile)|[a-z][A-Za-z0-9]*(?:Email|EmailAddress|Phone|PhoneNumber|Mobile)|user|profile|contact)[''"]'
                       - kind: pair
                         # C391 med 2: the key is what the line logs too ({p.name: p.id}), so it must be such a projection as well
                         all:
@@ -356,7 +359,7 @@ rule:
                                   has:
                                     field: attribute
                                     kind: identifier
-                                    regex: '^(name|first_name|last_name|full_name|email|email_address|phone|phone_number|mobile|mobile_number|address|notes|ssn|SSN|dob|date_of_birth|birth_date|birthdate|diagnosis|diagnoses|mrn|medical_record_number|insurance_number|clinical_notes|get|items|values|keys|to_dict|dict|model_dump|json|__dict__)$'
+                                    regex: '^(name|first_name|last_name|full_name|email|email_address|phone|phone_number|mobile|mobile_number|address|notes|ssn|SSN|dob|date_of_birth|birth_date|birthdate|diagnosis|diagnoses|mrn|medical_record_number|insurance_number|clinical_notes|firstName|lastName|fullName|emailAddress|phoneNumber|mobileNumber|dateOfBirth|birthDate|(?:patient|contact)_(?:name|first_name|last_name|full_name|address|dob)|(?:patient|contact)(?:Name|FirstName|LastName|FullName|Address|Dob)|[a-z][a-z0-9_]*_(?:email|email_address|phone|phone_number|mobile)|[a-z][A-Za-z0-9]*(?:Email|EmailAddress|Phone|PhoneNumber|Mobile)|user|profile|contact|get|items|values|keys|to_dict|dict|model_dump|json|__dict__)$'
                             - kind: subscript
                               all:
                               - has:
@@ -369,7 +372,7 @@ rule:
                                   has:
                                     field: subscript
                                     kind: string
-                                    regex: '^[''"](name|first_name|last_name|full_name|email|email_address|phone|phone_number|mobile|mobile_number|address|notes|ssn|SSN|dob|date_of_birth|birth_date|birthdate|diagnosis|diagnoses|mrn|medical_record_number|insurance_number|clinical_notes)[''"]$'
+                                    regex: '^[''"](name|first_name|last_name|full_name|email|email_address|phone|phone_number|mobile|mobile_number|address|notes|ssn|SSN|dob|date_of_birth|birth_date|birthdate|diagnosis|diagnoses|mrn|medical_record_number|insurance_number|clinical_notes|firstName|lastName|fullName|emailAddress|phoneNumber|mobileNumber|dateOfBirth|birthDate|(?:patient|contact)_(?:name|first_name|last_name|full_name|address|dob)|(?:patient|contact)(?:Name|FirstName|LastName|FullName|Address|Dob)|[a-z][a-z0-9_]*_(?:email|email_address|phone|phone_number|mobile)|[a-z][A-Za-z0-9]*(?:Email|EmailAddress|Phone|PhoneNumber|Mobile)|user|profile|contact)[''"]$'
                             - kind: call
                               all:
                               - has:
@@ -384,7 +387,7 @@ rule:
                                   has:
                                     field: arguments
                                     kind: argument_list
-                                    regex: '^\(\s*[''"](name|first_name|last_name|full_name|email|email_address|phone|phone_number|mobile|mobile_number|address|notes|ssn|SSN|dob|date_of_birth|birth_date|birthdate|diagnosis|diagnoses|mrn|medical_record_number|insurance_number|clinical_notes)[''"]'
+                                    regex: '^\(\s*[''"](name|first_name|last_name|full_name|email|email_address|phone|phone_number|mobile|mobile_number|address|notes|ssn|SSN|dob|date_of_birth|birth_date|birthdate|diagnosis|diagnoses|mrn|medical_record_number|insurance_number|clinical_notes|firstName|lastName|fullName|emailAddress|phoneNumber|mobileNumber|dateOfBirth|birthDate|(?:patient|contact)_(?:name|first_name|last_name|full_name|address|dob)|(?:patient|contact)(?:Name|FirstName|LastName|FullName|Address|Dob)|[a-z][a-z0-9_]*_(?:email|email_address|phone|phone_number|mobile)|[a-z][A-Za-z0-9]*(?:Email|EmailAddress|Phone|PhoneNumber|Mobile)|user|profile|contact)[''"]'
                         - has:
                             field: key
                             any:
@@ -397,7 +400,7 @@ rule:
                                   has:
                                     field: attribute
                                     kind: identifier
-                                    regex: '^(name|first_name|last_name|full_name|email|email_address|phone|phone_number|mobile|mobile_number|address|notes|ssn|SSN|dob|date_of_birth|birth_date|birthdate|diagnosis|diagnoses|mrn|medical_record_number|insurance_number|clinical_notes|get|items|values|keys|to_dict|dict|model_dump|json|__dict__)$'
+                                    regex: '^(name|first_name|last_name|full_name|email|email_address|phone|phone_number|mobile|mobile_number|address|notes|ssn|SSN|dob|date_of_birth|birth_date|birthdate|diagnosis|diagnoses|mrn|medical_record_number|insurance_number|clinical_notes|firstName|lastName|fullName|emailAddress|phoneNumber|mobileNumber|dateOfBirth|birthDate|(?:patient|contact)_(?:name|first_name|last_name|full_name|address|dob)|(?:patient|contact)(?:Name|FirstName|LastName|FullName|Address|Dob)|[a-z][a-z0-9_]*_(?:email|email_address|phone|phone_number|mobile)|[a-z][A-Za-z0-9]*(?:Email|EmailAddress|Phone|PhoneNumber|Mobile)|user|profile|contact|get|items|values|keys|to_dict|dict|model_dump|json|__dict__)$'
                             - kind: subscript
                               all:
                               - has:
@@ -410,7 +413,7 @@ rule:
                                   has:
                                     field: subscript
                                     kind: string
-                                    regex: '^[''"](name|first_name|last_name|full_name|email|email_address|phone|phone_number|mobile|mobile_number|address|notes|ssn|SSN|dob|date_of_birth|birth_date|birthdate|diagnosis|diagnoses|mrn|medical_record_number|insurance_number|clinical_notes)[''"]$'
+                                    regex: '^[''"](name|first_name|last_name|full_name|email|email_address|phone|phone_number|mobile|mobile_number|address|notes|ssn|SSN|dob|date_of_birth|birth_date|birthdate|diagnosis|diagnoses|mrn|medical_record_number|insurance_number|clinical_notes|firstName|lastName|fullName|emailAddress|phoneNumber|mobileNumber|dateOfBirth|birthDate|(?:patient|contact)_(?:name|first_name|last_name|full_name|address|dob)|(?:patient|contact)(?:Name|FirstName|LastName|FullName|Address|Dob)|[a-z][a-z0-9_]*_(?:email|email_address|phone|phone_number|mobile)|[a-z][A-Za-z0-9]*(?:Email|EmailAddress|Phone|PhoneNumber|Mobile)|user|profile|contact)[''"]$'
                             - kind: call
                               all:
                               - has:
@@ -425,7 +428,7 @@ rule:
                                   has:
                                     field: arguments
                                     kind: argument_list
-                                    regex: '^\(\s*[''"](name|first_name|last_name|full_name|email|email_address|phone|phone_number|mobile|mobile_number|address|notes|ssn|SSN|dob|date_of_birth|birth_date|birthdate|diagnosis|diagnoses|mrn|medical_record_number|insurance_number|clinical_notes)[''"]'
+                                    regex: '^\(\s*[''"](name|first_name|last_name|full_name|email|email_address|phone|phone_number|mobile|mobile_number|address|notes|ssn|SSN|dob|date_of_birth|birth_date|birthdate|diagnosis|diagnoses|mrn|medical_record_number|insurance_number|clinical_notes|firstName|lastName|fullName|emailAddress|phoneNumber|mobileNumber|dateOfBirth|birthDate|(?:patient|contact)_(?:name|first_name|last_name|full_name|address|dob)|(?:patient|contact)(?:Name|FirstName|LastName|FullName|Address|Dob)|[a-z][a-z0-9_]*_(?:email|email_address|phone|phone_number|mobile)|[a-z][A-Za-z0-9]*(?:Email|EmailAddress|Phone|PhoneNumber|Mobile)|user|profile|contact)[''"]'
               - kind: conditional_expression
                 regex: '^\s*(''[^'']*''|"[^"]*"|\d+|True|False|None)\s+if\s[\s\S]*\selse\s+(''[^'']*''|"[^"]*"|\d+|True|False|None)\s*$'
               - kind: argument_list
