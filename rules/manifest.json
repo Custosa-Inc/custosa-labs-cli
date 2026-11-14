@@ -1,5 +1,5 @@
 {
-  "ruleset_id": "2026-11-13.d2e98a13",
+  "ruleset_id": "2026-11-14.6817773e",
   "min_engine": "0.45.3",
   "files": [
     {
@@ -276,11 +276,11 @@
     },
     {
       "path": "rules/auth-login-throttling/java-spring.yml",
-      "sha256": "a2c71ea75b7e14a0ad80df4a642040ce922113b19d22c838be67fa5c78c3c56f"
+      "sha256": "7184d9f37dea9890d69ab58dff599e4870eee056306d13bfd95e80c892e15323"
     },
     {
       "path": "rules/auth-login-throttling/javascript-express.yml",
-      "sha256": "d11fcf70b638c34e3e0af46fcc4c83c6c60e08fb3a7ef4bf0ddad93aa0bcab27"
+      "sha256": "5f84dbe2d31d3ec4a6efc85d319021c51083377f29e48e0dd8494b29e1c0e7e5"
     },
     {
       "path": "rules/auth-login-throttling/php-generic.yml",
@@ -308,11 +308,11 @@
     },
     {
       "path": "rules/auth-login-throttling/typescript-express.yml",
-      "sha256": "fa217aae81945d698701b4379bf915642a95bf4f7547610807c1f313880b9d9d"
+      "sha256": "13579e67c263758f1ffb9ad321043d30fe6da00e4e017b6a989a5ef485659879"
     },
     {
       "path": "rules/auth-login-throttling/typescript-nextjs.yml",
-      "sha256": "dab452c5470170e2124c7b18d63595ed730f8902b47b188e030f56166e372b86"
+      "sha256": "b4f843f2f3cdb9f801e2be3b65a2208edc73347915d96c7690368275853533b8"
     },
     {
       "path": "rules/auth-on-by-default/go-generic.yml",
@@ -400,7 +400,7 @@
     },
     {
       "path": "rules/authz-every-handler/javascript-nextjs.yml",
-      "sha256": "4a5df3aca377a95e0079b9a9d66d9043edb023092a16414761da8e590c71edfe"
+      "sha256": "8150f454756aff6b3f72c76b764ff35ff079e0698fdc84d63b516cac8795889d"
     },
     {
       "path": "rules/authz-every-handler/kotlin-spring.yml",
@@ -428,7 +428,7 @@
     },
     {
       "path": "rules/authz-every-handler/tsx-nextjs.yml",
-      "sha256": "523f6215331d82d8a1afa885bfe5b6088d7b2e54bef4c57ce4061dff829209ca"
+      "sha256": "5b666fa9c9c0a8fef5c00b45a82ba714b0fa7797d0f44a0f5c5b8090c8efd63c"
     },
     {
       "path": "rules/authz-every-handler/typescript-express.yml",
@@ -440,7 +440,7 @@
     },
     {
       "path": "rules/authz-every-handler/typescript-nextjs.yml",
-      "sha256": "32c69722b8c69e512902fd2cb9914d933b48704bd8ad982cbf9f3790a78b798f"
+      "sha256": "8bc4d0fe4a0f3a4cbc6eeb5a3d02a01d468cebed188542d64a6348811d659482"
     },
     {
       "path": "rules/break-glass-access/javascript-generic.yml",
@@ -924,7 +924,7 @@
     },
     {
       "path": "rules/no-phi-in-app-logs/javascript-generic.yml",
-      "sha256": "cb1d7e8a6d2de4ff8734755b1bc7583264bab19e8715ca367050416dc0ef6dee"
+      "sha256": "7eb5826fb3a462651be18e9dbe1f3ab6c02cf976074af86362d084a3e8c0ebd3"
     },
     {
       "path": "rules/no-phi-in-app-logs/json-generic.yml",
@@ -936,7 +936,7 @@
     },
     {
       "path": "rules/no-phi-in-app-logs/python-generic.yml",
-      "sha256": "a5f23fb417f3517cef6f253fddcdc137280707917ac2b051c3fac2f990b33257"
+      "sha256": "6af36d9c5d7fac8f30470c3b48b9167d2a5a334bab7b992188fe4a2bc079761a"
     },
     {
       "path": "rules/no-phi-in-app-logs/ruby-generic.yml",
@@ -944,11 +944,11 @@
     },
     {
       "path": "rules/no-phi-in-app-logs/tsx-generic.yml",
-      "sha256": "3c36f40eabd110df06c02fb9b80ca9cd7ccba2bfa412baf5c838e6602b98ecd1"
+      "sha256": "bf70a57fd2943fe7681dd5d7034f9cf2147cfe58a192bb29582b1e4d32803378"
     },
     {
       "path": "rules/no-phi-in-app-logs/typescript-generic.yml",
-      "sha256": "4a70e446f855be7d8bfa92e24bc12a33a0ddce258099dba09deb707960b31515"
+      "sha256": "3d56c4df2829b7a0978343c083a48124b5e75b52eb3e95260d2ebc868f74c4c4"
     },
     {
       "path": "rules/no-phi-in-app-logs/yaml-spring.yml",
@@ -1336,7 +1336,7 @@
     },
     {
       "path": "rules/security-events-logged/python-generic.yml",
-      "sha256": "451baf988b12d68ccb3d0109a4db950b1bc80f769f14a54cc94e6be2a2de65bb"
+      "sha256": "92e248dd0b85b296548c3cc750487a438d943ed7dc42ff7180d7d0f25bf51ba3"
     },
     {
       "path": "rules/security-events-logged/ruby-generic.yml",
@@ -1392,11 +1392,11 @@
     },
     {
       "path": "rules/session-cookie-flags/typescript-nextjs.yml",
-      "sha256": "ac59c9122f37d19a6efdcb5fd719a351039af074696b232a5c520a2d645cc1d4"
+      "sha256": "bfae980f600ec17e6dc6329d5f0d8c3cd17858a5c9f8d531d62a5435ff6b54c6"
     },
     {
       "path": "rules/session-cookie-flags/typescript-supabase.yml",
-      "sha256": "f0d58de8426631c4bd636c8e29f25d3b5db790f73949b77bafcd356c620fe799"
+      "sha256": "3438f5aa46374425c5f111809dec86dcc6621ed343fec5a356bf1fb54aa7a7e7"
     },
     {
       "path": "rules/session-cookie-flags/yaml-spring.yml",
@@ -1626,7 +1626,7 @@
     },
     {
       "path": "contracts/response.schema.json",
-      "sha256": "d4db149ee2f8021cebd6903c17e68aeb2c82035651d3d77dd75a689592073e82"
+      "sha256": "50bfeec5685bd8395b823b08e52efb4129ab34746edf3de7dfcd4e1d220a7334"
     },
     {
       "path": "contracts/safe_words.txt",

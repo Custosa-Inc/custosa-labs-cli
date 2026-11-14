@@ -17,7 +17,55 @@ rule:
         - kind: lambda
       any:
       - kind: call
-        regex: '(?-u)^(HTTPException|HttpResponseForbidden|HttpResponseNotAllowed|PermissionDenied|Forbidden|Unauthorized|NotAuthenticated)\b'
+        regex: '(?-u)^(HttpResponseForbidden|PermissionDenied|Forbidden|Unauthorized|NotAuthenticated)\b'
+      # T29-P1-C295 cause 2: an HTTPException is a denial unless its status is an error that is no access decision
+      # (400, 402, 405, 409, 413, 415, 422 or 5xx). 401, 403, a 404 that hides a record, and a status the rule
+      # can't read stay denials. HttpResponseNotAllowed (405) is a wrong method, not a denial.
+      # T29-P1-C310 items 8 to 10: the status is read as a whole node (the first positional argument, or the value of
+      # status_code=), and only a plain literal of such a status exempts the call; a conditional, a name or text in the
+      # detail does not. A call whose text names an access decision stays a denial whatever its status.
+      - kind: call
+        regex: '(?-u)^HTTPException\b'
+        not:
+          all:
+          - has:
+              field: arguments
+              has:
+                any:
+                - any:
+                  - kind: integer
+                    regex: '^(5\d\d|40[0259]|41[35]|422)$'
+                  - kind: attribute
+                    regex: '^status\.HTTP_(5\d\d|40[0259]|41[35]|422)_\w*$'
+                  - kind: identifier
+                    regex: '^HTTP_(5\d\d|40[0259]|41[35]|422)_\w*$'
+                  follows:
+                    stopBy: neighbor
+                    not:
+                      follows:
+                        stopBy: neighbor
+                        any:
+                        - kind: comment
+                        - not:
+                            kind: comment
+                - kind: keyword_argument
+                  all:
+                  - has:
+                      field: name
+                      kind: identifier
+                      regex: '^status_code$'
+                  - has:
+                      field: value
+                      any:
+                      - kind: integer
+                        regex: '^(5\d\d|40[0259]|41[35]|422)$'
+                      - kind: attribute
+                        regex: '^status\.HTTP_(5\d\d|40[0259]|41[35]|422)_\w*$'
+                      - kind: identifier
+                        regex: '^HTTP_(5\d\d|40[0259]|41[35]|422)_\w*$'
+          - not:
+              kind: call
+              regex: '(?i)permission|privilege|forbidden|not (allowed|authori[sz]ed|permitted)|unauthori[sz]ed|access denied|\bdenied\b'
       - kind: call
         regex: '(?-u)^(abort|flask\.abort)\(\s*(401|403)\b'
       - kind: identifier

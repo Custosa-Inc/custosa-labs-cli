@@ -4,6 +4,12 @@
 # token, Clerk's getAuth(req) but never a bare getAuth() or firebase-admin's) or a Supabase client running as the
 # caller, outside any branch. Whether the record check follows is dataflow (needs_review). Wrapped exports (export
 # const GET = withAuth(...)) and handlers defined in another file are left out.
+# Known limits (T29-P3-C385), false passes: an action's inline load has no data-call-before check, so
+# await prisma.draft.delete(...) before const session = await auth() reads as guarded, and so do Drizzle's insert,
+# update and delete forms; the TS and TSX guard-wrapper checks (C338, C346: data calls before or in a catch or
+# finally, the null-field refusal, the fixed-value gate) are not carried to JS.
+# A guard arrow declared under a braceless if (if (id) var g = async () => {...}) and never called counts
+# as the control (a false pass, T29-P3-C386 low 2).
 id: authz-every-handler.javascript-nextjs.route
 practice_id: authz-every-handler
 language: javascript
@@ -45,9 +51,16 @@ control:
   has:
     stopBy:
       any:
+      # T29-P1-C346 med 2: a method or a class nested in the action is its own scope
+      - kind: method_definition
+      - kind: class_body
       - kind: function_declaration
         inside:
-          kind: statement_block
+          # or a switch case (T29-P3-C385 med 2)
+          any:
+          - kind: statement_block
+          - kind: switch_case
+          - kind: switch_default
       - any:
         - kind: arrow_function
         - kind: function_expression
@@ -58,7 +71,11 @@ control:
             - kind: lexical_declaration
             - kind: variable_declaration
             inside:
-              kind: statement_block
+              # or a switch case (T29-P3-C385 med 2)
+              any:
+              - kind: statement_block
+              - kind: switch_case
+              - kind: switch_default
     any:
     - any:
       - pattern: auth()
@@ -174,7 +191,7 @@ rule:
           - has:
               field: property
               kind: property_identifier
-              regex: '^(from|query|rpc|findMany|findUnique|findUniqueOrThrow|findFirst|findFirstOrThrow|upsert|createMany|updateMany|deleteMany|aggregate|groupBy|\$queryRaw|\$executeRaw|\$queryRawUnsafe|\$executeRawUnsafe)$'
+              regex: '^(from|query|rpc|findMany|findUnique|findUniqueOrThrow|findFirst|findFirstOrThrow|upsert|createMany|updateMany|deleteMany|aggregate|groupBy|count|createManyAndReturn|updateManyAndReturn|execute|\$queryRaw|\$executeRaw|\$queryRawUnsafe|\$executeRawUnsafe)$'
           - not:
               has:
                 field: object
@@ -219,9 +236,16 @@ control:
   has:
     stopBy:
       any:
+      # T29-P1-C346 med 2: a method or a class nested in the action is its own scope
+      - kind: method_definition
+      - kind: class_body
       - kind: function_declaration
         inside:
-          kind: statement_block
+          # or a switch case (T29-P3-C385 med 2)
+          any:
+          - kind: statement_block
+          - kind: switch_case
+          - kind: switch_default
       - any:
         - kind: arrow_function
         - kind: function_expression
@@ -232,7 +256,11 @@ control:
             - kind: lexical_declaration
             - kind: variable_declaration
             inside:
-              kind: statement_block
+              # or a switch case (T29-P3-C385 med 2)
+              any:
+              - kind: statement_block
+              - kind: switch_case
+              - kind: switch_default
     any:
     - any:
       - pattern: auth()
@@ -329,7 +357,7 @@ rule:
             - has:
                 field: property
                 kind: property_identifier
-                regex: ^(from|query|rpc|findMany|findUnique|findUniqueOrThrow|findFirst|findFirstOrThrow|upsert|createMany|updateMany|deleteMany|aggregate|groupBy|\$queryRaw|\$executeRaw|\$queryRawUnsafe|\$executeRawUnsafe)$
+                regex: ^(from|query|rpc|findMany|findUnique|findUniqueOrThrow|findFirst|findFirstOrThrow|upsert|createMany|updateMany|deleteMany|aggregate|groupBy|count|createManyAndReturn|updateManyAndReturn|execute|\$queryRaw|\$executeRaw|\$queryRawUnsafe|\$executeRawUnsafe)$
             - not:
                 has:
                   field: object
@@ -370,7 +398,7 @@ rule:
                 - has:
                     field: property
                     kind: property_identifier
-                    regex: ^(from|query|rpc|findMany|findUnique|findUniqueOrThrow|findFirst|findFirstOrThrow|upsert|createMany|updateMany|deleteMany|aggregate|groupBy|\$queryRaw|\$executeRaw|\$queryRawUnsafe|\$executeRawUnsafe)$
+                    regex: ^(from|query|rpc|findMany|findUnique|findUniqueOrThrow|findFirst|findFirstOrThrow|upsert|createMany|updateMany|deleteMany|aggregate|groupBy|count|createManyAndReturn|updateManyAndReturn|execute|\$queryRaw|\$executeRaw|\$queryRawUnsafe|\$executeRawUnsafe)$
                 - not:
                     has:
                       field: object
@@ -424,7 +452,7 @@ rule:
             - has:
                 field: property
                 kind: property_identifier
-                regex: ^(from|query|rpc|findMany|findUnique|findUniqueOrThrow|findFirst|findFirstOrThrow|upsert|createMany|updateMany|deleteMany|aggregate|groupBy|\$queryRaw|\$executeRaw|\$queryRawUnsafe|\$executeRawUnsafe)$
+                regex: ^(from|query|rpc|findMany|findUnique|findUniqueOrThrow|findFirst|findFirstOrThrow|upsert|createMany|updateMany|deleteMany|aggregate|groupBy|count|createManyAndReturn|updateManyAndReturn|execute|\$queryRaw|\$executeRaw|\$queryRawUnsafe|\$executeRawUnsafe)$
             - not:
                 has:
                   field: object
@@ -452,9 +480,16 @@ control:
   has:
     stopBy:
       any:
+      # T29-P1-C346 med 2: a method or a class nested in the action is its own scope
+      - kind: method_definition
+      - kind: class_body
       - kind: function_declaration
         inside:
-          kind: statement_block
+          # or a switch case (T29-P3-C385 med 2)
+          any:
+          - kind: statement_block
+          - kind: switch_case
+          - kind: switch_default
       - any:
         - kind: arrow_function
         - kind: function_expression
@@ -465,7 +500,11 @@ control:
             - kind: lexical_declaration
             - kind: variable_declaration
             inside:
-              kind: statement_block
+              # or a switch case (T29-P3-C385 med 2)
+              any:
+              - kind: statement_block
+              - kind: switch_case
+              - kind: switch_default
     any:
     - any:
       - pattern: auth()
@@ -557,7 +596,7 @@ rule:
             - has:
                 field: property
                 kind: property_identifier
-                regex: '^(from|query|rpc|findMany|findUnique|findUniqueOrThrow|findFirst|findFirstOrThrow|upsert|createMany|updateMany|deleteMany|aggregate|groupBy|\$queryRaw|\$executeRaw|\$queryRawUnsafe|\$executeRawUnsafe)$'
+                regex: '^(from|query|rpc|findMany|findUnique|findUniqueOrThrow|findFirst|findFirstOrThrow|upsert|createMany|updateMany|deleteMany|aggregate|groupBy|count|createManyAndReturn|updateManyAndReturn|execute|\$queryRaw|\$executeRaw|\$queryRawUnsafe|\$executeRawUnsafe)$'
             - not:
                 has:
                   field: object
@@ -590,7 +629,7 @@ rule:
             - has:
                 field: property
                 kind: property_identifier
-                regex: '^(from|query|rpc|findMany|findUnique|findUniqueOrThrow|findFirst|findFirstOrThrow|upsert|createMany|updateMany|deleteMany|aggregate|groupBy|\$queryRaw|\$executeRaw|\$queryRawUnsafe|\$executeRawUnsafe)$'
+                regex: '^(from|query|rpc|findMany|findUnique|findUniqueOrThrow|findFirst|findFirstOrThrow|upsert|createMany|updateMany|deleteMany|aggregate|groupBy|count|createManyAndReturn|updateManyAndReturn|execute|\$queryRaw|\$executeRaw|\$queryRawUnsafe|\$executeRawUnsafe)$'
             - not:
                 has:
                   field: object
@@ -629,7 +668,7 @@ rule:
             - has:
                 field: property
                 kind: property_identifier
-                regex: '^(from|query|rpc|findMany|findUnique|findUniqueOrThrow|findFirst|findFirstOrThrow|upsert|createMany|updateMany|deleteMany|aggregate|groupBy|\$queryRaw|\$executeRaw|\$queryRawUnsafe|\$executeRawUnsafe)$'
+                regex: '^(from|query|rpc|findMany|findUnique|findUniqueOrThrow|findFirst|findFirstOrThrow|upsert|createMany|updateMany|deleteMany|aggregate|groupBy|count|createManyAndReturn|updateManyAndReturn|execute|\$queryRaw|\$executeRaw|\$queryRawUnsafe|\$executeRawUnsafe)$'
             - not:
                 has:
                   field: object
@@ -662,7 +701,7 @@ rule:
             - has:
                 field: property
                 kind: property_identifier
-                regex: '^(from|query|rpc|findMany|findUnique|findUniqueOrThrow|findFirst|findFirstOrThrow|upsert|createMany|updateMany|deleteMany|aggregate|groupBy|\$queryRaw|\$executeRaw|\$queryRawUnsafe|\$executeRawUnsafe)$'
+                regex: '^(from|query|rpc|findMany|findUnique|findUniqueOrThrow|findFirst|findFirstOrThrow|upsert|createMany|updateMany|deleteMany|aggregate|groupBy|count|createManyAndReturn|updateManyAndReturn|execute|\$queryRaw|\$executeRaw|\$queryRawUnsafe|\$executeRawUnsafe)$'
             - not:
                 has:
                   field: object
@@ -679,9 +718,16 @@ control:
   has:
     stopBy:
       any:
+      # T29-P1-C346 med 2: a method or a class nested in the action is its own scope
+      - kind: method_definition
+      - kind: class_body
       - kind: function_declaration
         inside:
-          kind: statement_block
+          # or a switch case (T29-P3-C385 med 2)
+          any:
+          - kind: statement_block
+          - kind: switch_case
+          - kind: switch_default
       - any:
         - kind: arrow_function
         - kind: function_expression
@@ -692,7 +738,11 @@ control:
             - kind: lexical_declaration
             - kind: variable_declaration
             inside:
-              kind: statement_block
+              # or a switch case (T29-P3-C385 med 2)
+              any:
+              - kind: statement_block
+              - kind: switch_case
+              - kind: switch_default
     any:
     - any:
       - pattern: auth()
@@ -779,9 +829,16 @@ control:
   has:
     stopBy:
       any:
+      # T29-P1-C346 med 2: a method or a class nested in the action is its own scope
+      - kind: method_definition
+      - kind: class_body
       - kind: function_declaration
         inside:
-          kind: statement_block
+          # or a switch case (T29-P3-C385 med 2)
+          any:
+          - kind: statement_block
+          - kind: switch_case
+          - kind: switch_default
       - any:
         - kind: arrow_function
         - kind: function_expression
@@ -792,7 +849,11 @@ control:
             - kind: lexical_declaration
             - kind: variable_declaration
             inside:
-              kind: statement_block
+              # or a switch case (T29-P3-C385 med 2)
+              any:
+              - kind: statement_block
+              - kind: switch_case
+              - kind: switch_default
     any:
     - any:
       - pattern: auth()
@@ -1509,7 +1570,7 @@ rule:
           - has:
               field: property
               kind: property_identifier
-              regex: ^(from|query|rpc|findMany|findUnique|findUniqueOrThrow|findFirst|findFirstOrThrow|upsert|createMany|updateMany|deleteMany|aggregate|groupBy|\$queryRaw|\$executeRaw|\$queryRawUnsafe|\$executeRawUnsafe)$
+              regex: ^(from|query|rpc|findMany|findUnique|findUniqueOrThrow|findFirst|findFirstOrThrow|upsert|createMany|updateMany|deleteMany|aggregate|groupBy|count|createManyAndReturn|updateManyAndReturn|execute|\$queryRaw|\$executeRaw|\$queryRawUnsafe|\$executeRawUnsafe)$
           - not:
               has:
                 field: object
@@ -1625,7 +1686,7 @@ control:
                         - has:
                             field: property
                             kind: property_identifier
-                            regex: ^(from|query|rpc|findMany|findUnique|findUniqueOrThrow|findFirst|findFirstOrThrow|upsert|createMany|updateMany|deleteMany|aggregate|groupBy|\$queryRaw|\$executeRaw|\$queryRawUnsafe|\$executeRawUnsafe)$
+                            regex: ^(from|query|rpc|findMany|findUnique|findUniqueOrThrow|findFirst|findFirstOrThrow|upsert|createMany|updateMany|deleteMany|aggregate|groupBy|count|createManyAndReturn|updateManyAndReturn|execute|\$queryRaw|\$executeRaw|\$queryRawUnsafe|\$executeRawUnsafe)$
                         - not:
                             has:
                               field: object
@@ -1792,7 +1853,7 @@ control:
                       - has:
                           field: property
                           kind: property_identifier
-                          regex: ^(from|query|rpc|findMany|findUnique|findUniqueOrThrow|findFirst|findFirstOrThrow|upsert|createMany|updateMany|deleteMany|aggregate|groupBy|\$queryRaw|\$executeRaw|\$queryRawUnsafe|\$executeRawUnsafe)$
+                          regex: ^(from|query|rpc|findMany|findUnique|findUniqueOrThrow|findFirst|findFirstOrThrow|upsert|createMany|updateMany|deleteMany|aggregate|groupBy|count|createManyAndReturn|updateManyAndReturn|execute|\$queryRaw|\$executeRaw|\$queryRawUnsafe|\$executeRawUnsafe)$
                       - not:
                           has:
                             field: object
@@ -1832,7 +1893,7 @@ control:
                           - has:
                               field: property
                               kind: property_identifier
-                              regex: ^(from|query|rpc|findMany|findUnique|findUniqueOrThrow|findFirst|findFirstOrThrow|upsert|createMany|updateMany|deleteMany|aggregate|groupBy|\$queryRaw|\$executeRaw|\$queryRawUnsafe|\$executeRawUnsafe)$
+                              regex: ^(from|query|rpc|findMany|findUnique|findUniqueOrThrow|findFirst|findFirstOrThrow|upsert|createMany|updateMany|deleteMany|aggregate|groupBy|count|createManyAndReturn|updateManyAndReturn|execute|\$queryRaw|\$executeRaw|\$queryRawUnsafe|\$executeRawUnsafe)$
                           - not:
                               has:
                                 field: object
@@ -1872,7 +1933,7 @@ control:
                               - has:
                                   field: property
                                   kind: property_identifier
-                                  regex: ^(from|query|rpc|findMany|findUnique|findUniqueOrThrow|findFirst|findFirstOrThrow|upsert|createMany|updateMany|deleteMany|aggregate|groupBy|\$queryRaw|\$executeRaw|\$queryRawUnsafe|\$executeRawUnsafe)$
+                                  regex: ^(from|query|rpc|findMany|findUnique|findUniqueOrThrow|findFirst|findFirstOrThrow|upsert|createMany|updateMany|deleteMany|aggregate|groupBy|count|createManyAndReturn|updateManyAndReturn|execute|\$queryRaw|\$executeRaw|\$queryRawUnsafe|\$executeRawUnsafe)$
                               - not:
                                   has:
                                     field: object
@@ -1912,7 +1973,7 @@ control:
                                   - has:
                                       field: property
                                       kind: property_identifier
-                                      regex: ^(from|query|rpc|findMany|findUnique|findUniqueOrThrow|findFirst|findFirstOrThrow|upsert|createMany|updateMany|deleteMany|aggregate|groupBy|\$queryRaw|\$executeRaw|\$queryRawUnsafe|\$executeRawUnsafe)$
+                                      regex: ^(from|query|rpc|findMany|findUnique|findUniqueOrThrow|findFirst|findFirstOrThrow|upsert|createMany|updateMany|deleteMany|aggregate|groupBy|count|createManyAndReturn|updateManyAndReturn|execute|\$queryRaw|\$executeRaw|\$queryRawUnsafe|\$executeRawUnsafe)$
                                   - not:
                                       has:
                                         field: object
@@ -2119,12 +2180,72 @@ control:
                 has:
                   kind: call_expression
                   regex: ^(redirect|permanentRedirect|notFound|unauthorized|forbidden)\(
+                  all:
+                  - has:
+                      field: function
+                      kind: identifier
+                      pattern:
+                        context: const $NRX1 = 0
+                        selector: identifier
+                  - inside:
+                      kind: program
+                      stopBy: end
+                      has:
+                        kind: import_statement
+                        all:
+                        - has:
+                            field: source
+                            kind: string
+                            regex: '^[''"]next/navigation[''"]$'
+                        - has:
+                            stopBy: end
+                            kind: import_specifier
+                            not:
+                              has:
+                                field: alias
+                                kind: identifier
+                            has:
+                              field: name
+                              kind: identifier
+                              pattern:
+                                context: const $NRX1 = 0
+                                selector: identifier
               - kind: expression_statement
                 has:
                   kind: await_expression
                   has:
                     kind: call_expression
                     regex: ^(redirect|permanentRedirect|notFound|unauthorized|forbidden)\(
+                    all:
+                    - has:
+                        field: function
+                        kind: identifier
+                        pattern:
+                          context: const $NRX2 = 0
+                          selector: identifier
+                    - inside:
+                        kind: program
+                        stopBy: end
+                        has:
+                          kind: import_statement
+                          all:
+                          - has:
+                              field: source
+                              kind: string
+                              regex: '^[''"]next/navigation[''"]$'
+                          - has:
+                              stopBy: end
+                              kind: import_specifier
+                              not:
+                                has:
+                                  field: alias
+                                  kind: identifier
+                              has:
+                                field: name
+                                kind: identifier
+                                pattern:
+                                  context: const $NRX2 = 0
+                                  selector: identifier
               - kind: statement_block
                 has:
                   any:
@@ -2134,12 +2255,72 @@ control:
                     has:
                       kind: call_expression
                       regex: ^(redirect|permanentRedirect|notFound|unauthorized|forbidden)\(
+                      all:
+                      - has:
+                          field: function
+                          kind: identifier
+                          pattern:
+                            context: const $NRX3 = 0
+                            selector: identifier
+                      - inside:
+                          kind: program
+                          stopBy: end
+                          has:
+                            kind: import_statement
+                            all:
+                            - has:
+                                field: source
+                                kind: string
+                                regex: '^[''"]next/navigation[''"]$'
+                            - has:
+                                stopBy: end
+                                kind: import_specifier
+                                not:
+                                  has:
+                                    field: alias
+                                    kind: identifier
+                                has:
+                                  field: name
+                                  kind: identifier
+                                  pattern:
+                                    context: const $NRX3 = 0
+                                    selector: identifier
                   - kind: expression_statement
                     has:
                       kind: await_expression
                       has:
                         kind: call_expression
                         regex: ^(redirect|permanentRedirect|notFound|unauthorized|forbidden)\(
+                        all:
+                        - has:
+                            field: function
+                            kind: identifier
+                            pattern:
+                              context: const $NRX4 = 0
+                              selector: identifier
+                        - inside:
+                            kind: program
+                            stopBy: end
+                            has:
+                              kind: import_statement
+                              all:
+                              - has:
+                                  field: source
+                                  kind: string
+                                  regex: '^[''"]next/navigation[''"]$'
+                              - has:
+                                  stopBy: end
+                                  kind: import_specifier
+                                  not:
+                                    has:
+                                      field: alias
+                                      kind: identifier
+                                  has:
+                                    field: name
+                                    kind: identifier
+                                    pattern:
+                                      context: const $NRX4 = 0
+                                      selector: identifier
       - all:
         - has:
             stopBy: end
@@ -2242,7 +2423,7 @@ control:
                         - has:
                             field: property
                             kind: property_identifier
-                            regex: ^(from|query|rpc|findMany|findUnique|findUniqueOrThrow|findFirst|findFirstOrThrow|upsert|createMany|updateMany|deleteMany|aggregate|groupBy|\$queryRaw|\$executeRaw|\$queryRawUnsafe|\$executeRawUnsafe)$
+                            regex: ^(from|query|rpc|findMany|findUnique|findUniqueOrThrow|findFirst|findFirstOrThrow|upsert|createMany|updateMany|deleteMany|aggregate|groupBy|count|createManyAndReturn|updateManyAndReturn|execute|\$queryRaw|\$executeRaw|\$queryRawUnsafe|\$executeRawUnsafe)$
                         - not:
                             has:
                               field: object
@@ -2359,7 +2540,7 @@ control:
                           - has:
                               field: property
                               kind: property_identifier
-                              regex: ^(from|query|rpc|findMany|findUnique|findUniqueOrThrow|findFirst|findFirstOrThrow|upsert|createMany|updateMany|deleteMany|aggregate|groupBy|\$queryRaw|\$executeRaw|\$queryRawUnsafe|\$executeRawUnsafe)$
+                              regex: ^(from|query|rpc|findMany|findUnique|findUniqueOrThrow|findFirst|findFirstOrThrow|upsert|createMany|updateMany|deleteMany|aggregate|groupBy|count|createManyAndReturn|updateManyAndReturn|execute|\$queryRaw|\$executeRaw|\$queryRawUnsafe|\$executeRawUnsafe)$
                           - not:
                               has:
                                 field: object
@@ -2398,7 +2579,7 @@ control:
                   - has:
                       field: property
                       kind: property_identifier
-                      regex: ^(from|query|rpc|findMany|findUnique|findUniqueOrThrow|findFirst|findFirstOrThrow|upsert|createMany|updateMany|deleteMany|aggregate|groupBy|\$queryRaw|\$executeRaw|\$queryRawUnsafe|\$executeRawUnsafe)$
+                      regex: ^(from|query|rpc|findMany|findUnique|findUniqueOrThrow|findFirst|findFirstOrThrow|upsert|createMany|updateMany|deleteMany|aggregate|groupBy|count|createManyAndReturn|updateManyAndReturn|execute|\$queryRaw|\$executeRaw|\$queryRawUnsafe|\$executeRawUnsafe)$
                   - not:
                       has:
                         field: object
@@ -2458,7 +2639,7 @@ control:
                               - has:
                                   field: property
                                   kind: property_identifier
-                                  regex: ^(from|query|rpc|findMany|findUnique|findUniqueOrThrow|findFirst|findFirstOrThrow|upsert|createMany|updateMany|deleteMany|aggregate|groupBy|\$queryRaw|\$executeRaw|\$queryRawUnsafe|\$executeRawUnsafe)$
+                                  regex: ^(from|query|rpc|findMany|findUnique|findUniqueOrThrow|findFirst|findFirstOrThrow|upsert|createMany|updateMany|deleteMany|aggregate|groupBy|count|createManyAndReturn|updateManyAndReturn|execute|\$queryRaw|\$executeRaw|\$queryRawUnsafe|\$executeRawUnsafe)$
                               - not:
                                   has:
                                     field: object
