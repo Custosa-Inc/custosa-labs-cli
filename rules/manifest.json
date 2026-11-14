@@ -1,5 +1,5 @@
 {
-  "ruleset_id": "2026-11-14.9585326f",
+  "ruleset_id": "2026-11-14.01bdfae2",
   "min_engine": "0.45.3",
   "files": [
     {
@@ -276,7 +276,7 @@
     },
     {
       "path": "rules/auth-login-throttling/java-spring.yml",
-      "sha256": "58d5b01fcc21bf155cf673b698dd5b2a69892f8f37d61d2efd6698d1a2c26171"
+      "sha256": "fec4d505527b3a1811edfe797eb2c61ffbf046bf78e698c2743b19cac1bd1650"
     },
     {
       "path": "rules/auth-login-throttling/javascript-express.yml",
