@@ -34,6 +34,10 @@
 #   whole getUser result checked res.data?.user === null; a catch that destructures the enum's name (catch ({ Role })); and
 #   a callback or nested function in the guard whose parameter has the enum's name ([1].map((Role) => Role),
 #   function inner(Role: number)), which counts as rebinding the guard's Role.
+# - From T29-P3-C399: a var loop inside a callback or nested function in the guard (const f = () => { for (var Role
+#   of cfgs) ... }) counts as rebinding the guard's Role, though a var binds only in its own function (a false fail). A
+#   whole getUser result read through data by brackets or parentheses, res.data?.["user"] === undefined,
+#   res["data"]?.user === undefined or (res.data)?.user === undefined, still counts as a refusal (a false pass, old).
 # - A whole getClaims result read through a member (res.data?.claims === undefined) still counts as a refusal, since
 #   getClaims gives data null to a signed-out caller.
 # - A try whose catch neither throws nor returns counts only when nothing follows it in its block; a nested try, a catch
