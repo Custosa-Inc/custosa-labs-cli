@@ -102,19 +102,22 @@ rule:
   # separator (the request path on "/") is no header split (T29-P3-C395 med 1), but a named separator (SEP, sep) is
   # read as the header split (T29-P3-C401 med 1). Commons StringUtils.split and Spring's tokenizeToStringArray take the
   # string first, so their separator is the last argument: a "/" there is no header split, a comma or a name is; Spring's
-  # commaDelimitedListToStringArray always splits on commas (T29-P3-C402 lows 1 and 2). Also the first hop cut by
+  # commaDelimitedListToStringArray always splits on commas (T29-P3-C402 lows 1 and 2). Their separator is the second
+  # argument, with a max or flags after it, and a char ',' is a comma; delimitedListToStringArray reads the same, and
+  # commaDelimitedListToSet's first item is the first hop (T29-P3-C415 lows 1 and 2). Also the first hop cut by
   # substring(0, indexOf(",")) (T29-P3-C401 low 1)
   - kind: method_declaration
-    regex: (?s)((?:\.(?:split|tokenizeToStringArray)\(\s*(?:"[^"]*,(?:[^()]|\([^()]*\))*|[^"\s)](?:(?:[^()]|\([^()]*\))*(?:[^"\s()]|\([^()]*\)))?|[^"\s)](?:[^()]|\([^()]*\))*"[^"]*,[^"]*")\s*\)|\.commaDelimitedListToStringArray\((?:[^()]|\([^()]*\))*\))\s*\[\s*0\s*\]|\.getFirst\(\)|\.get\(\s*0\s*\)|\.substring\(\s*0\s*,\s*\w+\.indexOf\(\s*(?:"[^"]*,|','))
-  # findFirst on a stream of the comma split, unless the split is reversed first: a right-to-left walk that skips
-  # trusted proxies is the right key (T29-P3-C402 low 1)
+    regex: (?s)((?:\.(?:split|tokenizeToStringArray|delimitedListToStringArray)\(\s*(?:"[^"]*,(?:[^()]|\([^()]*\))*|[^"\s),](?:(?:[^(),]|\([^()]*\))*(?:[^"\s(),]|\([^()]*\)))?|[^"\s),](?:[^(),]|\([^()]*\))*,\s*(?:"[^"]*,[^"]*"|','|[^"'\s),](?:(?:[^(),]|\([^()]*\))*(?:[^"\s(),]|\([^()]*\)))?)\s*(?:,(?:[^()]|\([^()]*\))*)?)\s*\)|\.commaDelimitedListToStringArray\((?:[^()]|\([^()]*\))*\))\s*\[\s*0\s*\]|\.commaDelimitedListToSet\((?:[^()]|\([^()]*\))*\)\s*\.iterator\(\s*\)\s*\.next\(\s*\)|\.getFirst\(\)|\.get\(\s*0\s*\)|\.substring\(\s*0\s*,\s*\w+\.indexOf\(\s*(?:"[^"]*,|','))
+  # findFirst on a stream of the comma split (String or Spring), unless a reverse( wraps the split: a right-to-left
+  # walk that skips trusted proxies is the right key (T29-P3-C402 low 1); a reverse( elsewhere in the chain is not
+  # (T29-P3-C415 lows 2 and 3)
   - has:
       stopBy: end
       kind: method_invocation
-      regex: (?s)\.split\(\s*(?:"[^"]*,(?:[^()]|\([^()]*\))*|[^"\s)](?:(?:[^()]|\([^()]*\))*(?:[^"\s()]|\([^()]*\)))?|[^"\s)](?:[^()]|\([^()]*\))*"[^"]*,[^"]*")\s*\)[^;]*\.findFirst\(\s*\)$
+      regex: (?s)(?:\.(?:split|tokenizeToStringArray|delimitedListToStringArray)\(\s*(?:"[^"]*,(?:[^()]|\([^()]*\))*|[^"\s),](?:(?:[^(),]|\([^()]*\))*(?:[^"\s(),]|\([^()]*\)))?|[^"\s),](?:[^(),]|\([^()]*\))*,\s*(?:"[^"]*,[^"]*"|','|[^"'\s),](?:(?:[^(),]|\([^()]*\))*(?:[^"\s(),]|\([^()]*\)))?)\s*(?:,(?:[^()]|\([^()]*\))*)?)\s*\)|\.commaDelimitedListTo(?:StringArray|Set)\((?:[^()]|\([^()]*\))*\))[^;]*\.findFirst\(\s*\)$
       not:
         kind: method_invocation
-        regex: \breverse\(
+        regex: (?s)\breverse\((?:[^();]|\([^()]*\)|\()*\.(?:split|tokenizeToStringArray|delimitedListToStringArray|commaDelimitedListTo(?:StringArray|Set))\(
   # index 0 of a variable the method stores a header split in (String[] hops = xff.split(","); hops[0]), by its
   # declaration or a later assignment (hops = xff.split(SEP)), unless the separator is a string literal with no comma
   # (T29-P3-C401 med 1)
@@ -149,7 +152,7 @@ rule:
               - has:
                   field: value
                   kind: method_invocation
-                  regex: (?s)(?:\.(?:split|tokenizeToStringArray)\(\s*(?:"[^"]*,(?:[^()]|\([^()]*\))*|[^"\s)](?:(?:[^()]|\([^()]*\))*(?:[^"\s()]|\([^()]*\)))?|[^"\s)](?:[^()]|\([^()]*\))*"[^"]*,[^"]*")\s*\)|\.commaDelimitedListToStringArray\()
+                  regex: (?s)(?:\.(?:split|tokenizeToStringArray|delimitedListToStringArray)\(\s*(?:"[^"]*,(?:[^()]|\([^()]*\))*|[^"\s),](?:(?:[^(),]|\([^()]*\))*(?:[^"\s(),]|\([^()]*\)))?|[^"\s),](?:[^(),]|\([^()]*\))*,\s*(?:"[^"]*,[^"]*"|','|[^"'\s),](?:(?:[^(),]|\([^()]*\))*(?:[^"\s(),]|\([^()]*\)))?)\s*(?:,(?:[^()]|\([^()]*\))*)?)\s*\)|\.commaDelimitedListToStringArray\()
             - kind: assignment_expression
               all:
               - has:
@@ -161,7 +164,7 @@ rule:
               - has:
                   field: right
                   kind: method_invocation
-                  regex: (?s)(?:\.(?:split|tokenizeToStringArray)\(\s*(?:"[^"]*,(?:[^()]|\([^()]*\))*|[^"\s)](?:(?:[^()]|\([^()]*\))*(?:[^"\s()]|\([^()]*\)))?|[^"\s)](?:[^()]|\([^()]*\))*"[^"]*,[^"]*")\s*\)|\.commaDelimitedListToStringArray\()
+                  regex: (?s)(?:\.(?:split|tokenizeToStringArray|delimitedListToStringArray)\(\s*(?:"[^"]*,(?:[^()]|\([^()]*\))*|[^"\s),](?:(?:[^(),]|\([^()]*\))*(?:[^"\s(),]|\([^()]*\)))?|[^"\s),](?:[^(),]|\([^()]*\))*,\s*(?:"[^"]*,[^"]*"|','|[^"'\s),](?:(?:[^(),]|\([^()]*\))*(?:[^"\s(),]|\([^()]*\)))?)\s*(?:,(?:[^()]|\([^()]*\))*)?)\s*\)|\.commaDelimitedListToStringArray\()
   # a first hop the class calls only as a log argument (log.warn(..., auditIp())) is no key: the key is
   # something else, such as the username (T29-P1-C340 med 4)
   not:
