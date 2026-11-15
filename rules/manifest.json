@@ -1,5 +1,5 @@
 {
-  "ruleset_id": "2026-11-15.d0263141",
+  "ruleset_id": "2026-11-15.29c40f66",
   "min_engine": "0.45.3",
   "files": [
     {
@@ -428,7 +428,7 @@
     },
     {
       "path": "rules/authz-every-handler/tsx-nextjs.yml",
-      "sha256": "d217fd35073f9fc60da5f309d245e60eeedbb635dcc248517e648a71361efae6"
+      "sha256": "02beb91477a433abc56e20151b548c1068d43b1505c2003a42210f02e00999b5"
     },
     {
       "path": "rules/authz-every-handler/typescript-express.yml",
@@ -440,7 +440,7 @@
     },
     {
       "path": "rules/authz-every-handler/typescript-nextjs.yml",
-      "sha256": "da856a8df13fd5de71d21787b2a8c4b4b0b57f8340224ca76fdca4e070c2038a"
+      "sha256": "68908d5a31ef08e28083c0eac0d524241b38b7caf2dbeea44eab936f1aa43f96"
     },
     {
       "path": "rules/break-glass-access/javascript-generic.yml",
@@ -560,7 +560,7 @@
     },
     {
       "path": "rules/dependency-scanning-ci/yaml-github_actions.yml",
-      "sha256": "a19796a14caa3f79620c0c9ed6a4521fe052dab661289ea09428516aae76d52d"
+      "sha256": "bd7577060f784eb0aa6b6a0d318f868b6961c483ed87a2a2635e6c8119314afa"
     },
     {
       "path": "rules/edge-function-auth/javascript-supabase.yml",
@@ -740,7 +740,7 @@
     },
     {
       "path": "rules/inbound-webhooks-verified/javascript-express.yml",
-      "sha256": "f858fb4c61ee93669f899c6b2b523792cc3bb4bb95dbc30f41d29155ea26b2ce"
+      "sha256": "73cdbeb80ec4c1970e255da98005856d75e1058fa7719804af97eaf55394dffb"
     },
     {
       "path": "rules/inbound-webhooks-verified/javascript-generic.yml",
@@ -748,7 +748,7 @@
     },
     {
       "path": "rules/inbound-webhooks-verified/javascript-nextjs.yml",
-      "sha256": "35d89f9183b262625796cc0d073e21a7c8718870d6190f917cf3259adbb4a9ab"
+      "sha256": "f084433188dd537704b102cca9ebaa9c60648313e44bd5a946836371dc114aeb"
     },
     {
       "path": "rules/inbound-webhooks-verified/kotlin-spring.yml",
@@ -788,11 +788,11 @@
     },
     {
       "path": "rules/inbound-webhooks-verified/tsx-nextjs.yml",
-      "sha256": "d569e7591e81a67eb9cdd1d8bbb3b0eeae577370b310c56256ac4534b8e03df9"
+      "sha256": "c6fa7a06c43b6969499d211516bbf7bbd461785dea200e30b86c99eabde9505e"
     },
     {
       "path": "rules/inbound-webhooks-verified/typescript-express.yml",
-      "sha256": "31a398f241b10afde03bcf9be2425c3b1a732a4d2a09542e47c3484fa922094a"
+      "sha256": "ffc0e744f326b3686c5af8b2d44f6ca074ecb09945563fc378059df3da3f7cd7"
     },
     {
       "path": "rules/inbound-webhooks-verified/typescript-generic.yml",
@@ -800,11 +800,11 @@
     },
     {
       "path": "rules/inbound-webhooks-verified/typescript-nestjs.yml",
-      "sha256": "912a273baff4ebf369daec8c4c7cf0e56c0a5aea755b85c2fda971d69679ac4e"
+      "sha256": "30982ca69e278d5629f8dce31f03acc54ff74fde720ab6f97fe2bd979b6ecb7a"
     },
     {
       "path": "rules/inbound-webhooks-verified/typescript-nextjs.yml",
-      "sha256": "0e2313ad90ed32ec6398d6813edbafcf1f89bea32a4828f231d13cdaf7e785b6"
+      "sha256": "616c75b3d03df44ec88fc6e9ff0ff30e21a4f5c3f8bf5bc3e340128b8fb04689"
     },
     {
       "path": "rules/minimal-columns-to-client/javascript-expo.yml",
