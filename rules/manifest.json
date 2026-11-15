@@ -1,5 +1,5 @@
 {
-  "ruleset_id": "2026-11-14.9585326f",
+  "ruleset_id": "2026-11-15.f3ce717b",
   "min_engine": "0.45.3",
   "files": [
     {
@@ -276,7 +276,7 @@
     },
     {
       "path": "rules/auth-login-throttling/java-spring.yml",
-      "sha256": "58d5b01fcc21bf155cf673b698dd5b2a69892f8f37d61d2efd6698d1a2c26171"
+      "sha256": "fec4d505527b3a1811edfe797eb2c61ffbf046bf78e698c2743b19cac1bd1650"
     },
     {
       "path": "rules/auth-login-throttling/javascript-express.yml",
@@ -444,7 +444,7 @@
     },
     {
       "path": "rules/break-glass-access/javascript-generic.yml",
-      "sha256": "0e36aaadc587d417fefd4725064552849f8a53549ae8502f71c8cc7cdb5155f4"
+      "sha256": "2ca13138299047ac7eddb1f6833390a7c6705782f2b00d008ad436048509a4a0"
     },
     {
       "path": "rules/break-glass-access/php-generic.yml",
@@ -456,11 +456,11 @@
     },
     {
       "path": "rules/break-glass-access/tsx-generic.yml",
-      "sha256": "b933d78d6dfd52a4777cd7ce7969c972a4850c12ac8cf9a53a976b13229cbaed"
+      "sha256": "4a6f6226ad9fc7dd78046b48d941e6c288a9ac449221522c501dc1291c9f5a44"
     },
     {
       "path": "rules/break-glass-access/typescript-generic.yml",
-      "sha256": "6de6fce6bc92544e4772f5f099559b1ccc4a4883188ac7f18aa95784c0a1d030"
+      "sha256": "d1b53b752304593d8577f941d2ba7c2a1dc31e1093a48ffb3130fc2494092d09"
     },
     {
       "path": "rules/clinical-record-integrity/java-spring.yml",
@@ -924,7 +924,7 @@
     },
     {
       "path": "rules/no-phi-in-app-logs/javascript-generic.yml",
-      "sha256": "07a670fed3da9fbb61f77d10fd785016235955a9b4e52ebb0356007008f9810f"
+      "sha256": "fa1319ad8ae9331102a40afb36e0640cdbf5b4c7f542eafc9d5031a2cbc98201"
     },
     {
       "path": "rules/no-phi-in-app-logs/json-generic.yml",
@@ -936,7 +936,7 @@
     },
     {
       "path": "rules/no-phi-in-app-logs/python-generic.yml",
-      "sha256": "072abbfa0f9133c687639afbe035e7d3b19ba68b5173bf0af84e4b73d073aeee"
+      "sha256": "2bf8b974c0e1d2db23c9d36a6e8a01e8baf64a87e3dcbabda6fd8104ddfd5e9a"
     },
     {
       "path": "rules/no-phi-in-app-logs/ruby-generic.yml",
@@ -944,11 +944,11 @@
     },
     {
       "path": "rules/no-phi-in-app-logs/tsx-generic.yml",
-      "sha256": "14906e59914d791b8d9c4b1a46a902638ce47056a2e74ed8eef07054a1cef3d5"
+      "sha256": "9f7df1f1282b4ccd32dd44289658bacab9397113529d8c384821ccd50dad719f"
     },
     {
       "path": "rules/no-phi-in-app-logs/typescript-generic.yml",
-      "sha256": "bf6c7bf24e2ed04d955aead6e681fd3661f7a50693c382cc35e1a7cd212fcc91"
+      "sha256": "7537eba90aeb200a8f29170f2fc2823215c630a201845a69dbd7f437f0c02424"
     },
     {
       "path": "rules/no-phi-in-app-logs/yaml-spring.yml",
