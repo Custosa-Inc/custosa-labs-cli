@@ -161,6 +161,9 @@ min_engine: 0.45.3
 # patients.map or flatMap (or patientRows, patientList, patientRecords), any read of a patient field name fails, and
 # so does a callback that returns its parameter (patients.map((p) => p)). So patients.map((p) => clinic.name) fails
 # (false fails); other methods (filter, find, forEach) and a callback held in a variable give no match (false passes).
+# T29-P1-C381: a method on a field off this.patient fails too (this.patient.email.trim()). A hop of id, pk or uuid off a
+# field is an id (patient.address.id stays ok), but an element's field still fails (patients[0].address.id, false fail,
+# as on the base). In the callback a further read fails too, so patients.map((p) => clinic.address.street) fails.
 id: no-phi-in-app-logs.typescript-generic.patient-fields
 practice_id: no-phi-in-app-logs
 language: typescript
@@ -211,12 +214,16 @@ rule:
                       kind: string
           # T29-P1-C376 (C416 low 5): a method or a further read on a patient field keeps its value
           # (patient.email.toLowerCase(), patient.homeAddress.slice(0, 10), patient.address.street). Its length does not.
+          # T29-P1-C381 (C421 lows 1 and 2): off this.patient too (this.patient.email.trim()); a hop of id, pk or uuid makes
+          # it an id (patient.address.id, patient.address.id.toString()).
           - kind: member_expression
-            regex: '^(patient|patientData|patientRecord|patientRow|currentPatient|(patients|patientRows)(\??\.at\(\s*-?\w+\s*\)|(\?\.)?\[\s*-?\w+\s*\]))\??\.(name|firstName|lastName|first_name|last_name|fullName|full_name|email|phone|phoneNumber|phone_number|address|notes|firstName|lastName|fullName|emailAddress|phoneNumber|mobileNumber|dateOfBirth|birthDate|(?:patient|contact)_(?:name|first_name|last_name|full_name|address|dob)|(?:patient|contact)(?:Name|FirstName|LastName|FullName|Address|Dob)|[a-z][a-z0-9_]*_(?:email|email_address|phone|phone_number|mobile)|[a-z][A-Za-z0-9]*(?:Email|EmailAddress|Phone|PhoneNumber|Mobile)|(?:[a-z0-9]+_)*(?:names?|emails?|phones?|dobs?|ssns?|address(?:es)?|mrns?|diagnosis|diagnoses|insurances?|notes|(?:surname|firstname|lastname|middlename|fullname|nickname|givenname|familyname|forename|maidenname)s?)[0-9]*(?:_[a-z0-9]+)*|(?:[A-Za-z][a-z0-9]*(?:[A-Z][a-z0-9]*)*)?(?:Names?|Emails?|Phones?|Dobs?|DOBs?|Ssns?|SSNs?|Address(?:es)?|Mrns?|MRNs?|Diagnosis|Diagnoses|Insurances?|Notes|(?:Surname|Firstname|Lastname|Middlename|Fullname|Nickname|Givenname|Familyname|Forename|Maidenname)s?)[0-9]*(?:[A-Z][a-z0-9]*)*|(?:names?|emails?|phones?|dobs?|ssns?|address(?:es)?|mrns?|diagnosis|diagnoses|insurances?|notes|(?:surname|firstname|lastname|middlename|fullname|nickname|givenname|familyname|forename|maidenname)s?)[0-9]*(?:[A-Z][a-z0-9]*)+)(\??\.[A-Za-z_$][\w$]*)+$'
+            regex: '^(this\??\.)?(patient|patientData|patientRecord|patientRow|currentPatient|(patients|patientRows)(\??\.at\(\s*-?\w+\s*\)|(\?\.)?\[\s*-?\w+\s*\]))\??\.(name|firstName|lastName|first_name|last_name|fullName|full_name|email|phone|phoneNumber|phone_number|address|notes|firstName|lastName|fullName|emailAddress|phoneNumber|mobileNumber|dateOfBirth|birthDate|(?:patient|contact)_(?:name|first_name|last_name|full_name|address|dob)|(?:patient|contact)(?:Name|FirstName|LastName|FullName|Address|Dob)|[a-z][a-z0-9_]*_(?:email|email_address|phone|phone_number|mobile)|[a-z][A-Za-z0-9]*(?:Email|EmailAddress|Phone|PhoneNumber|Mobile)|(?:[a-z0-9]+_)*(?:names?|emails?|phones?|dobs?|ssns?|address(?:es)?|mrns?|diagnosis|diagnoses|insurances?|notes|(?:surname|firstname|lastname|middlename|fullname|nickname|givenname|familyname|forename|maidenname)s?)[0-9]*(?:_[a-z0-9]+)*|(?:[A-Za-z][a-z0-9]*(?:[A-Z][a-z0-9]*)*)?(?:Names?|Emails?|Phones?|Dobs?|DOBs?|Ssns?|SSNs?|Address(?:es)?|Mrns?|MRNs?|Diagnosis|Diagnoses|Insurances?|Notes|(?:Surname|Firstname|Lastname|Middlename|Fullname|Nickname|Givenname|Familyname|Forename|Maidenname)s?)[0-9]*(?:[A-Z][a-z0-9]*)*|(?:names?|emails?|phones?|dobs?|ssns?|address(?:es)?|mrns?|diagnosis|diagnoses|insurances?|notes|(?:surname|firstname|lastname|middlename|fullname|nickname|givenname|familyname|forename|maidenname)s?)[0-9]*(?:[A-Z][a-z0-9]*)+)(\??\.[A-Za-z_$][\w$]*)+$'
             not:
               any:
               - kind: member_expression
                 regex: '\.(length|size)$'
+              - kind: member_expression
+                regex: '\??\.(id|Id|ID|pk|uuid|Uuid|UUID)(\??\.[A-Za-z_$][\w$]*(\([^()]*\))?)*$'
               - kind: member_expression
                 regex: '(^|[.''"(]\s*)((is|has|should|can|notify|allow|enable|no|send)([A-Z_][A-Za-z0-9_]*)?(Email|EmailAddress|Phone|PhoneNumber|Mobile|_email|_email_address|_phone|_phone_number|_mobile)|(is|has|should|can)[A-Z_][A-Za-z0-9_]*|[A-Za-z][A-Za-z0-9_]*(_id|Id|ID|_ids|Ids|IDs|_verified|Verified|_count|Count|_at|At|_enabled|Enabled|_opt_in|OptIn|_status|Status|_type|Type))([^A-Za-z0-9_]|$)'
               - kind: member_expression
@@ -224,22 +231,35 @@ rule:
                   kind: call_expression
                   field: function
           - kind: call_expression
-            regex: '^(patient|patientData|patientRecord|patientRow|currentPatient|(patients|patientRows)(\??\.at\(\s*-?\w+\s*\)|(\?\.)?\[\s*-?\w+\s*\]))\??\.(name|firstName|lastName|first_name|last_name|fullName|full_name|email|phone|phoneNumber|phone_number|address|notes|firstName|lastName|fullName|emailAddress|phoneNumber|mobileNumber|dateOfBirth|birthDate|(?:patient|contact)_(?:name|first_name|last_name|full_name|address|dob)|(?:patient|contact)(?:Name|FirstName|LastName|FullName|Address|Dob)|[a-z][a-z0-9_]*_(?:email|email_address|phone|phone_number|mobile)|[a-z][A-Za-z0-9]*(?:Email|EmailAddress|Phone|PhoneNumber|Mobile)|(?:[a-z0-9]+_)*(?:names?|emails?|phones?|dobs?|ssns?|address(?:es)?|mrns?|diagnosis|diagnoses|insurances?|notes|(?:surname|firstname|lastname|middlename|fullname|nickname|givenname|familyname|forename|maidenname)s?)[0-9]*(?:_[a-z0-9]+)*|(?:[A-Za-z][a-z0-9]*(?:[A-Z][a-z0-9]*)*)?(?:Names?|Emails?|Phones?|Dobs?|DOBs?|Ssns?|SSNs?|Address(?:es)?|Mrns?|MRNs?|Diagnosis|Diagnoses|Insurances?|Notes|(?:Surname|Firstname|Lastname|Middlename|Fullname|Nickname|Givenname|Familyname|Forename|Maidenname)s?)[0-9]*(?:[A-Z][a-z0-9]*)*|(?:names?|emails?|phones?|dobs?|ssns?|address(?:es)?|mrns?|diagnosis|diagnoses|insurances?|notes|(?:surname|firstname|lastname|middlename|fullname|nickname|givenname|familyname|forename|maidenname)s?)[0-9]*(?:[A-Z][a-z0-9]*)+)(\??\.[A-Za-z_$][\w$]*(\([^()]*\))?)*\??\.[A-Za-z_$][\w$]*\([^()]*\)$'
+            regex: '^(this\??\.)?(patient|patientData|patientRecord|patientRow|currentPatient|(patients|patientRows)(\??\.at\(\s*-?\w+\s*\)|(\?\.)?\[\s*-?\w+\s*\]))\??\.(name|firstName|lastName|first_name|last_name|fullName|full_name|email|phone|phoneNumber|phone_number|address|notes|firstName|lastName|fullName|emailAddress|phoneNumber|mobileNumber|dateOfBirth|birthDate|(?:patient|contact)_(?:name|first_name|last_name|full_name|address|dob)|(?:patient|contact)(?:Name|FirstName|LastName|FullName|Address|Dob)|[a-z][a-z0-9_]*_(?:email|email_address|phone|phone_number|mobile)|[a-z][A-Za-z0-9]*(?:Email|EmailAddress|Phone|PhoneNumber|Mobile)|(?:[a-z0-9]+_)*(?:names?|emails?|phones?|dobs?|ssns?|address(?:es)?|mrns?|diagnosis|diagnoses|insurances?|notes|(?:surname|firstname|lastname|middlename|fullname|nickname|givenname|familyname|forename|maidenname)s?)[0-9]*(?:_[a-z0-9]+)*|(?:[A-Za-z][a-z0-9]*(?:[A-Z][a-z0-9]*)*)?(?:Names?|Emails?|Phones?|Dobs?|DOBs?|Ssns?|SSNs?|Address(?:es)?|Mrns?|MRNs?|Diagnosis|Diagnoses|Insurances?|Notes|(?:Surname|Firstname|Lastname|Middlename|Fullname|Nickname|Givenname|Familyname|Forename|Maidenname)s?)[0-9]*(?:[A-Z][a-z0-9]*)*|(?:names?|emails?|phones?|dobs?|ssns?|address(?:es)?|mrns?|diagnosis|diagnoses|insurances?|notes|(?:surname|firstname|lastname|middlename|fullname|nickname|givenname|familyname|forename|maidenname)s?)[0-9]*(?:[A-Z][a-z0-9]*)+)(\??\.[A-Za-z_$][\w$]*(\([^()]*\))?)*\??\.[A-Za-z_$][\w$]*\([^()]*\)$'
             not:
               any:
               - kind: call_expression
                 regex: '\.(startsWith|endsWith|includes|indexOf|lastIndexOf|search|localeCompare)\([^()]*\)$'
               - kind: call_expression
+                regex: '\??\.(id|Id|ID|pk|uuid|Uuid|UUID)(\??\.[A-Za-z_$][\w$]*(\([^()]*\))?)*$'
+              - kind: call_expression
                 regex: '(^|[.''"(]\s*)((is|has|should|can|notify|allow|enable|no|send)([A-Z_][A-Za-z0-9_]*)?(Email|EmailAddress|Phone|PhoneNumber|Mobile|_email|_email_address|_phone|_phone_number|_mobile)|(is|has|should|can)[A-Z_][A-Za-z0-9_]*|[A-Za-z][A-Za-z0-9_]*(_id|Id|ID|_ids|Ids|IDs|_verified|Verified|_count|Count|_at|At|_enabled|Enabled|_opt_in|OptIn|_status|Status|_type|Type))([^A-Za-z0-9_]|$)'
           # T29-P1-C376 (C420 limit): a callback over the patients logs what it returns: a patient field read in it
           # (patients.map((p) => p.name), patients.map(({ name }) => name)) or the record itself (patients.map((p) => p)).
+          # T29-P1-C381 (C421 low 3): a further read on the field too (patients.map((p) => p.address.street)), but not its
+          # length or size or an id hop (p.address.id). A function named like a field (hashEmail(p.email)) is no field read.
           - all:
             - any:
               - kind: member_expression
-                regex: '^[A-Za-z_$][\w$]*\??\.(name|firstName|lastName|first_name|last_name|fullName|full_name|email|phone|phoneNumber|phone_number|address|notes|firstName|lastName|fullName|emailAddress|phoneNumber|mobileNumber|dateOfBirth|birthDate|(?:patient|contact)_(?:name|first_name|last_name|full_name|address|dob)|(?:patient|contact)(?:Name|FirstName|LastName|FullName|Address|Dob)|[a-z][a-z0-9_]*_(?:email|email_address|phone|phone_number|mobile)|[a-z][A-Za-z0-9]*(?:Email|EmailAddress|Phone|PhoneNumber|Mobile)|(?:[a-z0-9]+_)*(?:names?|emails?|phones?|dobs?|ssns?|address(?:es)?|mrns?|diagnosis|diagnoses|insurances?|notes|(?:surname|firstname|lastname|middlename|fullname|nickname|givenname|familyname|forename|maidenname)s?)[0-9]*(?:_[a-z0-9]+)*|(?:[A-Za-z][a-z0-9]*(?:[A-Z][a-z0-9]*)*)?(?:Names?|Emails?|Phones?|Dobs?|DOBs?|Ssns?|SSNs?|Address(?:es)?|Mrns?|MRNs?|Diagnosis|Diagnoses|Insurances?|Notes|(?:Surname|Firstname|Lastname|Middlename|Fullname|Nickname|Givenname|Familyname|Forename|Maidenname)s?)[0-9]*(?:[A-Z][a-z0-9]*)*|(?:names?|emails?|phones?|dobs?|ssns?|address(?:es)?|mrns?|diagnosis|diagnoses|insurances?|notes|(?:surname|firstname|lastname|middlename|fullname|nickname|givenname|familyname|forename|maidenname)s?)[0-9]*(?:[A-Z][a-z0-9]*)+)$'
+                regex: '^[A-Za-z_$][\w$]*\??\.(name|firstName|lastName|first_name|last_name|fullName|full_name|email|phone|phoneNumber|phone_number|address|notes|firstName|lastName|fullName|emailAddress|phoneNumber|mobileNumber|dateOfBirth|birthDate|(?:patient|contact)_(?:name|first_name|last_name|full_name|address|dob)|(?:patient|contact)(?:Name|FirstName|LastName|FullName|Address|Dob)|[a-z][a-z0-9_]*_(?:email|email_address|phone|phone_number|mobile)|[a-z][A-Za-z0-9]*(?:Email|EmailAddress|Phone|PhoneNumber|Mobile)|(?:[a-z0-9]+_)*(?:names?|emails?|phones?|dobs?|ssns?|address(?:es)?|mrns?|diagnosis|diagnoses|insurances?|notes|(?:surname|firstname|lastname|middlename|fullname|nickname|givenname|familyname|forename|maidenname)s?)[0-9]*(?:_[a-z0-9]+)*|(?:[A-Za-z][a-z0-9]*(?:[A-Z][a-z0-9]*)*)?(?:Names?|Emails?|Phones?|Dobs?|DOBs?|Ssns?|SSNs?|Address(?:es)?|Mrns?|MRNs?|Diagnosis|Diagnoses|Insurances?|Notes|(?:Surname|Firstname|Lastname|Middlename|Fullname|Nickname|Givenname|Familyname|Forename|Maidenname)s?)[0-9]*(?:[A-Z][a-z0-9]*)*|(?:names?|emails?|phones?|dobs?|ssns?|address(?:es)?|mrns?|diagnosis|diagnoses|insurances?|notes|(?:surname|firstname|lastname|middlename|fullname|nickname|givenname|familyname|forename|maidenname)s?)[0-9]*(?:[A-Z][a-z0-9]*)+)(\??\.[A-Za-z_$][\w$]*)*$'
                 not:
-                  kind: member_expression
-                  regex: '(^|[.''"(]\s*)((is|has|should|can|notify|allow|enable|no|send)([A-Z_][A-Za-z0-9_]*)?(Email|EmailAddress|Phone|PhoneNumber|Mobile|_email|_email_address|_phone|_phone_number|_mobile)|(is|has|should|can)[A-Z_][A-Za-z0-9_]*|[A-Za-z][A-Za-z0-9_]*(_id|Id|ID|_ids|Ids|IDs|_verified|Verified|_count|Count|_at|At|_enabled|Enabled|_opt_in|OptIn|_status|Status|_type|Type))([^A-Za-z0-9_]|$)'
+                  any:
+                  - kind: member_expression
+                    regex: '\.(length|size)$'
+                  - kind: member_expression
+                    regex: '\??\.(id|Id|ID|pk|uuid|Uuid|UUID)(\??\.[A-Za-z_$][\w$]*(\([^()]*\))?)*$'
+                  - kind: member_expression
+                    regex: '(^|[.''"(]\s*)((is|has|should|can|notify|allow|enable|no|send)([A-Z_][A-Za-z0-9_]*)?(Email|EmailAddress|Phone|PhoneNumber|Mobile|_email|_email_address|_phone|_phone_number|_mobile)|(is|has|should|can)[A-Z_][A-Za-z0-9_]*|[A-Za-z][A-Za-z0-9_]*(_id|Id|ID|_ids|Ids|IDs|_verified|Verified|_count|Count|_at|At|_enabled|Enabled|_opt_in|OptIn|_status|Status|_type|Type))([^A-Za-z0-9_]|$)'
+                  - kind: member_expression
+                    inside:
+                      kind: call_expression
+                      field: function
               - kind: call_expression
                 regex: '^[A-Za-z_$][\w$]*\??\.(name|firstName|lastName|first_name|last_name|fullName|full_name|email|phone|phoneNumber|phone_number|address|notes|firstName|lastName|fullName|emailAddress|phoneNumber|mobileNumber|dateOfBirth|birthDate|(?:patient|contact)_(?:name|first_name|last_name|full_name|address|dob)|(?:patient|contact)(?:Name|FirstName|LastName|FullName|Address|Dob)|[a-z][a-z0-9_]*_(?:email|email_address|phone|phone_number|mobile)|[a-z][A-Za-z0-9]*(?:Email|EmailAddress|Phone|PhoneNumber|Mobile)|(?:[a-z0-9]+_)*(?:names?|emails?|phones?|dobs?|ssns?|address(?:es)?|mrns?|diagnosis|diagnoses|insurances?|notes|(?:surname|firstname|lastname|middlename|fullname|nickname|givenname|familyname|forename|maidenname)s?)[0-9]*(?:_[a-z0-9]+)*|(?:[A-Za-z][a-z0-9]*(?:[A-Z][a-z0-9]*)*)?(?:Names?|Emails?|Phones?|Dobs?|DOBs?|Ssns?|SSNs?|Address(?:es)?|Mrns?|MRNs?|Diagnosis|Diagnoses|Insurances?|Notes|(?:Surname|Firstname|Lastname|Middlename|Fullname|Nickname|Givenname|Familyname|Forename|Maidenname)s?)[0-9]*(?:[A-Z][a-z0-9]*)*|(?:names?|emails?|phones?|dobs?|ssns?|address(?:es)?|mrns?|diagnosis|diagnoses|insurances?|notes|(?:surname|firstname|lastname|middlename|fullname|nickname|givenname|familyname|forename|maidenname)s?)[0-9]*(?:[A-Z][a-z0-9]*)+)(\??\.[A-Za-z_$][\w$]*(\([^()]*\))?)*\??\.[A-Za-z_$][\w$]*\([^()]*\)$'
                 not:
@@ -247,12 +267,19 @@ rule:
                   - kind: call_expression
                     regex: '\.(startsWith|endsWith|includes|indexOf|lastIndexOf|search|localeCompare)\([^()]*\)$'
                   - kind: call_expression
+                    regex: '\??\.(id|Id|ID|pk|uuid|Uuid|UUID)(\??\.[A-Za-z_$][\w$]*(\([^()]*\))?)*$'
+                  - kind: call_expression
                     regex: '(^|[.''"(]\s*)((is|has|should|can|notify|allow|enable|no|send)([A-Z_][A-Za-z0-9_]*)?(Email|EmailAddress|Phone|PhoneNumber|Mobile|_email|_email_address|_phone|_phone_number|_mobile)|(is|has|should|can)[A-Z_][A-Za-z0-9_]*|[A-Za-z][A-Za-z0-9_]*(_id|Id|ID|_ids|Ids|IDs|_verified|Verified|_count|Count|_at|At|_enabled|Enabled|_opt_in|OptIn|_status|Status|_type|Type))([^A-Za-z0-9_]|$)'
               - kind: identifier
                 regex: '^(name|firstName|lastName|first_name|last_name|fullName|full_name|email|phone|phoneNumber|phone_number|address|notes|firstName|lastName|fullName|emailAddress|phoneNumber|mobileNumber|dateOfBirth|birthDate|(?:patient|contact)_(?:name|first_name|last_name|full_name|address|dob)|(?:patient|contact)(?:Name|FirstName|LastName|FullName|Address|Dob)|[a-z][a-z0-9_]*_(?:email|email_address|phone|phone_number|mobile)|[a-z][A-Za-z0-9]*(?:Email|EmailAddress|Phone|PhoneNumber|Mobile)|(?:[a-z0-9]+_)*(?:names?|emails?|phones?|dobs?|ssns?|address(?:es)?|mrns?|diagnosis|diagnoses|insurances?|notes|(?:surname|firstname|lastname|middlename|fullname|nickname|givenname|familyname|forename|maidenname)s?)[0-9]*(?:_[a-z0-9]+)*|(?:[A-Za-z][a-z0-9]*(?:[A-Z][a-z0-9]*)*)?(?:Names?|Emails?|Phones?|Dobs?|DOBs?|Ssns?|SSNs?|Address(?:es)?|Mrns?|MRNs?|Diagnosis|Diagnoses|Insurances?|Notes|(?:Surname|Firstname|Lastname|Middlename|Fullname|Nickname|Givenname|Familyname|Forename|Maidenname)s?)[0-9]*(?:[A-Z][a-z0-9]*)*|(?:names?|emails?|phones?|dobs?|ssns?|address(?:es)?|mrns?|diagnosis|diagnoses|insurances?|notes|(?:surname|firstname|lastname|middlename|fullname|nickname|givenname|familyname|forename|maidenname)s?)[0-9]*(?:[A-Z][a-z0-9]*)+)$'
                 not:
-                  kind: identifier
-                  regex: '(^|[.''"(]\s*)((is|has|should|can|notify|allow|enable|no|send)([A-Z_][A-Za-z0-9_]*)?(Email|EmailAddress|Phone|PhoneNumber|Mobile|_email|_email_address|_phone|_phone_number|_mobile)|(is|has|should|can)[A-Z_][A-Za-z0-9_]*|[A-Za-z][A-Za-z0-9_]*(_id|Id|ID|_ids|Ids|IDs|_verified|Verified|_count|Count|_at|At|_enabled|Enabled|_opt_in|OptIn|_status|Status|_type|Type))([^A-Za-z0-9_]|$)'
+                  any:
+                  - kind: identifier
+                    regex: '(^|[.''"(]\s*)((is|has|should|can|notify|allow|enable|no|send)([A-Z_][A-Za-z0-9_]*)?(Email|EmailAddress|Phone|PhoneNumber|Mobile|_email|_email_address|_phone|_phone_number|_mobile)|(is|has|should|can)[A-Z_][A-Za-z0-9_]*|[A-Za-z][A-Za-z0-9_]*(_id|Id|ID|_ids|Ids|IDs|_verified|Verified|_count|Count|_at|At|_enabled|Enabled|_opt_in|OptIn|_status|Status|_type|Type))([^A-Za-z0-9_]|$)'
+                  - kind: identifier
+                    inside:
+                      kind: call_expression
+                      field: function
             - inside:
                 stopBy: end
                 any:
