@@ -110,10 +110,10 @@ rule:
           - kind: attribute
             regex: '\.(ssn|SSN|dob|date_of_birth|birth_date|birthdate|diagnosis|diagnoses|mrn|medical_record_number|insurance_number|clinical_notes)$'
           # T29-P1-C388: every patient-field root takes self. too (self.patient_data.name, self.patient["email"],
-          # self.patients[0].name), not only self.patient. Known limit: the record whole off self (self.patient) and a
-          # comprehension over self.patients ([p.name for p in self.patients]) give no match (false passes).
+          # self.patients[0].name), not only self.patient. The record whole off self (self.patient, self.patients[0].name,
+          # a comprehension over self.patients) goes through the walk-up below (T29-P1-C391).
           - kind: attribute
-            regex: '^((self\.)?(patient|patient_data|patient_record|patient_row|current_patient)|self\.(patients|patient_rows)\[\s*-?\w+\s*\])\.(name|first_name|last_name|full_name|email|phone|phone_number|address|notes|firstName|lastName|fullName|emailAddress|phoneNumber|mobileNumber|dateOfBirth|birthDate|(?:patient|contact)_(?:name|first_name|last_name|full_name|address|dob)|(?:patient|contact)(?:Name|FirstName|LastName|FullName|Address|Dob)|[a-z][a-z0-9_]*_(?:email|email_address|phone|phone_number|mobile)|[a-z][A-Za-z0-9]*(?:Email|EmailAddress|Phone|PhoneNumber|Mobile)|(?:[a-z0-9]+_)*(?:names?|emails?|phones?|dobs?|ssns?|address(?:es)?|mrns?|diagnosis|diagnoses|insurances?|notes|(?:surname|firstname|lastname|middlename|fullname|nickname|givenname|familyname|forename|maidenname)s?)[0-9]*(?:_[a-z0-9]+)*|(?:[A-Za-z][a-z0-9]*(?:[A-Z][a-z0-9]*)*)?(?:Names?|Emails?|Phones?|Dobs?|DOBs?|Ssns?|SSNs?|Address(?:es)?|Mrns?|MRNs?|Diagnosis|Diagnoses|Insurances?|Notes|(?:Surname|Firstname|Lastname|Middlename|Fullname|Nickname|Givenname|Familyname|Forename|Maidenname)s?)[0-9]*(?:[A-Z][a-z0-9]*)*|(?:names?|emails?|phones?|dobs?|ssns?|address(?:es)?|mrns?|diagnosis|diagnoses|insurances?|notes|(?:surname|firstname|lastname|middlename|fullname|nickname|givenname|familyname|forename|maidenname)s?)[0-9]*(?:[A-Z][a-z0-9]*)+|__dict__)$'
+            regex: '^(self\.)?(patient|patient_data|patient_record|patient_row|current_patient)\.(name|first_name|last_name|full_name|email|phone|phone_number|address|notes|firstName|lastName|fullName|emailAddress|phoneNumber|mobileNumber|dateOfBirth|birthDate|(?:patient|contact)_(?:name|first_name|last_name|full_name|address|dob)|(?:patient|contact)(?:Name|FirstName|LastName|FullName|Address|Dob)|[a-z][a-z0-9_]*_(?:email|email_address|phone|phone_number|mobile)|[a-z][A-Za-z0-9]*(?:Email|EmailAddress|Phone|PhoneNumber|Mobile)|(?:[a-z0-9]+_)*(?:names?|emails?|phones?|dobs?|ssns?|address(?:es)?|mrns?|diagnosis|diagnoses|insurances?|notes|(?:surname|firstname|lastname|middlename|fullname|nickname|givenname|familyname|forename|maidenname)s?)[0-9]*(?:_[a-z0-9]+)*|(?:[A-Za-z][a-z0-9]*(?:[A-Z][a-z0-9]*)*)?(?:Names?|Emails?|Phones?|Dobs?|DOBs?|Ssns?|SSNs?|Address(?:es)?|Mrns?|MRNs?|Diagnosis|Diagnoses|Insurances?|Notes|(?:Surname|Firstname|Lastname|Middlename|Fullname|Nickname|Givenname|Familyname|Forename|Maidenname)s?)[0-9]*(?:[A-Z][a-z0-9]*)*|(?:names?|emails?|phones?|dobs?|ssns?|address(?:es)?|mrns?|diagnosis|diagnoses|insurances?|notes|(?:surname|firstname|lastname|middlename|fullname|nickname|givenname|familyname|forename|maidenname)s?)[0-9]*(?:[A-Z][a-z0-9]*)+|__dict__)$'
             not:
               kind: attribute
               regex: '(^|[.''"(]\s*)((is|has|should|can|notify|allow|enable|no|send)([A-Z_][A-Za-z0-9_]*)?(Email|EmailAddress|Phone|PhoneNumber|Mobile|_email|_email_address|_phone|_phone_number|_mobile)|(is|has|should|can)[A-Z_][A-Za-z0-9_]*|[A-Za-z][A-Za-z0-9_]*(_id|Id|ID|_ids|Ids|IDs|_verified|Verified|_count|Count|_at|At|_enabled|Enabled|_opt_in|OptIn|_status|Status|_type|Type))([^A-Za-z0-9_]|$)'
@@ -142,6 +142,23 @@ rule:
                 - inside:
                     kind: keyword_argument
                     field: name
+          # T29-P1-C391: the record whole off self is a patient too (self.patient, self.patient_data, self.patients[0],
+          # [p.name for p in self.patients]). It takes the same walk-up as the bare name, so self.patient.id,
+          # len(self.patients), mask(self.patient) and [p.id for p in self.patients] stay ok. Other roots
+          # (self.request.patient, cls.patient, a local alias of self.patient) give no match (false passes).
+          - all:
+            - kind: attribute
+            - regex: '^self\.(patient|patients|patient_data|patient_record|patient_row|patient_rows|current_patient)$'
+            - not:
+                any:
+                - inside:
+                    kind: attribute
+                - inside:
+                    kind: subscript
+                    field: value
+                    has:
+                      field: subscript
+                      kind: string
           - all:
             - kind: attribute
             - regex: '\.(email|email_address|phone|phone_number|mobile|mobile_number)$'
