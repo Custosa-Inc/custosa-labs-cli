@@ -1,5 +1,5 @@
 {
-  "ruleset_id": "2026-11-15.f3ce717b",
+  "ruleset_id": "2026-11-15.3dab88b1",
   "min_engine": "0.45.3",
   "files": [
     {
@@ -740,7 +740,7 @@
     },
     {
       "path": "rules/inbound-webhooks-verified/javascript-express.yml",
-      "sha256": "f858fb4c61ee93669f899c6b2b523792cc3bb4bb95dbc30f41d29155ea26b2ce"
+      "sha256": "73cdbeb80ec4c1970e255da98005856d75e1058fa7719804af97eaf55394dffb"
     },
     {
       "path": "rules/inbound-webhooks-verified/javascript-generic.yml",
@@ -748,7 +748,7 @@
     },
     {
       "path": "rules/inbound-webhooks-verified/javascript-nextjs.yml",
-      "sha256": "35d89f9183b262625796cc0d073e21a7c8718870d6190f917cf3259adbb4a9ab"
+      "sha256": "f084433188dd537704b102cca9ebaa9c60648313e44bd5a946836371dc114aeb"
     },
     {
       "path": "rules/inbound-webhooks-verified/kotlin-spring.yml",
@@ -788,11 +788,11 @@
     },
     {
       "path": "rules/inbound-webhooks-verified/tsx-nextjs.yml",
-      "sha256": "d569e7591e81a67eb9cdd1d8bbb3b0eeae577370b310c56256ac4534b8e03df9"
+      "sha256": "c6fa7a06c43b6969499d211516bbf7bbd461785dea200e30b86c99eabde9505e"
     },
     {
       "path": "rules/inbound-webhooks-verified/typescript-express.yml",
-      "sha256": "31a398f241b10afde03bcf9be2425c3b1a732a4d2a09542e47c3484fa922094a"
+      "sha256": "ffc0e744f326b3686c5af8b2d44f6ca074ecb09945563fc378059df3da3f7cd7"
     },
     {
       "path": "rules/inbound-webhooks-verified/typescript-generic.yml",
@@ -800,11 +800,11 @@
     },
     {
       "path": "rules/inbound-webhooks-verified/typescript-nestjs.yml",
-      "sha256": "912a273baff4ebf369daec8c4c7cf0e56c0a5aea755b85c2fda971d69679ac4e"
+      "sha256": "30982ca69e278d5629f8dce31f03acc54ff74fde720ab6f97fe2bd979b6ecb7a"
     },
     {
       "path": "rules/inbound-webhooks-verified/typescript-nextjs.yml",
-      "sha256": "0e2313ad90ed32ec6398d6813edbafcf1f89bea32a4828f231d13cdaf7e785b6"
+      "sha256": "616c75b3d03df44ec88fc6e9ff0ff30e21a4f5c3f8bf5bc3e340128b8fb04689"
     },
     {
       "path": "rules/minimal-columns-to-client/javascript-expo.yml",
