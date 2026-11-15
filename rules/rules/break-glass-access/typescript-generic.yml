@@ -3279,7 +3279,24 @@ rule:
                                                                           has:
                                                                             field: body
                                                                             kind: statement_block
-                                                                            regex: ^\{\s*(((await\s+)?(this\.)?(logger|log|console|winston|pino|bunyan|debug|sentry|Sentry)\s*\.\s*[A-Za-z]+\([^;\n]*\)\s*;?|throw\s+[^;\n]*;?)\s*)+\}$
+                                                                            any:
+                                                                            - kind: statement_block
+                                                                              regex: ^\{\s*(((await\s+)?(this\.)?(logger|log|console|winston|pino|bunyan|debug|sentry|Sentry)\s*\.\s*[A-Za-z]+\([^;\n]*\)\s*;?|throw\s+[^;\n]*;?)\s*)+\}$
+                                                                            - all:
+                                                                              - has:
+                                                                                  kind: throw_statement
+                                                                              - not:
+                                                                                  has:
+                                                                                    stopBy:
+                                                                                      any:
+                                                                                      - kind: function_declaration
+                                                                                      - kind: method_definition
+                                                                                      - kind: arrow_function
+                                                                                      - kind: function_expression
+                                                                                    any:
+                                                                                    - kind: return_statement
+                                                                                    - kind: break_statement
+                                                                                    - kind: continue_statement
                                                                       - has:
                                                                           field: body
                                                                           has:
@@ -4466,7 +4483,24 @@ rule:
                                                     has:
                                                       field: body
                                                       kind: statement_block
-                                                      regex: ^\{\s*(((await\s+)?(this\.)?(logger|log|console|winston|pino|bunyan|debug|sentry|Sentry)\s*\.\s*[A-Za-z]+\([^;\n]*\)\s*;?|throw\s+[^;\n]*;?)\s*)+\}$
+                                                      any:
+                                                      - kind: statement_block
+                                                        regex: ^\{\s*(((await\s+)?(this\.)?(logger|log|console|winston|pino|bunyan|debug|sentry|Sentry)\s*\.\s*[A-Za-z]+\([^;\n]*\)\s*;?|throw\s+[^;\n]*;?)\s*)+\}$
+                                                      - all:
+                                                        - has:
+                                                            kind: throw_statement
+                                                        - not:
+                                                            has:
+                                                              stopBy:
+                                                                any:
+                                                                - kind: function_declaration
+                                                                - kind: method_definition
+                                                                - kind: arrow_function
+                                                                - kind: function_expression
+                                                              any:
+                                                              - kind: return_statement
+                                                              - kind: break_statement
+                                                              - kind: continue_statement
                                                 - has:
                                                     field: body
                                                     has:
@@ -4706,7 +4740,24 @@ rule:
                                                                                   has:
                                                                                     field: body
                                                                                     kind: statement_block
-                                                                                    regex: ^\{\s*(((await\s+)?(this\.)?(logger|log|console|winston|pino|bunyan|debug|sentry|Sentry)\s*\.\s*[A-Za-z]+\([^;\n]*\)\s*;?|throw\s+[^;\n]*;?)\s*)+\}$
+                                                                                    any:
+                                                                                    - kind: statement_block
+                                                                                      regex: ^\{\s*(((await\s+)?(this\.)?(logger|log|console|winston|pino|bunyan|debug|sentry|Sentry)\s*\.\s*[A-Za-z]+\([^;\n]*\)\s*;?|throw\s+[^;\n]*;?)\s*)+\}$
+                                                                                    - all:
+                                                                                      - has:
+                                                                                          kind: throw_statement
+                                                                                      - not:
+                                                                                          has:
+                                                                                            stopBy:
+                                                                                              any:
+                                                                                              - kind: function_declaration
+                                                                                              - kind: method_definition
+                                                                                              - kind: arrow_function
+                                                                                              - kind: function_expression
+                                                                                            any:
+                                                                                            - kind: return_statement
+                                                                                            - kind: break_statement
+                                                                                            - kind: continue_statement
                                                                               - has:
                                                                                   field: body
                                                                                   has:
@@ -5855,7 +5906,24 @@ rule:
                             has:
                               field: body
                               kind: statement_block
-                              regex: ^\{\s*(((await\s+)?(this\.)?(logger|log|console|winston|pino|bunyan|debug|sentry|Sentry)\s*\.\s*[A-Za-z]+\([^;\n]*\)\s*;?|throw\s+[^;\n]*;?)\s*)+\}$
+                              any:
+                              - kind: statement_block
+                                regex: ^\{\s*(((await\s+)?(this\.)?(logger|log|console|winston|pino|bunyan|debug|sentry|Sentry)\s*\.\s*[A-Za-z]+\([^;\n]*\)\s*;?|throw\s+[^;\n]*;?)\s*)+\}$
+                              - all:
+                                - has:
+                                    kind: throw_statement
+                                - not:
+                                    has:
+                                      stopBy:
+                                        any:
+                                        - kind: function_declaration
+                                        - kind: method_definition
+                                        - kind: arrow_function
+                                        - kind: function_expression
+                                      any:
+                                      - kind: return_statement
+                                      - kind: break_statement
+                                      - kind: continue_statement
                         - has:
                             field: body
                             has:
@@ -6204,17 +6272,29 @@ rule:
                                                                           - not:
                                                                               kind: call_expression
                                                                               regex: (?i)^[A-Za-z0-9_$.]*\.(create|insert|update|upsert|delete|destroy|remove)[A-Za-z]*\(
-                                              - inside:
-                                                  stopBy:
-                                                    kind: expression_statement
-                                                  kind: call_expression
-                                                  has:
-                                                    field: function
-                                                    kind: member_expression
+                                              - any:
+                                                - inside:
+                                                    stopBy:
+                                                      kind: expression_statement
+                                                    kind: call_expression
                                                     has:
-                                                      field: property
-                                                      kind: property_identifier
-                                                      regex: ^(json|send|end|write|render)$
+                                                      field: function
+                                                      kind: member_expression
+                                                      has:
+                                                        field: property
+                                                        kind: property_identifier
+                                                        regex: ^(json|send|end|write|render)$
+                                                - inside:
+                                                    stopBy:
+                                                      kind: expression_statement
+                                                    kind: assignment_expression
+                                                    has:
+                                                      field: left
+                                                      kind: member_expression
+                                                      has:
+                                                        field: property
+                                                        kind: property_identifier
+                                                        regex: ^body$
                                       - not:
                                           any:
                                           - kind: function_declaration
@@ -6600,17 +6680,29 @@ rule:
                                                                 - not:
                                                                     kind: call_expression
                                                                     regex: (?i)^[A-Za-z0-9_$.]*\.(create|insert|update|upsert|delete|destroy|remove)[A-Za-z]*\(
-                                    - inside:
-                                        stopBy:
-                                          kind: expression_statement
-                                        kind: call_expression
-                                        has:
-                                          field: function
-                                          kind: member_expression
+                                    - any:
+                                      - inside:
+                                          stopBy:
+                                            kind: expression_statement
+                                          kind: call_expression
                                           has:
-                                            field: property
-                                            kind: property_identifier
-                                            regex: ^(json|send|end|write|render)$
+                                            field: function
+                                            kind: member_expression
+                                            has:
+                                              field: property
+                                              kind: property_identifier
+                                              regex: ^(json|send|end|write|render)$
+                                      - inside:
+                                          stopBy:
+                                            kind: expression_statement
+                                          kind: assignment_expression
+                                          has:
+                                            field: left
+                                            kind: member_expression
+                                            has:
+                                              field: property
+                                              kind: property_identifier
+                                              regex: ^body$
                           - follows:
                               stopBy: neighbor
                               any:

@@ -1,5 +1,5 @@
 {
-  "ruleset_id": "2026-11-15.f3ce717b",
+  "ruleset_id": "2026-11-15.dead7f33",
   "min_engine": "0.45.3",
   "files": [
     {
@@ -276,7 +276,7 @@
     },
     {
       "path": "rules/auth-login-throttling/java-spring.yml",
-      "sha256": "fec4d505527b3a1811edfe797eb2c61ffbf046bf78e698c2743b19cac1bd1650"
+      "sha256": "cc124e118d1bc2376b8be7d955815314ccbe863d802600257bd1b91405c07876"
     },
     {
       "path": "rules/auth-login-throttling/javascript-express.yml",
@@ -444,7 +444,7 @@
     },
     {
       "path": "rules/break-glass-access/javascript-generic.yml",
-      "sha256": "2ca13138299047ac7eddb1f6833390a7c6705782f2b00d008ad436048509a4a0"
+      "sha256": "c235e2cac6ec8122c15d435be694c6995a477400d54cfcb7891dea5bc56c08e7"
     },
     {
       "path": "rules/break-glass-access/php-generic.yml",
@@ -456,11 +456,11 @@
     },
     {
       "path": "rules/break-glass-access/tsx-generic.yml",
-      "sha256": "4a6f6226ad9fc7dd78046b48d941e6c288a9ac449221522c501dc1291c9f5a44"
+      "sha256": "19a73e992f35bcd0d8fea71937245699f6a6c48020032587cf3978bfa3fb8503"
     },
     {
       "path": "rules/break-glass-access/typescript-generic.yml",
-      "sha256": "d1b53b752304593d8577f941d2ba7c2a1dc31e1093a48ffb3130fc2494092d09"
+      "sha256": "c09e41f7c9b279c3c5049448382b23b9d0ab426a47e72a1ed6cce11a15ea1aee"
     },
     {
       "path": "rules/clinical-record-integrity/java-spring.yml",

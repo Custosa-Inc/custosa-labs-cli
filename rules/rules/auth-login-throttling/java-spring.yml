@@ -122,7 +122,8 @@ rule:
         regex: (?s)\breverse\((?:[^();]|\([^()]*\)|\()*\.(?:split(?:PreserveAllTokens|ByWholeSeparator(?:PreserveAllTokens)?)?|tokenizeToStringArray|delimitedListToStringArray|commaDelimitedListTo(?:StringArray|Set))\(
   # index 0 of a variable the method stores a header split in (String[] hops = xff.split(","); hops[0]), by its
   # declaration or a later assignment (hops = xff.split(SEP)), unless the separator is a string literal with no comma
-  # (T29-P3-C401 med 1)
+  # (T29-P3-C401 med 1); also the array from commaDelimitedListToSet(...).toArray(...) (T29-P3-C424
+  # low 1)
   - has:
       stopBy: end
       kind: array_access
@@ -154,7 +155,7 @@ rule:
               - has:
                   field: value
                   kind: method_invocation
-                  regex: (?s)(?:\.(?:split(?:PreserveAllTokens|ByWholeSeparator(?:PreserveAllTokens)?)?|tokenizeToStringArray|delimitedListToStringArray)\(\s*(?:"[^"]*,(?:[^()]|\([^()]*\))*|[^"\s),](?:(?:[^(),]|\([^()]*\))*(?:[^"\s(),]|\([^()]*\)))?|[^"\s),](?:[^(),]|\([^()]*\))*,\s*(?:"[^"]*,[^"]*"|','|[^"'\s),](?:(?:[^(),]|\([^()]*\))*(?:[^"\s(),]|\([^()]*\)))?)\s*(?:,(?:[^()]|\([^()]*\))*)?)\s*\)|\.commaDelimitedListToStringArray\()
+                  regex: (?s)(?:\.(?:split(?:PreserveAllTokens|ByWholeSeparator(?:PreserveAllTokens)?)?|tokenizeToStringArray|delimitedListToStringArray)\(\s*(?:"[^"]*,(?:[^()]|\([^()]*\))*|[^"\s),](?:(?:[^(),]|\([^()]*\))*(?:[^"\s(),]|\([^()]*\)))?|[^"\s),](?:[^(),]|\([^()]*\))*,\s*(?:"[^"]*,[^"]*"|','|[^"'\s),](?:(?:[^(),]|\([^()]*\))*(?:[^"\s(),]|\([^()]*\)))?)\s*(?:,(?:[^()]|\([^()]*\))*)?)\s*\)|\.commaDelimitedListToStringArray\(|\bcommaDelimitedListToSet\((?:[^()]|\([^()]*\))*\)\s*\.toArray\()
             - kind: assignment_expression
               all:
               - has:
@@ -166,7 +167,7 @@ rule:
               - has:
                   field: right
                   kind: method_invocation
-                  regex: (?s)(?:\.(?:split(?:PreserveAllTokens|ByWholeSeparator(?:PreserveAllTokens)?)?|tokenizeToStringArray|delimitedListToStringArray)\(\s*(?:"[^"]*,(?:[^()]|\([^()]*\))*|[^"\s),](?:(?:[^(),]|\([^()]*\))*(?:[^"\s(),]|\([^()]*\)))?|[^"\s),](?:[^(),]|\([^()]*\))*,\s*(?:"[^"]*,[^"]*"|','|[^"'\s),](?:(?:[^(),]|\([^()]*\))*(?:[^"\s(),]|\([^()]*\)))?)\s*(?:,(?:[^()]|\([^()]*\))*)?)\s*\)|\.commaDelimitedListToStringArray\()
+                  regex: (?s)(?:\.(?:split(?:PreserveAllTokens|ByWholeSeparator(?:PreserveAllTokens)?)?|tokenizeToStringArray|delimitedListToStringArray)\(\s*(?:"[^"]*,(?:[^()]|\([^()]*\))*|[^"\s),](?:(?:[^(),]|\([^()]*\))*(?:[^"\s(),]|\([^()]*\)))?|[^"\s),](?:[^(),]|\([^()]*\))*,\s*(?:"[^"]*,[^"]*"|','|[^"'\s),](?:(?:[^(),]|\([^()]*\))*(?:[^"\s(),]|\([^()]*\)))?)\s*(?:,(?:[^()]|\([^()]*\))*)?)\s*\)|\.commaDelimitedListToStringArray\(|\bcommaDelimitedListToSet\((?:[^()]|\([^()]*\))*\)\s*\.toArray\()
   # a first hop the class calls only as a log argument (log.warn(..., auditIp())) is no key: the key is
   # something else, such as the username (T29-P1-C340 med 4)
   not:
