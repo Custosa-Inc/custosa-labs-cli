@@ -1,5 +1,5 @@
 {
-  "ruleset_id": "2026-11-15.d0263141",
+  "ruleset_id": "2026-11-15.d4a09b21",
   "min_engine": "0.45.3",
   "files": [
     {
@@ -444,7 +444,7 @@
     },
     {
       "path": "rules/break-glass-access/javascript-generic.yml",
-      "sha256": "c235e2cac6ec8122c15d435be694c6995a477400d54cfcb7891dea5bc56c08e7"
+      "sha256": "bc9b75b0c40b6a50c4e7abc4ba39ce2f555f5232759294a0ce1cb73ac6cb3cd7"
     },
     {
       "path": "rules/break-glass-access/php-generic.yml",
@@ -456,11 +456,11 @@
     },
     {
       "path": "rules/break-glass-access/tsx-generic.yml",
-      "sha256": "19a73e992f35bcd0d8fea71937245699f6a6c48020032587cf3978bfa3fb8503"
+      "sha256": "0bce63e63d667a7fdcea9a7d5616db2c65c3fa50e540b904f1a390aa90fd55ef"
     },
     {
       "path": "rules/break-glass-access/typescript-generic.yml",
-      "sha256": "c09e41f7c9b279c3c5049448382b23b9d0ab426a47e72a1ed6cce11a15ea1aee"
+      "sha256": "db6c8eb181f8d946336f0070eaa8eb1e010c20dec8289ceab25f035f1f18d119"
     },
     {
       "path": "rules/clinical-record-integrity/java-spring.yml",

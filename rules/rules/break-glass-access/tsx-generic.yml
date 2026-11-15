@@ -6291,10 +6291,19 @@ rule:
                                                     has:
                                                       field: left
                                                       kind: member_expression
-                                                      has:
-                                                        field: property
-                                                        kind: property_identifier
-                                                        regex: ^body$
+                                                      all:
+                                                      - has:
+                                                          field: property
+                                                          kind: property_identifier
+                                                          regex: ^body$
+                                                      - has:
+                                                          field: object
+                                                          any:
+                                                          - kind: identifier
+                                                            regex: ^(ctx|context)$
+                                                          - kind: this
+                                                          - kind: member_expression
+                                                            regex: ^(ctx|context|this)\.response$
                                       - not:
                                           any:
                                           - kind: function_declaration
@@ -6699,10 +6708,19 @@ rule:
                                           has:
                                             field: left
                                             kind: member_expression
-                                            has:
-                                              field: property
-                                              kind: property_identifier
-                                              regex: ^body$
+                                            all:
+                                            - has:
+                                                field: property
+                                                kind: property_identifier
+                                                regex: ^body$
+                                            - has:
+                                                field: object
+                                                any:
+                                                - kind: identifier
+                                                  regex: ^(ctx|context)$
+                                                - kind: this
+                                                - kind: member_expression
+                                                  regex: ^(ctx|context|this)\.response$
                           - follows:
                               stopBy: neighbor
                               any:
