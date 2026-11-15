@@ -1,5 +1,5 @@
 {
-  "ruleset_id": "2026-11-15.3dab88b1",
+  "ruleset_id": "2026-11-15.720e3f11",
   "min_engine": "0.45.3",
   "files": [
     {
@@ -428,7 +428,7 @@
     },
     {
       "path": "rules/authz-every-handler/tsx-nextjs.yml",
-      "sha256": "d217fd35073f9fc60da5f309d245e60eeedbb635dcc248517e648a71361efae6"
+      "sha256": "02beb91477a433abc56e20151b548c1068d43b1505c2003a42210f02e00999b5"
     },
     {
       "path": "rules/authz-every-handler/typescript-express.yml",
@@ -440,7 +440,7 @@
     },
     {
       "path": "rules/authz-every-handler/typescript-nextjs.yml",
-      "sha256": "da856a8df13fd5de71d21787b2a8c4b4b0b57f8340224ca76fdca4e070c2038a"
+      "sha256": "68908d5a31ef08e28083c0eac0d524241b38b7caf2dbeea44eab936f1aa43f96"
     },
     {
       "path": "rules/break-glass-access/javascript-generic.yml",
@@ -560,7 +560,7 @@
     },
     {
       "path": "rules/dependency-scanning-ci/yaml-github_actions.yml",
-      "sha256": "a19796a14caa3f79620c0c9ed6a4521fe052dab661289ea09428516aae76d52d"
+      "sha256": "bd7577060f784eb0aa6b6a0d318f868b6961c483ed87a2a2635e6c8119314afa"
     },
     {
       "path": "rules/edge-function-auth/javascript-supabase.yml",
