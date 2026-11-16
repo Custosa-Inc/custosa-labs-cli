@@ -454,8 +454,9 @@ rule:
                         kind: not_operator
               - kind: comparison_operator
               - kind: not_operator
-              # T29-P1-C396 (C435 low 2): a comprehension that is an argument of len, sum, any, all or bool logs a count or a
-              # flag, whatever it yields (len([p for p in patients if p.active]), sum(1 for p in self.patients)). min, max,
+              # T29-P1-C396 (C435 low 2): a comprehension that is an argument of len, any, all or bool, or sum's whole
+              # argument (C437 low), logs a count or a flag, whatever it yields (len([p for p in patients if p.active]),
+              # sum(1 for p in self.patients)). min, max,
               # next, sorted, list, a join and the like give the elements back, so they keep it. Named limit (false fail):
               # a join over a call on the element (', '.join(str(p.id) for p in patients)) keeps it, as any call does (C387 high 2).
               - kind: for_in_clause
@@ -473,13 +474,14 @@ rule:
                         field: function
                         kind: identifier
                         regex: '^(len|sum|any|all|bool)$'
+                    # T29-P2-C437 low: not sum here, since sum(list_of_lists, []) flattens the elements' fields
                     - kind: argument_list
                       inside:
                         kind: call
                         has:
                           field: function
                           kind: identifier
-                          regex: '^(len|sum|any|all|bool)$'
+                          regex: '^(len|any|all|bool)$'
               # C387 high 2: the source is dropped only when the body is a plain projection of the element that is no
               # patient field: p.id, p["status"] or p.get("status"), alone or as a dict comprehension's value. A call,
               # an f-string, a tuple, or the element itself keeps it.

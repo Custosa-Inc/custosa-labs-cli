@@ -1,5 +1,5 @@
 {
-  "ruleset_id": "2026-11-16.32b915fa",
+  "ruleset_id": "2026-11-16.3eb66cdc",
   "min_engine": "0.45.3",
   "files": [
     {
@@ -936,7 +936,7 @@
     },
     {
       "path": "rules/no-phi-in-app-logs/python-generic.yml",
-      "sha256": "3509e68ea62cd2856aa98d430050afde9e50e7b2b389e43809b1f774adae2a76"
+      "sha256": "34278daa43b4527c5a4fd3b98230f071f82bfe5e1cd984e79c44aea9a395b209"
     },
     {
       "path": "rules/no-phi-in-app-logs/ruby-generic.yml",
