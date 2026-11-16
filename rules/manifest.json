@@ -1,5 +1,5 @@
 {
-  "ruleset_id": "2026-11-15.29c40f66",
+  "ruleset_id": "2026-11-16.9af84efa",
   "min_engine": "0.45.3",
   "files": [
     {
@@ -400,7 +400,7 @@
     },
     {
       "path": "rules/authz-every-handler/javascript-nextjs.yml",
-      "sha256": "8150f454756aff6b3f72c76b764ff35ff079e0698fdc84d63b516cac8795889d"
+      "sha256": "e727ecdc481fea177566bbbb97e4dd1f8fbeb124162a8f3de9875b87e5794bad"
     },
     {
       "path": "rules/authz-every-handler/kotlin-spring.yml",

@@ -4,10 +4,13 @@
 # token, Clerk's getAuth(req) but never a bare getAuth() or firebase-admin's) or a Supabase client running as the
 # caller, outside any branch. Whether the record check follows is dataflow (needs_review). Wrapped exports (export
 # const GET = withAuth(...)) and handlers defined in another file are left out.
-# Known limits (T29-P3-C385), false passes: an action's inline load has no data-call-before check, so
-# await prisma.draft.delete(...) before const session = await auth() reads as guarded, and so do Drizzle's insert,
-# update and delete forms; the TS and TSX guard-wrapper checks (C338, C346: data calls before or in a catch or
-# finally, the null-field refusal, the fixed-value gate) are not carried to JS.
+# Known limits (T29-P3-C385), false passes: the TS and TSX guard-wrapper checks (C338, C346: data calls before or in
+# a catch or finally, the null-field refusal, the fixed-value gate) are not carried to JS.
+# From T29-P1-C397 (C310 item 5): an action's inline load counts only awaited where it is called, outside any
+# callback or nested function, outside a try whose catch neither throws nor returns, and with no data call (a read
+# too) in an earlier statement of any block around it. False fails, as in TS: a load inside Promise.all([...]), a
+# read before the load, and a load after more than 16 earlier statements in its block. A guard after the load is
+# still not read: the load is the control, as before. A route-noargs exit the handler rebinds is no exit (C310 item 6).
 # A guard arrow declared under a braceless if (if (id) var g = async () => {...}) and never called counts
 # as the control (a false pass, T29-P3-C386 low 2).
 id: authz-every-handler.javascript-nextjs.route
@@ -743,66 +746,521 @@ control:
               - kind: statement_block
               - kind: switch_case
               - kind: switch_default
-    any:
+      # T29-P1-C397 (C310 item 5 in JS): any arrow or function expression, a callback too, runs later or never
+      - kind: arrow_function
+      - kind: function_expression
+    all:
     - any:
-      - pattern: auth()
-      - pattern: 'getServerSession($$$)'
-      - pattern: 'getToken($$$)'
-      - pattern: currentUser()
-      - pattern: '$C.auth.getUser($$$)'
-      - pattern: '$C.auth.getClaims($$$)'
-      - pattern: 'validateRequest($$$)'
-      - pattern: 'getIronSession($$$)'
-      - pattern: 'getKindeServerSession($$$)'
-      - pattern: '$A.api.getSession($$$)'
-      - pattern: '$A.verifyIdToken($$$)'
-      - pattern: '$A.verifySessionCookie($$$)'
-      - pattern: 'jwtVerify($$$)'
-      - pattern: 'jwt.verify($$$)'
-      - kind: call_expression
-        pattern: 'getAuth($$$)'
-        has:
-          field: arguments
-          kind: arguments
-          regex: '^\(\s*[^)\s]'
-        not:
-          inside:
-            kind: program
-            stopBy: end
-            has:
-              kind: import_statement
-              regex: '[''"]firebase-admin(/[a-z-]+)?[''"]'
-    - any:
-      - pattern: 'createServerClient($$$)'
-      - pattern: 'createRouteHandlerClient($$$)'
-      - pattern: 'createServerActionClient($$$)'
-      - pattern: 'createServerComponentClient($$$)'
-      - pattern: 'createPagesServerClient($$$)'
-      - pattern: createClient()
-    not:
-      inside:
-        stopBy:
-          any:
-          - kind: arrow_function
-          - kind: function_expression
-          - kind: function_declaration
-          - kind: method_definition
+      # T29-P1-C397: a load counts only awaited where it is called (not through .then, not left as a promise)
+      - inside:
+          kind: await_expression
         any:
-        - kind: else_clause
-        - kind: switch_case
-        - kind: catch_clause
-        - kind: for_statement
-        - kind: for_in_statement
-        - kind: while_statement
-        - kind: do_statement
-        - any:
-          - kind: statement_block
-          - kind: expression_statement
-          - kind: return_statement
-          inside:
-            kind: if_statement
-            field: consequence
-        - kind: ternary_expression
+        - pattern: auth()
+        - pattern: 'getServerSession($$$)'
+        - pattern: 'getToken($$$)'
+        - pattern: currentUser()
+        - pattern: '$C.auth.getUser($$$)'
+        - pattern: '$C.auth.getClaims($$$)'
+        - pattern: 'validateRequest($$$)'
+        - pattern: 'getIronSession($$$)'
+        - pattern: 'getKindeServerSession($$$)'
+        - pattern: '$A.api.getSession($$$)'
+        - pattern: '$A.verifyIdToken($$$)'
+        - pattern: '$A.verifySessionCookie($$$)'
+        - pattern: 'jwtVerify($$$)'
+        - pattern: 'jwt.verify($$$)'
+        - kind: call_expression
+          pattern: 'getAuth($$$)'
+          has:
+            field: arguments
+            kind: arguments
+            regex: '^\(\s*[^)\s]'
+          not:
+            inside:
+              kind: program
+              stopBy: end
+              has:
+                kind: import_statement
+                regex: '[''"]firebase-admin(/[a-z-]+)?[''"]'
+      - any:
+        - pattern: 'createServerClient($$$)'
+        - pattern: 'createRouteHandlerClient($$$)'
+        - pattern: 'createServerActionClient($$$)'
+        - pattern: 'createServerComponentClient($$$)'
+        - pattern: 'createPagesServerClient($$$)'
+        - pattern: createClient()
+    - not:
+        inside:
+          stopBy:
+            any:
+            - kind: arrow_function
+            - kind: function_expression
+            - kind: function_declaration
+            - kind: method_definition
+          any:
+          - kind: else_clause
+          - kind: switch_case
+          - kind: catch_clause
+          - kind: for_statement
+          - kind: for_in_statement
+          - kind: while_statement
+          - kind: do_statement
+          - any:
+            - kind: statement_block
+            - kind: expression_statement
+            - kind: return_statement
+            inside:
+              kind: if_statement
+              field: consequence
+          - kind: ternary_expression
+          # T29-P1-C397: a try whose catch neither throws nor returns lets a signed-out caller on to the data call
+          - kind: try_statement
+            has:
+              field: handler
+              kind: catch_clause
+              not:
+                has:
+                  field: body
+                  has:
+                    any:
+                    - kind: throw_statement
+                    - kind: return_statement
+    # T29-P1-C397: no data call before the load in the action (in an earlier statement of any block around it)
+    - not:
+        inside:
+          stopBy:
+            any:
+            - kind: arrow_function
+            - kind: function_expression
+            - kind: function_declaration
+            - kind: method_definition
+          not:
+            any:
+            - kind: arrow_function
+            - kind: function_expression
+            - kind: function_declaration
+            - kind: method_definition
+          follows:
+            stopBy: neighbor
+            any:
+            - has:
+                stopBy: end
+                any:
+                - kind: call_expression
+                  has:
+                    field: function
+                    kind: member_expression
+                    all:
+                    - has:
+                        field: property
+                        kind: property_identifier
+                        regex: '^(from|query|rpc|findMany|findUnique|findUniqueOrThrow|findFirst|findFirstOrThrow|upsert|createMany|updateMany|deleteMany|aggregate|groupBy|count|createManyAndReturn|updateManyAndReturn|execute|\$queryRaw|\$executeRaw|\$queryRawUnsafe|\$executeRawUnsafe)$'
+                    - not:
+                        has:
+                          field: object
+                          kind: identifier
+                          regex: '^(Array|Buffer|Uint8Array|Object|String|Promise|Set|Map|Date|JSON|Math|Reflect|document|window|URLSearchParams)$'
+                - pattern: '$_P.$_M.create($$$)'
+                - pattern: '$_P.$_M.update($$$)'
+                - pattern: '$_P.$_M.delete($$$)'
+                - pattern: '$_DB.insert($_T)'
+                - pattern: '$_DB.update($_T)'
+                - pattern: '$_DB.delete($_T)'
+            - follows:
+                stopBy: neighbor
+                any:
+                - has:
+                    stopBy: end
+                    any:
+                    - kind: call_expression
+                      has:
+                        field: function
+                        kind: member_expression
+                        all:
+                        - has:
+                            field: property
+                            kind: property_identifier
+                            regex: '^(from|query|rpc|findMany|findUnique|findUniqueOrThrow|findFirst|findFirstOrThrow|upsert|createMany|updateMany|deleteMany|aggregate|groupBy|count|createManyAndReturn|updateManyAndReturn|execute|\$queryRaw|\$executeRaw|\$queryRawUnsafe|\$executeRawUnsafe)$'
+                        - not:
+                            has:
+                              field: object
+                              kind: identifier
+                              regex: '^(Array|Buffer|Uint8Array|Object|String|Promise|Set|Map|Date|JSON|Math|Reflect|document|window|URLSearchParams)$'
+                    - pattern: '$_P.$_M.create($$$)'
+                    - pattern: '$_P.$_M.update($$$)'
+                    - pattern: '$_P.$_M.delete($$$)'
+                    - pattern: '$_DB.insert($_T)'
+                    - pattern: '$_DB.update($_T)'
+                    - pattern: '$_DB.delete($_T)'
+                - follows:
+                    stopBy: neighbor
+                    any:
+                    - has:
+                        stopBy: end
+                        any:
+                        - kind: call_expression
+                          has:
+                            field: function
+                            kind: member_expression
+                            all:
+                            - has:
+                                field: property
+                                kind: property_identifier
+                                regex: '^(from|query|rpc|findMany|findUnique|findUniqueOrThrow|findFirst|findFirstOrThrow|upsert|createMany|updateMany|deleteMany|aggregate|groupBy|count|createManyAndReturn|updateManyAndReturn|execute|\$queryRaw|\$executeRaw|\$queryRawUnsafe|\$executeRawUnsafe)$'
+                            - not:
+                                has:
+                                  field: object
+                                  kind: identifier
+                                  regex: '^(Array|Buffer|Uint8Array|Object|String|Promise|Set|Map|Date|JSON|Math|Reflect|document|window|URLSearchParams)$'
+                        - pattern: '$_P.$_M.create($$$)'
+                        - pattern: '$_P.$_M.update($$$)'
+                        - pattern: '$_P.$_M.delete($$$)'
+                        - pattern: '$_DB.insert($_T)'
+                        - pattern: '$_DB.update($_T)'
+                        - pattern: '$_DB.delete($_T)'
+                    - follows:
+                        stopBy: neighbor
+                        any:
+                        - has:
+                            stopBy: end
+                            any:
+                            - kind: call_expression
+                              has:
+                                field: function
+                                kind: member_expression
+                                all:
+                                - has:
+                                    field: property
+                                    kind: property_identifier
+                                    regex: '^(from|query|rpc|findMany|findUnique|findUniqueOrThrow|findFirst|findFirstOrThrow|upsert|createMany|updateMany|deleteMany|aggregate|groupBy|count|createManyAndReturn|updateManyAndReturn|execute|\$queryRaw|\$executeRaw|\$queryRawUnsafe|\$executeRawUnsafe)$'
+                                - not:
+                                    has:
+                                      field: object
+                                      kind: identifier
+                                      regex: '^(Array|Buffer|Uint8Array|Object|String|Promise|Set|Map|Date|JSON|Math|Reflect|document|window|URLSearchParams)$'
+                            - pattern: '$_P.$_M.create($$$)'
+                            - pattern: '$_P.$_M.update($$$)'
+                            - pattern: '$_P.$_M.delete($$$)'
+                            - pattern: '$_DB.insert($_T)'
+                            - pattern: '$_DB.update($_T)'
+                            - pattern: '$_DB.delete($_T)'
+                        - follows:
+                            stopBy: neighbor
+                            any:
+                            - has:
+                                stopBy: end
+                                any:
+                                - kind: call_expression
+                                  has:
+                                    field: function
+                                    kind: member_expression
+                                    all:
+                                    - has:
+                                        field: property
+                                        kind: property_identifier
+                                        regex: '^(from|query|rpc|findMany|findUnique|findUniqueOrThrow|findFirst|findFirstOrThrow|upsert|createMany|updateMany|deleteMany|aggregate|groupBy|count|createManyAndReturn|updateManyAndReturn|execute|\$queryRaw|\$executeRaw|\$queryRawUnsafe|\$executeRawUnsafe)$'
+                                    - not:
+                                        has:
+                                          field: object
+                                          kind: identifier
+                                          regex: '^(Array|Buffer|Uint8Array|Object|String|Promise|Set|Map|Date|JSON|Math|Reflect|document|window|URLSearchParams)$'
+                                - pattern: '$_P.$_M.create($$$)'
+                                - pattern: '$_P.$_M.update($$$)'
+                                - pattern: '$_P.$_M.delete($$$)'
+                                - pattern: '$_DB.insert($_T)'
+                                - pattern: '$_DB.update($_T)'
+                                - pattern: '$_DB.delete($_T)'
+                            - follows:
+                                stopBy: neighbor
+                                any:
+                                - has:
+                                    stopBy: end
+                                    any:
+                                    - kind: call_expression
+                                      has:
+                                        field: function
+                                        kind: member_expression
+                                        all:
+                                        - has:
+                                            field: property
+                                            kind: property_identifier
+                                            regex: '^(from|query|rpc|findMany|findUnique|findUniqueOrThrow|findFirst|findFirstOrThrow|upsert|createMany|updateMany|deleteMany|aggregate|groupBy|count|createManyAndReturn|updateManyAndReturn|execute|\$queryRaw|\$executeRaw|\$queryRawUnsafe|\$executeRawUnsafe)$'
+                                        - not:
+                                            has:
+                                              field: object
+                                              kind: identifier
+                                              regex: '^(Array|Buffer|Uint8Array|Object|String|Promise|Set|Map|Date|JSON|Math|Reflect|document|window|URLSearchParams)$'
+                                    - pattern: '$_P.$_M.create($$$)'
+                                    - pattern: '$_P.$_M.update($$$)'
+                                    - pattern: '$_P.$_M.delete($$$)'
+                                    - pattern: '$_DB.insert($_T)'
+                                    - pattern: '$_DB.update($_T)'
+                                    - pattern: '$_DB.delete($_T)'
+                                - follows:
+                                    stopBy: neighbor
+                                    any:
+                                    - has:
+                                        stopBy: end
+                                        any:
+                                        - kind: call_expression
+                                          has:
+                                            field: function
+                                            kind: member_expression
+                                            all:
+                                            - has:
+                                                field: property
+                                                kind: property_identifier
+                                                regex: '^(from|query|rpc|findMany|findUnique|findUniqueOrThrow|findFirst|findFirstOrThrow|upsert|createMany|updateMany|deleteMany|aggregate|groupBy|count|createManyAndReturn|updateManyAndReturn|execute|\$queryRaw|\$executeRaw|\$queryRawUnsafe|\$executeRawUnsafe)$'
+                                            - not:
+                                                has:
+                                                  field: object
+                                                  kind: identifier
+                                                  regex: '^(Array|Buffer|Uint8Array|Object|String|Promise|Set|Map|Date|JSON|Math|Reflect|document|window|URLSearchParams)$'
+                                        - pattern: '$_P.$_M.create($$$)'
+                                        - pattern: '$_P.$_M.update($$$)'
+                                        - pattern: '$_P.$_M.delete($$$)'
+                                        - pattern: '$_DB.insert($_T)'
+                                        - pattern: '$_DB.update($_T)'
+                                        - pattern: '$_DB.delete($_T)'
+                                    - follows:
+                                        stopBy: neighbor
+                                        any:
+                                        - has:
+                                            stopBy: end
+                                            any:
+                                            - kind: call_expression
+                                              has:
+                                                field: function
+                                                kind: member_expression
+                                                all:
+                                                - has:
+                                                    field: property
+                                                    kind: property_identifier
+                                                    regex: '^(from|query|rpc|findMany|findUnique|findUniqueOrThrow|findFirst|findFirstOrThrow|upsert|createMany|updateMany|deleteMany|aggregate|groupBy|count|createManyAndReturn|updateManyAndReturn|execute|\$queryRaw|\$executeRaw|\$queryRawUnsafe|\$executeRawUnsafe)$'
+                                                - not:
+                                                    has:
+                                                      field: object
+                                                      kind: identifier
+                                                      regex: '^(Array|Buffer|Uint8Array|Object|String|Promise|Set|Map|Date|JSON|Math|Reflect|document|window|URLSearchParams)$'
+                                            - pattern: '$_P.$_M.create($$$)'
+                                            - pattern: '$_P.$_M.update($$$)'
+                                            - pattern: '$_P.$_M.delete($$$)'
+                                            - pattern: '$_DB.insert($_T)'
+                                            - pattern: '$_DB.update($_T)'
+                                            - pattern: '$_DB.delete($_T)'
+                                        - follows:
+                                            stopBy: neighbor
+                                            any:
+                                            - has:
+                                                stopBy: end
+                                                any:
+                                                - kind: call_expression
+                                                  has:
+                                                    field: function
+                                                    kind: member_expression
+                                                    all:
+                                                    - has:
+                                                        field: property
+                                                        kind: property_identifier
+                                                        regex: '^(from|query|rpc|findMany|findUnique|findUniqueOrThrow|findFirst|findFirstOrThrow|upsert|createMany|updateMany|deleteMany|aggregate|groupBy|count|createManyAndReturn|updateManyAndReturn|execute|\$queryRaw|\$executeRaw|\$queryRawUnsafe|\$executeRawUnsafe)$'
+                                                    - not:
+                                                        has:
+                                                          field: object
+                                                          kind: identifier
+                                                          regex: '^(Array|Buffer|Uint8Array|Object|String|Promise|Set|Map|Date|JSON|Math|Reflect|document|window|URLSearchParams)$'
+                                                - pattern: '$_P.$_M.create($$$)'
+                                                - pattern: '$_P.$_M.update($$$)'
+                                                - pattern: '$_P.$_M.delete($$$)'
+                                                - pattern: '$_DB.insert($_T)'
+                                                - pattern: '$_DB.update($_T)'
+                                                - pattern: '$_DB.delete($_T)'
+                                            - follows:
+                                                stopBy: neighbor
+                                                any:
+                                                - has:
+                                                    stopBy: end
+                                                    any:
+                                                    - kind: call_expression
+                                                      has:
+                                                        field: function
+                                                        kind: member_expression
+                                                        all:
+                                                        - has:
+                                                            field: property
+                                                            kind: property_identifier
+                                                            regex: '^(from|query|rpc|findMany|findUnique|findUniqueOrThrow|findFirst|findFirstOrThrow|upsert|createMany|updateMany|deleteMany|aggregate|groupBy|count|createManyAndReturn|updateManyAndReturn|execute|\$queryRaw|\$executeRaw|\$queryRawUnsafe|\$executeRawUnsafe)$'
+                                                        - not:
+                                                            has:
+                                                              field: object
+                                                              kind: identifier
+                                                              regex: '^(Array|Buffer|Uint8Array|Object|String|Promise|Set|Map|Date|JSON|Math|Reflect|document|window|URLSearchParams)$'
+                                                    - pattern: '$_P.$_M.create($$$)'
+                                                    - pattern: '$_P.$_M.update($$$)'
+                                                    - pattern: '$_P.$_M.delete($$$)'
+                                                    - pattern: '$_DB.insert($_T)'
+                                                    - pattern: '$_DB.update($_T)'
+                                                    - pattern: '$_DB.delete($_T)'
+                                                - follows:
+                                                    stopBy: neighbor
+                                                    any:
+                                                    - has:
+                                                        stopBy: end
+                                                        any:
+                                                        - kind: call_expression
+                                                          has:
+                                                            field: function
+                                                            kind: member_expression
+                                                            all:
+                                                            - has:
+                                                                field: property
+                                                                kind: property_identifier
+                                                                regex: '^(from|query|rpc|findMany|findUnique|findUniqueOrThrow|findFirst|findFirstOrThrow|upsert|createMany|updateMany|deleteMany|aggregate|groupBy|count|createManyAndReturn|updateManyAndReturn|execute|\$queryRaw|\$executeRaw|\$queryRawUnsafe|\$executeRawUnsafe)$'
+                                                            - not:
+                                                                has:
+                                                                  field: object
+                                                                  kind: identifier
+                                                                  regex: '^(Array|Buffer|Uint8Array|Object|String|Promise|Set|Map|Date|JSON|Math|Reflect|document|window|URLSearchParams)$'
+                                                        - pattern: '$_P.$_M.create($$$)'
+                                                        - pattern: '$_P.$_M.update($$$)'
+                                                        - pattern: '$_P.$_M.delete($$$)'
+                                                        - pattern: '$_DB.insert($_T)'
+                                                        - pattern: '$_DB.update($_T)'
+                                                        - pattern: '$_DB.delete($_T)'
+                                                    - follows:
+                                                        stopBy: neighbor
+                                                        any:
+                                                        - has:
+                                                            stopBy: end
+                                                            any:
+                                                            - kind: call_expression
+                                                              has:
+                                                                field: function
+                                                                kind: member_expression
+                                                                all:
+                                                                - has:
+                                                                    field: property
+                                                                    kind: property_identifier
+                                                                    regex: '^(from|query|rpc|findMany|findUnique|findUniqueOrThrow|findFirst|findFirstOrThrow|upsert|createMany|updateMany|deleteMany|aggregate|groupBy|count|createManyAndReturn|updateManyAndReturn|execute|\$queryRaw|\$executeRaw|\$queryRawUnsafe|\$executeRawUnsafe)$'
+                                                                - not:
+                                                                    has:
+                                                                      field: object
+                                                                      kind: identifier
+                                                                      regex: '^(Array|Buffer|Uint8Array|Object|String|Promise|Set|Map|Date|JSON|Math|Reflect|document|window|URLSearchParams)$'
+                                                            - pattern: '$_P.$_M.create($$$)'
+                                                            - pattern: '$_P.$_M.update($$$)'
+                                                            - pattern: '$_P.$_M.delete($$$)'
+                                                            - pattern: '$_DB.insert($_T)'
+                                                            - pattern: '$_DB.update($_T)'
+                                                            - pattern: '$_DB.delete($_T)'
+                                                        - follows:
+                                                            stopBy: neighbor
+                                                            any:
+                                                            - has:
+                                                                stopBy: end
+                                                                any:
+                                                                - kind: call_expression
+                                                                  has:
+                                                                    field: function
+                                                                    kind: member_expression
+                                                                    all:
+                                                                    - has:
+                                                                        field: property
+                                                                        kind: property_identifier
+                                                                        regex: '^(from|query|rpc|findMany|findUnique|findUniqueOrThrow|findFirst|findFirstOrThrow|upsert|createMany|updateMany|deleteMany|aggregate|groupBy|count|createManyAndReturn|updateManyAndReturn|execute|\$queryRaw|\$executeRaw|\$queryRawUnsafe|\$executeRawUnsafe)$'
+                                                                    - not:
+                                                                        has:
+                                                                          field: object
+                                                                          kind: identifier
+                                                                          regex: '^(Array|Buffer|Uint8Array|Object|String|Promise|Set|Map|Date|JSON|Math|Reflect|document|window|URLSearchParams)$'
+                                                                - pattern: '$_P.$_M.create($$$)'
+                                                                - pattern: '$_P.$_M.update($$$)'
+                                                                - pattern: '$_P.$_M.delete($$$)'
+                                                                - pattern: '$_DB.insert($_T)'
+                                                                - pattern: '$_DB.update($_T)'
+                                                                - pattern: '$_DB.delete($_T)'
+                                                            - follows:
+                                                                stopBy: neighbor
+                                                                any:
+                                                                - has:
+                                                                    stopBy: end
+                                                                    any:
+                                                                    - kind: call_expression
+                                                                      has:
+                                                                        field: function
+                                                                        kind: member_expression
+                                                                        all:
+                                                                        - has:
+                                                                            field: property
+                                                                            kind: property_identifier
+                                                                            regex: '^(from|query|rpc|findMany|findUnique|findUniqueOrThrow|findFirst|findFirstOrThrow|upsert|createMany|updateMany|deleteMany|aggregate|groupBy|count|createManyAndReturn|updateManyAndReturn|execute|\$queryRaw|\$executeRaw|\$queryRawUnsafe|\$executeRawUnsafe)$'
+                                                                        - not:
+                                                                            has:
+                                                                              field: object
+                                                                              kind: identifier
+                                                                              regex: '^(Array|Buffer|Uint8Array|Object|String|Promise|Set|Map|Date|JSON|Math|Reflect|document|window|URLSearchParams)$'
+                                                                    - pattern: '$_P.$_M.create($$$)'
+                                                                    - pattern: '$_P.$_M.update($$$)'
+                                                                    - pattern: '$_P.$_M.delete($$$)'
+                                                                    - pattern: '$_DB.insert($_T)'
+                                                                    - pattern: '$_DB.update($_T)'
+                                                                    - pattern: '$_DB.delete($_T)'
+                                                                - follows:
+                                                                    stopBy: neighbor
+                                                                    any:
+                                                                    - has:
+                                                                        stopBy: end
+                                                                        any:
+                                                                        - kind: call_expression
+                                                                          has:
+                                                                            field: function
+                                                                            kind: member_expression
+                                                                            all:
+                                                                            - has:
+                                                                                field: property
+                                                                                kind: property_identifier
+                                                                                regex: '^(from|query|rpc|findMany|findUnique|findUniqueOrThrow|findFirst|findFirstOrThrow|upsert|createMany|updateMany|deleteMany|aggregate|groupBy|count|createManyAndReturn|updateManyAndReturn|execute|\$queryRaw|\$executeRaw|\$queryRawUnsafe|\$executeRawUnsafe)$'
+                                                                            - not:
+                                                                                has:
+                                                                                  field: object
+                                                                                  kind: identifier
+                                                                                  regex: '^(Array|Buffer|Uint8Array|Object|String|Promise|Set|Map|Date|JSON|Math|Reflect|document|window|URLSearchParams)$'
+                                                                        - pattern: '$_P.$_M.create($$$)'
+                                                                        - pattern: '$_P.$_M.update($$$)'
+                                                                        - pattern: '$_P.$_M.delete($$$)'
+                                                                        - pattern: '$_DB.insert($_T)'
+                                                                        - pattern: '$_DB.update($_T)'
+                                                                        - pattern: '$_DB.delete($_T)'
+                                                                    - follows:
+                                                                        stopBy: neighbor
+                                                                        any:
+                                                                        - has:
+                                                                            stopBy: end
+                                                                            any:
+                                                                            - kind: call_expression
+                                                                              has:
+                                                                                field: function
+                                                                                kind: member_expression
+                                                                                all:
+                                                                                - has:
+                                                                                    field: property
+                                                                                    kind: property_identifier
+                                                                                    regex: '^(from|query|rpc|findMany|findUnique|findUniqueOrThrow|findFirst|findFirstOrThrow|upsert|createMany|updateMany|deleteMany|aggregate|groupBy|count|createManyAndReturn|updateManyAndReturn|execute|\$queryRaw|\$executeRaw|\$queryRawUnsafe|\$executeRawUnsafe)$'
+                                                                                - not:
+                                                                                    has:
+                                                                                      field: object
+                                                                                      kind: identifier
+                                                                                      regex: '^(Array|Buffer|Uint8Array|Object|String|Promise|Set|Map|Date|JSON|Math|Reflect|document|window|URLSearchParams)$'
+                                                                            - pattern: '$_P.$_M.create($$$)'
+                                                                            - pattern: '$_P.$_M.update($$$)'
+                                                                            - pattern: '$_P.$_M.delete($$$)'
+                                                                            - pattern: '$_DB.insert($_T)'
+                                                                            - pattern: '$_DB.update($_T)'
+                                                                            - pattern: '$_DB.delete($_T)'
+                                                                        # past this many earlier statements, read as a data call before it (no control)
+                                                                        - any:
+                                                                          - kind: comment
+                                                                          - not:
+                                                                              kind: comment
 min_engine: 0.39.0
 ---
 id: authz-every-handler.javascript-nextjs.api
@@ -2210,6 +2668,30 @@ control:
                               pattern:
                                 context: const $NRX1 = 0
                                 selector: identifier
+                  # T29-P1-C397 (C310 item 6, as T29-P1-C338 med 3 in TS): no enclosing function rebinds the exit
+                  - not:
+                      inside:
+                        stopBy: end
+                        any:
+                        - kind: function_declaration
+                        - kind: arrow_function
+                        - kind: function_expression
+                        - kind: method_definition
+                        has:
+                          stopBy: end
+                          any:
+                          - kind: identifier
+                            pattern:
+                              context: const $NRX1 = 0
+                              selector: identifier
+                            not:
+                              inside:
+                                kind: call_expression
+                                field: function
+                          - kind: shorthand_property_identifier_pattern
+                            pattern:
+                              context: 'const { $NRX1 } = o'
+                              selector: shorthand_property_identifier_pattern
               - kind: expression_statement
                 has:
                   kind: await_expression
@@ -2246,6 +2728,30 @@ control:
                                 pattern:
                                   context: const $NRX2 = 0
                                   selector: identifier
+                    # T29-P1-C397 (C310 item 6, as T29-P1-C338 med 3 in TS): no enclosing function rebinds the exit
+                    - not:
+                        inside:
+                          stopBy: end
+                          any:
+                          - kind: function_declaration
+                          - kind: arrow_function
+                          - kind: function_expression
+                          - kind: method_definition
+                          has:
+                            stopBy: end
+                            any:
+                            - kind: identifier
+                              pattern:
+                                context: const $NRX2 = 0
+                                selector: identifier
+                              not:
+                                inside:
+                                  kind: call_expression
+                                  field: function
+                            - kind: shorthand_property_identifier_pattern
+                              pattern:
+                                context: 'const { $NRX2 } = o'
+                                selector: shorthand_property_identifier_pattern
               - kind: statement_block
                 has:
                   any:
@@ -2285,6 +2791,30 @@ control:
                                   pattern:
                                     context: const $NRX3 = 0
                                     selector: identifier
+                      # T29-P1-C397 (C310 item 6, as T29-P1-C338 med 3 in TS): no enclosing function rebinds the exit
+                      - not:
+                          inside:
+                            stopBy: end
+                            any:
+                            - kind: function_declaration
+                            - kind: arrow_function
+                            - kind: function_expression
+                            - kind: method_definition
+                            has:
+                              stopBy: end
+                              any:
+                              - kind: identifier
+                                pattern:
+                                  context: const $NRX3 = 0
+                                  selector: identifier
+                                not:
+                                  inside:
+                                    kind: call_expression
+                                    field: function
+                              - kind: shorthand_property_identifier_pattern
+                                pattern:
+                                  context: 'const { $NRX3 } = o'
+                                  selector: shorthand_property_identifier_pattern
                   - kind: expression_statement
                     has:
                       kind: await_expression
@@ -2321,6 +2851,30 @@ control:
                                     pattern:
                                       context: const $NRX4 = 0
                                       selector: identifier
+                        # T29-P1-C397 (C310 item 6, as T29-P1-C338 med 3 in TS): no enclosing function rebinds the exit
+                        - not:
+                            inside:
+                              stopBy: end
+                              any:
+                              - kind: function_declaration
+                              - kind: arrow_function
+                              - kind: function_expression
+                              - kind: method_definition
+                              has:
+                                stopBy: end
+                                any:
+                                - kind: identifier
+                                  pattern:
+                                    context: const $NRX4 = 0
+                                    selector: identifier
+                                  not:
+                                    inside:
+                                      kind: call_expression
+                                      field: function
+                                - kind: shorthand_property_identifier_pattern
+                                  pattern:
+                                    context: 'const { $NRX4 } = o'
+                                    selector: shorthand_property_identifier_pattern
       - all:
         - has:
             stopBy: end
