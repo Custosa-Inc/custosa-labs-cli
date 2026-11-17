@@ -355,6 +355,37 @@ rule:
         any:
         - kind: type_identifier
           regex: ^MultipartFile$
+          not:
+            inside:
+              stopBy: end
+              kind: instanceof_expression
+  # T29-P1-C405: only a method with a body can take a file in (an interface or abstract declaration has none), the
+  # content validator itself is not an upload path, and a file read only into a spreadsheet or CSV parser is not kept
+  - has:
+      field: body
+      kind: block
+  - not:
+      inside:
+        stopBy: end
+        kind: class_declaration
+        has:
+          field: name
+          kind: identifier
+          regex: (Validator|Sniffer|Detector)$
+  - not:
+      all:
+      - has:
+          stopBy: end
+          any:
+          - kind: method_invocation
+            regex: ^WorkbookFactory\.create\(|^CSVFormat\b[\s\S]*\.parse\(
+          - kind: object_creation_expression
+            regex: ^new\s+(XSSFWorkbook|HSSFWorkbook|CSVParser|CSVReader)\(
+      - not:
+          has:
+            stopBy: end
+            kind: method_invocation
+            regex: (?i)(transferTo|Files\.(copy|write|newOutputStream)|putObject|\.upload\w*|\.store\w*|\.save\w*|\.write)\(
   - not:
       any:
       - all:

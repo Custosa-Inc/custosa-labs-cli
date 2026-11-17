@@ -1,5 +1,5 @@
 {
-  "ruleset_id": "2026-11-16.13f2bc7c",
+  "ruleset_id": "2026-11-17.7696f7ab",
   "min_engine": "0.45.3",
   "files": [
     {
@@ -276,7 +276,7 @@
     },
     {
       "path": "rules/auth-login-throttling/java-spring.yml",
-      "sha256": "cc124e118d1bc2376b8be7d955815314ccbe863d802600257bd1b91405c07876"
+      "sha256": "e9a9a7f982691042ed527ae4b64565d32a1708d02572a5d5a7b46217474a0ee8"
     },
     {
       "path": "rules/auth-login-throttling/javascript-express.yml",
@@ -1476,7 +1476,7 @@
     },
     {
       "path": "rules/upload-validation/java-spring.yml",
-      "sha256": "30d1a8be1b5fcdc9abe03beb00271eda6d24e21ef1a381845da82d61aa3ff814"
+      "sha256": "c36efde7ef3712a726fefe3a23b75fb30136aa313fc0aeb2fcca9b30cbf2c8f5"
     },
     {
       "path": "rules/upload-validation/javascript-express.yml",

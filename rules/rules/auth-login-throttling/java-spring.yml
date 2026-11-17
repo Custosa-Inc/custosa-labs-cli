@@ -13,6 +13,11 @@ rule:
       any:
       - kind: method_invocation
         regex: (authenticationManager|authManager)\.authenticate\(|passwordEncoder\.matches\(
+  - not:
+      has:
+        field: name
+        kind: identifier
+        regex: (?i)^(change|update|reset|set)\w*password\w*$
 control:
   any:
   - has:
