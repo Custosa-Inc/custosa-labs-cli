@@ -28,4 +28,8 @@ control:
       regex: (?i)(hash|bcrypt|argon|scrypt|pbkdf|encrypt|digest|createHmac|seal|kms|make_password|password_hash|Hash::make|cipher)
     - kind: identifier
       regex: (?i)(hash|digest|encrypted|cipher)
+    # T29-P1-C405 item 2: a string literal that is itself a whole bcrypt or argon2 (PHC) output, and nothing more
+    # (T29-P2-C456: a literal that only starts like one, "$argon2id$hunter2", is still plain)
+    - kind: string
+      regex: ^['"`]\$(2[abxy]?\$\d\d\$[./A-Za-z0-9]{53}|argon2(id|i|d)\$v=\d+\$m=\d+,t=\d+,p=\d+\$[A-Za-z0-9+/]+\$[A-Za-z0-9+/]+)['"`]$
 min_engine: 0.39.0

@@ -13,6 +13,15 @@ rule:
       any:
       - kind: method_invocation
         regex: (authenticationManager|authManager)\.authenticate\(|passwordEncoder\.matches\(
+  - not:
+      has:
+        field: name
+        kind: identifier
+        regex: (?i)^(change|update|reset|set)\w*password\w*$
+        # T29-P2-C456: a name that also says it signs in (resetPasswordAndLogin) stays a sign-in
+        not:
+          kind: identifier
+          regex: (?i)(log_?in|sign_?in|log_?on|authenticat)
 control:
   any:
   - has:
