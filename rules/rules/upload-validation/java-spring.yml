@@ -381,11 +381,22 @@ rule:
             regex: ^WorkbookFactory\.create\(|^CSVFormat\b[\s\S]*\.parse\(
           - kind: object_creation_expression
             regex: ^new\s+(XSSFWorkbook|HSSFWorkbook|CSVParser|CSVReader)\(
+      # T29-P2-C456: any other read or hand-off of the file can keep it (a copy, its bytes or name, a persist,
+      # an output stream, or the file passed whole to another call), so the skip needs none of them
       - not:
           has:
             stopBy: end
-            kind: method_invocation
-            regex: (?i)(transferTo|Files\.(copy|write|newOutputStream)|putObject|\.upload\w*|\.store\w*|\.save\w*|\.write)\(
+            any:
+            - kind: method_invocation
+              regex: (?i)(transferTo|Files\.(copy|write|newOutputStream)|putObject|\.upload\w*|\.store\w*|\.save\w*|\.write|copy\w*|\.(persist|merge|insert\w*)|getBytes|getOriginalFilename|getResource|readAllBytes|readNBytes)\(
+            - kind: object_creation_expression
+              regex: ^new\s+(FileOutputStream|BufferedOutputStream|FileWriter|RandomAccessFile)\(
+            - kind: method_invocation
+              has:
+                field: arguments
+                has:
+                  kind: identifier
+                  regex: (?i)^(\w*file\w*|multipart\w*|upload\w*|attachment\w*)$
   - not:
       any:
       - all:

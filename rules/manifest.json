@@ -1,5 +1,5 @@
 {
-  "ruleset_id": "2026-11-17.000ae96a",
+  "ruleset_id": "2026-11-17.dd4ddb2a",
   "min_engine": "0.45.3",
   "files": [
     {
@@ -276,7 +276,7 @@
     },
     {
       "path": "rules/auth-login-throttling/java-spring.yml",
-      "sha256": "e9a9a7f982691042ed527ae4b64565d32a1708d02572a5d5a7b46217474a0ee8"
+      "sha256": "f41376561d9fb1a36cc52634fa1d247ff4b945928f8c7a515e4d26e7f4b2c8a4"
     },
     {
       "path": "rules/auth-login-throttling/javascript-express.yml",
@@ -1300,7 +1300,7 @@
     },
     {
       "path": "rules/secrets-hashed-or-encrypted/javascript-generic.yml",
-      "sha256": "93395e3868598b81655fd90f8098c86bcf180cd46daaca889c621954e8945e32"
+      "sha256": "c15bc07a75b310929d00a3e7fe73ef697ea9c0ba433cbc53c70f31cbabf31985"
     },
     {
       "path": "rules/secrets-hashed-or-encrypted/php-generic.yml",
@@ -1312,11 +1312,11 @@
     },
     {
       "path": "rules/secrets-hashed-or-encrypted/tsx-generic.yml",
-      "sha256": "194949db903955dae9b6b232252f8ffcd1f12e41fda75e97fe8566337921d4cc"
+      "sha256": "bb41de7ecd08355169755cf0f1151be91984ce64cc71f675389f13c30005870f"
     },
     {
       "path": "rules/secrets-hashed-or-encrypted/typescript-generic.yml",
-      "sha256": "cea38a5b8f341c6159d79e40e51e04aa122fe99a9439a6d91f49e01dca305547"
+      "sha256": "8819e82e85ce26d9b35e612bc72e7ad8f2b3da6f4e83e21fe8c3ebd47925d7e6"
     },
     {
       "path": "rules/security-events-logged/go-generic.yml",
@@ -1476,7 +1476,7 @@
     },
     {
       "path": "rules/upload-validation/java-spring.yml",
-      "sha256": "c36efde7ef3712a726fefe3a23b75fb30136aa313fc0aeb2fcca9b30cbf2c8f5"
+      "sha256": "846a6814b7132edb09907395cad8f0af0cd405a25735b98f452b2eb5ed550c97"
     },
     {
       "path": "rules/upload-validation/javascript-express.yml",
