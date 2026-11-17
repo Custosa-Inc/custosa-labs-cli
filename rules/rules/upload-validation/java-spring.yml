@@ -416,6 +416,40 @@ rule:
                 not:
                   kind: identifier
                   regex: (?i)^(\w*file\w*|multipart\w*|upload\w*|attachment\w*)$
+      # T29-P2-C458: bind the MultipartFile parameter's name ($F); any use of that name outside the parse and outside
+      # its own parameter (an alias, a field, a cast, a ternary, an array, a method reference) refuses the skip
+      - has:
+          stopBy: end
+          kind: formal_parameter
+          all:
+          - has:
+              stopBy: end
+              kind: type_identifier
+              regex: ^MultipartFile$
+          - has:
+              field: name
+              kind: identifier
+              pattern:
+                context: $F.m();
+                selector: identifier
+      - not:
+          has:
+            stopBy: end
+            kind: identifier
+            pattern:
+              context: $F.m();
+              selector: identifier
+            not:
+              any:
+              - inside:
+                  kind: formal_parameter
+              - inside:
+                  stopBy: end
+                  any:
+                  - kind: method_invocation
+                    regex: ^WorkbookFactory\.create\(|^CSVFormat\b[\s\S]*\.parse\(
+                  - kind: object_creation_expression
+                    regex: ^new\s+(XSSFWorkbook|HSSFWorkbook|CSVParser|CSVReader)\(
       - not:
           has:
             stopBy: end
