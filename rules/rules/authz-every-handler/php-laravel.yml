@@ -1,10 +1,12 @@
 # Laravel controller methods named by a route that take a record (route model binding: a parameter typed with a
-# model class, never Request, a FormRequest or an injected service, repository or the like; or an $id, $xId, $x_id or
+# model class, nullable too (?Patient, Patient|null), never Request, a FormRequest or an injected service, repository
+# or the like; or an $id, $xId, $x_id or
 # uuid parameter, untyped, int or string), one item each, on a public method of a class extending a Controller. The
 # routes file isn't read here, so the method is the item and its own line is the line. The control is the caller
 # read in the method: auth()->user() or ->id() (through a guard too), Auth::user() or ::id() (with or without a leading
-# backslash), $request->user(), request()->user(),
-# $this->authorize(...), a Gate check or a ->can() / ->cannot() call, or $this->authorizeResource(...) anywhere in the
+# backslash, or as \Illuminate\Support\Facades\Auth), $request->user(), request()->user(),
+# $this->authorize(...), a Gate check (Gate, \Gate or the full facade name) or a ->can() / ->cannot() call, or
+# $this->authorizeResource(...) anywhere in the
 # class (a policy on every resource method). Route middleware ('auth', 'auth:sanctum') says who may call, not which
 # record, so it never counts. No control: the practice asks for it (assistant_answer_needed), never a pass, unless
 # auth-unobserved-helper holds the item.
@@ -55,6 +57,13 @@ rule:
               not:
                 kind: named_type
                 regex: (Request|Service|Repository|Manager|Interface|Contract|Factory|Client|Gateway|Handler|Action|Helper|Builder|Collection|Carbon|UploadedFile|Closure|Container|Application|Logger|Mailer|Dispatcher|Validator|Session|Store)$
+        - has:
+            field: type
+            kind: union_type
+            regex: ^(null\s*\|\s*)?\\?([A-Za-z_]\w*\\)*[A-Z]\w*(\s*\|\s*null)?$
+            not:
+              kind: union_type
+              regex: (Request|Service|Repository|Manager|Interface|Contract|Factory|Client|Gateway|Handler|Action|Helper|Builder|Collection|Carbon|UploadedFile|Closure|Container|Application|Logger|Mailer|Dispatcher|Validator|Session|Store)(\s*\|\s*null)?$
         - all:
           - has:
               field: name
@@ -78,13 +87,13 @@ control:
         stopBy: end
         any:
         - kind: member_call_expression
-          regex: ^(auth\([^)]*\)(\s*->\s*guard\([^)]*\))?|request\(\)|\$request|\$req|\\?Auth::guard\([^)]*\))\s*->\s*(user|id)\s*\(
+          regex: ^(auth\([^)]*\)(\s*->\s*guard\([^)]*\))?|request\(\)|\$request|\$req|\\?(Illuminate\\Support\\Facades\\)?Auth::guard\([^)]*\))\s*->\s*(user|id)\s*\(
         - kind: scoped_call_expression
-          regex: ^\\?Auth::(user|id)\s*\(
+          regex: ^\\?(Illuminate\\Support\\Facades\\)?Auth::(user|id)\s*\(
         - kind: member_call_expression
           regex: ^\$this\s*->\s*(authorize|authorizeForUser)\s*\(
         - kind: scoped_call_expression
-          regex: ^Gate::(authorize|allows|denies|check|any|none|inspect|forUser)\s*\(
+          regex: ^\\?(Illuminate\\Support\\Facades\\)?Gate::(authorize|allows|denies|check|any|none|inspect|forUser)\s*\(
         - kind: member_call_expression
           has:
             field: name
@@ -152,6 +161,13 @@ rule:
               not:
                 kind: named_type
                 regex: (Request|Service|Repository|Manager|Interface|Contract|Factory|Client|Gateway|Handler|Action|Helper|Builder|Collection|Carbon|UploadedFile|Closure|Container|Application|Logger|Mailer|Dispatcher|Validator|Session|Store)$
+        - has:
+            field: type
+            kind: union_type
+            regex: ^(null\s*\|\s*)?\\?([A-Za-z_]\w*\\)*[A-Z]\w*(\s*\|\s*null)?$
+            not:
+              kind: union_type
+              regex: (Request|Service|Repository|Manager|Interface|Contract|Factory|Client|Gateway|Handler|Action|Helper|Builder|Collection|Carbon|UploadedFile|Closure|Container|Application|Logger|Mailer|Dispatcher|Validator|Session|Store)(\s*\|\s*null)?$
         - all:
           - has:
               field: name
