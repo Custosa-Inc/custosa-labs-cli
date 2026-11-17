@@ -179,8 +179,10 @@ rules/rules/authz-every-handler/python-flask.yml
 rules/rules/authz-every-handler/ruby-rails.yml
 rules/rules/authz-every-handler/tsx-nextjs.yml
 rules/rules/authz-every-handler/typescript-express.yml
+rules/rules/authz-every-handler/typescript-hono.yml
 rules/rules/authz-every-handler/typescript-nestjs.yml
 rules/rules/authz-every-handler/typescript-nextjs.yml
+rules/rules/authz-every-handler/typescript-nuxt.yml
 rules/rules/break-glass-access/javascript-generic.yml
 rules/rules/break-glass-access/php-generic.yml
 rules/rules/break-glass-access/python-generic.yml

@@ -1,0 +1,94 @@
+# Nuxt (Nitro, h3) server routes whose file path takes a route parameter (server/api/patients/[id].get.ts,
+# server/routes/files/[...path].ts), one item each, at the default-exported defineEventHandler or eventHandler with an
+# inline handler. The control is the caller's identity read inside it: event.context.user (or auth, session, userId),
+# the nuxt-auth-utils session (getUserSession(event), requireUserSession(event)), getServerSession(event) or
+# serverSupabaseUser(event). Server middleware alone never counts (it says who may call, not which record). The
+# practice reads it as the Express route: no control is an ask (assistant_answer_needed), never a pass. A route file
+# with no parameter in its path is no item here (T29-P3-C487).
+id: authz-every-handler.typescript-nuxt.route
+practice_id: authz-every-handler
+language: typescript
+frameworks:
+- nuxt
+kind: items
+rule:
+  kind: call_expression
+  all:
+  - has:
+      field: function
+      kind: identifier
+      regex: ^(defineEventHandler|eventHandler|defineCachedEventHandler|cachedEventHandler)$
+  - inside:
+      kind: export_statement
+      regex: ^export\s+default\b
+  - has:
+      field: arguments
+      kind: arguments
+      has:
+        any:
+        - kind: arrow_function
+        - kind: function_expression
+control:
+  has:
+    field: arguments
+    kind: arguments
+    has:
+      any:
+      - kind: arrow_function
+      - kind: function_expression
+      has:
+        stopBy: end
+        any:
+        - kind: member_expression
+          regex: ^(event|e|evt)\.context\.(user|auth|session|userId|user_id|uid|claims|principal)\b
+          not:
+            any:
+            - inside:
+                any:
+                - kind: assignment_expression
+                - kind: augmented_assignment_expression
+                field: left
+            - inside:
+                kind: member_expression
+                inside:
+                  any:
+                  - kind: assignment_expression
+                  - kind: augmented_assignment_expression
+                  field: left
+        - kind: call_expression
+          has:
+            field: function
+            kind: identifier
+            regex: ^(getUserSession|requireUserSession|getServerSession|serverSupabaseUser)$
+          all:
+          - has:
+              field: arguments
+              kind: arguments
+              regex: ^\(\s*[^)\s]
+        - pattern: $C.auth.getUser($$$)
+path_regex: (^|/)server/(api|routes)/([^/]+/)*[^/]*\[[^/]*\]
+min_engine: 0.39.0
+---
+# A caller read through a project helper taking nothing or only the event (requireAuth(event), getCurrentUser(event),
+# requireUser(event)): a resemblance of the control, never the control. On the handler it holds that handler's item for
+# a person (needs_review). As typescript-express's auth-unobserved-context, with requireAuth and ensureAuth added: in
+# Nuxt server utils (auto-imported, so no import names them) these return the signed-in user or throw 401.
+id: authz-every-handler.typescript-nuxt.auth-unobserved-context
+practice_id: authz-every-handler
+language: typescript
+frameworks:
+- nuxt
+kind: evidence
+rule:
+  kind: call_expression
+  all:
+  - has:
+      field: function
+      kind: identifier
+      regex: '^((get|require|load|ensure|assert|verify)((Authenticated|Auth|Current|Session|Request|SignedIn|LoggedIn)(User|Session|Context|Ctx|Caller|Principal|Claims|Identity|Account)|(User|Session|Caller|Principal|Claims|Identity|Account))(Context|Info|Id|OrThrow)?|(require|ensure)(Auth|Authenticated|Login|SignedIn|LoggedIn))$'
+  - has:
+      field: arguments
+      kind: arguments
+      regex: '^\(\s*(event|e|evt)?\s*\)$'
+path_regex: (^|/)server/(api|routes)/([^/]+/)*[^/]*\[[^/]*\]
+min_engine: 0.39.0

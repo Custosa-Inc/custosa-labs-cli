@@ -1,0 +1,145 @@
+# Hono routes with a route parameter (a record id from the path, `/x/:id`), one item each, where the handler is an
+# inline function (app.get('/patients/:id', async (c) => ...)). The control is the caller's identity read inside it
+# (c.get('user'), c.get('jwtPayload'), c.var.user, getAuth(c)) or a Supabase user check. Middleware alone never counts
+# (app.use(jwt(...)) says who may call, not which record). The practice reads it as the Express route: no control is
+# an ask (assistant_answer_needed), never a pass. Handlers passed by name and routes with no path parameter are no
+# items here, and a file must import hono, so an Express app beside it isn't read twice (T29-P3-C487).
+id: authz-every-handler.typescript-hono.route
+practice_id: authz-every-handler
+language: typescript
+frameworks:
+- hono
+kind: items
+rule:
+  kind: call_expression
+  all:
+  - inside:
+      kind: program
+      stopBy: end
+      has:
+        kind: import_statement
+        regex: '[''"]hono(/[a-z-]+)?[''"]'
+  - has:
+      field: function
+      kind: member_expression
+      has:
+        field: property
+        kind: property_identifier
+        regex: ^(get|post|put|patch|delete|all)$
+  - has:
+      field: arguments
+      kind: arguments
+      all:
+      - has:
+          any:
+          - kind: string
+            regex: ^['"`]/[^'"`]*:[A-Za-z_]
+          - kind: array
+            has:
+              kind: string
+              regex: ^['"`]/[^'"`]*:[A-Za-z_]
+      - has:
+          any:
+          - kind: arrow_function
+          - kind: function_expression
+control:
+  has:
+    field: arguments
+    kind: arguments
+    has:
+      any:
+      - kind: arrow_function
+      - kind: function_expression
+      has:
+        stopBy: end
+        any:
+        - kind: call_expression
+          regex: ^(c|ctx|context)\.get\(\s*['"`](user|userId|user_id|uid|jwtPayload|session|auth|currentUser|claims|principal)['"`]\s*\)
+        - kind: member_expression
+          regex: ^(c|ctx|context)\.var\.(user|userId|user_id|uid|jwtPayload|session|auth|currentUser|claims|principal)\b
+          not:
+            any:
+            - inside:
+                any:
+                - kind: assignment_expression
+                - kind: augmented_assignment_expression
+                field: left
+            - inside:
+                kind: member_expression
+                inside:
+                  any:
+                  - kind: assignment_expression
+                  - kind: augmented_assignment_expression
+                  field: left
+        - kind: call_expression
+          pattern: getAuth($$$)
+          has:
+            field: arguments
+            kind: arguments
+            regex: ^\(\s*[^)\s]
+          not:
+            inside:
+              kind: program
+              stopBy: end
+              has:
+                kind: import_statement
+                regex: '[''"]firebase-admin(/[a-z-]+)?[''"]'
+        - pattern: $C.auth.getUser($$$)
+      all:
+      - any:
+        - precedes:
+            not:
+              precedes:
+                any:
+                - kind: comment
+                - not:
+                    kind: comment
+        - precedes:
+            precedes:
+              not:
+                precedes:
+                  any:
+                  - kind: comment
+                  - not:
+                      kind: comment
+min_engine: 0.39.0
+---
+# A caller read through a project helper taking nothing or only the context (requireUser(c), getCurrentUser()):
+# a resemblance of the control, never the control. On the handler it holds that handler's item for a person
+# (needs_review). As typescript-express's auth-unobserved-context.
+id: authz-every-handler.typescript-hono.auth-unobserved-context
+practice_id: authz-every-handler
+language: typescript
+frameworks:
+- hono
+kind: evidence
+rule:
+  kind: call_expression
+  all:
+  - not:
+      inside:
+        stopBy: end
+        any:
+        - kind: function_declaration
+          inside:
+            kind: statement_block
+        - any:
+          - kind: arrow_function
+          - kind: function_expression
+          inside:
+            kind: variable_declarator
+            inside:
+              any:
+              - kind: lexical_declaration
+              - kind: variable_declaration
+              inside:
+                kind: statement_block
+  - has:
+      field: function
+      kind: identifier
+      regex: '^(get|require|load|ensure|assert|verify)((Authenticated|Auth|Current|Session|Request|SignedIn|LoggedIn)(User|Session|Context|Ctx|Caller|Principal|Claims|Identity|Account)|(User|Session|Caller|Principal|Claims|Identity|Account))(Context|Info|Id|OrThrow)?$'
+  - has:
+      field: arguments
+      kind: arguments
+      regex: '^\(\s*(req|request|ctx|c)?\s*\)$'
+min_engine: 0.39.0
