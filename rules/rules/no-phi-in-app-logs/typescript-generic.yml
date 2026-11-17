@@ -187,6 +187,63 @@ rule:
         stopBy: end
         all:
         - any:
+          # T29-P1-C409: a message's recipient is a contact value. The names to, toNumber, toPhone and toAddress fail in a
+          # log template, or beside a string argument, that names a message (email, mail, SMS, text, message, notification,
+          # invite, reminder, OTP, WhatsApp): `[SMS] Sending to ${to}`, ("Sending SMS to", to), ("invite email sent", { to }).
+          # recipient, recipients, recipientNumber and recipientPhone also fail beside a send or delivery verb
+          # (`Delivered report to ${recipient}`). A to with no message word (a route, a date bound, a request target) stays ok.
+          - all:
+            - kind: identifier
+            - regex: '^(to|toNumber|toPhone|toAddress)$'
+            - inside:
+                kind: template_substitution
+                inside:
+                  kind: template_string
+                  regex: '(?i)\b(e-?mails?|mail|sms|texts?|messages?|notifications?|invites?|invitations?|reminders?|otps?|whatsapp)\b'
+          - all:
+            - kind: identifier
+            - regex: '^(to|toNumber|toPhone|toAddress)$'
+            - inside:
+                stopBy: end
+                kind: arguments
+                has:
+                  kind: string
+                  regex: '(?i)\b(e-?mails?|mail|sms|texts?|messages?|notifications?|invites?|invitations?|reminders?|otps?|whatsapp)\b'
+          - all:
+            - kind: shorthand_property_identifier
+            - regex: '^(to|toNumber|toPhone|toAddress)$'
+            - inside:
+                stopBy: end
+                kind: arguments
+                has:
+                  kind: string
+                  regex: '(?i)\b(e-?mails?|mail|sms|texts?|messages?|notifications?|invites?|invitations?|reminders?|otps?|whatsapp)\b'
+          - all:
+            - kind: identifier
+            - regex: '^(recipient|recipients|recipientNumber|recipientPhone)$'
+            - inside:
+                kind: template_substitution
+                inside:
+                  kind: template_string
+                  regex: '(?i)\b(e-?mails?|mail|sms|texts?|messages?|notifications?|invites?|invitations?|reminders?|otps?|whatsapp|send|sends|sending|sent|deliver|delivers|delivering|delivered|delivery)\b'
+          - all:
+            - kind: identifier
+            - regex: '^(recipient|recipients|recipientNumber|recipientPhone)$'
+            - inside:
+                stopBy: end
+                kind: arguments
+                has:
+                  kind: string
+                  regex: '(?i)\b(e-?mails?|mail|sms|texts?|messages?|notifications?|invites?|invitations?|reminders?|otps?|whatsapp|send|sends|sending|sent|deliver|delivers|delivering|delivered|delivery)\b'
+          - all:
+            - kind: shorthand_property_identifier
+            - regex: '^(recipient|recipients|recipientNumber|recipientPhone)$'
+            - inside:
+                stopBy: end
+                kind: arguments
+                has:
+                  kind: string
+                  regex: '(?i)\b(e-?mails?|mail|sms|texts?|messages?|notifications?|invites?|invitations?|reminders?|otps?|whatsapp|send|sends|sending|sent|deliver|delivers|delivering|delivered|delivery)\b'
           - all:
             - kind: member_expression
             - regex: '\.(ssn|SSN|socialSecurityNumber|social_security_number|dob|DOB|dateOfBirth|date_of_birth|birthDate|birth_date|diagnosis|diagnoses|mrn|MRN|medicalRecordNumber|medical_record_number|insuranceNumber|insurance_number|clinicalNotes|clinical_notes)$'
