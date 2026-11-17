@@ -187,6 +187,96 @@ rule:
         stopBy: end
         all:
         - any:
+          # T29-P1-C413 (P3 C468 low 2): the same recipient joined to a message string by +, or in a log object beside a
+          # string value that names the message (pino's { msg: "reminder email sent", to }).
+          - all:
+            - kind: identifier
+            - regex: '^(to|toNumber|toPhone|toAddress)$'
+            - inside:
+                stopBy: end
+                kind: binary_expression
+                regex: '\+'
+                has:
+                  stopBy: end
+                  kind: string
+                  regex: '(?i)\b(e-?mails?|mail|sms|texts?|messages?|notifications?|invites?|invitations?|reminders?|otps?|whatsapp)\b'
+          - all:
+            - kind: shorthand_property_identifier
+            - regex: '^(to|toNumber|toPhone|toAddress)$'
+            - inside:
+                stopBy: end
+                kind: object
+                has:
+                  kind: pair
+                  has:
+                    field: value
+                    any:
+                    - kind: string
+                      regex: '(?i)\b(e-?mails?|mail|sms|texts?|messages?|notifications?|invites?|invitations?|reminders?|otps?|whatsapp)\b'
+                    - kind: template_string
+                      regex: '(?i)\b(e-?mails?|mail|sms|texts?|messages?|notifications?|invites?|invitations?|reminders?|otps?|whatsapp)\b'
+          - all:
+            - kind: identifier
+            - regex: '^(to|toNumber|toPhone|toAddress)$'
+            - inside:
+                kind: pair
+                field: value
+            - inside:
+                stopBy: end
+                kind: object
+                has:
+                  kind: pair
+                  has:
+                    field: value
+                    any:
+                    - kind: string
+                      regex: '(?i)\b(e-?mails?|mail|sms|texts?|messages?|notifications?|invites?|invitations?|reminders?|otps?|whatsapp)\b'
+                    - kind: template_string
+                      regex: '(?i)\b(e-?mails?|mail|sms|texts?|messages?|notifications?|invites?|invitations?|reminders?|otps?|whatsapp)\b'
+          - all:
+            - kind: identifier
+            - regex: '^(recipient|recipients|recipientNumber|recipientPhone)$'
+            - inside:
+                stopBy: end
+                kind: binary_expression
+                regex: '\+'
+                has:
+                  stopBy: end
+                  kind: string
+                  regex: '(?i)\b(e-?mails?|mail|sms|texts?|messages?|notifications?|invites?|invitations?|reminders?|otps?|whatsapp|send|sends|sending|sent|deliver|delivers|delivering|delivered|delivery)\b'
+          - all:
+            - kind: shorthand_property_identifier
+            - regex: '^(recipient|recipients|recipientNumber|recipientPhone)$'
+            - inside:
+                stopBy: end
+                kind: object
+                has:
+                  kind: pair
+                  has:
+                    field: value
+                    any:
+                    - kind: string
+                      regex: '(?i)\b(e-?mails?|mail|sms|texts?|messages?|notifications?|invites?|invitations?|reminders?|otps?|whatsapp|send|sends|sending|sent|deliver|delivers|delivering|delivered|delivery)\b'
+                    - kind: template_string
+                      regex: '(?i)\b(e-?mails?|mail|sms|texts?|messages?|notifications?|invites?|invitations?|reminders?|otps?|whatsapp|send|sends|sending|sent|deliver|delivers|delivering|delivered|delivery)\b'
+          - all:
+            - kind: identifier
+            - regex: '^(recipient|recipients|recipientNumber|recipientPhone)$'
+            - inside:
+                kind: pair
+                field: value
+            - inside:
+                stopBy: end
+                kind: object
+                has:
+                  kind: pair
+                  has:
+                    field: value
+                    any:
+                    - kind: string
+                      regex: '(?i)\b(e-?mails?|mail|sms|texts?|messages?|notifications?|invites?|invitations?|reminders?|otps?|whatsapp|send|sends|sending|sent|deliver|delivers|delivering|delivered|delivery)\b'
+                    - kind: template_string
+                      regex: '(?i)\b(e-?mails?|mail|sms|texts?|messages?|notifications?|invites?|invitations?|reminders?|otps?|whatsapp|send|sends|sending|sent|deliver|delivers|delivering|delivered|delivery)\b'
           # T29-P1-C409: a message's recipient is a contact value. The names to, toNumber, toPhone and toAddress fail in a
           # log template, or beside a string argument, that names a message (email, mail, SMS, text, message, notification,
           # invite, reminder, OTP, WhatsApp): `[SMS] Sending to ${to}`, ("Sending SMS to", to), ("invite email sent", { to }).
@@ -200,6 +290,19 @@ rule:
                 inside:
                   kind: template_string
                   regex: '(?i)\b(e-?mails?|mail|sms|texts?|messages?|notifications?|invites?|invitations?|reminders?|otps?|whatsapp)\b'
+            # T29-P1-C413 (P3 C468 low 1): a to right after a range start is a range bound, not a recipient:
+            # `messages ${from} to ${to}`, `${startDate} to ${to}`. `SMS from ${from} to ${to}` still fails.
+            - not:
+                inside:
+                  stopBy: end
+                  any:
+                  - kind: template_string
+                    regex: '(?i)\$\{\s*(start|begin|since|min|lower|offset|start_?date|from_?date|start_?time|date_?from)\s*\}\s+to\s+\$\{\s*to\s*\}'
+                  - kind: template_string
+                    regex: '\$\{\s*from\s*\}\s+to\s+\$\{\s*to\s*\}'
+                    not:
+                      kind: template_string
+                      regex: '(?i)\bfrom\s+\$\{\s*from\s*\}'
           - all:
             - kind: identifier
             - regex: '^(to|toNumber|toPhone|toAddress)$'

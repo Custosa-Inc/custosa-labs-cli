@@ -107,6 +107,60 @@ rule:
         stopBy: end
         all:
         - any:
+          # T29-P1-C413 (P3 C468 low 2): the same recipient joined to a message string by +, or passed to .format on a
+          # string that names the message ("Sending email to {}".format(to)).
+          - all:
+            - kind: identifier
+            - regex: '^(to|to_number|to_phone|to_address)$'
+            - inside:
+                stopBy: end
+                kind: binary_operator
+                regex: '\+'
+                has:
+                  stopBy: end
+                  kind: string
+                  regex: '(?i)\b(e-?mails?|mail|sms|texts?|messages?|notifications?|invites?|invitations?|reminders?|otps?|whatsapp)\b'
+          - all:
+            - kind: identifier
+            - regex: '^(to|to_number|to_phone|to_address)$'
+            - inside:
+                kind: argument_list
+                inside:
+                  kind: call
+                  has:
+                    field: function
+                    kind: attribute
+                    regex: '\.format$'
+                    has:
+                      field: object
+                      kind: string
+                      regex: '(?i)\b(e-?mails?|mail|sms|texts?|messages?|notifications?|invites?|invitations?|reminders?|otps?|whatsapp)\b'
+          - all:
+            - kind: identifier
+            - regex: '^(recipient|recipients|recipient_number|recipient_phone)$'
+            - inside:
+                stopBy: end
+                kind: binary_operator
+                regex: '\+'
+                has:
+                  stopBy: end
+                  kind: string
+                  regex: '(?i)\b(e-?mails?|mail|sms|texts?|messages?|notifications?|invites?|invitations?|reminders?|otps?|whatsapp|send|sends|sending|sent|deliver|delivers|delivering|delivered|delivery)\b'
+          - all:
+            - kind: identifier
+            - regex: '^(recipient|recipients|recipient_number|recipient_phone)$'
+            - inside:
+                kind: argument_list
+                inside:
+                  kind: call
+                  has:
+                    field: function
+                    kind: attribute
+                    regex: '\.format$'
+                    has:
+                      field: object
+                      kind: string
+                      regex: '(?i)\b(e-?mails?|mail|sms|texts?|messages?|notifications?|invites?|invitations?|reminders?|otps?|whatsapp|send|sends|sending|sent|deliver|delivers|delivering|delivered|delivery)\b'
           # T29-P1-C409: a message's recipient is a contact value. The names to, to_number, to_phone and to_address fail
           # in an f-string, or beside a string argument, that names a message (email, mail, SMS, text, message,
           # notification, invite, reminder, OTP, WhatsApp): f"[SMS] Sending to {to}", ("Sending SMS to %s", to),
@@ -120,6 +174,13 @@ rule:
                 inside:
                   kind: string
                   regex: '(?i)\b(e-?mails?|mail|sms|texts?|messages?|notifications?|invites?|invitations?|reminders?|otps?|whatsapp)\b'
+            # T29-P1-C413 (P3 C468 low 1): a to right after a range start is a range bound, not a recipient:
+            # f"messages {start} to {to}", f"{from_date} to {to}".
+            - not:
+                inside:
+                  stopBy: end
+                  kind: string
+                  regex: '(?i)\{\s*(start|begin|since|min|lower|offset|start_?date|from_?date|start_?time|date_?from)\s*\}\s+to\s+\{\s*to\s*\}'
           - all:
             - kind: identifier
             - regex: '^(to|to_number|to_phone|to_address)$'
@@ -129,6 +190,13 @@ rule:
                 has:
                   kind: string
                   regex: '(?i)\b(e-?mails?|mail|sms|texts?|messages?|notifications?|invites?|invitations?|reminders?|otps?|whatsapp)\b'
+            # T29-P1-C413 (P3 C468 low 1): a to right after a range start is a range bound, not a recipient:
+            # f"messages {start} to {to}", f"{from_date} to {to}".
+            - not:
+                inside:
+                  stopBy: end
+                  kind: string
+                  regex: '(?i)\{\s*(start|begin|since|min|lower|offset|start_?date|from_?date|start_?time|date_?from)\s*\}\s+to\s+\{\s*to\s*\}'
           - all:
             - kind: identifier
             - regex: '^(recipient|recipients|recipient_number|recipient_phone)$'
@@ -698,6 +766,9 @@ rule:
                         regex: '^(logger|logging|log|_logger|_log|LOGGER|LOG|self\.logger|self\.log|self\._logger|current_app\.logger|app\.logger|logging\.getLogger\([^)]*\)|structlog\.(?:get_logger|getLogger)\([^)]*\))\.(debug|info|warning|warn|error|exception|critical|log|msg)$|^json\.dumps$|^pprint\.pformat$|^dataclasses\.asdict$'
                       - kind: identifier
                         regex: '^(print|str|repr|dict|vars|asdict|model_to_dict|list|tuple|sorted|set)$'
+                      # T29-P1-C413: a value passed to .format on a string literal is formatted into the logged line.
+                      - kind: attribute
+                        regex: '(?s)^[rRuUbB]{0,2}[''"].*[''"]\.format$'
         - not:
             inside:
               kind: argument_list
@@ -711,6 +782,9 @@ rule:
                       regex: '^(logger|logging|log|_logger|_log|LOGGER|LOG|self\.logger|self\.log|self\._logger|current_app\.logger|app\.logger|logging\.getLogger\([^)]*\)|structlog\.(?:get_logger|getLogger)\([^)]*\))\.(debug|info|warning|warn|error|exception|critical|log|msg)$|^json\.dumps$|^pprint\.pformat$|^dataclasses\.asdict$'
                     - kind: identifier
                       regex: '^(print|str|repr|dict|vars|asdict|model_to_dict|list|tuple|sorted|set)$'
+                    # T29-P1-C413: a value passed to .format on a string literal is formatted into the line the log call writes.
+                    - kind: attribute
+                      regex: '(?s)^[rRuUbB]{0,2}[''"].*[''"]\.format$'
 min_engine: 0.45.3
 ---
 id: no-phi-in-app-logs.python-generic.credential
