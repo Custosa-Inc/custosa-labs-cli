@@ -107,6 +107,45 @@ rule:
         stopBy: end
         all:
         - any:
+          # T29-P1-C409: a message's recipient is a contact value. The names to, to_number, to_phone and to_address fail
+          # in an f-string, or beside a string argument, that names a message (email, mail, SMS, text, message,
+          # notification, invite, reminder, OTP, WhatsApp): f"[SMS] Sending to {to}", ("Sending SMS to %s", to),
+          # ("invite email sent", extra={"to": to}). recipient, recipients, recipient_number and recipient_phone also
+          # fail beside a send or delivery verb. A to with no message word (a route, a date bound) stays ok.
+          - all:
+            - kind: identifier
+            - regex: '^(to|to_number|to_phone|to_address)$'
+            - inside:
+                kind: interpolation
+                inside:
+                  kind: string
+                  regex: '(?i)\b(e-?mails?|mail|sms|texts?|messages?|notifications?|invites?|invitations?|reminders?|otps?|whatsapp)\b'
+          - all:
+            - kind: identifier
+            - regex: '^(to|to_number|to_phone|to_address)$'
+            - inside:
+                stopBy: end
+                kind: argument_list
+                has:
+                  kind: string
+                  regex: '(?i)\b(e-?mails?|mail|sms|texts?|messages?|notifications?|invites?|invitations?|reminders?|otps?|whatsapp)\b'
+          - all:
+            - kind: identifier
+            - regex: '^(recipient|recipients|recipient_number|recipient_phone)$'
+            - inside:
+                kind: interpolation
+                inside:
+                  kind: string
+                  regex: '(?i)\b(e-?mails?|mail|sms|texts?|messages?|notifications?|invites?|invitations?|reminders?|otps?|whatsapp|send|sends|sending|sent|deliver|delivers|delivering|delivered|delivery)\b'
+          - all:
+            - kind: identifier
+            - regex: '^(recipient|recipients|recipient_number|recipient_phone)$'
+            - inside:
+                stopBy: end
+                kind: argument_list
+                has:
+                  kind: string
+                  regex: '(?i)\b(e-?mails?|mail|sms|texts?|messages?|notifications?|invites?|invitations?|reminders?|otps?|whatsapp|send|sends|sending|sent|deliver|delivers|delivering|delivered|delivery)\b'
           - kind: attribute
             regex: '\.(ssn|SSN|dob|date_of_birth|birth_date|birthdate|diagnosis|diagnoses|mrn|medical_record_number|insurance_number|clinical_notes)$'
           # T29-P1-C388: every patient-field root takes self. too (self.patient_data.name, self.patient["email"],
