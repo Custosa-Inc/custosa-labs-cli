@@ -107,6 +107,33 @@ rule:
         stopBy: end
         all:
         - any:
+          # T29-P1-C420 (C457 group B): an AI model's reply logged raw. In a health app it is about the patient's record.
+          # A reply name (text, content, reply, response, output, completion, answer, ai_response, ...), a slice of it, or
+          # a .content or .text read fails beside a string, or in an f-string, that names an AI model and its reply.
+          # A length, a status or an error beside the same words stays ok.
+          - all:
+            - any:
+              - kind: identifier
+                regex: '^(text|content|reply|response|output|completion|answer|raw|(raw|ai|llm|gpt|model|completion|generated|response)_(text|reply|response|output|content|answer))$'
+                not:
+                  inside:
+                    kind: subscript
+                    field: value
+              - kind: subscript
+                regex: '^(text|content|reply|response|output|completion|answer|raw|(raw|ai|llm|gpt|model|completion|generated|response)_(text|reply|response|output|content|answer))\[\s*-?\d*\s*:\s*-?\d*\s*\]$'
+              - kind: attribute
+                regex: '\.(content|text|output_text)$'
+            - any:
+              - inside:
+                  kind: argument_list
+                  has:
+                    kind: string
+                    regex: '(?i)\b(ai|llm|gpt[\w.-]*|chatgpt|openai|claude|gemini|anthropic|ollama|mistral|groq)\b[\s\S]*\b(responses?|repl(y|ies)|outputs?|answers?|text|content|completions?)\b'
+              - inside:
+                  kind: interpolation
+                  inside:
+                    kind: string
+                    regex: '(?i)\b(ai|llm|gpt[\w.-]*|chatgpt|openai|claude|gemini|anthropic|ollama|mistral|groq)\b[\s\S]*\b(responses?|repl(y|ies)|outputs?|answers?|text|content|completions?)\b'
           # T29-P1-C413 (P3 C468 low 2): the same recipient joined to a message string by +, or passed to .format on a
           # string that names the message ("Sending email to {}".format(to)).
           - all:
@@ -115,7 +142,8 @@ rule:
             - inside:
                 stopBy: end
                 kind: binary_operator
-                regex: '\+'
+                # T29-P1-C420 (P3 C473 low 1): % formatting puts it in the line too.
+                regex: '\+|%'
                 has:
                   stopBy: end
                   kind: string
@@ -123,25 +151,43 @@ rule:
           - all:
             - kind: identifier
             - regex: '^(to|to_number|to_phone|to_address)$'
-            - inside:
-                kind: argument_list
-                inside:
-                  kind: call
-                  has:
-                    field: function
-                    kind: attribute
-                    regex: '\.format$'
+            - any:
+              - inside:
+                  kind: argument_list
+                  inside:
+                    kind: call
                     has:
-                      field: object
-                      kind: string
-                      regex: '(?i)\b(e-?mails?|mail|sms|texts?|messages?|notifications?|invites?|invitations?|reminders?|otps?|whatsapp)\b'
+                      field: function
+                      kind: attribute
+                      regex: '\.format$'
+                      has:
+                        field: object
+                        kind: string
+                        regex: '(?i)\b(e-?mails?|mail|sms|texts?|messages?|notifications?|invites?|invitations?|reminders?|otps?|whatsapp)\b'
+              # T29-P1-C420 (P3 C473 low 2): a keyword argument ("to {to}".format(to=to)).
+              - inside:
+                  kind: keyword_argument
+                  field: value
+                  inside:
+                    kind: argument_list
+                    inside:
+                      kind: call
+                      has:
+                        field: function
+                        kind: attribute
+                        regex: '\.format$'
+                        has:
+                          field: object
+                          kind: string
+                          regex: '(?i)\b(e-?mails?|mail|sms|texts?|messages?|notifications?|invites?|invitations?|reminders?|otps?|whatsapp)\b'
           - all:
             - kind: identifier
             - regex: '^(recipient|recipients|recipient_number|recipient_phone)$'
             - inside:
                 stopBy: end
                 kind: binary_operator
-                regex: '\+'
+                # T29-P1-C420 (P3 C473 low 1): % formatting puts it in the line too.
+                regex: '\+|%'
                 has:
                   stopBy: end
                   kind: string
@@ -149,18 +195,35 @@ rule:
           - all:
             - kind: identifier
             - regex: '^(recipient|recipients|recipient_number|recipient_phone)$'
-            - inside:
-                kind: argument_list
-                inside:
-                  kind: call
-                  has:
-                    field: function
-                    kind: attribute
-                    regex: '\.format$'
+            - any:
+              - inside:
+                  kind: argument_list
+                  inside:
+                    kind: call
                     has:
-                      field: object
-                      kind: string
-                      regex: '(?i)\b(e-?mails?|mail|sms|texts?|messages?|notifications?|invites?|invitations?|reminders?|otps?|whatsapp|send|sends|sending|sent|deliver|delivers|delivering|delivered|delivery)\b'
+                      field: function
+                      kind: attribute
+                      regex: '\.format$'
+                      has:
+                        field: object
+                        kind: string
+                        regex: '(?i)\b(e-?mails?|mail|sms|texts?|messages?|notifications?|invites?|invitations?|reminders?|otps?|whatsapp|send|sends|sending|sent|deliver|delivers|delivering|delivered|delivery)\b'
+              # T29-P1-C420 (P3 C473 low 2): a keyword argument ("to {to}".format(to=to)).
+              - inside:
+                  kind: keyword_argument
+                  field: value
+                  inside:
+                    kind: argument_list
+                    inside:
+                      kind: call
+                      has:
+                        field: function
+                        kind: attribute
+                        regex: '\.format$'
+                        has:
+                          field: object
+                          kind: string
+                          regex: '(?i)\b(e-?mails?|mail|sms|texts?|messages?|notifications?|invites?|invitations?|reminders?|otps?|whatsapp|send|sends|sending|sent|deliver|delivers|delivering|delivered|delivery)\b'
           # T29-P1-C409: a message's recipient is a contact value. The names to, to_number, to_phone and to_address fail
           # in an f-string, or beside a string argument, that names a message (email, mail, SMS, text, message,
           # notification, invite, reminder, OTP, WhatsApp): f"[SMS] Sending to {to}", ("Sending SMS to %s", to),
