@@ -172,6 +172,7 @@ rules/rules/authz-every-handler/javascript-express.yml
 rules/rules/authz-every-handler/javascript-nextjs.yml
 rules/rules/authz-every-handler/kotlin-spring.yml
 rules/rules/authz-every-handler/php-generic.yml
+rules/rules/authz-every-handler/php-laravel.yml
 rules/rules/authz-every-handler/python-django.yml
 rules/rules/authz-every-handler/python-fastapi.yml
 rules/rules/authz-every-handler/python-flask.yml

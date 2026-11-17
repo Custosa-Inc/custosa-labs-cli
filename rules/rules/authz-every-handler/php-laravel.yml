@@ -1,0 +1,185 @@
+# Laravel controller methods named by a route that take a record (route model binding: a parameter typed with a
+# model class, never Request, a FormRequest or an injected service, repository or the like; or an $id, $xId, $x_id or
+# uuid parameter, untyped, int or string), one item each, on a public method of a class extending a Controller. The
+# routes file isn't read here, so the method is the item and its own line is the line. The control is the caller
+# read in the method: auth()->user() or ->id(), Auth::user() or ::id(), $request->user(), request()->user(),
+# $this->authorize(...), a Gate check or a ->can() / ->cannot() call, or $this->authorizeResource(...) anywhere in the
+# class (a policy on every resource method). Route middleware ('auth', 'auth:sanctum') says who may call, not which
+# record, so it never counts. No control: fail, unless auth-unobserved-helper holds the item.
+id: authz-every-handler.php-laravel.route
+practice_id: authz-every-handler
+language: php
+frameworks:
+- laravel
+kind: items
+rule:
+  kind: method_declaration
+  all:
+  - has:
+      kind: visibility_modifier
+      regex: ^public$
+  - has:
+      field: name
+      kind: name
+      not:
+        kind: name
+        regex: ^__(construct|destruct|call|get|set|toString)$
+  - inside:
+      kind: declaration_list
+      inside:
+        kind: class_declaration
+        has:
+          kind: base_clause
+          regex: Controller$
+  - has:
+      field: parameters
+      kind: formal_parameters
+      has:
+        kind: simple_parameter
+        any:
+        - has:
+            field: type
+            kind: named_type
+            regex: ^\\?([A-Za-z_]\w*\\)*[A-Z]\w*$
+            not:
+              kind: named_type
+              regex: (Request|Service|Repository|Manager|Interface|Contract|Factory|Client|Gateway|Handler|Action|Helper|Builder|Collection|Carbon|UploadedFile|Closure|Container|Application|Logger|Mailer|Dispatcher|Validator|Session|Store)$
+        - all:
+          - has:
+              field: name
+              kind: variable_name
+              regex: ^\$(id|uuid|\w+Id|\w+_id|\w+Uuid|\w+_uuid)$
+          - not:
+              has:
+                field: type
+                any:
+                - kind: named_type
+                - kind: union_type
+                - kind: intersection_type
+control:
+  any:
+  - has:
+      field: body
+      kind: compound_statement
+      has:
+        stopBy: end
+        any:
+        - kind: member_call_expression
+          regex: ^(auth\([^)]*\)|request\(\)|\$request|\$req|Auth::guard\([^)]*\))\s*->\s*(user|id)\s*\(
+        - kind: scoped_call_expression
+          regex: ^Auth::(user|id)\s*\(
+        - kind: member_call_expression
+          regex: ^\$this\s*->\s*(authorize|authorizeForUser)\s*\(
+        - kind: scoped_call_expression
+          regex: ^Gate::(authorize|allows|denies|check|any|none|inspect|forUser)\s*\(
+        - kind: member_call_expression
+          has:
+            field: name
+            kind: name
+            regex: ^(can|cannot|cant)$
+  - inside:
+      kind: declaration_list
+      has:
+        stopBy: end
+        kind: member_call_expression
+        regex: ^\$this\s*->\s*authorizeResource\s*\(
+min_engine: 0.39.0
+---
+# T29 (T29-P1-C421): a Laravel route method that rules.route would fail, guarded by something this file can't see
+# into: a call in its body by a name that reads or checks the caller (a verb such as check, verify, ensure, require,
+# assert, authorize, enforce or getCurrent joined to owner, access, permission, user, caller, principal, identity,
+# policy, tenant, member, client, patient, account or profile: $this->getClient(), checkPatientAccess($id),
+# Access::ensureOwner($id)); a FormRequest parameter (its authorize() lives in another file); or a 'can:' middleware
+# set in the class ($this->middleware('can:update,invoice')). It holds the item for a person (needs_review), never a
+# pass. Route middleware in the routes file is out of view.
+id: authz-every-handler.php-laravel.auth-unobserved-helper
+practice_id: authz-every-handler
+language: php
+frameworks:
+- laravel
+kind: evidence
+rule:
+  kind: method_declaration
+  all:
+  - has:
+      kind: visibility_modifier
+      regex: ^public$
+  - has:
+      field: name
+      kind: name
+      not:
+        kind: name
+        regex: ^__(construct|destruct|call|get|set|toString)$
+  - inside:
+      kind: declaration_list
+      inside:
+        kind: class_declaration
+        has:
+          kind: base_clause
+          regex: Controller$
+  - has:
+      field: parameters
+      kind: formal_parameters
+      has:
+        kind: simple_parameter
+        any:
+        - has:
+            field: type
+            kind: named_type
+            regex: ^\\?([A-Za-z_]\w*\\)*[A-Z]\w*$
+            not:
+              kind: named_type
+              regex: (Request|Service|Repository|Manager|Interface|Contract|Factory|Client|Gateway|Handler|Action|Helper|Builder|Collection|Carbon|UploadedFile|Closure|Container|Application|Logger|Mailer|Dispatcher|Validator|Session|Store)$
+        - all:
+          - has:
+              field: name
+              kind: variable_name
+              regex: ^\$(id|uuid|\w+Id|\w+_id|\w+Uuid|\w+_uuid)$
+          - not:
+              has:
+                field: type
+                any:
+                - kind: named_type
+                - kind: union_type
+                - kind: intersection_type
+  - any:
+    - has:
+        field: body
+        kind: compound_statement
+        has:
+          stopBy: end
+          any:
+          - kind: function_call_expression
+            has:
+              field: function
+              kind: name
+              regex: '(?i)^(check|verify|ensure|require|assert|authori[sz]e|enforce|getCurrent|get_current|current)_?\w*(owner|access|permission|user|caller|principal|identity|polic(y|ies)|tenant|member|canView|can_view|client|patient|account|profile)\w*$'
+          - kind: member_call_expression
+            has:
+              field: name
+              kind: name
+              regex: '(?i)^(check|verify|ensure|require|assert|authori[sz]e|enforce|getCurrent|get_current|current)_?\w*(owner|access|permission|user|caller|principal|identity|polic(y|ies)|tenant|member|canView|can_view|client|patient|account|profile)\w*$'
+          - kind: scoped_call_expression
+            has:
+              field: name
+              kind: name
+              regex: '(?i)^(check|verify|ensure|require|assert|authori[sz]e|enforce|getCurrent|get_current|current)_?\w*(owner|access|permission|user|caller|principal|identity|polic(y|ies)|tenant|member|canView|can_view|client|patient|account|profile)\w*$'
+    - has:
+        field: parameters
+        kind: formal_parameters
+        has:
+          kind: simple_parameter
+          has:
+            field: type
+            kind: named_type
+            regex: ^\\?([A-Za-z_]\w*\\)*[A-Z]\w*Request$
+            not:
+              kind: named_type
+              regex: (^|\\)Request$
+    - inside:
+        kind: declaration_list
+        has:
+          stopBy: end
+          kind: member_call_expression
+          regex: '^\$this\s*->\s*middleware\s*\(\s*\[?\s*[''"]can:'
+min_engine: 0.39.0
