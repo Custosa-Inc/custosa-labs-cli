@@ -381,8 +381,41 @@ rule:
             regex: ^WorkbookFactory\.create\(|^CSVFormat\b[\s\S]*\.parse\(
           - kind: object_creation_expression
             regex: ^new\s+(XSSFWorkbook|HSSFWorkbook|CSVParser|CSVReader)\(
-      # T29-P2-C456: any other read or hand-off of the file can keep it (a copy, its bytes or name, a persist,
-      # an output stream, or the file passed whole to another call), so the skip needs none of them
+      # T29-P2-C456, T29-P1-C411: fail closed. The skip needs the file read only inside the parse (no stream, bytes,
+      # resource, name or transferTo read of it anywhere else), every MultipartFile parameter named like a file (so
+      # handing it whole to a call is seen), and no keep: a store or copy call, a persist, an output stream, or the
+      # file passed whole to a call or a constructor
+      - not:
+          has:
+            stopBy: end
+            kind: method_invocation
+            has:
+              field: name
+              kind: identifier
+              regex: ^(getInputStream|getBytes|getResource|transferTo|getOriginalFilename)$
+            not:
+              inside:
+                stopBy: end
+                any:
+                - kind: method_invocation
+                  regex: ^WorkbookFactory\.create\(|^CSVFormat\b[\s\S]*\.parse\(
+                - kind: object_creation_expression
+                  regex: ^new\s+(XSSFWorkbook|HSSFWorkbook|CSVParser|CSVReader)\(
+      - not:
+          has:
+            stopBy: end
+            kind: formal_parameter
+            all:
+            - has:
+                stopBy: end
+                kind: type_identifier
+                regex: ^MultipartFile$
+            - has:
+                field: name
+                kind: identifier
+                not:
+                  kind: identifier
+                  regex: (?i)^(\w*file\w*|multipart\w*|upload\w*|attachment\w*)$
       - not:
           has:
             stopBy: end
@@ -391,7 +424,9 @@ rule:
               regex: (?i)(transferTo|Files\.(copy|write|newOutputStream)|putObject|\.upload\w*|\.store\w*|\.save\w*|\.write|copy\w*|\.(persist|merge|insert\w*)|getBytes|getOriginalFilename|getResource|readAllBytes|readNBytes)\(
             - kind: object_creation_expression
               regex: ^new\s+(FileOutputStream|BufferedOutputStream|FileWriter|RandomAccessFile)\(
-            - kind: method_invocation
+            - any:
+              - kind: method_invocation
+              - kind: object_creation_expression
               has:
                 field: arguments
                 has:

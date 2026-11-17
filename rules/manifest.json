@@ -1,5 +1,5 @@
 {
-  "ruleset_id": "2026-11-17.dd4ddb2a",
+  "ruleset_id": "2026-11-17.76b4d50e",
   "min_engine": "0.45.3",
   "files": [
     {
@@ -1476,7 +1476,7 @@
     },
     {
       "path": "rules/upload-validation/java-spring.yml",
-      "sha256": "846a6814b7132edb09907395cad8f0af0cd405a25735b98f452b2eb5ed550c97"
+      "sha256": "a9a3dcd3dfee334e7fd49f53653906340d7e1be0ef64931a8f9346118a23b917"
     },
     {
       "path": "rules/upload-validation/javascript-express.yml",
