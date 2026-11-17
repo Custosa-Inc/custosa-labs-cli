@@ -187,6 +187,56 @@ rule:
         stopBy: end
         all:
         - any:
+          # T29-P1-C420 (C457 group D): a query result logged whole. data, from a destructured await whose select names a
+          # patient column (full_name, email, date_of_birth, ...) or whose from reads a patients table, fails when the
+          # data itself is logged ({ data, error }, data, JSON.stringify(data)). data?.id, data.length, !!data, a select of
+          # no such column, and data renamed ({ data: profile }) stay ok. The declaration is any one in an enclosing block,
+          # so a data bound by another select in the same block can fail too (false fails only).
+          - all:
+            - any:
+              - kind: identifier
+                regex: '^data$'
+              - kind: shorthand_property_identifier
+                regex: '^data$'
+            - not:
+                inside:
+                  kind: unary_expression
+            - inside:
+                stopBy: end
+                kind: statement_block
+                has:
+                  stopBy: end
+                  any:
+                  - kind: lexical_declaration
+                    regex: '^(const|let|var)\s*\{[^{}]*\bdata\b\s*(,[^{}]*)?\}\s*=\s*await\s[\s\S]*(\.select\(\s*[''\x22\x60][^''\x22\x60]*\b(full_?name|first_?name|last_?name|given_?name|family_?name|surname|e_?mail|email_address|phone|phone_number|mobile|date_of_birth|dob|birth_?date|ssn|address|diagnos[ie]s|mrn|medical_record_number|insurance_number|insurance_id|abha_number|clinical_notes)\b|\.from\(\s*[''\x22\x60](patients?|patient_records?)[''\x22\x60]\s*\))'
+                  - kind: variable_declaration
+                    regex: '^(const|let|var)\s*\{[^{}]*\bdata\b\s*(,[^{}]*)?\}\s*=\s*await\s[\s\S]*(\.select\(\s*[''\x22\x60][^''\x22\x60]*\b(full_?name|first_?name|last_?name|given_?name|family_?name|surname|e_?mail|email_address|phone|phone_number|mobile|date_of_birth|dob|birth_?date|ssn|address|diagnos[ie]s|mrn|medical_record_number|insurance_number|insurance_id|abha_number|clinical_notes)\b|\.from\(\s*[''\x22\x60](patients?|patient_records?)[''\x22\x60]\s*\))'
+          # T29-P1-C420 (C457 group B): an AI model's reply logged raw. In a health app it is about the patient's record.
+          # A reply name (text, content, reply, response, output, completion, answer, aiResponse, ...), a slice of it, or a
+          # .content or .text read fails beside a string, or in a template, that names an AI model and its reply.
+          # A length, a status or an error beside the same words stays ok.
+          - all:
+            - any:
+              - kind: identifier
+                regex: '^(text|content|reply|response|output|completion|answer|raw|(raw|ai|llm|gpt|model|completion|generated|response)(Text|Reply|Response|Output|Content|Answer))$'
+              - kind: call_expression
+                regex: '^(text|content|reply|response|output|completion|answer|raw|(raw|ai|llm|gpt|model|completion|generated|response)(Text|Reply|Response|Output|Content|Answer))\.(slice|substring|substr|trim)\('
+              - kind: member_expression
+                regex: '\.(content|text|outputText|output_text)$'
+            - any:
+              - inside:
+                  kind: arguments
+                  has:
+                    any:
+                    - kind: string
+                      regex: '(?i)\b(ai|llm|gpt[\w.-]*|chatgpt|openai|claude|gemini|anthropic|ollama|mistral|groq)\b[\s\S]*\b(responses?|repl(y|ies)|outputs?|answers?|text|content|completions?)\b'
+                    - kind: template_string
+                      regex: '(?i)\b(ai|llm|gpt[\w.-]*|chatgpt|openai|claude|gemini|anthropic|ollama|mistral|groq)\b[\s\S]*\b(responses?|repl(y|ies)|outputs?|answers?|text|content|completions?)\b'
+              - inside:
+                  kind: template_substitution
+                  inside:
+                    kind: template_string
+                    regex: '(?i)\b(ai|llm|gpt[\w.-]*|chatgpt|openai|claude|gemini|anthropic|ollama|mistral|groq)\b[\s\S]*\b(responses?|repl(y|ies)|outputs?|answers?|text|content|completions?)\b'
           # T29-P1-C413 (P3 C468 low 2): the same recipient joined to a message string by +, or in a log object beside a
           # string value that names the message (pino's { msg: "reminder email sent", to }).
           - all:
@@ -198,8 +248,12 @@ rule:
                 regex: '\+'
                 has:
                   stopBy: end
-                  kind: string
-                  regex: '(?i)\b(e-?mails?|mail|sms|texts?|messages?|notifications?|invites?|invitations?|reminders?|otps?|whatsapp)\b'
+                  # T29-P1-C420 (P3 C473 low 3): a backtick string with no substitution names the message too.
+                  any:
+                  - kind: string
+                    regex: '(?i)\b(e-?mails?|mail|sms|texts?|messages?|notifications?|invites?|invitations?|reminders?|otps?|whatsapp)\b'
+                  - kind: template_string
+                    regex: '(?i)\b(e-?mails?|mail|sms|texts?|messages?|notifications?|invites?|invitations?|reminders?|otps?|whatsapp)\b'
           - all:
             - kind: shorthand_property_identifier
             - regex: '^(to|toNumber|toPhone|toAddress)$'
@@ -242,8 +296,12 @@ rule:
                 regex: '\+'
                 has:
                   stopBy: end
-                  kind: string
-                  regex: '(?i)\b(e-?mails?|mail|sms|texts?|messages?|notifications?|invites?|invitations?|reminders?|otps?|whatsapp|send|sends|sending|sent|deliver|delivers|delivering|delivered|delivery)\b'
+                  # T29-P1-C420 (P3 C473 low 3): a backtick string with no substitution names the message too.
+                  any:
+                  - kind: string
+                    regex: '(?i)\b(e-?mails?|mail|sms|texts?|messages?|notifications?|invites?|invitations?|reminders?|otps?|whatsapp|send|sends|sending|sent|deliver|delivers|delivering|delivered|delivery)\b'
+                  - kind: template_string
+                    regex: '(?i)\b(e-?mails?|mail|sms|texts?|messages?|notifications?|invites?|invitations?|reminders?|otps?|whatsapp|send|sends|sending|sent|deliver|delivers|delivering|delivered|delivery)\b'
           - all:
             - kind: shorthand_property_identifier
             - regex: '^(recipient|recipients|recipientNumber|recipientPhone)$'
