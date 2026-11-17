@@ -1,5 +1,5 @@
 {
-  "ruleset_id": "2026-11-17.7696f7ab",
+  "ruleset_id": "2026-11-17.000ae96a",
   "min_engine": "0.45.3",
   "files": [
     {
@@ -1300,7 +1300,7 @@
     },
     {
       "path": "rules/secrets-hashed-or-encrypted/javascript-generic.yml",
-      "sha256": "b8bee00323916859f310012ddf29d166548cf38afd969b0640f011de4edfd8bb"
+      "sha256": "93395e3868598b81655fd90f8098c86bcf180cd46daaca889c621954e8945e32"
     },
     {
       "path": "rules/secrets-hashed-or-encrypted/php-generic.yml",
@@ -1312,11 +1312,11 @@
     },
     {
       "path": "rules/secrets-hashed-or-encrypted/tsx-generic.yml",
-      "sha256": "3c8defdcbee97b44e38044094f48e763f72b1357e42976b475414635e24ccc3a"
+      "sha256": "194949db903955dae9b6b232252f8ffcd1f12e41fda75e97fe8566337921d4cc"
     },
     {
       "path": "rules/secrets-hashed-or-encrypted/typescript-generic.yml",
-      "sha256": "376d0080d53e0e43a808f04b098d83d23013cb2c0fdf6c445c1c006aa663de8f"
+      "sha256": "cea38a5b8f341c6159d79e40e51e04aa122fe99a9439a6d91f49e01dca305547"
     },
     {
       "path": "rules/security-events-logged/go-generic.yml",
@@ -1328,7 +1328,7 @@
     },
     {
       "path": "rules/security-events-logged/javascript-generic.yml",
-      "sha256": "d9dce4d0a2e12f50a3a58fac587f21c9252f8c42c6a23d9b669831e69f80c277"
+      "sha256": "72a4664d2bef03646b3182a1b7bc1bdc7f80c444e3b20898fb79fbf96ed595cf"
     },
     {
       "path": "rules/security-events-logged/php-generic.yml",
@@ -1344,11 +1344,11 @@
     },
     {
       "path": "rules/security-events-logged/tsx-generic.yml",
-      "sha256": "d440518214cb148e3f116b9bd6cc4ae61de6ee46a112f713e1dc2a5a9fc7e322"
+      "sha256": "608a186d2fbac0bcdb5f8c1d28aec6333b2e8591395cf2e82496b24352694393"
     },
     {
       "path": "rules/security-events-logged/typescript-generic.yml",
-      "sha256": "f699274163beb217ec7820b99316c2594e63483e8671f8ca915a59844ea986f2"
+      "sha256": "d86ba62195989fd93bb4d5cddea70a0e6805fcf950eb182acf3be5b28b1e6a1b"
     },
     {
       "path": "rules/session-cookie-flags/go-generic.yml",

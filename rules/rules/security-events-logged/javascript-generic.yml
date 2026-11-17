@@ -113,7 +113,17 @@ rule:
         has:
           field: key
           kind: property_identifier
-          regex: '^(role|roles|is_?admin|isAdmin|permissions|is_?staff)$'
+          regex: '^(role|roles|role_?[iI]ds?|is_?admin|isAdmin|permissions|is_?staff)$'
+        # T29-P1-C405: a role key the call reads back or filters on (select, include, where) is not a write
+        not:
+          inside:
+            stopBy:
+              kind: arguments
+            kind: pair
+            has:
+              field: key
+              kind: property_identifier
+              regex: '^(select|include|where|orderBy|omit|_count)$'
 control:
   any:
   - inside:
@@ -287,7 +297,7 @@ rule:
                 has:
                   field: key
                   kind: property_identifier
-                  regex: '^(role|roles|is_?admin|isAdmin|permissions|is_?staff)$'
+                  regex: '^(role|roles|role_?[iI]ds?|is_?admin|isAdmin|permissions|is_?staff)$'
 control:
   any:
   - inside:
