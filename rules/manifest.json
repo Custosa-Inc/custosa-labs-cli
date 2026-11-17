@@ -1,5 +1,5 @@
 {
-  "ruleset_id": "2026-11-17.823a99ed",
+  "ruleset_id": "2026-11-17.5c567794",
   "min_engine": "0.45.3",
   "files": [
     {
@@ -1340,7 +1340,7 @@
     },
     {
       "path": "rules/security-events-logged/javascript-generic.yml",
-      "sha256": "72a4664d2bef03646b3182a1b7bc1bdc7f80c444e3b20898fb79fbf96ed595cf"
+      "sha256": "0411410d09d7fd6da218e4beec92c93ffbc1a1887d9d15033c644a143a143a47"
     },
     {
       "path": "rules/security-events-logged/php-generic.yml",
@@ -1356,11 +1356,11 @@
     },
     {
       "path": "rules/security-events-logged/tsx-generic.yml",
-      "sha256": "608a186d2fbac0bcdb5f8c1d28aec6333b2e8591395cf2e82496b24352694393"
+      "sha256": "836277f85e1bddd27517d5c9ac281a1a43322f03ae172a6eccc757194b2a9df3"
     },
     {
       "path": "rules/security-events-logged/typescript-generic.yml",
-      "sha256": "d86ba62195989fd93bb4d5cddea70a0e6805fcf950eb182acf3be5b28b1e6a1b"
+      "sha256": "75247ff5f6f4f0f2e6343d4bbf148beac9e71dd9d44c786e11a940c14f843d81"
     },
     {
       "path": "rules/session-cookie-flags/go-generic.yml",
