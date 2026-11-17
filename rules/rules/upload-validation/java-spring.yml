@@ -444,12 +444,31 @@ rule:
               - inside:
                   kind: formal_parameter
               - inside:
-                  stopBy: end
-                  any:
-                  - kind: method_invocation
-                    regex: ^WorkbookFactory\.create\(|^CSVFormat\b[\s\S]*\.parse\(
-                  - kind: object_creation_expression
-                    regex: ^new\s+(XSSFWorkbook|HSSFWorkbook|CSVParser|CSVReader)\(
+                  field: object
+                  kind: method_invocation
+                  has:
+                    field: name
+                    kind: identifier
+                    regex: ^(getInputStream|getBytes)$
+                  inside:
+                    stopBy: end
+                    kind: argument_list
+                    inside:
+                      any:
+                      - kind: method_invocation
+                        regex: ^WorkbookFactory\.create\(|^CSVFormat\b[\s\S]*\.parse\(
+                        has:
+                          field: name
+                          kind: identifier
+                          regex: ^(create|parse)$
+                      - kind: object_creation_expression
+                        regex: ^new\s+(XSSFWorkbook|HSSFWorkbook|CSVParser|CSVReader)\(
+      # P2 C469 review: a second MultipartFile parameter is not bound by $F, so two refuse the skip
+      - not:
+          has:
+            stopBy: end
+            kind: formal_parameters
+            regex: (?s)MultipartFile.*MultipartFile
       - not:
           has:
             stopBy: end
