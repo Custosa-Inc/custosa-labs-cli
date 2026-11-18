@@ -1,5 +1,5 @@
 {
-  "ruleset_id": "2026-11-18.81f518ea",
+  "ruleset_id": "2026-11-18.3e381213",
   "min_engine": "0.45.3",
   "files": [
     {
@@ -104,7 +104,7 @@
     },
     {
       "path": "rules/access-audit-log/javascript-nextjs.yml",
-      "sha256": "9fd9873cb9d36ff8e99b5295e642fba4d70cedbec8f9b7c8a946751130d55a5d"
+      "sha256": "68caa46d7c013ebf6eed0ea5dd3d40b170ec78cc97cb24719b5eeb1ce42e4293"
     },
     {
       "path": "rules/access-audit-log/php-generic.yml",
@@ -128,7 +128,7 @@
     },
     {
       "path": "rules/access-audit-log/tsx-nextjs.yml",
-      "sha256": "da455eafcb9e3eae0ef2fa5e6f7c94ec1cb5c458569642b9dd77d5b8f80d390b"
+      "sha256": "550d45aafb504c3d40513bffe99c73d76f41461f3de51538dcce4fe824686874"
     },
     {
       "path": "rules/access-audit-log/typescript-express.yml",
@@ -140,7 +140,7 @@
     },
     {
       "path": "rules/access-audit-log/typescript-nextjs.yml",
-      "sha256": "35e2758b248b26f3086d27b094dea052c2f5c2571c8715c1c2716fd1622d56b5"
+      "sha256": "3056973712bc91dbb251b5857f2e71d299600965e30530e5e59afc504eb4717e"
     },
     {
       "path": "rules/ai-agent-tools-least-privilege/javascript-generic.yml",

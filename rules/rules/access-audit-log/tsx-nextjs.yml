@@ -1017,6 +1017,8 @@ min_engine: 0.45.3
 # on any receiver depth and raw SQL that starts with UPDATE, INSERT or DELETE are record writes.
 # Slice 5 (P3 C533, C527 K2): only an audit table is the audit trail, and a write through a const
 # bound to a model is a record write.
+# Slice 6 (P3 C541): an audit table may carry a prefix or a suffix (auditLogEntry, patientAccessLog,
+# audit_log_entries), and a const bound to an audit table is no model alias.
 id: access-audit-log.tsx-nextjs.read-action
 practice_id: access-audit-log
 language: tsx
@@ -1072,12 +1074,12 @@ rule:
               has:
                 field: function
                 kind: member_expression
-                regex: (?i)\.(audits?|audit_?(logs?|trails?|events?|entry|entries|records?)|access_?(logs?|events?)|activity_?logs?|phi_?access(_?logs?)?|security_?events?)\.[\w$]+$
+                regex: (?i)\.((audits?|audit_?(logs?|trails?|events?|entry|entries|records?)|access_?(logs?|events?)|activity_?logs?|phi_?access(_?logs?)?|security_?events?)|[\w$]*(audit_?(logs?|trails?|events?|entry|entries|records?)|access_?(logs?|events?|audits?)|activity_?logs?|phi_?access|security_?events?)[\w$]*)\.[\w$]+$
           - not:
               has:
                 field: function
                 kind: member_expression
-                regex: (?i)\.from\(\s*['\x22`](audits?|audit_?(logs?|trails?|events?|entry|entries|records?)|access_?(logs?|events?)|activity_?logs?|phi_?access(_?logs?)?|security_?events?)['\x22`]\s*\)\s*\.[\w$]+$
+                regex: (?i)\.from\(\s*['\x22`]((audits?|audit_?(logs?|trails?|events?|entry|entries|records?)|access_?(logs?|events?)|activity_?logs?|phi_?access(_?logs?)?|security_?events?)|\w*(audit_?(logs?|trails?|events?|entry|entries|records?)|access_?(logs?|events?|audits?)|activity_?logs?|phi_?access|security_?events?)\w*)['\x22`]\s*\)\s*\.[\w$]+$
           - not:
               all:
               - has:
@@ -1090,13 +1092,13 @@ rule:
                   any:
                   - has:
                       kind: identifier
-                      regex: (?i)^(audits?|audit_?(logs?|trails?|events?|entry|entries|records?)|access_?(logs?|events?)|activity_?logs?|phi_?access(_?logs?)?|security_?events?)$
+                      regex: (?i)^((audits?|audit_?(logs?|trails?|events?|entry|entries|records?)|access_?(logs?|events?)|activity_?logs?|phi_?access(_?logs?)?|security_?events?)|[\w$]*(audit_?(logs?|trails?|events?|entry|entries|records?)|access_?(logs?|events?|audits?)|activity_?logs?|phi_?access|security_?events?)[\w$]*)$
                   - has:
                       kind: member_expression
-                      regex: (?i)\.(audits?|audit_?(logs?|trails?|events?|entry|entries|records?)|access_?(logs?|events?)|activity_?logs?|phi_?access(_?logs?)?|security_?events?)$
+                      regex: (?i)\.((audits?|audit_?(logs?|trails?|events?|entry|entries|records?)|access_?(logs?|events?)|activity_?logs?|phi_?access(_?logs?)?|security_?events?)|[\w$]*(audit_?(logs?|trails?|events?|entry|entries|records?)|access_?(logs?|events?|audits?)|activity_?logs?|phi_?access|security_?events?)[\w$]*)$
           - not:
               kind: call_expression
-              regex: (?is)^[\w$.]*(\$executeRaw|\$executeRawUnsafe|\.query|\.execute|\bsql)\s*\(?\s*[`'"]\s*(update|insert\s+into|delete\s+from)\s+[\x22`]?(\w+\.)?(audits?|audit_?(logs?|trails?|events?|entry|entries|records?)|access_?(logs?|events?)|activity_?logs?|phi_?access(_?logs?)?|security_?events?)[\x22`]?(\s|\(|$)
+              regex: (?is)^[\w$.]*(\$executeRaw|\$executeRawUnsafe|\.query|\.execute|\bsql)\s*\(?\s*[`'"]\s*(update|insert\s+into|delete\s+from)\s+[\x22`]?(\w+\.)?((audits?|audit_?(logs?|trails?|events?|entry|entries|records?)|access_?(logs?|events?)|activity_?logs?|phi_?access(_?logs?)?|security_?events?)|\w*(audit_?(logs?|trails?|events?|entry|entries|records?)|access_?(logs?|events?|audits?)|activity_?logs?|phi_?access|security_?events?)\w*)[\x22`]?(\s|\(|$)
     - not:
         all:
         - has:
@@ -1104,6 +1106,9 @@ rule:
             kind: lexical_declaration
             pattern: const $AAM = $AAD.$AAT
             regex: =\s*(prisma|db|tx|client|ctx\.prisma|ctx\.db)\.[\w$]+\s*;?\s*$
+            not:
+              kind: lexical_declaration
+              regex: (?i)=\s*(prisma|db|tx|client|ctx\.prisma|ctx\.db)\.((audits?|audit_?(logs?|trails?|events?|entry|entries|records?)|access_?(logs?|events?)|activity_?logs?|phi_?access(_?logs?)?|security_?events?)|[\w$]*(audit_?(logs?|trails?|events?|entry|entries|records?)|access_?(logs?|events?|audits?)|activity_?logs?|phi_?access|security_?events?)[\w$]*)\s*;?\s*$
         - has:
             stopBy: end
             kind: call_expression
@@ -1140,6 +1145,9 @@ rule:
             kind: lexical_declaration
             pattern: const $AAM = $AAD.$AAT
             regex: =\s*(prisma|db|tx|client|ctx\.prisma|ctx\.db)\.[\w$]+\s*;?\s*$
+            not:
+              kind: lexical_declaration
+              regex: (?i)=\s*(prisma|db|tx|client|ctx\.prisma|ctx\.db)\.((audits?|audit_?(logs?|trails?|events?|entry|entries|records?)|access_?(logs?|events?)|activity_?logs?|phi_?access(_?logs?)?|security_?events?)|[\w$]*(audit_?(logs?|trails?|events?|entry|entries|records?)|access_?(logs?|events?|audits?)|activity_?logs?|phi_?access|security_?events?)[\w$]*)\s*;?\s*$
         - has:
             stopBy: end
             kind: call_expression
@@ -1181,6 +1189,9 @@ rule:
             kind: lexical_declaration
             pattern: const $AAM = $AAD.$AAT
             regex: =\s*(prisma|db|tx|client|ctx\.prisma|ctx\.db)\.[\w$]+\s*;?\s*$
+            not:
+              kind: lexical_declaration
+              regex: (?i)=\s*(prisma|db|tx|client|ctx\.prisma|ctx\.db)\.((audits?|audit_?(logs?|trails?|events?|entry|entries|records?)|access_?(logs?|events?)|activity_?logs?|phi_?access(_?logs?)?|security_?events?)|[\w$]*(audit_?(logs?|trails?|events?|entry|entries|records?)|access_?(logs?|events?|audits?)|activity_?logs?|phi_?access|security_?events?)[\w$]*)\s*;?\s*$
         - has:
             stopBy: end
             kind: call_expression
@@ -1217,6 +1228,9 @@ rule:
             kind: lexical_declaration
             pattern: const $AAM = $AAD.$AAT
             regex: =\s*(prisma|db|tx|client|ctx\.prisma|ctx\.db)\.[\w$]+\s*;?\s*$
+            not:
+              kind: lexical_declaration
+              regex: (?i)=\s*(prisma|db|tx|client|ctx\.prisma|ctx\.db)\.((audits?|audit_?(logs?|trails?|events?|entry|entries|records?)|access_?(logs?|events?)|activity_?logs?|phi_?access(_?logs?)?|security_?events?)|[\w$]*(audit_?(logs?|trails?|events?|entry|entries|records?)|access_?(logs?|events?|audits?)|activity_?logs?|phi_?access|security_?events?)[\w$]*)\s*;?\s*$
         - has:
             stopBy: end
             kind: call_expression
