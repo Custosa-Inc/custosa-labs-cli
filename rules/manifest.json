@@ -1,5 +1,5 @@
 {
-  "ruleset_id": "2026-11-18.6dc88222",
+  "ruleset_id": "2026-11-18.13e531ca",
   "min_engine": "0.45.3",
   "files": [
     {
@@ -1348,7 +1348,7 @@
     },
     {
       "path": "rules/security-events-logged/python-generic.yml",
-      "sha256": "92e248dd0b85b296548c3cc750487a438d943ed7dc42ff7180d7d0f25bf51ba3"
+      "sha256": "50dc850f95e1267afd0223a44ba56910128a7cfa7f6b3e82e3f17da8d0a87c94"
     },
     {
       "path": "rules/security-events-logged/ruby-generic.yml",
