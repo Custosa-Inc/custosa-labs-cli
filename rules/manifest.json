@@ -1,5 +1,5 @@
 {
-  "ruleset_id": "2026-11-18.b37e8a0f",
+  "ruleset_id": "2026-11-18.c322874e",
   "min_engine": "0.45.3",
   "files": [
     {
@@ -100,7 +100,7 @@
     },
     {
       "path": "rules/access-audit-log/javascript-express.yml",
-      "sha256": "4892b8e33a29cf0e57446fe992419a6e7e3aa8b0019e6377463011b1d4cd9ca6"
+      "sha256": "f3a5133650409962fb99d406396f918c11d10d44a714c2ef8128499f72065ebd"
     },
     {
       "path": "rules/access-audit-log/javascript-nextjs.yml",
@@ -124,7 +124,7 @@
     },
     {
       "path": "rules/access-audit-log/tsx-express.yml",
-      "sha256": "9cd6fcaf5f4d98208feb5f0d0a9d21afc4c4b6d1c6610a86ccf9aa97e42835e6"
+      "sha256": "b10abb57d0445926e4a1ee2ef847e9d244e9cacb0eb9f224c0a4fe641b8d4a4c"
     },
     {
       "path": "rules/access-audit-log/tsx-nextjs.yml",
@@ -132,7 +132,7 @@
     },
     {
       "path": "rules/access-audit-log/typescript-express.yml",
-      "sha256": "cb44455cafa172e53dd254582a84b3c1d0eb8aba630112094beb78d3a9f9ba53"
+      "sha256": "36cb6663768f99df7c10ea0392aca785bbffaaedfcd2f3b93b8e7f1224b32757"
     },
     {
       "path": "rules/access-audit-log/typescript-nestjs.yml",

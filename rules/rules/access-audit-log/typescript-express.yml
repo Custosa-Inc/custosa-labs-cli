@@ -748,6 +748,9 @@ min_engine: 0.45.3
 # T29-P1-C447: an Express handler a route takes by reference (a controller method, an exported
 # function, a const arrow) with a read verb for a name, the request and the response for its first
 # two parameters, and a data call is a read handler, with the read handler's control.
+# T29 access-audit-log slice 4 (P3 C531 low 1): also an arrow a wrapper call takes, bound to a read-named
+# const; a read-named key's value in an object literal; a request generic holding a comma; a destructured
+# request.
 id: access-audit-log.typescript-express.read-controller
 practice_id: access-audit-log
 language: typescript
@@ -766,7 +769,7 @@ rule:
       has:
         field: parameters
         kind: formal_parameters
-        regex: ^\(\s*(req|request)\b[^,]*,\s*(res|response)\b
+        regex: ^\(\s*((req|request)\b|\{[^{}]*\})[^,<]*(<[^()]*>)?[^,<]*,\s*(res|response)\b
     - &id002
       has:
         field: body
@@ -790,15 +793,34 @@ rule:
     - *id001
     - *id002
     - *id003
-  - any:
+  - any: &id004
     - kind: arrow_function
     - kind: function_expression
     all:
-    - inside:
+    - inside: &id005
         kind: variable_declarator
         has:
           field: name
           kind: identifier
+          regex: ^(get|list|find|fetch|search|show|view|read|retrieve)([A-Z0-9_]\w*)?$
+    - *id001
+    - *id003
+  - any: *id004
+    all:
+    - inside:
+        kind: arguments
+        inside:
+          kind: call_expression
+          inside: *id005
+    - *id001
+    - *id003
+  - any: *id004
+    all:
+    - inside:
+        kind: pair
+        has:
+          field: key
+          kind: property_identifier
           regex: ^(get|list|find|fetch|search|show|view|read|retrieve)([A-Z0-9_]\w*)?$
     - *id001
     - *id003
@@ -811,7 +833,7 @@ control:
         kind: expression_statement
         has:
           any:
-          - &id013
+          - &id015
             kind: call_expression
             all:
             - any:
@@ -882,55 +904,55 @@ control:
             - all:
               - not:
                   any:
-                  - inside: &id005
+                  - inside: &id007
                       any:
                       - kind: expression_statement
                         inside:
                           kind: statement_block
-                          inside: &id004
+                          inside: &id006
                             kind: if_statement
                       - kind: expression_statement
-                        inside: *id004
+                        inside: *id006
                   - inside:
                       kind: await_expression
-                      inside: *id005
-                  - inside: &id011
+                      inside: *id007
+                  - inside: &id013
                       kind: expression_statement
                       any:
-                      - follows: &id006
+                      - follows: &id008
                           kind: return_statement
                       - follows:
                           any:
-                          - &id007
-                            kind: expression_statement
-                          - &id008
-                            kind: lexical_declaration
                           - &id009
-                            kind: variable_declaration
+                            kind: expression_statement
                           - &id010
+                            kind: lexical_declaration
+                          - &id011
+                            kind: variable_declaration
+                          - &id012
                             kind: comment
-                          follows: *id006
+                          follows: *id008
                       - follows:
                           any:
-                          - *id007
-                          - *id008
                           - *id009
                           - *id010
+                          - *id011
+                          - *id012
                           follows:
                             any:
-                            - *id007
-                            - *id008
                             - *id009
                             - *id010
-                            follows: *id006
+                            - *id011
+                            - *id012
+                            follows: *id008
                   - inside:
                       kind: await_expression
-                      inside: *id011
+                      inside: *id013
               - not:
                   all:
                   - pattern: $AFN($$$AARGS)
                   - any:
-                    - inside: &id012
+                    - inside: &id014
                         kind: expression_statement
                         inside:
                           kind: statement_block
@@ -945,9 +967,9 @@ control:
                                 selector: variable_declarator
                     - inside:
                         kind: await_expression
-                        inside: *id012
+                        inside: *id014
           - kind: await_expression
-            has: *id013
+            has: *id015
     - not:
         has:
           kind: return_statement
