@@ -1,5 +1,5 @@
 {
-  "ruleset_id": "2026-11-18.9a750b4f",
+  "ruleset_id": "2026-11-18.f85ee6ed",
   "min_engine": "0.45.3",
   "files": [
     {
@@ -1469,6 +1469,10 @@
     {
       "path": "rules/staff-mfa-enforced/ruby-rails.yml",
       "sha256": "3eb7eef8839ca298fd47e3baa6fb7492794c24e5cee7ad227b21aae0e19cb5af"
+    },
+    {
+      "path": "rules/staff-mfa-enforced/tsx-generic.yml",
+      "sha256": "2e7c0eed205f94dcb268d97506e9a4ccb0a6430be3fa14c4d720ae815edd1c17"
     },
     {
       "path": "rules/staff-mfa-enforced/typescript-generic.yml",
