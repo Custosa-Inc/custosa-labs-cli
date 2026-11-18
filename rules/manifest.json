@@ -1,5 +1,5 @@
 {
-  "ruleset_id": "2026-11-18.0feab255",
+  "ruleset_id": "2026-11-18.fa1879f4",
   "min_engine": "0.45.3",
   "files": [
     {
@@ -312,7 +312,7 @@
     },
     {
       "path": "rules/auth-login-throttling/typescript-nextjs.yml",
-      "sha256": "b4f843f2f3cdb9f801e2be3b65a2208edc73347915d96c7690368275853533b8"
+      "sha256": "000b9f3a6cf87d507b5c49c49238aa68095609173146eecff21fd413829874af"
     },
     {
       "path": "rules/auth-on-by-default/go-generic.yml",
