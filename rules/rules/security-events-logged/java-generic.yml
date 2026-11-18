@@ -65,3 +65,32 @@ control:
           - *id006
           follows: *id001
 min_engine: 0.45.3
+---
+# T29-P1-C449 (security events slice 4, group C): a route that exports data is an item: a method whose
+# @GetMapping, @PostMapping or @RequestMapping path holds export (/export/csv, /patients/exportAll). Its line is the
+# method's first annotation. The control is an @...Audit... annotation on it, or a call in its body that writes a
+# security event or audit (auditService.logExport, auditLogRepository.save, securityEventPublisher.publishEvent). A
+# class-level mapping is not read. Its fails hold (evaluate.CODE_READ_HOLD_RULES): the service it calls can write it.
+id: security-events-logged.java-generic.data-export
+practice_id: security-events-logged
+language: java
+frameworks:
+- generic
+kind: items
+rule:
+  kind: method_declaration
+  has:
+    kind: modifiers
+    regex: '@(Get|Post|Request)Mapping\s*\([^)]*"[^"]*\b(?i:export)'
+control:
+  any:
+  - has:
+      kind: modifiers
+      regex: '(?-u)@\w*(?i:audit)\w*\b'
+  - has:
+      field: body
+      has:
+        stopBy: end
+        kind: method_invocation
+        regex: '^(this\.)?[\w.]*(?i)((audit|security_?events?)([\w.]*[._])?(create|log|emit|record|write|add|save|insert|send|publish|track)|(log|record|emit|write|create|add|publish)_?(audit|security))\w*\s*\('
+min_engine: 0.45.3

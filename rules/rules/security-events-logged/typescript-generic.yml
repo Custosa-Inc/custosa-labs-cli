@@ -580,3 +580,119 @@ control:
               any: *stmt
               follows: *audit
 min_engine: 0.45.3
+---
+# T29-P1-C449 (security events slice 4, group C): a NestJS route that exports data is an item: an @Get, @Post or @All
+# decorator in a class whose path holds export (tpt-doctor's @Post('export/csv')). Its line is that decorator. The
+# control is an audit decorator among the method's decorators (@Audit(...), @UseInterceptors(AuditLogInterceptor)), or
+# a call in the decorated method's body that writes a security event or audit (this.auditService.log(...)). The
+# loader allows only neighbor hops on precedes and follows, so the walk covers up to 5 decorators between.
+# Its fails hold (evaluate.CODE_READ_HOLD_RULES): the service it calls can write the event.
+id: security-events-logged.typescript-generic.data-export
+practice_id: security-events-logged
+language: typescript
+frameworks:
+- generic
+kind: items
+rule:
+  kind: decorator
+  regex: ^@(Get|Post|All)\s*\(\s*['\"`][^'\"`]*\b(?i:export)
+  inside:
+    kind: class_body
+control:
+  any:
+  - precedes: &id001
+      kind: method_definition
+      has:
+        field: body
+        has:
+          stopBy: end
+          kind: call_expression
+          regex: ^(this\.)?[\w.]*(?i)((audit|security_?events?)([\w.]*[._])?(create|log|emit|record|write|add|save|insert|send|publish|track)|(log|record|emit|write|create|add|publish)_?(audit|security))\w*\s*\(
+  - precedes:
+      kind: decorator
+      precedes: *id001
+  - precedes:
+      kind: decorator
+      precedes:
+        kind: decorator
+        precedes: *id001
+  - precedes:
+      kind: decorator
+      precedes:
+        kind: decorator
+        precedes:
+          kind: decorator
+          precedes: *id001
+  - precedes:
+      kind: decorator
+      precedes:
+        kind: decorator
+        precedes:
+          kind: decorator
+          precedes:
+            kind: decorator
+            precedes: *id001
+  - precedes:
+      kind: decorator
+      precedes:
+        kind: decorator
+        precedes:
+          kind: decorator
+          precedes:
+            kind: decorator
+            precedes:
+              kind: decorator
+              precedes: *id001
+  - precedes: &id002
+      kind: decorator
+      regex: ^@(\w*(?i:audit)\w*|UseInterceptors\s*\(.*(?i:audit))
+  - precedes:
+      kind: decorator
+      precedes: *id002
+  - precedes:
+      kind: decorator
+      precedes:
+        kind: decorator
+        precedes: *id002
+  - precedes:
+      kind: decorator
+      precedes:
+        kind: decorator
+        precedes:
+          kind: decorator
+          precedes: *id002
+  - precedes:
+      kind: decorator
+      precedes:
+        kind: decorator
+        precedes:
+          kind: decorator
+          precedes:
+            kind: decorator
+            precedes: *id002
+  - follows: *id002
+  - follows:
+      kind: decorator
+      follows: *id002
+  - follows:
+      kind: decorator
+      follows:
+        kind: decorator
+        follows: *id002
+  - follows:
+      kind: decorator
+      follows:
+        kind: decorator
+        follows:
+          kind: decorator
+          follows: *id002
+  - follows:
+      kind: decorator
+      follows:
+        kind: decorator
+        follows:
+          kind: decorator
+          follows:
+            kind: decorator
+            follows: *id002
+min_engine: 0.45.3
