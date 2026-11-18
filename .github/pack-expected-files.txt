@@ -103,6 +103,7 @@ rules/rules/access-audit-log/ruby-rails.yml
 rules/rules/access-audit-log/tsx-express.yml
 rules/rules/access-audit-log/tsx-nextjs.yml
 rules/rules/access-audit-log/typescript-express.yml
+rules/rules/access-audit-log/typescript-hono.yml
 rules/rules/access-audit-log/typescript-nestjs.yml
 rules/rules/access-audit-log/typescript-nextjs.yml
 rules/rules/ai-agent-tools-least-privilege/javascript-generic.yml
