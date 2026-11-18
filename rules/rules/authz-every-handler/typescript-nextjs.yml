@@ -4857,13 +4857,18 @@ min_engine: 0.39.0
 ---
 # T29 (T29-P1-C454, authz misses slice 6): an uploadthing file route. In a file that imports uploadthing/next (or
 # next-legacy or server) and calls createUploadthing(), each property of the router object whose value is a route
-# chain (f({ image: ... })...onUploadComplete(...)) is an item: anyone who reaches the upload endpoint can store a
-# file there unless the route's .middleware() turns the caller away. The item's line is the property's.
+# chain (f({ image: ... })...onUploadComplete(...), or base.onUploadComplete(...)) is an item: anyone who reaches
+# the upload endpoint can store a file there unless the route's .middleware() turns the caller away. The item's line
+# is the property's.
 # The control: the route's .middleware() callback loads the signed-in user as a direct statement of its body (const
 # user = await auth(), currentUser(), getServerSession(...), const { userId } = await auth() or getAuth(req)) and throws
 # when that same binding is missing (if (!user) throw ..., also on user.id or user?.id). A file that declares its own
 # function by that name (the uploadthing docs' fake auth) never counts. Any other middleware is
-# auth-unobserved-upload, a hold for a person; no middleware at all is a fail.
+# auth-unobserved-upload, a hold for a person. With no middleware the item has no control, and like every authz item
+# without one it ends as an ask (assistant_answer_needed), never a pass. T29 (P2 C542, authz slice 7): only a
+# .middleware() on the route chain itself counts, the last one if it has two (one inside an argument, such as an
+# onUploadComplete callback, never does), and a route built on a shared base (shared.onUploadComplete(...)) is an item
+# too; the base's middleware isn't followed, so it has no control here.
 id: authz-every-handler.typescript-nextjs.upload-route
 practice_id: authz-every-handler
 language: typescript
@@ -4876,7 +4881,7 @@ rule:
   - has:
       field: value
       kind: call_expression
-      regex: '^[A-Za-z_$][\w$]*\s*\([\s\S]*\.\s*onUploadComplete\s*\('
+      regex: '^[A-Za-z_$][\w$]*\s*([(.][\s\S]*)?\.\s*onUploadComplete\s*\('
   - inside:
       stopBy: end
       kind: program
@@ -4903,6 +4908,20 @@ control:
             field: property
             kind: property_identifier
             regex: ^middleware$
+      - not:
+          inside:
+            stopBy:
+              kind: pair
+            any:
+            - kind: arguments
+            - kind: call_expression
+              has:
+                field: function
+                kind: member_expression
+                has:
+                  field: property
+                  kind: property_identifier
+                  regex: ^middleware$
       - has:
           field: arguments
           kind: arguments
@@ -4967,7 +4986,7 @@ rule:
   - has:
       field: value
       kind: call_expression
-      regex: '^[A-Za-z_$][\w$]*\s*\([\s\S]*\.\s*onUploadComplete\s*\('
+      regex: '^[A-Za-z_$][\w$]*\s*([(.][\s\S]*)?\.\s*onUploadComplete\s*\('
   - inside:
       stopBy: end
       kind: program
@@ -5008,6 +5027,20 @@ rule:
                 field: property
                 kind: property_identifier
                 regex: ^middleware$
+          - not:
+              inside:
+                stopBy:
+                  kind: pair
+                any:
+                - kind: arguments
+                - kind: call_expression
+                  has:
+                    field: function
+                    kind: member_expression
+                    has:
+                      field: property
+                      kind: property_identifier
+                      regex: ^middleware$
           - has:
               field: arguments
               kind: arguments
