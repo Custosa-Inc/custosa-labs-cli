@@ -252,3 +252,34 @@ test("factoring on and off: identical output for the shipped rules on every host
   for (const batch of batches.values()) matches += (await sameBothWays(rules, batch, { frameworks: ALL, workers: 4 })).matches.length;
   assert.ok(matches > 5000, `${matches} matches`);
 });
+
+/* ast-grep checks a rule object's matches after its inside, has, precedes, follows, all, any and not. A regex moved to a
+ * util beside one of those is checked last, so the relational or composite rule runs on every node of the kind: the
+ * shipped auth-on-by-default bypass-flag rule (an `inside: {stopBy: end, kind: program, has: {stopBy: end, ...}}`
+ * beside each regex) took 8 s on a 453-line TypeScript file factored and 70 ms as written. */
+const COSTLY = ["inside", "has", "precedes", "follows", "all", "any", "not"];
+function regexUtilBesideCostly(o, utils, out = []) {
+  if (Array.isArray(o)) { for (const x of o) regexUtilBesideCostly(x, utils, out); return out; }
+  if (o === null || typeof o !== "object") return out;
+  const util = typeof o.matches === "string" ? utils?.[o.matches] : null;
+  if (util && Object.keys(util).length === 1 && "regex" in util && COSTLY.some((c) => c in o)) out.push(o);
+  for (const v of Object.values(o)) regexUtilBesideCostly(v, utils, out);
+  return out;
+}
+
+test("factor: a regex beside a relational or composite rule stays inline, so it still filters first", () => {
+  const re = "^process\\.env\\.AUTH_ENABLED$";
+  const program = { inside: { stopBy: "end", kind: "program", has: { stopBy: "end", pattern: "const $E = process.env" } } };
+  const rule = { any: [{ kind: "member_expression", regex: re, ...program }, { kind: "member_expression", regex: re, all: [{ kind: "member_expression" }] },
+    { kind: "identifier", regex: re }] };
+  const { rewritten: [r], utils } = factor([rule]);
+  assert.deepEqual(r.any[0], rule.any[0]);
+  assert.deepEqual(r.any[1], rule.any[1]);
+  assert.deepEqual(r.any[2], { kind: "identifier", matches: "r0" }, "a regex beside atomic keys only is still a util");
+  assert.deepEqual(utils, { r0: { regex: re } });
+  const bad = [];
+  for (const [i, c] of engineConfigs(loadRules(BUNDLE)).entries()) {
+    for (const n of [c.rule, c.control]) if (n && regexUtilBesideCostly(n.rule, n.utils).length + regexUtilBesideCostly(n.utils, n.utils).length) bad.push(i);
+  }
+  assert.deepEqual(bad, [], "shipped rules with a regex util checked after a relational or composite rule");
+});
