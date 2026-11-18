@@ -5,24 +5,60 @@ frameworks:
 - generic
 kind: items
 rule:
-  all:
-  - any:
-    - kind: return_statement
-    - kind: throw_statement
-    - kind: expression_statement
-  - has:
-      stopBy:
+  any:
+  - all:
+    - any:
+      - kind: return_statement
+      - kind: throw_statement
+      - kind: expression_statement
+    - has:
+        stopBy:
+          any:
+          - kind: statement_block
+          - kind: arrow_function
+          - kind: function_expression
         any:
-        - kind: statement_block
-        - kind: arrow_function
-        - kind: function_expression
-      any:
-      - kind: call_expression
-        regex: '^[\w.]*\.(sendStatus|status|writeHead)\(\s*(401|403|[\w.]*(FORBIDDEN|UNAUTHORIZED|Forbidden|Unauthorized)\w*)\s*[,)]'
-      - kind: new_expression
-        regex: '(?-u)^new\s+(ForbiddenException|UnauthorizedException|ForbiddenError|UnauthorizedError|AuthorizationError)\b'
-      - kind: pair
-        regex: '^status\s*:\s*(401|403|[\w.]*(FORBIDDEN|UNAUTHORIZED|Forbidden|Unauthorized)\w*)$'
+        - kind: call_expression
+          regex: '^[\w.]*\.(sendStatus|status|writeHead)\(\s*(401|403|[\w.]*(FORBIDDEN|UNAUTHORIZED|Forbidden|Unauthorized)\w*)\s*[,)]'
+        - kind: new_expression
+          regex: '(?-u)^new\s+(ForbiddenException|UnauthorizedException|ForbiddenError|UnauthorizedError|AuthorizationError)\b'
+        - kind: pair
+          # T29-P1-C431: h3 and Nuxt write the status as statusCode (createError({ statusCode: 401 })).
+          regex: '^(status|statusCode)\s*:\s*(401|403|[\w.]*(FORBIDDEN|UNAUTHORIZED|Forbidden|Unauthorized)\w*)$'
+  # T29-P1-C431 (security events slice 2, P3): a denial written as a value. In a server action (a file or function
+  # that opens with 'use server'), a return of an object whose error names an access decision is a denial.
+  - all:
+    - kind: return_statement
+    - has:
+        kind: object
+        has:
+          kind: pair
+          all:
+          - has:
+              field: key
+              kind: property_identifier
+              regex: '^error$'
+          - has:
+              field: value
+              kind: string
+              regex: '(?i)\b(unauthori[sz]ed|forbidden|not authori[sz]ed|access denied|permission denied|not permitted|insufficient permissions?)\b'
+    - inside:
+        stopBy: end
+        any:
+        - kind: program
+          has:
+            kind: expression_statement
+            regex: '^[''"]use server[''"];?$'
+        - all:
+          - any:
+            - kind: function_declaration
+            - kind: arrow_function
+            - kind: function_expression
+          - has:
+              field: body
+              has:
+                kind: expression_statement
+                regex: '^[''"]use server[''"];?$'
 control:
   all:
   - any:
