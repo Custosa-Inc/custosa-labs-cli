@@ -88,7 +88,7 @@ rule:
         - kind: await_expression
           regex: (?i)^(await\s+)?([0-9A-Za-z_]+\.)*(((totp|otp|authenticator|speakeasy|otplib|twoFactor|mfa|tfa)[0-9A-Za-z_]*\.(verify|check|validate)[0-9A-Za-z_]*)|verify(Totp|Otp|Mfa|TwoFactor|Authenticator|Code|Token)[0-9A-Za-z_]*|challengeAndVerify|verifyAuthenticationResponse|verifyTOTP)\(
         - kind: call_expression
-          regex: (?i)(redirect|mfa|challenge|verify)
+          regex: (?i)(redirect|mfa|challenge|verify|two_?factor|2fa)
   - all:
     - any:
       - kind: function_declaration

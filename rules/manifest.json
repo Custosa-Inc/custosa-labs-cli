@@ -1,5 +1,5 @@
 {
-  "ruleset_id": "2026-11-18.1a0c157a",
+  "ruleset_id": "2026-11-18.a24c150d",
   "min_engine": "0.45.3",
   "files": [
     {
@@ -1448,7 +1448,7 @@
     },
     {
       "path": "rules/staff-mfa-enforced/javascript-generic.yml",
-      "sha256": "21fba75ee946c01922673fea64b0529e84d904958ef68c9a3545bfce23bbb2e1"
+      "sha256": "59c044f2cb333354685f0b277954db94e234efd46283c39f15430b2f0bd5f5a4"
     },
     {
       "path": "rules/staff-mfa-enforced/php-generic.yml",
@@ -1472,7 +1472,7 @@
     },
     {
       "path": "rules/staff-mfa-enforced/typescript-generic.yml",
-      "sha256": "a667cc6ac100d03c65a6da294cf7e7d7f9b4ba7d4facd733e5fb813987d084fa"
+      "sha256": "1f0657f2b153148a17881cee56dd07f0cfcad884bbeb69880f5a0f7c2a3b28d8"
     },
     {
       "path": "rules/staff-mfa-enforced/typescript-supabase.yml",
