@@ -1,5 +1,5 @@
 {
-  "ruleset_id": "2026-11-18.3dceeead",
+  "ruleset_id": "2026-11-18.b442adb4",
   "min_engine": "0.45.3",
   "files": [
     {
@@ -1336,7 +1336,7 @@
     },
     {
       "path": "rules/security-events-logged/java-generic.yml",
-      "sha256": "230fc2e88ce7c12cea75efe4eaefd2cb9dccca72b29b9995c7e66113d94fee65"
+      "sha256": "17cf9758855eaf26f67e78c1755bbe68d221f1e838e4595d90368601c593546e"
     },
     {
       "path": "rules/security-events-logged/javascript-generic.yml",
@@ -1348,7 +1348,7 @@
     },
     {
       "path": "rules/security-events-logged/python-generic.yml",
-      "sha256": "447443efeaf9420c90813173162c29dc768f518c7c0b7c7f2771272828f3f414"
+      "sha256": "f10bc0ae0a7a672c8aa40224756bedf93c631d93933364650573287120353edd"
     },
     {
       "path": "rules/security-events-logged/ruby-generic.yml",
@@ -1356,11 +1356,11 @@
     },
     {
       "path": "rules/security-events-logged/tsx-generic.yml",
-      "sha256": "8fce81a35694338da2b2fd6f2cedcba061bf6f7f8a2b5811581f8f479995b8fa"
+      "sha256": "9477bb2e6aa88d60aba6750394d177e3c042a270e166ec7b033e41b5ddf1ee9e"
     },
     {
       "path": "rules/security-events-logged/typescript-generic.yml",
-      "sha256": "a9a193c3acd151ece48773f6dfd2fb9689d0d4df3fa4a1337624c937312328d7"
+      "sha256": "1945167fc5fbe18cf60ba160dd2a0c6ae052dcf11e28b630fc0bf785debf300e"
     },
     {
       "path": "rules/session-cookie-flags/go-generic.yml",
