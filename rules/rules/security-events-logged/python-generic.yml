@@ -109,3 +109,46 @@ control:
           - *id004
           follows: *id001
 min_engine: 0.45.3
+---
+# T29 (T29-P1-C441, security events slice 3, group D): a failed sign-in kept only in memory or in a plain log is an
+# item. The item is a function that records a failed sign-in, by its name (a verb such as record, register, log, track,
+# increment, count or handle joined to failed, failure, bad or invalid and to login, signin, logon, attempt, auth or
+# password: _record_failed_attempt, register_failed_login), or form_invalid on a class whose base names a LoginView
+# (Django's LoginView answers a wrong password through it). Its line is the def. The control is a security event or
+# audit write anywhere in its body (security_events.emit(...), AuditLog.objects.create(...)). A plain logger call or a
+# counter is no control. A name with no sign-in word (record_failure) is no item. Its fails hold
+# (evaluate.CODE_READ_HOLD_RULES): a Django user_login_failed receiver in another file can write the event.
+id: security-events-logged.python-generic.failed-sign-in
+practice_id: security-events-logged
+language: python
+frameworks:
+- generic
+kind: items
+rule:
+  kind: function_definition
+  any:
+  - has:
+      field: name
+      kind: identifier
+      regex: '(?i)^_*(record|register|log|track|increment|inc|note|count|add|bump|handle|on)_?(failed|failure|bad|invalid)_?(login|log_in|signin|sign_in|logon|attempt|auth|authentication|password)s?$'
+  - all:
+    - has:
+        field: name
+        kind: identifier
+        regex: ^form_invalid$
+    - inside:
+        stopBy: end
+        kind: class_definition
+        has:
+          field: superclasses
+          kind: argument_list
+          regex: '(?-u)\b\w*Login(View|FormView)\b'
+control:
+  has:
+    field: body
+    kind: block
+    has:
+      stopBy: end
+      kind: call
+      regex: '^(await\s+)?(self\.)?[\w.]*(?i)(audit|security_?events?|log_?security|record_?security)[\w.]*\s*\('
+min_engine: 0.45.3
