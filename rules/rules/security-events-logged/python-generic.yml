@@ -118,6 +118,11 @@ min_engine: 0.45.3
 # audit write anywhere in its body (security_events.emit(...), AuditLog.objects.create(...)). A plain logger call or a
 # counter is no control. A name with no sign-in word (record_failure) is no item. Its fails hold
 # (evaluate.CODE_READ_HOLD_RULES): a Django user_login_failed receiver in another file can write the event.
+# T29-P1-C449 (security events slice 4, P2 C508 lows): the sign-in word may also come first (record_login_failure),
+# and a trailing _attempt or _attempts may follow (log_failed_login_attempt). The control is a call that writes: a
+# write verb (create, log, emit, record, write, add, save, insert, send, publish, track) in the called name after the
+# audit or security event word (AuditLog.objects.create, audit.record), or log, record, emit, write, create or add
+# joined before it (log_security_event, record_audit_event). audit_counter.increment() is no control.
 id: security-events-logged.python-generic.failed-sign-in
 practice_id: security-events-logged
 language: python
@@ -130,7 +135,7 @@ rule:
   - has:
       field: name
       kind: identifier
-      regex: '(?i)^_*(record|register|log|track|increment|inc|note|count|add|bump|handle|on)_?(failed|failure|bad|invalid)_?(login|log_in|signin|sign_in|logon|attempt|auth|authentication|password)s?$'
+      regex: '(?i)^_*(record|register|log|track|increment|inc|note|count|add|bump|handle|on)_?((failed|failure|bad|invalid)_?(login|log_in|signin|sign_in|logon|attempt|auth|authentication|password)s?|(login|log_in|signin|sign_in|logon|auth|authentication|password)_?(failed|failures?|bad|invalid))(_?attempts?)?$'
   - all:
     - has:
         field: name
@@ -150,5 +155,5 @@ control:
     has:
       stopBy: end
       kind: call
-      regex: '^(await\s+)?(self\.)?[\w.]*(?i)(audit|security_?events?|log_?security|record_?security)[\w.]*\s*\('
+      regex: '^(await\s+)?(self\.)?[\w.]*(?i)((audit|security_?events?)([\w.]*[._])?(create|log|emit|record|write|add|save|insert|send|publish|track)|(log|record|emit|write|create|add)_?(audit|security))\w*\s*\('
 min_engine: 0.45.3
