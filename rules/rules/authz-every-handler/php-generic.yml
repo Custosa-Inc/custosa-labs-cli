@@ -89,7 +89,8 @@ min_engine: 0.39.0
 # service), the token storage's getToken(), a #[CurrentUser] parameter or an #[IsGranted(..., subject: ...)] on the
 # method. A check on a ROLE_ name says who may call, never which record (as hasRole on Spring), so it never counts,
 # as a call or as #[IsGranted('ROLE_...', subject: ...)]: Symfony's role voter ignores the subject (T29-P1-C441). The
-# ROLE_ name may come first or as attribute: in any place, so subject: named first is still a role check (T29-P1-C444).
+# ROLE_ name may come first or as attribute: in any place, so subject: named first is still a role check (T29-P1-C444),
+# also when the subject holds a closing paren, as new Expression('...') does (T29-P1-C454).
 # No control: the practice asks for it (assistant_answer_needed), never a pass, unless auth-unobserved-symfony holds it.
 id: authz-every-handler.php-generic.symfony-route
 practice_id: authz-every-handler
@@ -155,7 +156,7 @@ control:
         regex: '^\\?(\w+\\)*IsGranted\s*\([^)]*\bsubject\s*:'
         not:
           kind: attribute
-          regex: '^\\?(\w+\\)*IsGranted\s*\((\s*|[^)]*\battribute\s*:\s*)[''"]ROLE_'
+          regex: '^\\?(\w+\\)*IsGranted\s*\((\s*|[\s\S]*\battribute\s*:\s*)[''"]ROLE_'
 min_engine: 0.39.0
 ---
 # T29 (T29-P1-C436): a Symfony route method (as symfony-route) guarded by something this file can't see into: a call

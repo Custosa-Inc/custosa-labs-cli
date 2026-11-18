@@ -4854,3 +4854,205 @@ control:
                         field: function
                         has: *s15
 min_engine: 0.39.0
+---
+# T29 (T29-P1-C454, authz misses slice 6): an uploadthing file route. In a file that imports uploadthing/next (or
+# next-legacy or server) and calls createUploadthing(), each property of the router object whose value is a route
+# chain (f({ image: ... })...onUploadComplete(...)) is an item: anyone who reaches the upload endpoint can store a
+# file there unless the route's .middleware() turns the caller away. The item's line is the property's.
+# The control: the route's .middleware() callback loads the signed-in user as a direct statement of its body (const
+# user = await auth(), currentUser(), getServerSession(...), const { userId } = await auth() or getAuth(req)) and throws
+# when that same binding is missing (if (!user) throw ..., also on user.id or user?.id). A file that declares its own
+# function by that name (the uploadthing docs' fake auth) never counts. Any other middleware is
+# auth-unobserved-upload, a hold for a person; no middleware at all is a fail.
+id: authz-every-handler.typescript-nextjs.upload-route
+practice_id: authz-every-handler
+language: typescript
+frameworks:
+- nextjs
+kind: items
+rule:
+  kind: pair
+  all:
+  - has:
+      field: value
+      kind: call_expression
+      regex: '^[A-Za-z_$][\w$]*\s*\([\s\S]*\.\s*onUploadComplete\s*\('
+  - inside:
+      stopBy: end
+      kind: program
+      all:
+      - has:
+          kind: import_statement
+          regex: '[''"]uploadthing/(next|next-legacy|server)[''"]'
+      - has:
+          stopBy: end
+          kind: call_expression
+          regex: '^createUploadthing\s*\('
+control:
+  has:
+    field: value
+    kind: call_expression
+    has:
+      stopBy: end
+      kind: call_expression
+      all:
+      - has:
+          field: function
+          kind: member_expression
+          has:
+            field: property
+            kind: property_identifier
+            regex: ^middleware$
+      - has:
+          field: arguments
+          kind: arguments
+          has:
+            any:
+            - kind: arrow_function
+            - kind: function_expression
+            has:
+              field: body
+              kind: statement_block
+              all:
+              - has:
+                  kind: lexical_declaration
+                  all:
+                  - any:
+                        - pattern: 'const { $U } = await auth()'
+                        - pattern: 'const { $U } = getAuth($R)'
+                        - pattern: 'const { $U } = await getAuth($R)'
+                        - pattern: 'const $U = await auth()'
+                        - pattern: 'const $U = await currentUser()'
+                        - pattern: 'const $U = await getServerSession($$$)'
+                  - not:
+                      inside:
+                        stopBy: end
+                        kind: program
+                        has:
+                          stopBy: end
+                          any:
+                          - kind: variable_declarator
+                            has:
+                              field: name
+                              kind: identifier
+                              regex: ^(auth|currentUser|getServerSession|getAuth)$
+                          - kind: function_declaration
+                            has:
+                              field: name
+                              kind: identifier
+                              regex: ^(auth|currentUser|getServerSession|getAuth)$
+              - has:
+                  kind: if_statement
+                  any:
+                        - pattern: 'if (!$U) throw $E'
+                        - pattern: 'if (!$U) { throw $E }'
+                        - pattern: 'if (!$U.$P) throw $E'
+                        - pattern: 'if (!$U.$P) { throw $E }'
+                        - pattern: 'if (!$U?.$P) throw $E'
+                        - pattern: 'if (!$U?.$P) { throw $E }'
+min_engine: 0.39.0
+---
+# T29 (T29-P1-C454): an uploadthing file route (as upload-route) with a .middleware() whose caller check isn't in the
+# control's shape (a project helper, a check on another name, a session read some other way). The middleware may turn
+# the caller away, so it holds the route's item for a person (needs_review), never a pass.
+id: authz-every-handler.typescript-nextjs.auth-unobserved-upload
+practice_id: authz-every-handler
+language: typescript
+frameworks:
+- nextjs
+kind: evidence
+rule:
+  kind: pair
+  all:
+  - has:
+      field: value
+      kind: call_expression
+      regex: '^[A-Za-z_$][\w$]*\s*\([\s\S]*\.\s*onUploadComplete\s*\('
+  - inside:
+      stopBy: end
+      kind: program
+      all:
+      - has:
+          kind: import_statement
+          regex: '[''"]uploadthing/(next|next-legacy|server)[''"]'
+      - has:
+          stopBy: end
+          kind: call_expression
+          regex: '^createUploadthing\s*\('
+  - has:
+      field: value
+      kind: call_expression
+      has:
+        stopBy: end
+        kind: call_expression
+        all:
+        - has:
+            field: function
+            kind: member_expression
+            has:
+              field: property
+              kind: property_identifier
+              regex: ^middleware$
+  - not:
+      has:
+        field: value
+        kind: call_expression
+        has:
+          stopBy: end
+          kind: call_expression
+          all:
+          - has:
+              field: function
+              kind: member_expression
+              has:
+                field: property
+                kind: property_identifier
+                regex: ^middleware$
+          - has:
+              field: arguments
+              kind: arguments
+              has:
+                any:
+                - kind: arrow_function
+                - kind: function_expression
+                has:
+                  field: body
+                  kind: statement_block
+                  all:
+                  - has:
+                      kind: lexical_declaration
+                      all:
+                      - any:
+                            - pattern: 'const { $U } = await auth()'
+                            - pattern: 'const { $U } = getAuth($R)'
+                            - pattern: 'const { $U } = await getAuth($R)'
+                            - pattern: 'const $U = await auth()'
+                            - pattern: 'const $U = await currentUser()'
+                            - pattern: 'const $U = await getServerSession($$$)'
+                      - not:
+                          inside:
+                            stopBy: end
+                            kind: program
+                            has:
+                              stopBy: end
+                              any:
+                              - kind: variable_declarator
+                                has:
+                                  field: name
+                                  kind: identifier
+                                  regex: ^(auth|currentUser|getServerSession|getAuth)$
+                              - kind: function_declaration
+                                has:
+                                  field: name
+                                  kind: identifier
+                                  regex: ^(auth|currentUser|getServerSession|getAuth)$
+                  - has:
+                      kind: if_statement
+                      any:
+                            - pattern: 'if (!$U) throw $E'
+                            - pattern: 'if (!$U) { throw $E }'
+                            - pattern: 'if (!$U.$P) throw $E'
+                            - pattern: 'if (!$U.$P) { throw $E }'
+                            - pattern: 'if (!$U?.$P) throw $E'
+                            - pattern: 'if (!$U?.$P) { throw $E }'
+min_engine: 0.39.0
