@@ -235,8 +235,9 @@ min_engine: 0.39.0
 # named scope helper (forUser, ownedBy, visibleTo, accessibleBy, forTenant, forClinic, forOrganisation, forClient,
 # forPatient, mine and the like). A where inside an if, a ternary or a closure (->when(...), whereHas(...)) is not read,
 # so it never counts; nor does a role check (isPractitioner(), hasRole()). A negated or null where (whereNot
-# and the rest of whereNot..., whereKeyNot, whereNull, whereDoesntHave...) lists other people's rows, so it is never
-# the caller scope (P2 C552 low, authz slice 8); the same holds for auth-unobserved-list. No control: the item holds
+# and the rest of whereNot..., whereKeyNot, whereNull, whereDoesntHave..., whereJsonDoesnt...) lists other people's
+# rows, so it is never the caller scope (P2 C552 low, authz slice 8; C553 low, slice 9); the same holds for
+# auth-unobserved-list. No control: the item holds
 # for a person (authz-every-handler fails on code reading are holds, evaluate.CODE_READ_HOLDS), never a fail alone,
 # never a pass.
 id: authz-every-handler.php-laravel.list-route
@@ -373,7 +374,7 @@ control:
               has:
                 field: name
                 kind: name
-                regex: ^(whereNot\w*|whereKeyNot|whereNull|whereDoesntHave\w*)$
+                regex: ^(whereNot\w*|whereKeyNot|whereNull|whereDoesntHave\w*|whereJsonDoesnt\w*)$
           - has:
               field: arguments
               kind: arguments
@@ -396,7 +397,7 @@ control:
               has:
                 field: name
                 kind: name
-                regex: ^(whereNot\w*|whereKeyNot|whereNull|whereDoesntHave\w*)$
+                regex: ^(whereNot\w*|whereKeyNot|whereNull|whereDoesntHave\w*|whereJsonDoesnt\w*)$
           - has:
               field: arguments
               kind: arguments
@@ -452,7 +453,7 @@ control:
                   has:
                     field: name
                     kind: name
-                    regex: ^(whereNot\w*|whereKeyNot|whereNull|whereDoesntHave\w*)$
+                    regex: ^(whereNot\w*|whereKeyNot|whereNull|whereDoesntHave\w*|whereJsonDoesnt\w*)$
               - has:
                   field: arguments
                   kind: arguments
@@ -475,7 +476,7 @@ control:
                   has:
                     field: name
                     kind: name
-                    regex: ^(whereNot\w*|whereKeyNot|whereNull|whereDoesntHave\w*)$
+                    regex: ^(whereNot\w*|whereKeyNot|whereNull|whereDoesntHave\w*|whereJsonDoesnt\w*)$
               - has:
                   field: arguments
                   kind: arguments
@@ -635,7 +636,7 @@ rule:
               has:
                 field: name
                 kind: name
-                regex: ^(whereNot\w*|whereKeyNot|whereNull|whereDoesntHave\w*)$
+                regex: ^(whereNot\w*|whereKeyNot|whereNull|whereDoesntHave\w*|whereJsonDoesnt\w*)$
           - has:
               field: arguments
               kind: arguments
@@ -658,7 +659,7 @@ rule:
               has:
                 field: name
                 kind: name
-                regex: ^(whereNot\w*|whereKeyNot|whereNull|whereDoesntHave\w*)$
+                regex: ^(whereNot\w*|whereKeyNot|whereNull|whereDoesntHave\w*|whereJsonDoesnt\w*)$
           - has:
               field: arguments
               kind: arguments
@@ -710,7 +711,7 @@ rule:
                   has:
                     field: name
                     kind: name
-                    regex: ^(whereNot\w*|whereKeyNot|whereNull|whereDoesntHave\w*)$
+                    regex: ^(whereNot\w*|whereKeyNot|whereNull|whereDoesntHave\w*|whereJsonDoesnt\w*)$
               - has:
                   field: arguments
                   kind: arguments
@@ -733,7 +734,7 @@ rule:
                   has:
                     field: name
                     kind: name
-                    regex: ^(whereNot\w*|whereKeyNot|whereNull|whereDoesntHave\w*)$
+                    regex: ^(whereNot\w*|whereKeyNot|whereNull|whereDoesntHave\w*|whereJsonDoesnt\w*)$
               - has:
                   field: arguments
                   kind: arguments
@@ -789,7 +790,7 @@ rule:
                       has:
                         field: name
                         kind: name
-                        regex: ^(whereNot\w*|whereKeyNot|whereNull|whereDoesntHave\w*)$
+                        regex: ^(whereNot\w*|whereKeyNot|whereNull|whereDoesntHave\w*|whereJsonDoesnt\w*)$
                   - has:
                       field: arguments
                       kind: arguments
@@ -812,7 +813,7 @@ rule:
                       has:
                         field: name
                         kind: name
-                        regex: ^(whereNot\w*|whereKeyNot|whereNull|whereDoesntHave\w*)$
+                        regex: ^(whereNot\w*|whereKeyNot|whereNull|whereDoesntHave\w*|whereJsonDoesnt\w*)$
                   - has:
                       field: arguments
                       kind: arguments
