@@ -156,4 +156,9 @@ control:
       stopBy: end
       kind: call
       regex: '^(await\s+)?(self\.)?[\w.]*(?i)((audit|security_?events?)([\w.]*[._])?(create|log|emit|record|write|add|save|insert|send|publish|track)|(log|record|emit|write|create|add)_?(audit|security))\w*\s*\('
+      # T29 (P2 C535 low): a called name whose last part starts with a read verb (getAuditLogs, get_audit_logs,
+      # exportAuditLogs) reads the audit log; "Log" in it is no write verb.
+      not:
+        kind: call
+        regex: '^(await\s+)?(self\.)?(\w+\.)*(?i:get|fetch|list|find|read|load|query|search|export|count|select|retrieve|download)\w*\s*\('
 min_engine: 0.45.3
