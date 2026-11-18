@@ -1,5 +1,5 @@
 {
-  "ruleset_id": "2026-11-18.3e381213",
+  "ruleset_id": "2026-11-18.a5e79d02",
   "min_engine": "0.45.3",
   "files": [
     {
@@ -133,6 +133,10 @@
     {
       "path": "rules/access-audit-log/typescript-express.yml",
       "sha256": "36cb6663768f99df7c10ea0392aca785bbffaaedfcd2f3b93b8e7f1224b32757"
+    },
+    {
+      "path": "rules/access-audit-log/typescript-hono.yml",
+      "sha256": "48633e8f0fc685329916cd48b3f73218f0be526c5c1ab068b6fa03d3de53071b"
     },
     {
       "path": "rules/access-audit-log/typescript-nestjs.yml",
