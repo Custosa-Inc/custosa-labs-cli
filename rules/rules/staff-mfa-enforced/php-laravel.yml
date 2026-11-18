@@ -106,6 +106,27 @@ rule:
   - not:
       has:
         stopBy: end
-        kind: member_call_expression
-        regex: (multiFactor|MultiFactor|TwoFactor|twoFactor|two_factor|2fa|2FA|Mfa|MFA|->\s*mfa\(|Otp|OTP|Totp|TOTP|WebAuthn|Webauthn|webauthn|Passkey|passkey)
+        any:
+        - kind: member_call_expression
+          has:
+            field: name
+            kind: name
+            regex: '(?i)(two_?factor|2fa|mfa|otp|totp|webauthn|passkey)'
+        - kind: member_call_expression
+          all:
+          - has:
+              field: name
+              kind: name
+              regex: ^multiFactorAuthentication$
+          - has:
+              field: arguments
+              kind: arguments
+              regex: (?-u:\b)isRequired\s*:\s*true(?-u:\b)
+        - kind: scoped_call_expression
+          has:
+            field: scope
+            kind: name
+            regex: '(?i)(two_?factor|2fa|mfa|otp|totp|webauthn|passkey)'
+        - kind: class_constant_access_expression
+          regex: '(?i)^\\?([A-Za-z0-9_]+\\)*[A-Za-z0-9_]*(two_?factor|2fa|mfa|otp|totp|webauthn|passkey)[A-Za-z0-9_]*::class$'
 min_engine: 0.39.0
