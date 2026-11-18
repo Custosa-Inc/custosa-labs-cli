@@ -1,5 +1,5 @@
 {
-  "ruleset_id": "2026-11-18.4b66b7bd",
+  "ruleset_id": "2026-11-18.f7373303",
   "min_engine": "0.45.3",
   "files": [
     {
@@ -1448,7 +1448,7 @@
     },
     {
       "path": "rules/staff-mfa-enforced/javascript-generic.yml",
-      "sha256": "a0f7588d53baff18f0834a6d647eda29cd0ed13185523a019c2f8b03bd390cc8"
+      "sha256": "1d08ec4f0d3da4a165b67270827aa10aea09579ee1be59f1f2d4908ed280f80f"
     },
     {
       "path": "rules/staff-mfa-enforced/php-generic.yml",
@@ -1456,7 +1456,7 @@
     },
     {
       "path": "rules/staff-mfa-enforced/php-laravel.yml",
-      "sha256": "24e4249d377fdd89edc44db05f0fbfaf2c4efd8a4991cb471b92602a06868eb2"
+      "sha256": "a6c2b0e96d22a7c397886c47cd60b6448ba18a1b4971d48cf3e8b2fce65dc4d8"
     },
     {
       "path": "rules/staff-mfa-enforced/python-django.yml",
@@ -1471,8 +1471,12 @@
       "sha256": "3eb7eef8839ca298fd47e3baa6fb7492794c24e5cee7ad227b21aae0e19cb5af"
     },
     {
+      "path": "rules/staff-mfa-enforced/tsx-generic.yml",
+      "sha256": "3452dcbab7abb0ecdaf60d5622053b5de8f2965904ae6e67899f58a393cdca9a"
+    },
+    {
       "path": "rules/staff-mfa-enforced/typescript-generic.yml",
-      "sha256": "b132256f05eaa390926f57d4e8b09e3b570e7608042a6ac3ab69f6ac997abd9a"
+      "sha256": "eda70893d3ca7f38013609b8f6e52d961687347906b284fa65149bc207c4e09e"
     },
     {
       "path": "rules/staff-mfa-enforced/typescript-supabase.yml",

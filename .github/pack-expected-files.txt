@@ -437,6 +437,7 @@ rules/rules/staff-mfa-enforced/php-laravel.yml
 rules/rules/staff-mfa-enforced/python-django.yml
 rules/rules/staff-mfa-enforced/python-generic.yml
 rules/rules/staff-mfa-enforced/ruby-rails.yml
+rules/rules/staff-mfa-enforced/tsx-generic.yml
 rules/rules/staff-mfa-enforced/typescript-generic.yml
 rules/rules/staff-mfa-enforced/typescript-supabase.yml
 rules/rules/upload-validation/go-generic.yml
