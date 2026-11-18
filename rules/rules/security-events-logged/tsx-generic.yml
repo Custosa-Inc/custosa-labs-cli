@@ -463,3 +463,120 @@ control:
               - *id012
               follows: *id007
 min_engine: 0.45.3
+---
+# T29-P1-C428 (security events slice 1, P3): an account change is an item: a write of an account status flag (isActive,
+# disabled, banned, locked, suspended) on a user, account, staff, employee or member model; a delete of one; a Supabase
+# auth.admin createUser, deleteUser, updateUserById or inviteUserByEmail call; or an rpc whose name speaks of users,
+# accounts, roles, members, staff or admins, passing a p_roles, p_active or like key. The control is a security event or
+# audit write in the three statements before it, as for role-change. Seed files are no runtime (file_roles.SEED_BY_NAME).
+# T29-P2-C484: a fail resting only on this rule holds (evaluate.CODE_READ_HOLD_RULES), as role-change's does.
+id: security-events-logged.tsx-generic.account-change
+practice_id: security-events-logged
+language: tsx
+frameworks:
+- generic
+kind: items
+rule:
+  kind: call_expression
+  any:
+  - has:
+      field: function
+      kind: member_expression
+      regex: '\.auth\.admin\.(deleteUser|updateUserById|createUser|inviteUserByEmail)$'
+  # T29-P2-C484 low 2: a model delete takes an object (Prisma's { where }), so a Map named users is no item.
+  - all:
+    - has:
+        field: function
+        kind: member_expression
+        regex: '(?i)\.(users?|accounts?|staffs?|employees?|members?)\.(delete|deleteMany)$'
+    - has:
+        field: arguments
+        kind: arguments
+        has:
+          kind: object
+  - all:
+    - has:
+        field: function
+        kind: member_expression
+        regex: '(?i)\.(users?|accounts?|staffs?|employees?|members?)\.(update|updateMany|upsert)$'
+    - has:
+        field: arguments
+        kind: arguments
+        has:
+          stopBy: end
+          kind: pair
+          has:
+            field: key
+            kind: property_identifier
+            regex: '^(is_?[aA]ctive|active|is_?[dD]isabled|disabled|is_?[bB]anned|banned|banned_?[uU]ntil|is_?[lL]ocked|locked|is_?[sS]uspended|suspended|deactivated_?[aA]t)$'
+          not:
+            inside:
+              stopBy:
+                kind: arguments
+              kind: pair
+              has:
+                field: key
+                kind: property_identifier
+                regex: '^(select|include|where|orderBy|omit|_count)$'
+  - all:
+    - has:
+        field: function
+        kind: member_expression
+        regex: '\.rpc$'
+    - has:
+        field: arguments
+        kind: arguments
+        all:
+        - has:
+            kind: string
+            regex: '(?i)(user|account|role|member|staff|admin)'
+        - has:
+            kind: object
+            has:
+              kind: pair
+              has:
+                field: key
+                kind: property_identifier
+                regex: '^p_(roles?|role_ids?|is_admin|active|is_active|disabled|banned)$'
+control:
+  inside:
+    stopBy:
+      any:
+      - kind: statement_block
+      - kind: program
+    all:
+    - any:
+      - kind: expression_statement
+      - kind: lexical_declaration
+      - kind: variable_declaration
+    - any:
+      - follows: &audit
+          kind: expression_statement
+          regex: '(?-u)^(await\s+)?(this\.)?[\w.]*(?i-u)(audit|security_?events?|log_?security|record_?security|log_?denied|record_?denied|log_?access_?denied)\w*\s*[.(]'
+          not:
+            any:
+            - kind: expression_statement
+              regex: '^(await\s+)?(this\.)?[\w.]*(?i-u)(skip|disable|without|bypass|noaudit|no_audit)'
+            - kind: expression_statement
+              regex: '(?-u)\.(find\w*|count\w*|aggregate|groupBy|is\w+|set\w*|clear|remove\w*|disable\w*|toString|get\w*|list\w*)\s*\('
+      - follows:
+          any: &stmt
+          - kind: expression_statement
+          - kind: lexical_declaration
+          - kind: variable_declaration
+          - kind: comment
+          - kind: if_statement
+          follows: *audit
+      - follows:
+          any: *stmt
+          follows:
+            any: *stmt
+            follows: *audit
+      - follows:
+          any: *stmt
+          follows:
+            any: *stmt
+            follows:
+              any: *stmt
+              follows: *audit
+min_engine: 0.45.3
