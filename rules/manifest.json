@@ -1,5 +1,5 @@
 {
-  "ruleset_id": "2026-11-18.f85ee6ed",
+  "ruleset_id": "2026-11-18.859cac9d",
   "min_engine": "0.45.3",
   "files": [
     {
@@ -1448,7 +1448,7 @@
     },
     {
       "path": "rules/staff-mfa-enforced/javascript-generic.yml",
-      "sha256": "a96e4125d3356bc6e1586234f6d8dbd15cd31470151cd0657d5909d886060835"
+      "sha256": "c1969675b6444678bf3c25752339aeb6de142757c7eb3ff672c3d0164b7b55a0"
     },
     {
       "path": "rules/staff-mfa-enforced/php-generic.yml",
@@ -1472,11 +1472,11 @@
     },
     {
       "path": "rules/staff-mfa-enforced/tsx-generic.yml",
-      "sha256": "2e7c0eed205f94dcb268d97506e9a4ccb0a6430be3fa14c4d720ae815edd1c17"
+      "sha256": "e5ecf1aa01501b676d2b51ab5f020a79403a8627c96e7bf20038328da413c241"
     },
     {
       "path": "rules/staff-mfa-enforced/typescript-generic.yml",
-      "sha256": "f45e68002c1f5dc1e6c7fe9567ecde4325883a05f0a39bc9994f10c5d5645952"
+      "sha256": "eaa5cf6eb1109719208a1dae1e61d154777b78607dc642a7d29080271e2e8b46"
     },
     {
       "path": "rules/staff-mfa-enforced/typescript-supabase.yml",

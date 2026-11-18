@@ -96,6 +96,11 @@ rule:
           field: condition
           kind: parenthesized_expression
           regex: (?i)(role|is_?staff|staff|admin|clinician|practitioner|provider|doctor|physician|nurse)
+    - not:
+        has:
+          field: condition
+          kind: parenthesized_expression
+          regex: (?i)(^|[^0-9A-Za-z_$])(response|resp|res|result|resolved|loginResult|authResult)\??\.(mfa|requires_?mfa|two_?factor|otp)[0-9A-Za-z_]*
     - has:
         field: consequence
         stopBy: end
@@ -117,9 +122,9 @@ rule:
               field: function
               any:
               - kind: identifier
-                regex: (?i)^(disable|remove|delete|reset|turn_?off|toggle|unenroll|revoke)
+                regex: (?i)^(disable|remove|delete|reset|turn_?off|toggle|unenroll|revoke|enable|enroll)
               - kind: member_expression
-                regex: (?i)(^|\.)(disable|remove|delete|reset|turn_?off|toggle|unenroll|revoke)[0-9A-Za-z_]*$
+                regex: (?i)(^|\.)(disable|remove|delete|reset|turn_?off|toggle|unenroll|revoke|enable|enroll)[0-9A-Za-z_]*(\(|$)
   - all:
     - any:
       - kind: function_declaration
