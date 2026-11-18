@@ -1,5 +1,5 @@
 {
-  "ruleset_id": "2026-11-18.f8644c43",
+  "ruleset_id": "2026-11-18.beabdcd4",
   "min_engine": "0.45.3",
   "files": [
     {
@@ -1356,7 +1356,7 @@
     },
     {
       "path": "rules/security-events-logged/tsx-generic.yml",
-      "sha256": "a31363bd04cd285c32f5ec6eb67f2cacfd3949587c58dae8e7400727830836d7"
+      "sha256": "8fce81a35694338da2b2fd6f2cedcba061bf6f7f8a2b5811581f8f479995b8fa"
     },
     {
       "path": "rules/security-events-logged/typescript-generic.yml",
