@@ -1,5 +1,5 @@
 {
-  "ruleset_id": "2026-11-18.f7373303",
+  "ruleset_id": "2026-11-18.990a703c",
   "min_engine": "0.45.3",
   "files": [
     {
@@ -408,7 +408,7 @@
     },
     {
       "path": "rules/authz-every-handler/php-generic.yml",
-      "sha256": "5b4b50a96679b3a215c24416a01695e5cc3df6c682e0696c585773102ce7a25e"
+      "sha256": "1180a9b2bd63979fd9e191d680ec45c8fe1c1c2c429b7547768e1718ebc3706f"
     },
     {
       "path": "rules/authz-every-handler/php-laravel.yml",
