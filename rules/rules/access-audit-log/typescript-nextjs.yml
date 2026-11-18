@@ -1015,6 +1015,8 @@ min_engine: 0.45.3
 # select, a Drizzle select) and writes none is a read handler, with the read handler's control.
 # T29-P1-C450: a write to the audit trail is no record write, so the control decides; a write verb
 # on any receiver depth and raw SQL that starts with UPDATE, INSERT or DELETE are record writes.
+# Slice 5 (P3 C533, C527 K2): only an audit table is the audit trail, and a write through a const
+# bound to a model is a record write.
 id: access-audit-log.typescript-nextjs.read-action
 practice_id: access-audit-log
 language: typescript
@@ -1070,17 +1072,49 @@ rule:
               has:
                 field: function
                 kind: member_expression
-                regex: (?i)audit|access_?logs?|access_?events?|activity_?logs?|phi_?access|security_?events?
+                regex: (?i)\.(audits?|audit_?(logs?|trails?|events?|entry|entries|records?)|access_?(logs?|events?)|activity_?logs?|phi_?access(_?logs?)?|security_?events?)\.[\w$]+$
           - not:
               has:
-                field: arguments
-                kind: arguments
-                has:
-                  kind: identifier
-                  regex: (?i)audit|access_?logs?|access_?events?|activity_?logs?|phi_?access|security_?events?
+                field: function
+                kind: member_expression
+                regex: (?i)\.from\(\s*['\x22`](audits?|audit_?(logs?|trails?|events?|entry|entries|records?)|access_?(logs?|events?)|activity_?logs?|phi_?access(_?logs?)?|security_?events?)['\x22`]\s*\)\s*\.[\w$]+$
+          - not:
+              all:
+              - has:
+                  field: function
+                  kind: member_expression
+                  regex: ^(db|tx|drizzle|database)\.(insert|update|delete)$
+              - has:
+                  field: arguments
+                  kind: arguments
+                  any:
+                  - has:
+                      kind: identifier
+                      regex: (?i)^(audits?|audit_?(logs?|trails?|events?|entry|entries|records?)|access_?(logs?|events?)|activity_?logs?|phi_?access(_?logs?)?|security_?events?)$
+                  - has:
+                      kind: member_expression
+                      regex: (?i)\.(audits?|audit_?(logs?|trails?|events?|entry|entries|records?)|access_?(logs?|events?)|activity_?logs?|phi_?access(_?logs?)?|security_?events?)$
           - not:
               kind: call_expression
-              regex: (?is)^[\w$.]*(\$executeRaw|\$executeRawUnsafe|\.query|\.execute|\bsql)\s*\(?\s*[`'"]\s*(update|insert\s+into|delete\s+from)\s+["`]?\w*(audit|access_?log|activity_?log)
+              regex: (?is)^[\w$.]*(\$executeRaw|\$executeRawUnsafe|\.query|\.execute|\bsql)\s*\(?\s*[`'"]\s*(update|insert\s+into|delete\s+from)\s+[\x22`]?(\w+\.)?(audits?|audit_?(logs?|trails?|events?|entry|entries|records?)|access_?(logs?|events?)|activity_?logs?|phi_?access(_?logs?)?|security_?events?)[\x22`]?(\s|\(|$)
+    - not:
+        all:
+        - has:
+            stopBy: end
+            kind: lexical_declaration
+            pattern: const $AAM = $AAD.$AAT
+            regex: =\s*(prisma|db|tx|client|ctx\.prisma|ctx\.db)\.[\w$]+\s*;?\s*$
+        - has:
+            stopBy: end
+            kind: call_expression
+            any:
+            - pattern: $AAM.create($$$)
+            - pattern: $AAM.createMany($$$)
+            - pattern: $AAM.update($$$)
+            - pattern: $AAM.updateMany($$$)
+            - pattern: $AAM.upsert($$$)
+            - pattern: $AAM.delete($$$)
+            - pattern: $AAM.deleteMany($$$)
   - kind: function_declaration
     regex: ^async\b
     all:
@@ -1099,6 +1133,24 @@ rule:
           stopBy: end
           kind: call_expression
           all: *id002
+    - not:
+        all:
+        - has:
+            stopBy: end
+            kind: lexical_declaration
+            pattern: const $AAM = $AAD.$AAT
+            regex: =\s*(prisma|db|tx|client|ctx\.prisma|ctx\.db)\.[\w$]+\s*;?\s*$
+        - has:
+            stopBy: end
+            kind: call_expression
+            any:
+            - pattern: $AAM.create($$$)
+            - pattern: $AAM.createMany($$$)
+            - pattern: $AAM.update($$$)
+            - pattern: $AAM.updateMany($$$)
+            - pattern: $AAM.upsert($$$)
+            - pattern: $AAM.delete($$$)
+            - pattern: $AAM.deleteMany($$$)
   - kind: arrow_function
     regex: ^async\b
     all:
@@ -1122,6 +1174,24 @@ rule:
           stopBy: end
           kind: call_expression
           all: *id002
+    - not:
+        all:
+        - has:
+            stopBy: end
+            kind: lexical_declaration
+            pattern: const $AAM = $AAD.$AAT
+            regex: =\s*(prisma|db|tx|client|ctx\.prisma|ctx\.db)\.[\w$]+\s*;?\s*$
+        - has:
+            stopBy: end
+            kind: call_expression
+            any:
+            - pattern: $AAM.create($$$)
+            - pattern: $AAM.createMany($$$)
+            - pattern: $AAM.update($$$)
+            - pattern: $AAM.updateMany($$$)
+            - pattern: $AAM.upsert($$$)
+            - pattern: $AAM.delete($$$)
+            - pattern: $AAM.deleteMany($$$)
   - kind: arrow_function
     regex: ^async\b
     all:
@@ -1140,6 +1210,24 @@ rule:
           stopBy: end
           kind: call_expression
           all: *id002
+    - not:
+        all:
+        - has:
+            stopBy: end
+            kind: lexical_declaration
+            pattern: const $AAM = $AAD.$AAT
+            regex: =\s*(prisma|db|tx|client|ctx\.prisma|ctx\.db)\.[\w$]+\s*;?\s*$
+        - has:
+            stopBy: end
+            kind: call_expression
+            any:
+            - pattern: $AAM.create($$$)
+            - pattern: $AAM.createMany($$$)
+            - pattern: $AAM.update($$$)
+            - pattern: $AAM.updateMany($$$)
+            - pattern: $AAM.upsert($$$)
+            - pattern: $AAM.delete($$$)
+            - pattern: $AAM.deleteMany($$$)
 control:
   any:
   - has:
