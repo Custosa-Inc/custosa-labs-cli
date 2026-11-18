@@ -744,3 +744,219 @@ rule:
       inside:
         kind: arguments
 min_engine: 0.45.3
+---
+# T29-P1-C447: an Express handler a route takes by reference (a controller method, an exported
+# function, a const arrow) with a read verb for a name, the request and the response for its first
+# two parameters, and a data call is a read handler, with the read handler's control.
+id: access-audit-log.javascript-express.read-controller
+practice_id: access-audit-log
+language: javascript
+frameworks:
+- express
+kind: items
+rule:
+  any:
+  - kind: method_definition
+    all:
+    - has:
+        field: name
+        kind: property_identifier
+        regex: ^(get|list|find|fetch|search|show|view|read|retrieve)([A-Z0-9_]\w*)?$
+    - &id001
+      has:
+        field: parameters
+        kind: formal_parameters
+        regex: ^\(\s*(req|request)\b[^,]*,\s*(res|response)\b
+    - &id002
+      has:
+        field: body
+        kind: statement_block
+    - &id003
+      has:
+        stopBy: end
+        kind: call_expression
+        has:
+          field: function
+          kind: member_expression
+          not:
+            kind: member_expression
+            regex: ^(res|response|req|request|next|console|JSON|Number|String|Object|Array|Math|Date|Promise|logger|log)\b
+  - kind: function_declaration
+    all:
+    - has:
+        field: name
+        kind: identifier
+        regex: ^(get|list|find|fetch|search|show|view|read|retrieve)([A-Z0-9_]\w*)?$
+    - *id001
+    - *id002
+    - *id003
+  - any:
+    - kind: arrow_function
+    - kind: function_expression
+    all:
+    - inside:
+        kind: variable_declarator
+        has:
+          field: name
+          kind: identifier
+          regex: ^(get|list|find|fetch|search|show|view|read|retrieve)([A-Z0-9_]\w*)?$
+    - *id001
+    - *id003
+control:
+  has:
+    field: body
+    kind: statement_block
+    all:
+    - has:
+        kind: expression_statement
+        has:
+          any:
+          - &id013
+            kind: call_expression
+            all:
+            - any:
+              - has:
+                  field: function
+                  kind: member_expression
+                  regex: \.([^.\s(]*([aA]udit|[aA]ccess_?[lL]ogs?|[aA]ccess_?[eE]vents?|[pP]hi_?[aA]ccess|[aA]ctivity_?[lL]ogs?)[^.\s(]*|securityEvents?)\.(create|createMany)$
+                  not:
+                    kind: member_expression
+                    regex: (Service|Svc|Client|Manager|Helper|Logger|Tracker)\.(create|createMany)$
+              - has:
+                  field: function
+                  kind: member_expression
+                  regex: \.from\(\s*['\x22`][^'\x22`]*(audit|access_log|access_event|phi_access|activity_log|security_event)[^'\x22`]*['\x22`]\s*\)\s*\.insert$
+              - all:
+                - has:
+                    field: function
+                    kind: member_expression
+                    regex: \.insert$
+                - has:
+                    field: arguments
+                    kind: arguments
+                    has:
+                      kind: identifier
+                      regex: (?-u)(?i)audit|access_?logs?
+              - has:
+                  field: function
+                  kind: member_expression
+                  regex: ^[A-Z]?[^.\s(]*(Audit|AccessLog|AccessEvent|PhiAccess|ActivityLog)[^.\s(]*\.(create|bulkCreate|insertMany)$
+              - has:
+                  field: function
+                  kind: member_expression
+                  regex: ^\(?new\s+[^.\s(]*(Audit|AccessLog|AccessEvent|PhiAccess|ActivityLog)[^.\s(]*\([\s\S]*\)\)?\.save$
+              - has:
+                  field: function
+                  kind: member_expression
+                  regex: ^\w+\(\s*['\x22`][^'\x22`]*(audit|access_log)[^'\x22`]*['\x22`]\s*\)\s*\.insert$
+              - has:
+                  field: function
+                  kind: member_expression
+                  regex: '[aA]udit[^.\s(]*(Repo|Repository)\.(save|insert)$'
+              - has:
+                  field: function
+                  kind: member_expression
+                  regex: \.insert\(\s*[\w.]*([aA]udit|[aA]ccess_?[lL]og)[\w.]*\s*\)\s*\.values$
+              - all:
+                - has:
+                    field: function
+                    any:
+                    - kind: member_expression
+                      regex: (?:^|\.)(?:query|execute|exec|none|one|any|raw|\$executeRaw|\$executeRawUnsafe|unsafe)$
+                    - kind: identifier
+                      regex: (?:^|\.)(?:query|execute|exec|none|one|any|raw|\$executeRaw|\$executeRawUnsafe|unsafe)$
+                - any:
+                  - has:
+                      field: arguments
+                      kind: arguments
+                      has:
+                        any:
+                        - kind: string
+                          regex: (?i)\binsert\s+into\s+[`\x22]?(?:\w+\.)?[`\x22]?[^\s(`\x22]*(audit|access_log|access_event|phi_access|activity_log|security_event)
+                        - kind: template_string
+                          regex: (?i)\binsert\s+into\s+[`\x22]?(?:\w+\.)?[`\x22]?[^\s(`\x22]*(audit|access_log|access_event|phi_access|activity_log|security_event)
+                  - has:
+                      field: arguments
+                      kind: template_string
+                      regex: (?i)\binsert\s+into\s+[`\x22]?(?:\w+\.)?[`\x22]?[^\s(`\x22]*(audit|access_log|access_event|phi_access|activity_log|security_event)
+            - all:
+              - not:
+                  any:
+                  - inside: &id005
+                      any:
+                      - kind: expression_statement
+                        inside:
+                          kind: statement_block
+                          inside: &id004
+                            kind: if_statement
+                      - kind: expression_statement
+                        inside: *id004
+                  - inside:
+                      kind: await_expression
+                      inside: *id005
+                  - inside: &id011
+                      kind: expression_statement
+                      any:
+                      - follows: &id006
+                          kind: return_statement
+                      - follows:
+                          any:
+                          - &id007
+                            kind: expression_statement
+                          - &id008
+                            kind: lexical_declaration
+                          - &id009
+                            kind: variable_declaration
+                          - &id010
+                            kind: comment
+                          follows: *id006
+                      - follows:
+                          any:
+                          - *id007
+                          - *id008
+                          - *id009
+                          - *id010
+                          follows:
+                            any:
+                            - *id007
+                            - *id008
+                            - *id009
+                            - *id010
+                            follows: *id006
+                  - inside:
+                      kind: await_expression
+                      inside: *id011
+              - not:
+                  all:
+                  - pattern: $AFN($$$AARGS)
+                  - any:
+                    - inside: &id012
+                        kind: expression_statement
+                        inside:
+                          kind: statement_block
+                          has:
+                            any:
+                            - kind: lexical_declaration
+                            - kind: variable_declaration
+                            has:
+                              kind: variable_declarator
+                              pattern:
+                                context: const $AFN = $AVAL
+                                selector: variable_declarator
+                    - inside:
+                        kind: await_expression
+                        inside: *id012
+          - kind: await_expression
+            has: *id013
+    - not:
+        has:
+          kind: return_statement
+          precedes:
+            any:
+            - kind: expression_statement
+            - kind: lexical_declaration
+            - kind: variable_declaration
+            - kind: comment
+            - kind: if_statement
+            - kind: return_statement
+min_engine: 0.45.3
