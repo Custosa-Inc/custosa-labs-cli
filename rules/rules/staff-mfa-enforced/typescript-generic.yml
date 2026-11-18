@@ -18,6 +18,23 @@ rule:
         regex: ^(await\s+)?([0-9A-Za-z_]+\.)*((bcrypt|bcryptjs|argon2)\.(compare|compareSync|verify)|signInWithPassword|verifyPassword|checkPassword|comparePassword|validatePassword|validateUser|authenticateUser)\(
       - kind: await_expression
         regex: ^(await\s+)?([0-9A-Za-z_]+\.)*((bcrypt|bcryptjs|argon2)\.(compare|compareSync|verify)|signInWithPassword|verifyPassword|checkPassword|comparePassword|validatePassword|validateUser|authenticateUser)\(
+      - all:
+        - any:
+          - kind: call_expression
+            regex: ^(compare|compareSync)\(
+          - kind: await_expression
+            regex: ^await\s+(compare|compareSync)\(
+        - inside:
+            stopBy: end
+            kind: program
+            has:
+              any:
+              - kind: import_statement
+                regex: '^import\s+([A-Za-z0-9_$]+\s*,\s*)?\{[^}]*(?-u:\b)compare(Sync)?(?-u:\b)[^}]*\}\s*from\s*[''"]bcrypt(js)?[''"]'
+              - kind: lexical_declaration
+                regex: '^(const|let|var)\s*\{[^}]*(?-u:\b)compare(Sync)?(?-u:\b)[^}]*\}\s*=\s*require\(\s*[''"]bcrypt(js)?[''"]\s*\)'
+              - kind: variable_declaration
+                regex: '^(const|let|var)\s*\{[^}]*(?-u:\b)compare(Sync)?(?-u:\b)[^}]*\}\s*=\s*require\(\s*[''"]bcrypt(js)?[''"]\s*\)'
   - not:
       has:
         stopBy: end

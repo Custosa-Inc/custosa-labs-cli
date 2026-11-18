@@ -1,5 +1,5 @@
 {
-  "ruleset_id": "2026-11-18.a24c150d",
+  "ruleset_id": "2026-11-18.6dc88222",
   "min_engine": "0.45.3",
   "files": [
     {
@@ -1448,7 +1448,7 @@
     },
     {
       "path": "rules/staff-mfa-enforced/javascript-generic.yml",
-      "sha256": "59c044f2cb333354685f0b277954db94e234efd46283c39f15430b2f0bd5f5a4"
+      "sha256": "a0f7588d53baff18f0834a6d647eda29cd0ed13185523a019c2f8b03bd390cc8"
     },
     {
       "path": "rules/staff-mfa-enforced/php-generic.yml",
@@ -1456,7 +1456,7 @@
     },
     {
       "path": "rules/staff-mfa-enforced/php-laravel.yml",
-      "sha256": "73a3cd16245086b4f7ebf0ba8f9c3c21e7d01ada94d96d22a9114031d9e4d76f"
+      "sha256": "24e4249d377fdd89edc44db05f0fbfaf2c4efd8a4991cb471b92602a06868eb2"
     },
     {
       "path": "rules/staff-mfa-enforced/python-django.yml",
@@ -1472,7 +1472,7 @@
     },
     {
       "path": "rules/staff-mfa-enforced/typescript-generic.yml",
-      "sha256": "1f0657f2b153148a17881cee56dd07f0cfcad884bbeb69880f5a0f7c2a3b28d8"
+      "sha256": "b132256f05eaa390926f57d4e8b09e3b570e7608042a6ac3ab69f6ac997abd9a"
     },
     {
       "path": "rules/staff-mfa-enforced/typescript-supabase.yml",

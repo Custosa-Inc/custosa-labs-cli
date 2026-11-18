@@ -85,3 +85,27 @@ rule:
         - kind: scoped_call_expression
           regex: (?i)(verifyKey|verifyCode|validateToken|verifyTotp|checkTotp|verifyOtp|totp->verify|google2fa|TwoFactorAuthenticationProvider|->verify\(|u2f|webauthn)
 min_engine: 0.39.0
+---
+id: staff-mfa-enforced.php-laravel.filament-no-mfa
+practice_id: staff-mfa-enforced
+language: php
+frameworks:
+- laravel
+kind: violation
+rule:
+  all:
+  - kind: method_declaration
+  - has:
+      field: name
+      kind: name
+      regex: ^panel$
+  - has:
+      stopBy: end
+      kind: member_call_expression
+      regex: (?s)^\$panel(?-u:\b).*->\s*login\(\s*\)
+  - not:
+      has:
+        stopBy: end
+        kind: member_call_expression
+        regex: (multiFactor|MultiFactor|TwoFactor|twoFactor|two_factor|2fa|2FA|Mfa|MFA|->\s*mfa\(|Otp|OTP|Totp|TOTP|WebAuthn|Webauthn|webauthn|Passkey|passkey)
+min_engine: 0.39.0
