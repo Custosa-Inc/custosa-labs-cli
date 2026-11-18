@@ -80,3 +80,131 @@ rule:
             kind: name
             regex: '(?i)^(check|verify|ensure|require|assert|authori[sz]e|enforce|getCurrent|get_current)_?\w*(owner|access|permission|user|caller|principal|identity|polic(y|ies)|tenant|member|canView|can_view)\w*$'
 min_engine: 0.39.0
+---
+# T29 (T29-P1-C436, authz misses slice 4): a Symfony controller method with a #[Route] attribute whose path takes a
+# parameter (#[Route('/nurse/{id}', methods: ['PUT'])], or path: '/x/{id}'), in a file that imports Symfony's Route
+# attribute (Symfony\Component\Routing\Attribute\Route or ...\Annotation\Route), is an item. The method is the item,
+# and its line is the attribute's. The control is the caller read in the method: $this->getUser(), a voter check with
+# a subject ($this->denyAccessUnlessGranted('EDIT', $nurse), $this->isGranted(...), or the same through a Security
+# service), the token storage's getToken(), a #[CurrentUser] parameter or an #[IsGranted(..., subject: ...)] on the
+# method. A check on a ROLE_ name says who may call, never which record (as hasRole on Spring), so it never counts.
+# No control: the practice asks for it (assistant_answer_needed), never a pass, unless auth-unobserved-symfony holds it.
+id: authz-every-handler.php-generic.symfony-route
+practice_id: authz-every-handler
+language: php
+frameworks:
+- generic
+kind: items
+rule:
+  kind: method_declaration
+  all:
+  - has:
+      kind: attribute_list
+      has:
+        kind: attribute_group
+        has:
+          kind: attribute
+          all:
+          - has:
+              kind: name
+              regex: ^Route$
+          - has:
+              kind: arguments
+              has:
+                kind: argument
+                regex: '^(path\s*:\s*)?[''"][^''"]*\{[A-Za-z_]\w*'
+  - inside:
+      stopBy: end
+      kind: program
+      has:
+        stopBy: end
+        kind: namespace_use_clause
+        regex: ^\\?Symfony\\Component\\Routing\\(Attribute|Annotation)\\Route$
+control:
+  any:
+  - has:
+      field: body
+      kind: compound_statement
+      has:
+        stopBy: end
+        any:
+        - kind: member_call_expression
+          regex: ^\$(this\s*->\s*)?(this|security)\s*->\s*getUser\s*\(
+        - kind: member_call_expression
+          regex: ^\$(this\s*->\s*)?(tokenStorage|security)\s*->\s*getToken\s*\(
+        - kind: member_call_expression
+          regex: ^\$(this\s*->\s*)?(this|security|authorizationChecker|authChecker)\s*->\s*(denyAccessUnlessGranted|isGranted)\s*\(
+          not:
+            kind: member_call_expression
+            regex: ->\s*(denyAccessUnlessGranted|isGranted)\s*\(\s*['"]ROLE_
+  - has:
+      field: parameters
+      kind: formal_parameters
+      has:
+        kind: simple_parameter
+        has:
+          kind: attribute_list
+          regex: '^#\[\s*\\?(\w+\\)*CurrentUser\b'
+  - has:
+      kind: attribute_list
+      regex: '\bIsGranted\s*\([^)]*\bsubject\s*:'
+min_engine: 0.39.0
+---
+# T29 (T29-P1-C436): a Symfony route method (as symfony-route) guarded by something this file can't see into: a call
+# in its body by a name that reads or checks the caller (a verb such as check, verify, ensure, require, assert,
+# authorize, enforce or getCurrent joined to owner, access, permission, user, caller, principal, identity, policy,
+# tenant, member, client, patient, account or profile: $this->checkPatientAccess($id), $this->getCurrentClient()). It
+# holds the item for a person (needs_review), never a pass. security.yaml access_control is out of view.
+id: authz-every-handler.php-generic.auth-unobserved-symfony
+practice_id: authz-every-handler
+language: php
+frameworks:
+- generic
+kind: evidence
+rule:
+  kind: method_declaration
+  all:
+  - has:
+      kind: attribute_list
+      has:
+        kind: attribute_group
+        has:
+          kind: attribute
+          all:
+          - has:
+              kind: name
+              regex: ^Route$
+          - has:
+              kind: arguments
+              has:
+                kind: argument
+                regex: '^(path\s*:\s*)?[''"][^''"]*\{[A-Za-z_]\w*'
+  - inside:
+      stopBy: end
+      kind: program
+      has:
+        stopBy: end
+        kind: namespace_use_clause
+        regex: ^\\?Symfony\\Component\\Routing\\(Attribute|Annotation)\\Route$
+  - has:
+      field: body
+      kind: compound_statement
+      has:
+        stopBy: end
+        any:
+        - kind: function_call_expression
+          has:
+            field: function
+            kind: name
+            regex: '(?i)^(check|verify|ensure|require|assert|authori[sz]e|enforce|getCurrent|get_current|current)_?\w*(owner|access|permission|user|caller|principal|identity|polic(y|ies)|tenant|member|canView|can_view|client|patient|account|profile)\w*$'
+        - kind: member_call_expression
+          has:
+            field: name
+            kind: name
+            regex: '(?i)^(check|verify|ensure|require|assert|authori[sz]e|enforce|getCurrent|get_current|current)_?\w*(owner|access|permission|user|caller|principal|identity|polic(y|ies)|tenant|member|canView|can_view|client|patient|account|profile)\w*$'
+        - kind: scoped_call_expression
+          has:
+            field: name
+            kind: name
+            regex: '(?i)^(check|verify|ensure|require|assert|authori[sz]e|enforce|getCurrent|get_current|current)_?\w*(owner|access|permission|user|caller|principal|identity|polic(y|ies)|tenant|member|canView|can_view|client|patient|account|profile)\w*$'
+min_engine: 0.39.0

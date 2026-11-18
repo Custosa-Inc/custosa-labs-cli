@@ -34,10 +34,15 @@ rule:
           any:
           - kind: string
             regex: ^['"`]/[^'"`]*:[A-Za-z_]
+          - kind: template_string
+            regex: ^`/[^`]*:[A-Za-z_]
           - kind: array
             has:
-              kind: string
-              regex: ^['"`]/[^'"`]*:[A-Za-z_]
+              any:
+              - kind: string
+                regex: ^['"`]/[^'"`]*:[A-Za-z_]
+              - kind: template_string
+                regex: ^`/[^`]*:[A-Za-z_]
       - has:
           any:
           - kind: arrow_function
@@ -55,6 +60,16 @@ control:
         any:
         - kind: call_expression
           regex: ^(c|ctx|context)\.get\(\s*['"`](user|userId|user_id|uid|jwtPayload|session|auth|currentUser|claims|principal)['"`]\s*\)
+        - kind: variable_declarator
+          all:
+          - has:
+              field: name
+              kind: object_pattern
+              regex: \b(user|userId|user_id|uid|jwtPayload|session|auth|currentUser|claims|principal)\b
+          - has:
+              field: value
+              kind: member_expression
+              regex: ^(c|ctx|context)\.var$
         - kind: member_expression
           regex: ^(c|ctx|context)\.var\.(user|userId|user_id|uid|jwtPayload|session|auth|currentUser|claims|principal)\b
           not:

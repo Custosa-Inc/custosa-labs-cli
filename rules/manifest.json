@@ -1,5 +1,5 @@
 {
-  "ruleset_id": "2026-11-18.1a0c157a",
+  "ruleset_id": "2026-11-18.7c1584a4",
   "min_engine": "0.45.3",
   "files": [
     {
@@ -408,7 +408,7 @@
     },
     {
       "path": "rules/authz-every-handler/php-generic.yml",
-      "sha256": "2f6d688933b1a33ad9e0cfe1237d2fd07b53870f2f125b5f37e34695ac97f81f"
+      "sha256": "e6fd860dc54b9e888e85de11731bc95abdcdbd6ef26d1f890e80956bc8b60e77"
     },
     {
       "path": "rules/authz-every-handler/php-laravel.yml",
@@ -440,7 +440,7 @@
     },
     {
       "path": "rules/authz-every-handler/typescript-hono.yml",
-      "sha256": "afb942731d0e4250132f4d788d7d05f79eac7e16111bd43efb37732f8c8ddb8c"
+      "sha256": "324ce0ee9f7f2084a6e027c9a344d36f0ce8bec61f6f939c59d49553bcf8b508"
     },
     {
       "path": "rules/authz-every-handler/typescript-nestjs.yml",
@@ -452,7 +452,7 @@
     },
     {
       "path": "rules/authz-every-handler/typescript-nuxt.yml",
-      "sha256": "6bb84a11f521d6e1d523b11271b43704ddcccfbf1cbaf45edba9bcf972d2d1d0"
+      "sha256": "9c4570c68748f31754dce8ee4921af1db5c334adc78e4191e6f36b9183cd2682"
     },
     {
       "path": "rules/break-glass-access/javascript-generic.yml",
