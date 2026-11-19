@@ -1280,7 +1280,7 @@
             "ready",
             "not_ready"
           ],
-          "description": "The badge's word (T27 C69, contract A), which the public badge and page show: the same rule as state, with a pass or not_applicable practice counted only at the grades custosa (E1, E2) and custosa_on_cited_facts (E3). A practice the assistant or a person settled (pass or not_applicable) never makes it ready. Inside the session state stands."
+          "description": "The badge's word (T27 C69, contract A), which the public badge and page show: the same rule as state, with a pass or not_applicable practice counted only at the grade custosa (E1, E2). A practice that passes on cited facts (custosa_on_cited_facts, E3) or that the assistant or a person settled (pass or not_applicable) never makes it ready (T29 C492 decision 4). Inside the session state stands."
         },
         "headline": {
           "type": "string",
@@ -1296,7 +1296,7 @@
           "description": "percent_verified: practices whose pass rests only on Custosa's own reading (E1 or E2) over every practice line but a not_applicable one Custosa read itself, plus one line per confirmed open concern that names no practice line; half up, never 100 while one isn't such a pass, null when nothing applies."
         },
         "counts": {
-          "description": "Results by shown state; a pass or not_applicable Custosa judged on facts the assistant cited (E3), or the assistant or a person settled, is counted in custosa_on_cited_facts, assistant_decided or person_decided, never in pass or not_applicable. A labelled fail stays in fail.",
+          "description": "Results by shown state; a pass or not_applicable Custosa judged on facts the assistant cited (E3), or the assistant or a person settled, is counted in custosa_on_cited_facts, assistant_decided or person_decided, never in pass or not_applicable. An AI-only one (assistant_decided at E4) on a critical or high result is counted in needs_review (T29 C492 decision 4). A labelled fail stays in fail.",
           "type": "object",
           "additionalProperties": false,
           "required": [
