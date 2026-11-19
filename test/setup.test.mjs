@@ -74,7 +74,9 @@ test("adds PHI Schema Check to every assistant it finds, each in its own format"
   // No per-check estimate: the price is per work unit with no cap .
   assert.match(pc.output(), /\$0\.003 per work unit, prepaid\./);   // it was $0.006
   assert.doesNotMatch(pc.output(), /usually costs|a whole check|\$2 to \$6/);
-  assert.match(pc.output(), /Every result is charged, unknown results and practices with no rule for the stack included\./);
+  // T29 C492 decision 7: charged only where a rule ran for the stack.
+  assert.match(pc.output(), /Only results where a rule ran for the stack are charged, unknown ones included; a practice with no rule for the stack is not charged\./);
+  assert.doesNotMatch(pc.output(), /Every result is charged/);
   assert.doesNotMatch(pc.output(), /HIPAA gaps|with Custosa\./);
 });
 
