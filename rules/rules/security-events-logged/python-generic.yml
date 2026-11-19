@@ -162,7 +162,11 @@ control:
         any:
         - kind: call
           regex: '^(await\s+)?(self\.)?(\w+\.)*(?i:get|fetch|list|find|read|load|query|search|export|count|select|retrieve|download)\w*\s*\('
-        # T29 (T29-P1-C467, P2 C574 F7): an audit counter, metric or gauge writes no event, whatever its verb
+        # T29 (T29-P1-C467, P2 C574 F7; T29-P1-C470, P2 C587 L5): an audit counter, metric, gauge, count, total or stats
+        # writes no event, whatever its verb
         - kind: call
-          regex: '^(await\s+)?(self\.)?[\w.]*(?i)(audit|security_?events?)\w*(counter|metric|gauge|histogram|meter)s?\b'
+          regex: '^(await\s+)?(self\.)?[\w.]*(?i)(audit|security_?events?)\w*((counter|metric|gauge|histogram|meter)s?|(_c|(?-i:C))ounts?|(_t|(?-i:T))otals?|(_s|(?-i:S))tats?)\b'
+        # T29 (T29-P1-C470, P2 C587 L5): a called name ending in Report builds a report (auditReportService.createReport), no event
+        - kind: call
+          regex: '^(await\s+)?(self\.)?[\w.]*(?i)reports?\s*\('
 min_engine: 0.45.3

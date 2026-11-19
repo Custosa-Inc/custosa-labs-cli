@@ -3234,7 +3234,8 @@ min_engine: 0.39.0
 # sessionId or user (if (!session?.userId) throw ...), or bare (if (!session) throw ...) only when the file imports auth
 # from next-auth; and a destructured auth() or getAuth(req) key counts only when it is userId, sessionId or user. A
 # next-auth v5 project's own auth (import { auth } from "@/auth") checked bare is held for a person (a false hold).
-# T29 (T29-P1-C467, P2 C574 F2, lows round 1): a middleware with a conditional return of its own (if (...) return ...)
+# T29 (T29-P1-C467, P2 C574 F2, lows round 1; T29-P1-C470, P2 C587 L3, lows round 2: a return in a switch, loop or
+# catch too): a middleware with a conditional return of its own (if (...) return ...)
 # never counts, since statement order isn't read and a return before the check lets a caller skip it; one after the
 # check is held for a person too (a false hold). A return inside a callback in the middleware is not its own. Any other middleware is
 # auth-unobserved-upload, a hold for a person. With no middleware the item has no control, and like every authz item
@@ -3315,7 +3316,15 @@ control:
                     - kind: function_declaration
                     - kind: method_definition
                     - kind: class_declaration
-                  kind: if_statement
+                  # T29 (T29-P1-C470, P2 C587 L3): a switch, loop or catch return is conditional too
+                  any:
+                  - kind: if_statement
+                  - kind: switch_statement
+                  - kind: for_statement
+                  - kind: for_in_statement
+                  - kind: while_statement
+                  - kind: do_statement
+                  - kind: catch_clause
                   has:
                     stopBy:
                       any:
@@ -3568,7 +3577,15 @@ rule:
                         - kind: function_declaration
                         - kind: method_definition
                         - kind: class_declaration
-                      kind: if_statement
+                      # T29 (T29-P1-C470, P2 C587 L3): a switch, loop or catch return is conditional too
+                      any:
+                      - kind: if_statement
+                      - kind: switch_statement
+                      - kind: for_statement
+                      - kind: for_in_statement
+                      - kind: while_statement
+                      - kind: do_statement
+                      - kind: catch_clause
                       has:
                         stopBy:
                           any:

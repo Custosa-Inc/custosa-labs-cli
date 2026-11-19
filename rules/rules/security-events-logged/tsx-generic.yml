@@ -614,9 +614,13 @@ control:
             any:
             - kind: call_expression
               regex: ^(this\.)?(\w+\.)*(?i:get|fetch|list|find|read|load|query|search|export|count|select|retrieve|download)\w*\s*\(
-            # T29 (T29-P1-C467, P2 C574 F7): an audit counter, metric or gauge writes no event, whatever its verb
+            # T29 (T29-P1-C467, P2 C574 F7; T29-P1-C470, P2 C587 L5): an audit counter, metric, gauge, count, total or stats
+            # writes no event, whatever its verb
             - kind: call_expression
-              regex: '^(this\.)?[\w.]*(?i)(audit|security_?events?)\w*(counter|metric|gauge|histogram|meter)s?\b'
+              regex: '^(this\.)?[\w.]*(?i)(audit|security_?events?)\w*((counter|metric|gauge|histogram|meter)s?|(_c|(?-i:C))ounts?|(_t|(?-i:T))otals?|(_s|(?-i:S))tats?)\b'
+            # T29 (T29-P1-C470, P2 C587 L5): a called name ending in Report builds a report (auditReportService.createReport), no event
+            - kind: call_expression
+              regex: '^(this\.)?[\w.]*(?i)reports?\s*\('
   - precedes:
       kind: decorator
       precedes: *id001
@@ -658,7 +662,7 @@ control:
       # T29 (T29-P1-C467, P2 C574 F6): an opt-out decorator (@SkipAudit(), @NoAudit()) is no audit
       not:
         kind: decorator
-        regex: '(?i)^@((not|no|skip|without|disable|exclude|ignore)_?audit|\w*audit\w*(disabled?|skip|ignored?|excluded?)\b)'
+        regex: '(?i)^@((not|no|skip|without|disable|exclude|ignore|suppress)_?audit|\w*audit\w*(disabled?|skip|ignored?|excluded?|off)\b)'
   - precedes:
       kind: decorator
       precedes: *id002
