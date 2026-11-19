@@ -8034,6 +8034,412 @@ control:
                                       inside:
                                         kind: conditional_expression
                                         field: condition
+                      - any:
+                        - kind: assignment_expression
+                        - kind: augmented_assignment_expression
+                        not:
+                          any:
+                          - inside:
+                              stopBy: end
+                              any:
+                              - kind: arrow_function
+                              - kind: anonymous_function
+                              has:
+                                field: parameters
+                                has:
+                                  stopBy: end
+                                  kind: variable_name
+                                  pattern:
+                                    context: <?php $V->get();
+                                    selector: variable_name
+                          - has:
+                              field: left
+                              kind: variable_name
+                              pattern:
+                                context: <?php $V->get();
+                                selector: variable_name
+                        has:
+                          field: right
+                          any:
+                          - any:
+                            - kind: member_call_expression
+                            - kind: nullsafe_member_call_expression
+                            all:
+                            - not:
+                                has:
+                                  field: name
+                                  kind: name
+                                  regex: ^(get|all|first|firstOrFail|find|findOrFail|findMany|sole|paginate|simplePaginate|cursorPaginate|count|exists|doesntExist|pluck|value|sum|avg|average|min|max|cursor|lazy|lazyById|toSql|chunk|chunkById|each|clone)$
+                            - has:
+                                stopBy:
+                                  not:
+                                    any:
+                                    - kind: member_call_expression
+                                    - kind: nullsafe_member_call_expression
+                                kind: variable_name
+                                pattern:
+                                  context: <?php $V->get();
+                                  selector: variable_name
+                            - not:
+                                has:
+                                  stopBy:
+                                    not:
+                                      any:
+                                      - kind: member_call_expression
+                                      - kind: nullsafe_member_call_expression
+                                  any:
+                                  - kind: member_call_expression
+                                  - kind: nullsafe_member_call_expression
+                                  has:
+                                    field: name
+                                    kind: name
+                                    regex: ^clone$
+                          - any:
+                            - kind: conditional_expression
+                            - kind: match_expression
+                            - kind: binary_expression
+                              pattern:
+                                context: <?php $_ ?? $_;
+                                selector: binary_expression
+                            - kind: parenthesized_expression
+                            has:
+                              stopBy:
+                                not:
+                                  any:
+                                  - kind: conditional_expression
+                                  - kind: match_expression
+                                  - kind: match_block
+                                  - kind: binary_expression
+                                    pattern:
+                                      context: <?php $_ ?? $_;
+                                      selector: binary_expression
+                                  - kind: match_conditional_expression
+                                  - kind: match_default_expression
+                                  - kind: parenthesized_expression
+                                    not:
+                                      inside:
+                                        kind: match_expression
+                              all:
+                              - any:
+                                - kind: member_call_expression
+                                - kind: nullsafe_member_call_expression
+                                all:
+                                - not:
+                                    has:
+                                      field: name
+                                      kind: name
+                                      regex: ^(get|all|first|firstOrFail|find|findOrFail|findMany|sole|paginate|simplePaginate|cursorPaginate|count|exists|doesntExist|pluck|value|sum|avg|average|min|max|cursor|lazy|lazyById|toSql|chunk|chunkById|each|clone)$
+                                - has:
+                                    stopBy:
+                                      not:
+                                        any:
+                                        - kind: member_call_expression
+                                        - kind: nullsafe_member_call_expression
+                                    kind: variable_name
+                                    pattern:
+                                      context: <?php $V->get();
+                                      selector: variable_name
+                                - not:
+                                    has:
+                                      stopBy:
+                                        not:
+                                          any:
+                                          - kind: member_call_expression
+                                          - kind: nullsafe_member_call_expression
+                                      any:
+                                      - kind: member_call_expression
+                                      - kind: nullsafe_member_call_expression
+                                      has:
+                                        field: name
+                                        kind: name
+                                        regex: ^clone$
+                              - not:
+                                  any:
+                                  - inside:
+                                      kind: conditional_expression
+                                      field: condition
+                                  - inside:
+                                      kind: parenthesized_expression
+                                      inside:
+                                        kind: conditional_expression
+                                        field: condition
+                      - any:
+                        - kind: assignment_expression
+                        - kind: augmented_assignment_expression
+                        not:
+                          inside:
+                            stopBy: end
+                            any:
+                            - kind: arrow_function
+                            - kind: anonymous_function
+                            has:
+                              field: parameters
+                              has:
+                                stopBy: end
+                                kind: variable_name
+                                pattern:
+                                  context: <?php $V->get();
+                                  selector: variable_name
+                        has:
+                          field: right
+                          any:
+                          - kind: conditional_expression
+                            not:
+                              has:
+                                field: body
+                                not:
+                                  kind: comment
+                            has:
+                              field: condition
+                              any:
+                              - kind: variable_name
+                                pattern:
+                                  context: <?php $V->get();
+                                  selector: variable_name
+                              - any:
+                                - kind: member_call_expression
+                                - kind: nullsafe_member_call_expression
+                                all:
+                                - not:
+                                    has:
+                                      field: name
+                                      kind: name
+                                      regex: ^(get|all|first|firstOrFail|find|findOrFail|findMany|sole|paginate|simplePaginate|cursorPaginate|count|exists|doesntExist|pluck|value|sum|avg|average|min|max|cursor|lazy|lazyById|toSql|chunk|chunkById|each|clone)$
+                                - has:
+                                    stopBy:
+                                      not:
+                                        any:
+                                        - kind: member_call_expression
+                                        - kind: nullsafe_member_call_expression
+                                    kind: variable_name
+                                    pattern:
+                                      context: <?php $V->get();
+                                      selector: variable_name
+                                - not:
+                                    has:
+                                      stopBy:
+                                        not:
+                                          any:
+                                          - kind: member_call_expression
+                                          - kind: nullsafe_member_call_expression
+                                      any:
+                                      - kind: member_call_expression
+                                      - kind: nullsafe_member_call_expression
+                                      has:
+                                        field: name
+                                        kind: name
+                                        regex: ^clone$
+                              - kind: parenthesized_expression
+                                has:
+                                  any:
+                                  - kind: variable_name
+                                    pattern:
+                                      context: <?php $V->get();
+                                      selector: variable_name
+                                  - any:
+                                    - kind: member_call_expression
+                                    - kind: nullsafe_member_call_expression
+                                    all:
+                                    - not:
+                                        has:
+                                          field: name
+                                          kind: name
+                                          regex: ^(get|all|first|firstOrFail|find|findOrFail|findMany|sole|paginate|simplePaginate|cursorPaginate|count|exists|doesntExist|pluck|value|sum|avg|average|min|max|cursor|lazy|lazyById|toSql|chunk|chunkById|each|clone)$
+                                    - has:
+                                        stopBy:
+                                          not:
+                                            any:
+                                            - kind: member_call_expression
+                                            - kind: nullsafe_member_call_expression
+                                        kind: variable_name
+                                        pattern:
+                                          context: <?php $V->get();
+                                          selector: variable_name
+                                    - not:
+                                        has:
+                                          stopBy:
+                                            not:
+                                              any:
+                                              - kind: member_call_expression
+                                              - kind: nullsafe_member_call_expression
+                                          any:
+                                          - kind: member_call_expression
+                                          - kind: nullsafe_member_call_expression
+                                          has:
+                                            field: name
+                                            kind: name
+                                            regex: ^clone$
+                          - any:
+                            - kind: conditional_expression
+                            - kind: match_expression
+                            - kind: binary_expression
+                              pattern:
+                                context: <?php $_ ?? $_;
+                                selector: binary_expression
+                            - kind: parenthesized_expression
+                            has:
+                              stopBy:
+                                not:
+                                  any:
+                                  - kind: conditional_expression
+                                  - kind: match_expression
+                                  - kind: match_block
+                                  - kind: binary_expression
+                                    pattern:
+                                      context: <?php $_ ?? $_;
+                                      selector: binary_expression
+                                  - kind: match_conditional_expression
+                                  - kind: match_default_expression
+                                  - kind: parenthesized_expression
+                                    not:
+                                      inside:
+                                        kind: match_expression
+                              all:
+                              - kind: conditional_expression
+                                not:
+                                  has:
+                                    field: body
+                                    not:
+                                      kind: comment
+                                has:
+                                  field: condition
+                                  any:
+                                  - kind: variable_name
+                                    pattern:
+                                      context: <?php $V->get();
+                                      selector: variable_name
+                                  - any:
+                                    - kind: member_call_expression
+                                    - kind: nullsafe_member_call_expression
+                                    all:
+                                    - not:
+                                        has:
+                                          field: name
+                                          kind: name
+                                          regex: ^(get|all|first|firstOrFail|find|findOrFail|findMany|sole|paginate|simplePaginate|cursorPaginate|count|exists|doesntExist|pluck|value|sum|avg|average|min|max|cursor|lazy|lazyById|toSql|chunk|chunkById|each|clone)$
+                                    - has:
+                                        stopBy:
+                                          not:
+                                            any:
+                                            - kind: member_call_expression
+                                            - kind: nullsafe_member_call_expression
+                                        kind: variable_name
+                                        pattern:
+                                          context: <?php $V->get();
+                                          selector: variable_name
+                                    - not:
+                                        has:
+                                          stopBy:
+                                            not:
+                                              any:
+                                              - kind: member_call_expression
+                                              - kind: nullsafe_member_call_expression
+                                          any:
+                                          - kind: member_call_expression
+                                          - kind: nullsafe_member_call_expression
+                                          has:
+                                            field: name
+                                            kind: name
+                                            regex: ^clone$
+                                  - kind: parenthesized_expression
+                                    has:
+                                      any:
+                                      - kind: variable_name
+                                        pattern:
+                                          context: <?php $V->get();
+                                          selector: variable_name
+                                      - any:
+                                        - kind: member_call_expression
+                                        - kind: nullsafe_member_call_expression
+                                        all:
+                                        - not:
+                                            has:
+                                              field: name
+                                              kind: name
+                                              regex: ^(get|all|first|firstOrFail|find|findOrFail|findMany|sole|paginate|simplePaginate|cursorPaginate|count|exists|doesntExist|pluck|value|sum|avg|average|min|max|cursor|lazy|lazyById|toSql|chunk|chunkById|each|clone)$
+                                        - has:
+                                            stopBy:
+                                              not:
+                                                any:
+                                                - kind: member_call_expression
+                                                - kind: nullsafe_member_call_expression
+                                            kind: variable_name
+                                            pattern:
+                                              context: <?php $V->get();
+                                              selector: variable_name
+                                        - not:
+                                            has:
+                                              stopBy:
+                                                not:
+                                                  any:
+                                                  - kind: member_call_expression
+                                                  - kind: nullsafe_member_call_expression
+                                              any:
+                                              - kind: member_call_expression
+                                              - kind: nullsafe_member_call_expression
+                                              has:
+                                                field: name
+                                                kind: name
+                                                regex: ^clone$
+                              - not:
+                                  any:
+                                  - inside:
+                                      kind: conditional_expression
+                                      field: condition
+                                  - inside:
+                                      kind: parenthesized_expression
+                                      inside:
+                                        kind: conditional_expression
+                                        field: condition
+                      - kind: array_element_initializer
+                        not:
+                          inside:
+                            stopBy: end
+                            any:
+                            - kind: arrow_function
+                            - kind: anonymous_function
+                            has:
+                              field: parameters
+                              has:
+                                stopBy: end
+                                kind: variable_name
+                                pattern:
+                                  context: <?php $V->get();
+                                  selector: variable_name
+                        has:
+                          any:
+                          - kind: member_call_expression
+                          - kind: nullsafe_member_call_expression
+                          all:
+                          - not:
+                              has:
+                                field: name
+                                kind: name
+                                regex: ^(get|all|first|firstOrFail|find|findOrFail|findMany|sole|paginate|simplePaginate|cursorPaginate|count|exists|doesntExist|pluck|value|sum|avg|average|min|max|cursor|lazy|lazyById|toSql|chunk|chunkById|each|clone)$
+                          - has:
+                              stopBy:
+                                not:
+                                  any:
+                                  - kind: member_call_expression
+                                  - kind: nullsafe_member_call_expression
+                              kind: variable_name
+                              pattern:
+                                context: <?php $V->get();
+                                selector: variable_name
+                          - not:
+                              has:
+                                stopBy:
+                                  not:
+                                    any:
+                                    - kind: member_call_expression
+                                    - kind: nullsafe_member_call_expression
+                                any:
+                                - kind: member_call_expression
+                                - kind: nullsafe_member_call_expression
+                                has:
+                                  field: name
+                                  kind: name
+                                  regex: ^clone$
                       - kind: array_element_initializer
                         not:
                           inside:
@@ -16360,6 +16766,412 @@ control:
                                         inside:
                                           kind: conditional_expression
                                           field: condition
+                        - any:
+                          - kind: assignment_expression
+                          - kind: augmented_assignment_expression
+                          not:
+                            any:
+                            - inside:
+                                stopBy: end
+                                any:
+                                - kind: arrow_function
+                                - kind: anonymous_function
+                                has:
+                                  field: parameters
+                                  has:
+                                    stopBy: end
+                                    kind: variable_name
+                                    pattern:
+                                      context: <?php $V->get();
+                                      selector: variable_name
+                            - has:
+                                field: left
+                                kind: variable_name
+                                pattern:
+                                  context: <?php $V->get();
+                                  selector: variable_name
+                          has:
+                            field: right
+                            any:
+                            - any:
+                              - kind: member_call_expression
+                              - kind: nullsafe_member_call_expression
+                              all:
+                              - not:
+                                  has:
+                                    field: name
+                                    kind: name
+                                    regex: ^(get|all|first|firstOrFail|find|findOrFail|findMany|sole|paginate|simplePaginate|cursorPaginate|count|exists|doesntExist|pluck|value|sum|avg|average|min|max|cursor|lazy|lazyById|toSql|chunk|chunkById|each|clone)$
+                              - has:
+                                  stopBy:
+                                    not:
+                                      any:
+                                      - kind: member_call_expression
+                                      - kind: nullsafe_member_call_expression
+                                  kind: variable_name
+                                  pattern:
+                                    context: <?php $V->get();
+                                    selector: variable_name
+                              - not:
+                                  has:
+                                    stopBy:
+                                      not:
+                                        any:
+                                        - kind: member_call_expression
+                                        - kind: nullsafe_member_call_expression
+                                    any:
+                                    - kind: member_call_expression
+                                    - kind: nullsafe_member_call_expression
+                                    has:
+                                      field: name
+                                      kind: name
+                                      regex: ^clone$
+                            - any:
+                              - kind: conditional_expression
+                              - kind: match_expression
+                              - kind: binary_expression
+                                pattern:
+                                  context: <?php $_ ?? $_;
+                                  selector: binary_expression
+                              - kind: parenthesized_expression
+                              has:
+                                stopBy:
+                                  not:
+                                    any:
+                                    - kind: conditional_expression
+                                    - kind: match_expression
+                                    - kind: match_block
+                                    - kind: binary_expression
+                                      pattern:
+                                        context: <?php $_ ?? $_;
+                                        selector: binary_expression
+                                    - kind: match_conditional_expression
+                                    - kind: match_default_expression
+                                    - kind: parenthesized_expression
+                                      not:
+                                        inside:
+                                          kind: match_expression
+                                all:
+                                - any:
+                                  - kind: member_call_expression
+                                  - kind: nullsafe_member_call_expression
+                                  all:
+                                  - not:
+                                      has:
+                                        field: name
+                                        kind: name
+                                        regex: ^(get|all|first|firstOrFail|find|findOrFail|findMany|sole|paginate|simplePaginate|cursorPaginate|count|exists|doesntExist|pluck|value|sum|avg|average|min|max|cursor|lazy|lazyById|toSql|chunk|chunkById|each|clone)$
+                                  - has:
+                                      stopBy:
+                                        not:
+                                          any:
+                                          - kind: member_call_expression
+                                          - kind: nullsafe_member_call_expression
+                                      kind: variable_name
+                                      pattern:
+                                        context: <?php $V->get();
+                                        selector: variable_name
+                                  - not:
+                                      has:
+                                        stopBy:
+                                          not:
+                                            any:
+                                            - kind: member_call_expression
+                                            - kind: nullsafe_member_call_expression
+                                        any:
+                                        - kind: member_call_expression
+                                        - kind: nullsafe_member_call_expression
+                                        has:
+                                          field: name
+                                          kind: name
+                                          regex: ^clone$
+                                - not:
+                                    any:
+                                    - inside:
+                                        kind: conditional_expression
+                                        field: condition
+                                    - inside:
+                                        kind: parenthesized_expression
+                                        inside:
+                                          kind: conditional_expression
+                                          field: condition
+                        - any:
+                          - kind: assignment_expression
+                          - kind: augmented_assignment_expression
+                          not:
+                            inside:
+                              stopBy: end
+                              any:
+                              - kind: arrow_function
+                              - kind: anonymous_function
+                              has:
+                                field: parameters
+                                has:
+                                  stopBy: end
+                                  kind: variable_name
+                                  pattern:
+                                    context: <?php $V->get();
+                                    selector: variable_name
+                          has:
+                            field: right
+                            any:
+                            - kind: conditional_expression
+                              not:
+                                has:
+                                  field: body
+                                  not:
+                                    kind: comment
+                              has:
+                                field: condition
+                                any:
+                                - kind: variable_name
+                                  pattern:
+                                    context: <?php $V->get();
+                                    selector: variable_name
+                                - any:
+                                  - kind: member_call_expression
+                                  - kind: nullsafe_member_call_expression
+                                  all:
+                                  - not:
+                                      has:
+                                        field: name
+                                        kind: name
+                                        regex: ^(get|all|first|firstOrFail|find|findOrFail|findMany|sole|paginate|simplePaginate|cursorPaginate|count|exists|doesntExist|pluck|value|sum|avg|average|min|max|cursor|lazy|lazyById|toSql|chunk|chunkById|each|clone)$
+                                  - has:
+                                      stopBy:
+                                        not:
+                                          any:
+                                          - kind: member_call_expression
+                                          - kind: nullsafe_member_call_expression
+                                      kind: variable_name
+                                      pattern:
+                                        context: <?php $V->get();
+                                        selector: variable_name
+                                  - not:
+                                      has:
+                                        stopBy:
+                                          not:
+                                            any:
+                                            - kind: member_call_expression
+                                            - kind: nullsafe_member_call_expression
+                                        any:
+                                        - kind: member_call_expression
+                                        - kind: nullsafe_member_call_expression
+                                        has:
+                                          field: name
+                                          kind: name
+                                          regex: ^clone$
+                                - kind: parenthesized_expression
+                                  has:
+                                    any:
+                                    - kind: variable_name
+                                      pattern:
+                                        context: <?php $V->get();
+                                        selector: variable_name
+                                    - any:
+                                      - kind: member_call_expression
+                                      - kind: nullsafe_member_call_expression
+                                      all:
+                                      - not:
+                                          has:
+                                            field: name
+                                            kind: name
+                                            regex: ^(get|all|first|firstOrFail|find|findOrFail|findMany|sole|paginate|simplePaginate|cursorPaginate|count|exists|doesntExist|pluck|value|sum|avg|average|min|max|cursor|lazy|lazyById|toSql|chunk|chunkById|each|clone)$
+                                      - has:
+                                          stopBy:
+                                            not:
+                                              any:
+                                              - kind: member_call_expression
+                                              - kind: nullsafe_member_call_expression
+                                          kind: variable_name
+                                          pattern:
+                                            context: <?php $V->get();
+                                            selector: variable_name
+                                      - not:
+                                          has:
+                                            stopBy:
+                                              not:
+                                                any:
+                                                - kind: member_call_expression
+                                                - kind: nullsafe_member_call_expression
+                                            any:
+                                            - kind: member_call_expression
+                                            - kind: nullsafe_member_call_expression
+                                            has:
+                                              field: name
+                                              kind: name
+                                              regex: ^clone$
+                            - any:
+                              - kind: conditional_expression
+                              - kind: match_expression
+                              - kind: binary_expression
+                                pattern:
+                                  context: <?php $_ ?? $_;
+                                  selector: binary_expression
+                              - kind: parenthesized_expression
+                              has:
+                                stopBy:
+                                  not:
+                                    any:
+                                    - kind: conditional_expression
+                                    - kind: match_expression
+                                    - kind: match_block
+                                    - kind: binary_expression
+                                      pattern:
+                                        context: <?php $_ ?? $_;
+                                        selector: binary_expression
+                                    - kind: match_conditional_expression
+                                    - kind: match_default_expression
+                                    - kind: parenthesized_expression
+                                      not:
+                                        inside:
+                                          kind: match_expression
+                                all:
+                                - kind: conditional_expression
+                                  not:
+                                    has:
+                                      field: body
+                                      not:
+                                        kind: comment
+                                  has:
+                                    field: condition
+                                    any:
+                                    - kind: variable_name
+                                      pattern:
+                                        context: <?php $V->get();
+                                        selector: variable_name
+                                    - any:
+                                      - kind: member_call_expression
+                                      - kind: nullsafe_member_call_expression
+                                      all:
+                                      - not:
+                                          has:
+                                            field: name
+                                            kind: name
+                                            regex: ^(get|all|first|firstOrFail|find|findOrFail|findMany|sole|paginate|simplePaginate|cursorPaginate|count|exists|doesntExist|pluck|value|sum|avg|average|min|max|cursor|lazy|lazyById|toSql|chunk|chunkById|each|clone)$
+                                      - has:
+                                          stopBy:
+                                            not:
+                                              any:
+                                              - kind: member_call_expression
+                                              - kind: nullsafe_member_call_expression
+                                          kind: variable_name
+                                          pattern:
+                                            context: <?php $V->get();
+                                            selector: variable_name
+                                      - not:
+                                          has:
+                                            stopBy:
+                                              not:
+                                                any:
+                                                - kind: member_call_expression
+                                                - kind: nullsafe_member_call_expression
+                                            any:
+                                            - kind: member_call_expression
+                                            - kind: nullsafe_member_call_expression
+                                            has:
+                                              field: name
+                                              kind: name
+                                              regex: ^clone$
+                                    - kind: parenthesized_expression
+                                      has:
+                                        any:
+                                        - kind: variable_name
+                                          pattern:
+                                            context: <?php $V->get();
+                                            selector: variable_name
+                                        - any:
+                                          - kind: member_call_expression
+                                          - kind: nullsafe_member_call_expression
+                                          all:
+                                          - not:
+                                              has:
+                                                field: name
+                                                kind: name
+                                                regex: ^(get|all|first|firstOrFail|find|findOrFail|findMany|sole|paginate|simplePaginate|cursorPaginate|count|exists|doesntExist|pluck|value|sum|avg|average|min|max|cursor|lazy|lazyById|toSql|chunk|chunkById|each|clone)$
+                                          - has:
+                                              stopBy:
+                                                not:
+                                                  any:
+                                                  - kind: member_call_expression
+                                                  - kind: nullsafe_member_call_expression
+                                              kind: variable_name
+                                              pattern:
+                                                context: <?php $V->get();
+                                                selector: variable_name
+                                          - not:
+                                              has:
+                                                stopBy:
+                                                  not:
+                                                    any:
+                                                    - kind: member_call_expression
+                                                    - kind: nullsafe_member_call_expression
+                                                any:
+                                                - kind: member_call_expression
+                                                - kind: nullsafe_member_call_expression
+                                                has:
+                                                  field: name
+                                                  kind: name
+                                                  regex: ^clone$
+                                - not:
+                                    any:
+                                    - inside:
+                                        kind: conditional_expression
+                                        field: condition
+                                    - inside:
+                                        kind: parenthesized_expression
+                                        inside:
+                                          kind: conditional_expression
+                                          field: condition
+                        - kind: array_element_initializer
+                          not:
+                            inside:
+                              stopBy: end
+                              any:
+                              - kind: arrow_function
+                              - kind: anonymous_function
+                              has:
+                                field: parameters
+                                has:
+                                  stopBy: end
+                                  kind: variable_name
+                                  pattern:
+                                    context: <?php $V->get();
+                                    selector: variable_name
+                          has:
+                            any:
+                            - kind: member_call_expression
+                            - kind: nullsafe_member_call_expression
+                            all:
+                            - not:
+                                has:
+                                  field: name
+                                  kind: name
+                                  regex: ^(get|all|first|firstOrFail|find|findOrFail|findMany|sole|paginate|simplePaginate|cursorPaginate|count|exists|doesntExist|pluck|value|sum|avg|average|min|max|cursor|lazy|lazyById|toSql|chunk|chunkById|each|clone)$
+                            - has:
+                                stopBy:
+                                  not:
+                                    any:
+                                    - kind: member_call_expression
+                                    - kind: nullsafe_member_call_expression
+                                kind: variable_name
+                                pattern:
+                                  context: <?php $V->get();
+                                  selector: variable_name
+                            - not:
+                                has:
+                                  stopBy:
+                                    not:
+                                      any:
+                                      - kind: member_call_expression
+                                      - kind: nullsafe_member_call_expression
+                                  any:
+                                  - kind: member_call_expression
+                                  - kind: nullsafe_member_call_expression
+                                  has:
+                                    field: name
+                                    kind: name
+                                    regex: ^clone$
                         - kind: array_element_initializer
                           not:
                             inside:
@@ -24590,6 +25402,412 @@ rule:
                                           inside:
                                             kind: conditional_expression
                                             field: condition
+                          - any:
+                            - kind: assignment_expression
+                            - kind: augmented_assignment_expression
+                            not:
+                              any:
+                              - inside:
+                                  stopBy: end
+                                  any:
+                                  - kind: arrow_function
+                                  - kind: anonymous_function
+                                  has:
+                                    field: parameters
+                                    has:
+                                      stopBy: end
+                                      kind: variable_name
+                                      pattern:
+                                        context: <?php $V->get();
+                                        selector: variable_name
+                              - has:
+                                  field: left
+                                  kind: variable_name
+                                  pattern:
+                                    context: <?php $V->get();
+                                    selector: variable_name
+                            has:
+                              field: right
+                              any:
+                              - any:
+                                - kind: member_call_expression
+                                - kind: nullsafe_member_call_expression
+                                all:
+                                - not:
+                                    has:
+                                      field: name
+                                      kind: name
+                                      regex: ^(get|all|first|firstOrFail|find|findOrFail|findMany|sole|paginate|simplePaginate|cursorPaginate|count|exists|doesntExist|pluck|value|sum|avg|average|min|max|cursor|lazy|lazyById|toSql|chunk|chunkById|each|clone)$
+                                - has:
+                                    stopBy:
+                                      not:
+                                        any:
+                                        - kind: member_call_expression
+                                        - kind: nullsafe_member_call_expression
+                                    kind: variable_name
+                                    pattern:
+                                      context: <?php $V->get();
+                                      selector: variable_name
+                                - not:
+                                    has:
+                                      stopBy:
+                                        not:
+                                          any:
+                                          - kind: member_call_expression
+                                          - kind: nullsafe_member_call_expression
+                                      any:
+                                      - kind: member_call_expression
+                                      - kind: nullsafe_member_call_expression
+                                      has:
+                                        field: name
+                                        kind: name
+                                        regex: ^clone$
+                              - any:
+                                - kind: conditional_expression
+                                - kind: match_expression
+                                - kind: binary_expression
+                                  pattern:
+                                    context: <?php $_ ?? $_;
+                                    selector: binary_expression
+                                - kind: parenthesized_expression
+                                has:
+                                  stopBy:
+                                    not:
+                                      any:
+                                      - kind: conditional_expression
+                                      - kind: match_expression
+                                      - kind: match_block
+                                      - kind: binary_expression
+                                        pattern:
+                                          context: <?php $_ ?? $_;
+                                          selector: binary_expression
+                                      - kind: match_conditional_expression
+                                      - kind: match_default_expression
+                                      - kind: parenthesized_expression
+                                        not:
+                                          inside:
+                                            kind: match_expression
+                                  all:
+                                  - any:
+                                    - kind: member_call_expression
+                                    - kind: nullsafe_member_call_expression
+                                    all:
+                                    - not:
+                                        has:
+                                          field: name
+                                          kind: name
+                                          regex: ^(get|all|first|firstOrFail|find|findOrFail|findMany|sole|paginate|simplePaginate|cursorPaginate|count|exists|doesntExist|pluck|value|sum|avg|average|min|max|cursor|lazy|lazyById|toSql|chunk|chunkById|each|clone)$
+                                    - has:
+                                        stopBy:
+                                          not:
+                                            any:
+                                            - kind: member_call_expression
+                                            - kind: nullsafe_member_call_expression
+                                        kind: variable_name
+                                        pattern:
+                                          context: <?php $V->get();
+                                          selector: variable_name
+                                    - not:
+                                        has:
+                                          stopBy:
+                                            not:
+                                              any:
+                                              - kind: member_call_expression
+                                              - kind: nullsafe_member_call_expression
+                                          any:
+                                          - kind: member_call_expression
+                                          - kind: nullsafe_member_call_expression
+                                          has:
+                                            field: name
+                                            kind: name
+                                            regex: ^clone$
+                                  - not:
+                                      any:
+                                      - inside:
+                                          kind: conditional_expression
+                                          field: condition
+                                      - inside:
+                                          kind: parenthesized_expression
+                                          inside:
+                                            kind: conditional_expression
+                                            field: condition
+                          - any:
+                            - kind: assignment_expression
+                            - kind: augmented_assignment_expression
+                            not:
+                              inside:
+                                stopBy: end
+                                any:
+                                - kind: arrow_function
+                                - kind: anonymous_function
+                                has:
+                                  field: parameters
+                                  has:
+                                    stopBy: end
+                                    kind: variable_name
+                                    pattern:
+                                      context: <?php $V->get();
+                                      selector: variable_name
+                            has:
+                              field: right
+                              any:
+                              - kind: conditional_expression
+                                not:
+                                  has:
+                                    field: body
+                                    not:
+                                      kind: comment
+                                has:
+                                  field: condition
+                                  any:
+                                  - kind: variable_name
+                                    pattern:
+                                      context: <?php $V->get();
+                                      selector: variable_name
+                                  - any:
+                                    - kind: member_call_expression
+                                    - kind: nullsafe_member_call_expression
+                                    all:
+                                    - not:
+                                        has:
+                                          field: name
+                                          kind: name
+                                          regex: ^(get|all|first|firstOrFail|find|findOrFail|findMany|sole|paginate|simplePaginate|cursorPaginate|count|exists|doesntExist|pluck|value|sum|avg|average|min|max|cursor|lazy|lazyById|toSql|chunk|chunkById|each|clone)$
+                                    - has:
+                                        stopBy:
+                                          not:
+                                            any:
+                                            - kind: member_call_expression
+                                            - kind: nullsafe_member_call_expression
+                                        kind: variable_name
+                                        pattern:
+                                          context: <?php $V->get();
+                                          selector: variable_name
+                                    - not:
+                                        has:
+                                          stopBy:
+                                            not:
+                                              any:
+                                              - kind: member_call_expression
+                                              - kind: nullsafe_member_call_expression
+                                          any:
+                                          - kind: member_call_expression
+                                          - kind: nullsafe_member_call_expression
+                                          has:
+                                            field: name
+                                            kind: name
+                                            regex: ^clone$
+                                  - kind: parenthesized_expression
+                                    has:
+                                      any:
+                                      - kind: variable_name
+                                        pattern:
+                                          context: <?php $V->get();
+                                          selector: variable_name
+                                      - any:
+                                        - kind: member_call_expression
+                                        - kind: nullsafe_member_call_expression
+                                        all:
+                                        - not:
+                                            has:
+                                              field: name
+                                              kind: name
+                                              regex: ^(get|all|first|firstOrFail|find|findOrFail|findMany|sole|paginate|simplePaginate|cursorPaginate|count|exists|doesntExist|pluck|value|sum|avg|average|min|max|cursor|lazy|lazyById|toSql|chunk|chunkById|each|clone)$
+                                        - has:
+                                            stopBy:
+                                              not:
+                                                any:
+                                                - kind: member_call_expression
+                                                - kind: nullsafe_member_call_expression
+                                            kind: variable_name
+                                            pattern:
+                                              context: <?php $V->get();
+                                              selector: variable_name
+                                        - not:
+                                            has:
+                                              stopBy:
+                                                not:
+                                                  any:
+                                                  - kind: member_call_expression
+                                                  - kind: nullsafe_member_call_expression
+                                              any:
+                                              - kind: member_call_expression
+                                              - kind: nullsafe_member_call_expression
+                                              has:
+                                                field: name
+                                                kind: name
+                                                regex: ^clone$
+                              - any:
+                                - kind: conditional_expression
+                                - kind: match_expression
+                                - kind: binary_expression
+                                  pattern:
+                                    context: <?php $_ ?? $_;
+                                    selector: binary_expression
+                                - kind: parenthesized_expression
+                                has:
+                                  stopBy:
+                                    not:
+                                      any:
+                                      - kind: conditional_expression
+                                      - kind: match_expression
+                                      - kind: match_block
+                                      - kind: binary_expression
+                                        pattern:
+                                          context: <?php $_ ?? $_;
+                                          selector: binary_expression
+                                      - kind: match_conditional_expression
+                                      - kind: match_default_expression
+                                      - kind: parenthesized_expression
+                                        not:
+                                          inside:
+                                            kind: match_expression
+                                  all:
+                                  - kind: conditional_expression
+                                    not:
+                                      has:
+                                        field: body
+                                        not:
+                                          kind: comment
+                                    has:
+                                      field: condition
+                                      any:
+                                      - kind: variable_name
+                                        pattern:
+                                          context: <?php $V->get();
+                                          selector: variable_name
+                                      - any:
+                                        - kind: member_call_expression
+                                        - kind: nullsafe_member_call_expression
+                                        all:
+                                        - not:
+                                            has:
+                                              field: name
+                                              kind: name
+                                              regex: ^(get|all|first|firstOrFail|find|findOrFail|findMany|sole|paginate|simplePaginate|cursorPaginate|count|exists|doesntExist|pluck|value|sum|avg|average|min|max|cursor|lazy|lazyById|toSql|chunk|chunkById|each|clone)$
+                                        - has:
+                                            stopBy:
+                                              not:
+                                                any:
+                                                - kind: member_call_expression
+                                                - kind: nullsafe_member_call_expression
+                                            kind: variable_name
+                                            pattern:
+                                              context: <?php $V->get();
+                                              selector: variable_name
+                                        - not:
+                                            has:
+                                              stopBy:
+                                                not:
+                                                  any:
+                                                  - kind: member_call_expression
+                                                  - kind: nullsafe_member_call_expression
+                                              any:
+                                              - kind: member_call_expression
+                                              - kind: nullsafe_member_call_expression
+                                              has:
+                                                field: name
+                                                kind: name
+                                                regex: ^clone$
+                                      - kind: parenthesized_expression
+                                        has:
+                                          any:
+                                          - kind: variable_name
+                                            pattern:
+                                              context: <?php $V->get();
+                                              selector: variable_name
+                                          - any:
+                                            - kind: member_call_expression
+                                            - kind: nullsafe_member_call_expression
+                                            all:
+                                            - not:
+                                                has:
+                                                  field: name
+                                                  kind: name
+                                                  regex: ^(get|all|first|firstOrFail|find|findOrFail|findMany|sole|paginate|simplePaginate|cursorPaginate|count|exists|doesntExist|pluck|value|sum|avg|average|min|max|cursor|lazy|lazyById|toSql|chunk|chunkById|each|clone)$
+                                            - has:
+                                                stopBy:
+                                                  not:
+                                                    any:
+                                                    - kind: member_call_expression
+                                                    - kind: nullsafe_member_call_expression
+                                                kind: variable_name
+                                                pattern:
+                                                  context: <?php $V->get();
+                                                  selector: variable_name
+                                            - not:
+                                                has:
+                                                  stopBy:
+                                                    not:
+                                                      any:
+                                                      - kind: member_call_expression
+                                                      - kind: nullsafe_member_call_expression
+                                                  any:
+                                                  - kind: member_call_expression
+                                                  - kind: nullsafe_member_call_expression
+                                                  has:
+                                                    field: name
+                                                    kind: name
+                                                    regex: ^clone$
+                                  - not:
+                                      any:
+                                      - inside:
+                                          kind: conditional_expression
+                                          field: condition
+                                      - inside:
+                                          kind: parenthesized_expression
+                                          inside:
+                                            kind: conditional_expression
+                                            field: condition
+                          - kind: array_element_initializer
+                            not:
+                              inside:
+                                stopBy: end
+                                any:
+                                - kind: arrow_function
+                                - kind: anonymous_function
+                                has:
+                                  field: parameters
+                                  has:
+                                    stopBy: end
+                                    kind: variable_name
+                                    pattern:
+                                      context: <?php $V->get();
+                                      selector: variable_name
+                            has:
+                              any:
+                              - kind: member_call_expression
+                              - kind: nullsafe_member_call_expression
+                              all:
+                              - not:
+                                  has:
+                                    field: name
+                                    kind: name
+                                    regex: ^(get|all|first|firstOrFail|find|findOrFail|findMany|sole|paginate|simplePaginate|cursorPaginate|count|exists|doesntExist|pluck|value|sum|avg|average|min|max|cursor|lazy|lazyById|toSql|chunk|chunkById|each|clone)$
+                              - has:
+                                  stopBy:
+                                    not:
+                                      any:
+                                      - kind: member_call_expression
+                                      - kind: nullsafe_member_call_expression
+                                  kind: variable_name
+                                  pattern:
+                                    context: <?php $V->get();
+                                    selector: variable_name
+                              - not:
+                                  has:
+                                    stopBy:
+                                      not:
+                                        any:
+                                        - kind: member_call_expression
+                                        - kind: nullsafe_member_call_expression
+                                    any:
+                                    - kind: member_call_expression
+                                    - kind: nullsafe_member_call_expression
+                                    has:
+                                      field: name
+                                      kind: name
+                                      regex: ^clone$
                           - kind: array_element_initializer
                             not:
                               inside:
@@ -32916,6 +34134,412 @@ rule:
                                             inside:
                                               kind: conditional_expression
                                               field: condition
+                            - any:
+                              - kind: assignment_expression
+                              - kind: augmented_assignment_expression
+                              not:
+                                any:
+                                - inside:
+                                    stopBy: end
+                                    any:
+                                    - kind: arrow_function
+                                    - kind: anonymous_function
+                                    has:
+                                      field: parameters
+                                      has:
+                                        stopBy: end
+                                        kind: variable_name
+                                        pattern:
+                                          context: <?php $V->get();
+                                          selector: variable_name
+                                - has:
+                                    field: left
+                                    kind: variable_name
+                                    pattern:
+                                      context: <?php $V->get();
+                                      selector: variable_name
+                              has:
+                                field: right
+                                any:
+                                - any:
+                                  - kind: member_call_expression
+                                  - kind: nullsafe_member_call_expression
+                                  all:
+                                  - not:
+                                      has:
+                                        field: name
+                                        kind: name
+                                        regex: ^(get|all|first|firstOrFail|find|findOrFail|findMany|sole|paginate|simplePaginate|cursorPaginate|count|exists|doesntExist|pluck|value|sum|avg|average|min|max|cursor|lazy|lazyById|toSql|chunk|chunkById|each|clone)$
+                                  - has:
+                                      stopBy:
+                                        not:
+                                          any:
+                                          - kind: member_call_expression
+                                          - kind: nullsafe_member_call_expression
+                                      kind: variable_name
+                                      pattern:
+                                        context: <?php $V->get();
+                                        selector: variable_name
+                                  - not:
+                                      has:
+                                        stopBy:
+                                          not:
+                                            any:
+                                            - kind: member_call_expression
+                                            - kind: nullsafe_member_call_expression
+                                        any:
+                                        - kind: member_call_expression
+                                        - kind: nullsafe_member_call_expression
+                                        has:
+                                          field: name
+                                          kind: name
+                                          regex: ^clone$
+                                - any:
+                                  - kind: conditional_expression
+                                  - kind: match_expression
+                                  - kind: binary_expression
+                                    pattern:
+                                      context: <?php $_ ?? $_;
+                                      selector: binary_expression
+                                  - kind: parenthesized_expression
+                                  has:
+                                    stopBy:
+                                      not:
+                                        any:
+                                        - kind: conditional_expression
+                                        - kind: match_expression
+                                        - kind: match_block
+                                        - kind: binary_expression
+                                          pattern:
+                                            context: <?php $_ ?? $_;
+                                            selector: binary_expression
+                                        - kind: match_conditional_expression
+                                        - kind: match_default_expression
+                                        - kind: parenthesized_expression
+                                          not:
+                                            inside:
+                                              kind: match_expression
+                                    all:
+                                    - any:
+                                      - kind: member_call_expression
+                                      - kind: nullsafe_member_call_expression
+                                      all:
+                                      - not:
+                                          has:
+                                            field: name
+                                            kind: name
+                                            regex: ^(get|all|first|firstOrFail|find|findOrFail|findMany|sole|paginate|simplePaginate|cursorPaginate|count|exists|doesntExist|pluck|value|sum|avg|average|min|max|cursor|lazy|lazyById|toSql|chunk|chunkById|each|clone)$
+                                      - has:
+                                          stopBy:
+                                            not:
+                                              any:
+                                              - kind: member_call_expression
+                                              - kind: nullsafe_member_call_expression
+                                          kind: variable_name
+                                          pattern:
+                                            context: <?php $V->get();
+                                            selector: variable_name
+                                      - not:
+                                          has:
+                                            stopBy:
+                                              not:
+                                                any:
+                                                - kind: member_call_expression
+                                                - kind: nullsafe_member_call_expression
+                                            any:
+                                            - kind: member_call_expression
+                                            - kind: nullsafe_member_call_expression
+                                            has:
+                                              field: name
+                                              kind: name
+                                              regex: ^clone$
+                                    - not:
+                                        any:
+                                        - inside:
+                                            kind: conditional_expression
+                                            field: condition
+                                        - inside:
+                                            kind: parenthesized_expression
+                                            inside:
+                                              kind: conditional_expression
+                                              field: condition
+                            - any:
+                              - kind: assignment_expression
+                              - kind: augmented_assignment_expression
+                              not:
+                                inside:
+                                  stopBy: end
+                                  any:
+                                  - kind: arrow_function
+                                  - kind: anonymous_function
+                                  has:
+                                    field: parameters
+                                    has:
+                                      stopBy: end
+                                      kind: variable_name
+                                      pattern:
+                                        context: <?php $V->get();
+                                        selector: variable_name
+                              has:
+                                field: right
+                                any:
+                                - kind: conditional_expression
+                                  not:
+                                    has:
+                                      field: body
+                                      not:
+                                        kind: comment
+                                  has:
+                                    field: condition
+                                    any:
+                                    - kind: variable_name
+                                      pattern:
+                                        context: <?php $V->get();
+                                        selector: variable_name
+                                    - any:
+                                      - kind: member_call_expression
+                                      - kind: nullsafe_member_call_expression
+                                      all:
+                                      - not:
+                                          has:
+                                            field: name
+                                            kind: name
+                                            regex: ^(get|all|first|firstOrFail|find|findOrFail|findMany|sole|paginate|simplePaginate|cursorPaginate|count|exists|doesntExist|pluck|value|sum|avg|average|min|max|cursor|lazy|lazyById|toSql|chunk|chunkById|each|clone)$
+                                      - has:
+                                          stopBy:
+                                            not:
+                                              any:
+                                              - kind: member_call_expression
+                                              - kind: nullsafe_member_call_expression
+                                          kind: variable_name
+                                          pattern:
+                                            context: <?php $V->get();
+                                            selector: variable_name
+                                      - not:
+                                          has:
+                                            stopBy:
+                                              not:
+                                                any:
+                                                - kind: member_call_expression
+                                                - kind: nullsafe_member_call_expression
+                                            any:
+                                            - kind: member_call_expression
+                                            - kind: nullsafe_member_call_expression
+                                            has:
+                                              field: name
+                                              kind: name
+                                              regex: ^clone$
+                                    - kind: parenthesized_expression
+                                      has:
+                                        any:
+                                        - kind: variable_name
+                                          pattern:
+                                            context: <?php $V->get();
+                                            selector: variable_name
+                                        - any:
+                                          - kind: member_call_expression
+                                          - kind: nullsafe_member_call_expression
+                                          all:
+                                          - not:
+                                              has:
+                                                field: name
+                                                kind: name
+                                                regex: ^(get|all|first|firstOrFail|find|findOrFail|findMany|sole|paginate|simplePaginate|cursorPaginate|count|exists|doesntExist|pluck|value|sum|avg|average|min|max|cursor|lazy|lazyById|toSql|chunk|chunkById|each|clone)$
+                                          - has:
+                                              stopBy:
+                                                not:
+                                                  any:
+                                                  - kind: member_call_expression
+                                                  - kind: nullsafe_member_call_expression
+                                              kind: variable_name
+                                              pattern:
+                                                context: <?php $V->get();
+                                                selector: variable_name
+                                          - not:
+                                              has:
+                                                stopBy:
+                                                  not:
+                                                    any:
+                                                    - kind: member_call_expression
+                                                    - kind: nullsafe_member_call_expression
+                                                any:
+                                                - kind: member_call_expression
+                                                - kind: nullsafe_member_call_expression
+                                                has:
+                                                  field: name
+                                                  kind: name
+                                                  regex: ^clone$
+                                - any:
+                                  - kind: conditional_expression
+                                  - kind: match_expression
+                                  - kind: binary_expression
+                                    pattern:
+                                      context: <?php $_ ?? $_;
+                                      selector: binary_expression
+                                  - kind: parenthesized_expression
+                                  has:
+                                    stopBy:
+                                      not:
+                                        any:
+                                        - kind: conditional_expression
+                                        - kind: match_expression
+                                        - kind: match_block
+                                        - kind: binary_expression
+                                          pattern:
+                                            context: <?php $_ ?? $_;
+                                            selector: binary_expression
+                                        - kind: match_conditional_expression
+                                        - kind: match_default_expression
+                                        - kind: parenthesized_expression
+                                          not:
+                                            inside:
+                                              kind: match_expression
+                                    all:
+                                    - kind: conditional_expression
+                                      not:
+                                        has:
+                                          field: body
+                                          not:
+                                            kind: comment
+                                      has:
+                                        field: condition
+                                        any:
+                                        - kind: variable_name
+                                          pattern:
+                                            context: <?php $V->get();
+                                            selector: variable_name
+                                        - any:
+                                          - kind: member_call_expression
+                                          - kind: nullsafe_member_call_expression
+                                          all:
+                                          - not:
+                                              has:
+                                                field: name
+                                                kind: name
+                                                regex: ^(get|all|first|firstOrFail|find|findOrFail|findMany|sole|paginate|simplePaginate|cursorPaginate|count|exists|doesntExist|pluck|value|sum|avg|average|min|max|cursor|lazy|lazyById|toSql|chunk|chunkById|each|clone)$
+                                          - has:
+                                              stopBy:
+                                                not:
+                                                  any:
+                                                  - kind: member_call_expression
+                                                  - kind: nullsafe_member_call_expression
+                                              kind: variable_name
+                                              pattern:
+                                                context: <?php $V->get();
+                                                selector: variable_name
+                                          - not:
+                                              has:
+                                                stopBy:
+                                                  not:
+                                                    any:
+                                                    - kind: member_call_expression
+                                                    - kind: nullsafe_member_call_expression
+                                                any:
+                                                - kind: member_call_expression
+                                                - kind: nullsafe_member_call_expression
+                                                has:
+                                                  field: name
+                                                  kind: name
+                                                  regex: ^clone$
+                                        - kind: parenthesized_expression
+                                          has:
+                                            any:
+                                            - kind: variable_name
+                                              pattern:
+                                                context: <?php $V->get();
+                                                selector: variable_name
+                                            - any:
+                                              - kind: member_call_expression
+                                              - kind: nullsafe_member_call_expression
+                                              all:
+                                              - not:
+                                                  has:
+                                                    field: name
+                                                    kind: name
+                                                    regex: ^(get|all|first|firstOrFail|find|findOrFail|findMany|sole|paginate|simplePaginate|cursorPaginate|count|exists|doesntExist|pluck|value|sum|avg|average|min|max|cursor|lazy|lazyById|toSql|chunk|chunkById|each|clone)$
+                                              - has:
+                                                  stopBy:
+                                                    not:
+                                                      any:
+                                                      - kind: member_call_expression
+                                                      - kind: nullsafe_member_call_expression
+                                                  kind: variable_name
+                                                  pattern:
+                                                    context: <?php $V->get();
+                                                    selector: variable_name
+                                              - not:
+                                                  has:
+                                                    stopBy:
+                                                      not:
+                                                        any:
+                                                        - kind: member_call_expression
+                                                        - kind: nullsafe_member_call_expression
+                                                    any:
+                                                    - kind: member_call_expression
+                                                    - kind: nullsafe_member_call_expression
+                                                    has:
+                                                      field: name
+                                                      kind: name
+                                                      regex: ^clone$
+                                    - not:
+                                        any:
+                                        - inside:
+                                            kind: conditional_expression
+                                            field: condition
+                                        - inside:
+                                            kind: parenthesized_expression
+                                            inside:
+                                              kind: conditional_expression
+                                              field: condition
+                            - kind: array_element_initializer
+                              not:
+                                inside:
+                                  stopBy: end
+                                  any:
+                                  - kind: arrow_function
+                                  - kind: anonymous_function
+                                  has:
+                                    field: parameters
+                                    has:
+                                      stopBy: end
+                                      kind: variable_name
+                                      pattern:
+                                        context: <?php $V->get();
+                                        selector: variable_name
+                              has:
+                                any:
+                                - kind: member_call_expression
+                                - kind: nullsafe_member_call_expression
+                                all:
+                                - not:
+                                    has:
+                                      field: name
+                                      kind: name
+                                      regex: ^(get|all|first|firstOrFail|find|findOrFail|findMany|sole|paginate|simplePaginate|cursorPaginate|count|exists|doesntExist|pluck|value|sum|avg|average|min|max|cursor|lazy|lazyById|toSql|chunk|chunkById|each|clone)$
+                                - has:
+                                    stopBy:
+                                      not:
+                                        any:
+                                        - kind: member_call_expression
+                                        - kind: nullsafe_member_call_expression
+                                    kind: variable_name
+                                    pattern:
+                                      context: <?php $V->get();
+                                      selector: variable_name
+                                - not:
+                                    has:
+                                      stopBy:
+                                        not:
+                                          any:
+                                          - kind: member_call_expression
+                                          - kind: nullsafe_member_call_expression
+                                      any:
+                                      - kind: member_call_expression
+                                      - kind: nullsafe_member_call_expression
+                                      has:
+                                        field: name
+                                        kind: name
+                                        regex: ^clone$
                             - kind: array_element_initializer
                               not:
                                 inside:
