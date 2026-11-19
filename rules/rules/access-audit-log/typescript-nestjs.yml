@@ -254,14 +254,14 @@ control:
                   - has:
                       field: function
                       kind: member_expression
-                      regex: '\.([^.\s(]*([aA]udit|[aA]ccess_?[lL]ogs?|[aA]ccess_?[eE]vents?|[pP]hi_?[aA]ccess|[aA]ctivity_?[lL]ogs?)[^.\s(]*|securityEvents?)\.(create|createMany)$'
+                      regex: '(?i)\.(((audits?|audit_?(logs?|trails?|events?|entry|entries|records?)|access_?(logs?|events?)|activity_?logs?|phi_?access(_?logs?)?|security_?events?)|[\w$]*(audit_?(logs?|trails?|events?|entry|entries|records?)|access_?(logs?|events?|audits?)|activity_?logs?|phi_?access|security_?events?)(s|_?(entry|entries|records?|table|rows?|items?))?))\.(create|createMany)$'
                       not:
                         kind: member_expression
                         regex: '(Service|Svc|Client|Manager|Helper|Logger|Tracker)\.(create|createMany)$'
                   - has:
                       field: function
                       kind: member_expression
-                      regex: '\.from\(\s*[''\x22`][^''\x22`]*(audit|access_log|access_event|phi_access|activity_log|security_event)[^''\x22`]*[''\x22`]\s*\)\s*\.insert$'
+                      regex: '(?i)\.from\(\s*[''\x22`](\w+\.)?((audits?|audit_?(logs?|trails?|events?|entry|entries|records?)|access_?(logs?|events?)|activity_?logs?|phi_?access(_?logs?)?|security_?events?)|\w*(audit_?(logs?|trails?|events?|entry|entries|records?)|access_?(logs?|events?|audits?)|activity_?logs?|phi_?access|security_?events?)(s|_?(entry|entries|records?|table|rows?|items?))?)[''\x22`]\s*\)\s*\.insert$'
                   - all:
                     - has:
                         field: function
@@ -272,27 +272,27 @@ control:
                         kind: arguments
                         has:
                           kind: identifier
-                          regex: '(?-u)(?i)audit|access_?logs?'
+                          regex: '(?-u)(?i)^((audits?|audit_?(logs?|trails?|events?|entry|entries|records?)|access_?(logs?|events?)|activity_?logs?|phi_?access(_?logs?)?|security_?events?)|[\w$]*(audit_?(logs?|trails?|events?|entry|entries|records?)|access_?(logs?|events?|audits?)|activity_?logs?|phi_?access|security_?events?)(s|_?(entry|entries|records?|table|rows?|items?))?)$'
                   - has:
                       field: function
                       kind: member_expression
-                      regex: '^[A-Z]?[^.\s(]*(Audit|AccessLog|AccessEvent|PhiAccess|ActivityLog)[^.\s(]*\.(create|bulkCreate|insertMany)$'
+                      regex: '(?i)^((audits?|audit_?(logs?|trails?|events?|entry|entries|records?)|access_?(logs?|events?)|activity_?logs?|phi_?access(_?logs?)?|security_?events?)|[\w$]*(audit_?(logs?|trails?|events?|entry|entries|records?)|access_?(logs?|events?|audits?)|activity_?logs?|phi_?access|security_?events?)(s|_?(entry|entries|records?|table|rows?|items?))?)\.(create|bulkCreate|insertMany)$'
                   - has:
                       field: function
                       kind: member_expression
-                      regex: '^\(?new\s+[^.\s(]*(Audit|AccessLog|AccessEvent|PhiAccess|ActivityLog)[^.\s(]*\([\s\S]*\)\)?\.save$'
+                      regex: '(?i)^\(?new\s+((audits?|audit_?(logs?|trails?|events?|entry|entries|records?)|access_?(logs?|events?)|activity_?logs?|phi_?access(_?logs?)?|security_?events?)|[\w$]*(audit_?(logs?|trails?|events?|entry|entries|records?)|access_?(logs?|events?|audits?)|activity_?logs?|phi_?access|security_?events?)(s|_?(entry|entries|records?|table|rows?|items?))?)\([\s\S]*\)\)?\.save$'
                   - has:
                       field: function
                       kind: member_expression
-                      regex: '^\w+\(\s*[''\x22`][^''\x22`]*(audit|access_log)[^''\x22`]*[''\x22`]\s*\)\s*\.insert$'
+                      regex: '(?i)^\w+\(\s*[''\x22`](\w+\.)?((audits?|audit_?(logs?|trails?|events?|entry|entries|records?)|access_?(logs?|events?)|activity_?logs?|phi_?access(_?logs?)?|security_?events?)|\w*(audit_?(logs?|trails?|events?|entry|entries|records?)|access_?(logs?|events?|audits?)|activity_?logs?|phi_?access|security_?events?)(s|_?(entry|entries|records?|table|rows?|items?))?)[''\x22`]\s*\)\s*\.insert$'
                   - has:
                       field: function
                       kind: member_expression
-                      regex: '[aA]udit[^.\s(]*(Repo|Repository)\.(save|insert)$'
+                      regex: '(?i)(^|\.)((audits?|audit_?(logs?|trails?|events?|entry|entries|records?)|access_?(logs?|events?)|activity_?logs?|phi_?access(_?logs?)?|security_?events?)|[\w$]*(audit_?(logs?|trails?|events?|entry|entries|records?)|access_?(logs?|events?|audits?)|activity_?logs?|phi_?access|security_?events?)(s|_?(entry|entries|records?|table|rows?|items?))?)_?(Repo|Repository)\.(save|insert)$'
                   - has:
                       field: function
                       kind: member_expression
-                      regex: '\.insert\(\s*[\w.]*([aA]udit|[aA]ccess_?[lL]og)[\w.]*\s*\)\s*\.values$'
+                      regex: '(?i)\.insert\(\s*([\w$]+\.)*((audits?|audit_?(logs?|trails?|events?|entry|entries|records?)|access_?(logs?|events?)|activity_?logs?|phi_?access(_?logs?)?|security_?events?)|[\w$]*(audit_?(logs?|trails?|events?|entry|entries|records?)|access_?(logs?|events?|audits?)|activity_?logs?|phi_?access|security_?events?)(s|_?(entry|entries|records?|table|rows?|items?))?)\s*\)\s*\.values$'
                   - all:
                     - has:
                         field: function
@@ -308,13 +308,13 @@ control:
                           has:
                             any:
                             - kind: string
-                              regex: '(?i)\binsert\s+into\s+[`\x22]?(?:\w+\.)?[`\x22]?[^\s(`\x22]*(audit|access_log|access_event|phi_access|activity_log|security_event)'
+                              regex: '(?i)\binsert\s+into\s+[`\x22]?(?:\w+\.)?[`\x22]?((audits?|audit_?(logs?|trails?|events?|entry|entries|records?)|access_?(logs?|events?)|activity_?logs?|phi_?access(_?logs?)?|security_?events?)|\w*(audit_?(logs?|trails?|events?|entry|entries|records?)|access_?(logs?|events?|audits?)|activity_?logs?|phi_?access|security_?events?)(s|_?(entry|entries|records?|table|rows?|items?))?)\b'
                             - kind: template_string
-                              regex: '(?i)\binsert\s+into\s+[`\x22]?(?:\w+\.)?[`\x22]?[^\s(`\x22]*(audit|access_log|access_event|phi_access|activity_log|security_event)'
+                              regex: '(?i)\binsert\s+into\s+[`\x22]?(?:\w+\.)?[`\x22]?((audits?|audit_?(logs?|trails?|events?|entry|entries|records?)|access_?(logs?|events?)|activity_?logs?|phi_?access(_?logs?)?|security_?events?)|\w*(audit_?(logs?|trails?|events?|entry|entries|records?)|access_?(logs?|events?|audits?)|activity_?logs?|phi_?access|security_?events?)(s|_?(entry|entries|records?|table|rows?|items?))?)\b'
                       - has:
                           field: arguments
                           kind: template_string
-                          regex: '(?i)\binsert\s+into\s+[`\x22]?(?:\w+\.)?[`\x22]?[^\s(`\x22]*(audit|access_log|access_event|phi_access|activity_log|security_event)'
+                          regex: '(?i)\binsert\s+into\s+[`\x22]?(?:\w+\.)?[`\x22]?((audits?|audit_?(logs?|trails?|events?|entry|entries|records?)|access_?(logs?|events?)|activity_?logs?|phi_?access(_?logs?)?|security_?events?)|\w*(audit_?(logs?|trails?|events?|entry|entries|records?)|access_?(logs?|events?|audits?)|activity_?logs?|phi_?access|security_?events?)(s|_?(entry|entries|records?|table|rows?|items?))?)\b'
                 - all:
                   - not:
                       any:

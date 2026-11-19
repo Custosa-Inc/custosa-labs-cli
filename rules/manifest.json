@@ -1,5 +1,5 @@
 {
-  "ruleset_id": "2026-11-18.6c211e27",
+  "ruleset_id": "2026-11-19.1d38fde2",
   "min_engine": "0.45.3",
   "files": [
     {
@@ -100,7 +100,7 @@
     },
     {
       "path": "rules/access-audit-log/javascript-express.yml",
-      "sha256": "f3a5133650409962fb99d406396f918c11d10d44a714c2ef8128499f72065ebd"
+      "sha256": "76cab20f250d420cf3f935d899868f3b438b8031eab653a4c36452bd789684d1"
     },
     {
       "path": "rules/access-audit-log/javascript-nextjs.yml",
@@ -124,7 +124,7 @@
     },
     {
       "path": "rules/access-audit-log/tsx-express.yml",
-      "sha256": "b10abb57d0445926e4a1ee2ef847e9d244e9cacb0eb9f224c0a4fe641b8d4a4c"
+      "sha256": "bd3d329dd374b0d238d0a40e42a2b5417b41e78711fd951c1873c325ff68a30c"
     },
     {
       "path": "rules/access-audit-log/tsx-nextjs.yml",
@@ -132,15 +132,15 @@
     },
     {
       "path": "rules/access-audit-log/typescript-express.yml",
-      "sha256": "36cb6663768f99df7c10ea0392aca785bbffaaedfcd2f3b93b8e7f1224b32757"
+      "sha256": "953990dd78e54728b43c624d559ca71d666d8da7c49c50ada5184cc47c1c0f1f"
     },
     {
       "path": "rules/access-audit-log/typescript-hono.yml",
-      "sha256": "48633e8f0fc685329916cd48b3f73218f0be526c5c1ab068b6fa03d3de53071b"
+      "sha256": "fbf880d8146673caca0c99744516ebf0546b5097a2a73a0277868092846cb51d"
     },
     {
       "path": "rules/access-audit-log/typescript-nestjs.yml",
-      "sha256": "cbd363d7962d87c4af92c464d0293b9f3c74c40c46408e8d601f1ecfdc426351"
+      "sha256": "2a44a38d9bd0a946096ca1a7d5c87c69629b9ffb4e790c8c7e9064e45338f249"
     },
     {
       "path": "rules/access-audit-log/typescript-nextjs.yml",
