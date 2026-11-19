@@ -8093,7 +8093,7 @@ control:
                                   has:
                                     field: name
                                     kind: name
-                                    regex: ^clone$
+                                    regex: ^(get|all|first|firstOrFail|find|findOrFail|findMany|sole|paginate|simplePaginate|cursorPaginate|count|exists|doesntExist|pluck|value|sum|avg|average|min|max|cursor|lazy|lazyById|toSql|chunk|chunkById|each|clone)$
                           - any:
                             - kind: conditional_expression
                             - kind: match_expression
@@ -8152,7 +8152,7 @@ control:
                                       has:
                                         field: name
                                         kind: name
-                                        regex: ^clone$
+                                        regex: ^(get|all|first|firstOrFail|find|findOrFail|findMany|sole|paginate|simplePaginate|cursorPaginate|count|exists|doesntExist|pluck|value|sum|avg|average|min|max|cursor|lazy|lazyById|toSql|chunk|chunkById|each|clone)$
                               - not:
                                   any:
                                   - inside:
@@ -8228,7 +8228,7 @@ control:
                                       has:
                                         field: name
                                         kind: name
-                                        regex: ^clone$
+                                        regex: ^(get|all|first|firstOrFail|find|findOrFail|findMany|sole|paginate|simplePaginate|cursorPaginate|count|exists|doesntExist|pluck|value|sum|avg|average|min|max|cursor|lazy|lazyById|toSql|chunk|chunkById|each|clone)$
                               - kind: parenthesized_expression
                                 has:
                                   any:
@@ -8268,7 +8268,7 @@ control:
                                           has:
                                             field: name
                                             kind: name
-                                            regex: ^clone$
+                                            regex: ^(get|all|first|firstOrFail|find|findOrFail|findMany|sole|paginate|simplePaginate|cursorPaginate|count|exists|doesntExist|pluck|value|sum|avg|average|min|max|cursor|lazy|lazyById|toSql|chunk|chunkById|each|clone)$
                           - any:
                             - kind: conditional_expression
                             - kind: match_expression
@@ -8340,7 +8340,7 @@ control:
                                           has:
                                             field: name
                                             kind: name
-                                            regex: ^clone$
+                                            regex: ^(get|all|first|firstOrFail|find|findOrFail|findMany|sole|paginate|simplePaginate|cursorPaginate|count|exists|doesntExist|pluck|value|sum|avg|average|min|max|cursor|lazy|lazyById|toSql|chunk|chunkById|each|clone)$
                                   - kind: parenthesized_expression
                                     has:
                                       any:
@@ -8380,7 +8380,7 @@ control:
                                               has:
                                                 field: name
                                                 kind: name
-                                                regex: ^clone$
+                                                regex: ^(get|all|first|firstOrFail|find|findOrFail|findMany|sole|paginate|simplePaginate|cursorPaginate|count|exists|doesntExist|pluck|value|sum|avg|average|min|max|cursor|lazy|lazyById|toSql|chunk|chunkById|each|clone)$
                               - not:
                                   any:
                                   - inside:
@@ -8439,7 +8439,7 @@ control:
                                 has:
                                   field: name
                                   kind: name
-                                  regex: ^clone$
+                                  regex: ^(get|all|first|firstOrFail|find|findOrFail|findMany|sole|paginate|simplePaginate|cursorPaginate|count|exists|doesntExist|pluck|value|sum|avg|average|min|max|cursor|lazy|lazyById|toSql|chunk|chunkById|each|clone)$
                       - kind: array_element_initializer
                         not:
                           inside:
@@ -16825,7 +16825,7 @@ control:
                                     has:
                                       field: name
                                       kind: name
-                                      regex: ^clone$
+                                      regex: ^(get|all|first|firstOrFail|find|findOrFail|findMany|sole|paginate|simplePaginate|cursorPaginate|count|exists|doesntExist|pluck|value|sum|avg|average|min|max|cursor|lazy|lazyById|toSql|chunk|chunkById|each|clone)$
                             - any:
                               - kind: conditional_expression
                               - kind: match_expression
@@ -16884,7 +16884,7 @@ control:
                                         has:
                                           field: name
                                           kind: name
-                                          regex: ^clone$
+                                          regex: ^(get|all|first|firstOrFail|find|findOrFail|findMany|sole|paginate|simplePaginate|cursorPaginate|count|exists|doesntExist|pluck|value|sum|avg|average|min|max|cursor|lazy|lazyById|toSql|chunk|chunkById|each|clone)$
                                 - not:
                                     any:
                                     - inside:
@@ -16960,7 +16960,7 @@ control:
                                         has:
                                           field: name
                                           kind: name
-                                          regex: ^clone$
+                                          regex: ^(get|all|first|firstOrFail|find|findOrFail|findMany|sole|paginate|simplePaginate|cursorPaginate|count|exists|doesntExist|pluck|value|sum|avg|average|min|max|cursor|lazy|lazyById|toSql|chunk|chunkById|each|clone)$
                                 - kind: parenthesized_expression
                                   has:
                                     any:
@@ -17000,7 +17000,7 @@ control:
                                             has:
                                               field: name
                                               kind: name
-                                              regex: ^clone$
+                                              regex: ^(get|all|first|firstOrFail|find|findOrFail|findMany|sole|paginate|simplePaginate|cursorPaginate|count|exists|doesntExist|pluck|value|sum|avg|average|min|max|cursor|lazy|lazyById|toSql|chunk|chunkById|each|clone)$
                             - any:
                               - kind: conditional_expression
                               - kind: match_expression
@@ -17072,7 +17072,7 @@ control:
                                             has:
                                               field: name
                                               kind: name
-                                              regex: ^clone$
+                                              regex: ^(get|all|first|firstOrFail|find|findOrFail|findMany|sole|paginate|simplePaginate|cursorPaginate|count|exists|doesntExist|pluck|value|sum|avg|average|min|max|cursor|lazy|lazyById|toSql|chunk|chunkById|each|clone)$
                                     - kind: parenthesized_expression
                                       has:
                                         any:
@@ -17112,7 +17112,7 @@ control:
                                                 has:
                                                   field: name
                                                   kind: name
-                                                  regex: ^clone$
+                                                  regex: ^(get|all|first|firstOrFail|find|findOrFail|findMany|sole|paginate|simplePaginate|cursorPaginate|count|exists|doesntExist|pluck|value|sum|avg|average|min|max|cursor|lazy|lazyById|toSql|chunk|chunkById|each|clone)$
                                 - not:
                                     any:
                                     - inside:
@@ -17171,7 +17171,7 @@ control:
                                   has:
                                     field: name
                                     kind: name
-                                    regex: ^clone$
+                                    regex: ^(get|all|first|firstOrFail|find|findOrFail|findMany|sole|paginate|simplePaginate|cursorPaginate|count|exists|doesntExist|pluck|value|sum|avg|average|min|max|cursor|lazy|lazyById|toSql|chunk|chunkById|each|clone)$
                         - kind: array_element_initializer
                           not:
                             inside:
@@ -25461,7 +25461,7 @@ rule:
                                       has:
                                         field: name
                                         kind: name
-                                        regex: ^clone$
+                                        regex: ^(get|all|first|firstOrFail|find|findOrFail|findMany|sole|paginate|simplePaginate|cursorPaginate|count|exists|doesntExist|pluck|value|sum|avg|average|min|max|cursor|lazy|lazyById|toSql|chunk|chunkById|each|clone)$
                               - any:
                                 - kind: conditional_expression
                                 - kind: match_expression
@@ -25520,7 +25520,7 @@ rule:
                                           has:
                                             field: name
                                             kind: name
-                                            regex: ^clone$
+                                            regex: ^(get|all|first|firstOrFail|find|findOrFail|findMany|sole|paginate|simplePaginate|cursorPaginate|count|exists|doesntExist|pluck|value|sum|avg|average|min|max|cursor|lazy|lazyById|toSql|chunk|chunkById|each|clone)$
                                   - not:
                                       any:
                                       - inside:
@@ -25596,7 +25596,7 @@ rule:
                                           has:
                                             field: name
                                             kind: name
-                                            regex: ^clone$
+                                            regex: ^(get|all|first|firstOrFail|find|findOrFail|findMany|sole|paginate|simplePaginate|cursorPaginate|count|exists|doesntExist|pluck|value|sum|avg|average|min|max|cursor|lazy|lazyById|toSql|chunk|chunkById|each|clone)$
                                   - kind: parenthesized_expression
                                     has:
                                       any:
@@ -25636,7 +25636,7 @@ rule:
                                               has:
                                                 field: name
                                                 kind: name
-                                                regex: ^clone$
+                                                regex: ^(get|all|first|firstOrFail|find|findOrFail|findMany|sole|paginate|simplePaginate|cursorPaginate|count|exists|doesntExist|pluck|value|sum|avg|average|min|max|cursor|lazy|lazyById|toSql|chunk|chunkById|each|clone)$
                               - any:
                                 - kind: conditional_expression
                                 - kind: match_expression
@@ -25708,7 +25708,7 @@ rule:
                                               has:
                                                 field: name
                                                 kind: name
-                                                regex: ^clone$
+                                                regex: ^(get|all|first|firstOrFail|find|findOrFail|findMany|sole|paginate|simplePaginate|cursorPaginate|count|exists|doesntExist|pluck|value|sum|avg|average|min|max|cursor|lazy|lazyById|toSql|chunk|chunkById|each|clone)$
                                       - kind: parenthesized_expression
                                         has:
                                           any:
@@ -25748,7 +25748,7 @@ rule:
                                                   has:
                                                     field: name
                                                     kind: name
-                                                    regex: ^clone$
+                                                    regex: ^(get|all|first|firstOrFail|find|findOrFail|findMany|sole|paginate|simplePaginate|cursorPaginate|count|exists|doesntExist|pluck|value|sum|avg|average|min|max|cursor|lazy|lazyById|toSql|chunk|chunkById|each|clone)$
                                   - not:
                                       any:
                                       - inside:
@@ -25807,7 +25807,7 @@ rule:
                                     has:
                                       field: name
                                       kind: name
-                                      regex: ^clone$
+                                      regex: ^(get|all|first|firstOrFail|find|findOrFail|findMany|sole|paginate|simplePaginate|cursorPaginate|count|exists|doesntExist|pluck|value|sum|avg|average|min|max|cursor|lazy|lazyById|toSql|chunk|chunkById|each|clone)$
                           - kind: array_element_initializer
                             not:
                               inside:
@@ -34193,7 +34193,7 @@ rule:
                                         has:
                                           field: name
                                           kind: name
-                                          regex: ^clone$
+                                          regex: ^(get|all|first|firstOrFail|find|findOrFail|findMany|sole|paginate|simplePaginate|cursorPaginate|count|exists|doesntExist|pluck|value|sum|avg|average|min|max|cursor|lazy|lazyById|toSql|chunk|chunkById|each|clone)$
                                 - any:
                                   - kind: conditional_expression
                                   - kind: match_expression
@@ -34252,7 +34252,7 @@ rule:
                                             has:
                                               field: name
                                               kind: name
-                                              regex: ^clone$
+                                              regex: ^(get|all|first|firstOrFail|find|findOrFail|findMany|sole|paginate|simplePaginate|cursorPaginate|count|exists|doesntExist|pluck|value|sum|avg|average|min|max|cursor|lazy|lazyById|toSql|chunk|chunkById|each|clone)$
                                     - not:
                                         any:
                                         - inside:
@@ -34328,7 +34328,7 @@ rule:
                                             has:
                                               field: name
                                               kind: name
-                                              regex: ^clone$
+                                              regex: ^(get|all|first|firstOrFail|find|findOrFail|findMany|sole|paginate|simplePaginate|cursorPaginate|count|exists|doesntExist|pluck|value|sum|avg|average|min|max|cursor|lazy|lazyById|toSql|chunk|chunkById|each|clone)$
                                     - kind: parenthesized_expression
                                       has:
                                         any:
@@ -34368,7 +34368,7 @@ rule:
                                                 has:
                                                   field: name
                                                   kind: name
-                                                  regex: ^clone$
+                                                  regex: ^(get|all|first|firstOrFail|find|findOrFail|findMany|sole|paginate|simplePaginate|cursorPaginate|count|exists|doesntExist|pluck|value|sum|avg|average|min|max|cursor|lazy|lazyById|toSql|chunk|chunkById|each|clone)$
                                 - any:
                                   - kind: conditional_expression
                                   - kind: match_expression
@@ -34440,7 +34440,7 @@ rule:
                                                 has:
                                                   field: name
                                                   kind: name
-                                                  regex: ^clone$
+                                                  regex: ^(get|all|first|firstOrFail|find|findOrFail|findMany|sole|paginate|simplePaginate|cursorPaginate|count|exists|doesntExist|pluck|value|sum|avg|average|min|max|cursor|lazy|lazyById|toSql|chunk|chunkById|each|clone)$
                                         - kind: parenthesized_expression
                                           has:
                                             any:
@@ -34480,7 +34480,7 @@ rule:
                                                     has:
                                                       field: name
                                                       kind: name
-                                                      regex: ^clone$
+                                                      regex: ^(get|all|first|firstOrFail|find|findOrFail|findMany|sole|paginate|simplePaginate|cursorPaginate|count|exists|doesntExist|pluck|value|sum|avg|average|min|max|cursor|lazy|lazyById|toSql|chunk|chunkById|each|clone)$
                                     - not:
                                         any:
                                         - inside:
@@ -34539,7 +34539,7 @@ rule:
                                       has:
                                         field: name
                                         kind: name
-                                        regex: ^clone$
+                                        regex: ^(get|all|first|firstOrFail|find|findOrFail|findMany|sole|paginate|simplePaginate|cursorPaginate|count|exists|doesntExist|pluck|value|sum|avg|average|min|max|cursor|lazy|lazyById|toSql|chunk|chunkById|each|clone)$
                             - kind: array_element_initializer
                               not:
                                 inside:
