@@ -4863,7 +4863,11 @@ min_engine: 0.39.0
 # The control: the route's .middleware() callback loads the signed-in user as a direct statement of its body (const
 # user = await auth(), currentUser(), getServerSession(...), const { userId } = await auth() or getAuth(req)) and throws
 # when that same binding is missing (if (!user) throw ..., also on user.id or user?.id). A file that declares its own
-# function by that name (the uploadthing docs' fake auth) never counts. Any other middleware is
+# function by that name (the uploadthing docs' fake auth) never counts. T29 (T29-P1-C465, F1, authz slice 10): Clerk's
+# auth() gives an object to a signed-out caller too, so a whole auth() result counts only checked on its userId,
+# sessionId or user (if (!session?.userId) throw ...), or bare (if (!session) throw ...) only when the file imports auth
+# from next-auth; and a destructured auth() or getAuth(req) key counts only when it is userId, sessionId or user. A
+# next-auth v5 project's own auth (import { auth } from "@/auth") checked bare is held for a person (a false hold). Any other middleware is
 # auth-unobserved-upload, a hold for a person. With no middleware the item has no control, and like every authz item
 # without one it ends as an ask (assistant_answer_needed), never a pass. T29 (P2 C542, authz slice 7): only a
 # .middleware() on the route chain itself counts, the last one if it has two (one inside an argument, such as an

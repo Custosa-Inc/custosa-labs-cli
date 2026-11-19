@@ -1,5 +1,5 @@
 {
-  "ruleset_id": "2026-11-19.8e9d62e6",
+  "ruleset_id": "2026-11-19.965f8823",
   "min_engine": "0.45.3",
   "files": [
     {
@@ -404,7 +404,7 @@
     },
     {
       "path": "rules/authz-every-handler/javascript-nextjs.yml",
-      "sha256": "2de63a73f774d4e5cb22cdc4b745bd4946e9896fa80bb2f332c4aed4d05a824e"
+      "sha256": "5d2edda25e230114b8183ec20e38f0cf184892c6de0e841280f3204cd07bb5f6"
     },
     {
       "path": "rules/authz-every-handler/kotlin-spring.yml",
@@ -416,7 +416,7 @@
     },
     {
       "path": "rules/authz-every-handler/php-laravel.yml",
-      "sha256": "3413c57e1c59ea5ab4adb7619565422c2297e48fcd099c39d664c0d9eb6f2d4e"
+      "sha256": "04be96e1907b52be1570908b720a447613ca54ce6f7c9cdb67dfd5431d21ecb1"
     },
     {
       "path": "rules/authz-every-handler/python-django.yml",
@@ -452,7 +452,7 @@
     },
     {
       "path": "rules/authz-every-handler/typescript-nextjs.yml",
-      "sha256": "5ef352a9830a4fa6044512353e5924d390668ca2a5cee42ff6582c181b645b79"
+      "sha256": "3fc750ad1b669dc4ccb08d5a713962d31c896c799fedcf4304bec3314d84a2c2"
     },
     {
       "path": "rules/authz-every-handler/typescript-nuxt.yml",

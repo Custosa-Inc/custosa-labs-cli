@@ -242,7 +242,10 @@ min_engine: 0.39.0
 # the variable that chain starts from (a direct statement $q = Model::where(...), $q->where(...) or
 # $q = $q->where(...)). And every rows chain of the method must be scoped so: a where on another model's query
 # ($c = Clinician::where('user_id', auth()->id())->first(); return Patient::all();), or on a separate count() beside
-# an unscoped get(), is no control. No control: the item holds for a person (authz-every-handler fails on code
+# an unscoped get(), is no control. Known limits: statement order isn't read, so a scope later undone by a plain
+# reassignment ($q = Patient::where(...caller...); $q = Patient::query(); return $q->get();) still counts (a false
+# pass), and a caller where inside an argument (whereIn('id', Note::where(...caller...)->pluck('patient_id'))) is
+# no control (a false hold). No control: the item holds for a person (authz-every-handler fails on code
 # reading are holds, evaluate.CODE_READ_HOLDS), never a fail alone, never a pass.
 id: authz-every-handler.php-laravel.list-route
 practice_id: authz-every-handler
