@@ -2682,43 +2682,100 @@ control:
                                             kind: name
                                             regex: ^(when|unless|tap)$
                                         - any:
-                                          - has:
-                                              stopBy: end
-                                              kind: variable_name
-                                              pattern:
-                                                context: <?php $V->get();
-                                                selector: variable_name
-                                              not:
-                                                inside:
-                                                  stopBy:
-                                                    any:
-                                                    - kind: member_call_expression
-                                                    - kind: scoped_call_expression
-                                                    has:
-                                                      field: name
-                                                      kind: name
-                                                      regex: ^(when|unless|tap)$
-                                                  kind: arguments
-                                          - inside:
-                                              stopBy: end
-                                              kind: assignment_expression
-                                              has:
-                                                field: left
+                                          - any:
+                                            - has:
+                                                stopBy: end
                                                 kind: variable_name
                                                 pattern:
                                                   context: <?php $V->get();
                                                   selector: variable_name
-                                            not:
+                                                not:
+                                                  inside:
+                                                    stopBy:
+                                                      any:
+                                                      - kind: member_call_expression
+                                                      - kind: scoped_call_expression
+                                                      has:
+                                                        field: name
+                                                        kind: name
+                                                        regex: ^(when|unless|tap)$
+                                                    kind: arguments
+                                            - inside:
+                                                stopBy: end
+                                                kind: assignment_expression
+                                                has:
+                                                  field: left
+                                                  kind: variable_name
+                                                  pattern:
+                                                    context: <?php $V->get();
+                                                    selector: variable_name
+                                              not:
+                                                inside:
+                                                  stopBy:
+                                                    kind: assignment_expression
+                                                    has:
+                                                      field: left
+                                                      kind: variable_name
+                                                      pattern:
+                                                        context: <?php $V->get();
+                                                        selector: variable_name
+                                                  kind: arguments
+                                          - inside:
+                                              stopBy: end
+                                              any:
+                                              - kind: arrow_function
+                                              - kind: anonymous_function
                                               inside:
-                                                stopBy:
-                                                  kind: assignment_expression
-                                                  has:
-                                                    field: left
-                                                    kind: variable_name
-                                                    pattern:
-                                                      context: <?php $V->get();
-                                                      selector: variable_name
-                                                kind: arguments
+                                                kind: argument
+                                                inside:
+                                                  kind: arguments
+                                                  inside:
+                                                    all:
+                                                    - any:
+                                                      - kind: member_call_expression
+                                                      - kind: scoped_call_expression
+                                                    - has:
+                                                        field: name
+                                                        kind: name
+                                                        regex: ^(when|unless|tap)$
+                                                    - any:
+                                                      - has:
+                                                          stopBy: end
+                                                          kind: variable_name
+                                                          pattern:
+                                                            context: <?php $V->get();
+                                                            selector: variable_name
+                                                          not:
+                                                            inside:
+                                                              stopBy:
+                                                                any:
+                                                                - kind: member_call_expression
+                                                                - kind: scoped_call_expression
+                                                                has:
+                                                                  field: name
+                                                                  kind: name
+                                                                  regex: ^(when|unless|tap)$
+                                                              kind: arguments
+                                                      - inside:
+                                                          stopBy: end
+                                                          kind: assignment_expression
+                                                          has:
+                                                            field: left
+                                                            kind: variable_name
+                                                            pattern:
+                                                              context: <?php $V->get();
+                                                              selector: variable_name
+                                                        not:
+                                                          inside:
+                                                            stopBy:
+                                                              kind: assignment_expression
+                                                              has:
+                                                                field: left
+                                                                kind: variable_name
+                                                                pattern:
+                                                                  context: <?php $V->get();
+                                                                  selector: variable_name
+                                                            kind: arguments
                             not:
                               inside:
                                 stopBy: end
@@ -5023,43 +5080,100 @@ control:
                                               kind: name
                                               regex: ^(when|unless|tap)$
                                           - any:
-                                            - has:
-                                                stopBy: end
-                                                kind: variable_name
-                                                pattern:
-                                                  context: <?php $V->get();
-                                                  selector: variable_name
-                                                not:
-                                                  inside:
-                                                    stopBy:
-                                                      any:
-                                                      - kind: member_call_expression
-                                                      - kind: scoped_call_expression
-                                                      has:
-                                                        field: name
-                                                        kind: name
-                                                        regex: ^(when|unless|tap)$
-                                                    kind: arguments
-                                            - inside:
-                                                stopBy: end
-                                                kind: assignment_expression
-                                                has:
-                                                  field: left
+                                            - any:
+                                              - has:
+                                                  stopBy: end
                                                   kind: variable_name
                                                   pattern:
                                                     context: <?php $V->get();
                                                     selector: variable_name
-                                              not:
+                                                  not:
+                                                    inside:
+                                                      stopBy:
+                                                        any:
+                                                        - kind: member_call_expression
+                                                        - kind: scoped_call_expression
+                                                        has:
+                                                          field: name
+                                                          kind: name
+                                                          regex: ^(when|unless|tap)$
+                                                      kind: arguments
+                                              - inside:
+                                                  stopBy: end
+                                                  kind: assignment_expression
+                                                  has:
+                                                    field: left
+                                                    kind: variable_name
+                                                    pattern:
+                                                      context: <?php $V->get();
+                                                      selector: variable_name
+                                                not:
+                                                  inside:
+                                                    stopBy:
+                                                      kind: assignment_expression
+                                                      has:
+                                                        field: left
+                                                        kind: variable_name
+                                                        pattern:
+                                                          context: <?php $V->get();
+                                                          selector: variable_name
+                                                    kind: arguments
+                                            - inside:
+                                                stopBy: end
+                                                any:
+                                                - kind: arrow_function
+                                                - kind: anonymous_function
                                                 inside:
-                                                  stopBy:
-                                                    kind: assignment_expression
-                                                    has:
-                                                      field: left
-                                                      kind: variable_name
-                                                      pattern:
-                                                        context: <?php $V->get();
-                                                        selector: variable_name
-                                                  kind: arguments
+                                                  kind: argument
+                                                  inside:
+                                                    kind: arguments
+                                                    inside:
+                                                      all:
+                                                      - any:
+                                                        - kind: member_call_expression
+                                                        - kind: scoped_call_expression
+                                                      - has:
+                                                          field: name
+                                                          kind: name
+                                                          regex: ^(when|unless|tap)$
+                                                      - any:
+                                                        - has:
+                                                            stopBy: end
+                                                            kind: variable_name
+                                                            pattern:
+                                                              context: <?php $V->get();
+                                                              selector: variable_name
+                                                            not:
+                                                              inside:
+                                                                stopBy:
+                                                                  any:
+                                                                  - kind: member_call_expression
+                                                                  - kind: scoped_call_expression
+                                                                  has:
+                                                                    field: name
+                                                                    kind: name
+                                                                    regex: ^(when|unless|tap)$
+                                                                kind: arguments
+                                                        - inside:
+                                                            stopBy: end
+                                                            kind: assignment_expression
+                                                            has:
+                                                              field: left
+                                                              kind: variable_name
+                                                              pattern:
+                                                                context: <?php $V->get();
+                                                                selector: variable_name
+                                                          not:
+                                                            inside:
+                                                              stopBy:
+                                                                kind: assignment_expression
+                                                                has:
+                                                                  field: left
+                                                                  kind: variable_name
+                                                                  pattern:
+                                                                    context: <?php $V->get();
+                                                                    selector: variable_name
+                                                              kind: arguments
                               not:
                                 inside:
                                   stopBy: end
@@ -7615,43 +7729,100 @@ rule:
                                                 kind: name
                                                 regex: ^(when|unless|tap)$
                                             - any:
-                                              - has:
-                                                  stopBy: end
-                                                  kind: variable_name
-                                                  pattern:
-                                                    context: <?php $V->get();
-                                                    selector: variable_name
-                                                  not:
-                                                    inside:
-                                                      stopBy:
-                                                        any:
-                                                        - kind: member_call_expression
-                                                        - kind: scoped_call_expression
-                                                        has:
-                                                          field: name
-                                                          kind: name
-                                                          regex: ^(when|unless|tap)$
-                                                      kind: arguments
-                                              - inside:
-                                                  stopBy: end
-                                                  kind: assignment_expression
-                                                  has:
-                                                    field: left
+                                              - any:
+                                                - has:
+                                                    stopBy: end
                                                     kind: variable_name
                                                     pattern:
                                                       context: <?php $V->get();
                                                       selector: variable_name
-                                                not:
+                                                    not:
+                                                      inside:
+                                                        stopBy:
+                                                          any:
+                                                          - kind: member_call_expression
+                                                          - kind: scoped_call_expression
+                                                          has:
+                                                            field: name
+                                                            kind: name
+                                                            regex: ^(when|unless|tap)$
+                                                        kind: arguments
+                                                - inside:
+                                                    stopBy: end
+                                                    kind: assignment_expression
+                                                    has:
+                                                      field: left
+                                                      kind: variable_name
+                                                      pattern:
+                                                        context: <?php $V->get();
+                                                        selector: variable_name
+                                                  not:
+                                                    inside:
+                                                      stopBy:
+                                                        kind: assignment_expression
+                                                        has:
+                                                          field: left
+                                                          kind: variable_name
+                                                          pattern:
+                                                            context: <?php $V->get();
+                                                            selector: variable_name
+                                                      kind: arguments
+                                              - inside:
+                                                  stopBy: end
+                                                  any:
+                                                  - kind: arrow_function
+                                                  - kind: anonymous_function
                                                   inside:
-                                                    stopBy:
-                                                      kind: assignment_expression
-                                                      has:
-                                                        field: left
-                                                        kind: variable_name
-                                                        pattern:
-                                                          context: <?php $V->get();
-                                                          selector: variable_name
-                                                    kind: arguments
+                                                    kind: argument
+                                                    inside:
+                                                      kind: arguments
+                                                      inside:
+                                                        all:
+                                                        - any:
+                                                          - kind: member_call_expression
+                                                          - kind: scoped_call_expression
+                                                        - has:
+                                                            field: name
+                                                            kind: name
+                                                            regex: ^(when|unless|tap)$
+                                                        - any:
+                                                          - has:
+                                                              stopBy: end
+                                                              kind: variable_name
+                                                              pattern:
+                                                                context: <?php $V->get();
+                                                                selector: variable_name
+                                                              not:
+                                                                inside:
+                                                                  stopBy:
+                                                                    any:
+                                                                    - kind: member_call_expression
+                                                                    - kind: scoped_call_expression
+                                                                    has:
+                                                                      field: name
+                                                                      kind: name
+                                                                      regex: ^(when|unless|tap)$
+                                                                  kind: arguments
+                                                          - inside:
+                                                              stopBy: end
+                                                              kind: assignment_expression
+                                                              has:
+                                                                field: left
+                                                                kind: variable_name
+                                                                pattern:
+                                                                  context: <?php $V->get();
+                                                                  selector: variable_name
+                                                            not:
+                                                              inside:
+                                                                stopBy:
+                                                                  kind: assignment_expression
+                                                                  has:
+                                                                    field: left
+                                                                    kind: variable_name
+                                                                    pattern:
+                                                                      context: <?php $V->get();
+                                                                      selector: variable_name
+                                                                kind: arguments
                                 not:
                                   inside:
                                     stopBy: end
@@ -9956,43 +10127,100 @@ rule:
                                                   kind: name
                                                   regex: ^(when|unless|tap)$
                                               - any:
-                                                - has:
-                                                    stopBy: end
-                                                    kind: variable_name
-                                                    pattern:
-                                                      context: <?php $V->get();
-                                                      selector: variable_name
-                                                    not:
-                                                      inside:
-                                                        stopBy:
-                                                          any:
-                                                          - kind: member_call_expression
-                                                          - kind: scoped_call_expression
-                                                          has:
-                                                            field: name
-                                                            kind: name
-                                                            regex: ^(when|unless|tap)$
-                                                        kind: arguments
-                                                - inside:
-                                                    stopBy: end
-                                                    kind: assignment_expression
-                                                    has:
-                                                      field: left
+                                                - any:
+                                                  - has:
+                                                      stopBy: end
                                                       kind: variable_name
                                                       pattern:
                                                         context: <?php $V->get();
                                                         selector: variable_name
-                                                  not:
+                                                      not:
+                                                        inside:
+                                                          stopBy:
+                                                            any:
+                                                            - kind: member_call_expression
+                                                            - kind: scoped_call_expression
+                                                            has:
+                                                              field: name
+                                                              kind: name
+                                                              regex: ^(when|unless|tap)$
+                                                          kind: arguments
+                                                  - inside:
+                                                      stopBy: end
+                                                      kind: assignment_expression
+                                                      has:
+                                                        field: left
+                                                        kind: variable_name
+                                                        pattern:
+                                                          context: <?php $V->get();
+                                                          selector: variable_name
+                                                    not:
+                                                      inside:
+                                                        stopBy:
+                                                          kind: assignment_expression
+                                                          has:
+                                                            field: left
+                                                            kind: variable_name
+                                                            pattern:
+                                                              context: <?php $V->get();
+                                                              selector: variable_name
+                                                        kind: arguments
+                                                - inside:
+                                                    stopBy: end
+                                                    any:
+                                                    - kind: arrow_function
+                                                    - kind: anonymous_function
                                                     inside:
-                                                      stopBy:
-                                                        kind: assignment_expression
-                                                        has:
-                                                          field: left
-                                                          kind: variable_name
-                                                          pattern:
-                                                            context: <?php $V->get();
-                                                            selector: variable_name
-                                                      kind: arguments
+                                                      kind: argument
+                                                      inside:
+                                                        kind: arguments
+                                                        inside:
+                                                          all:
+                                                          - any:
+                                                            - kind: member_call_expression
+                                                            - kind: scoped_call_expression
+                                                          - has:
+                                                              field: name
+                                                              kind: name
+                                                              regex: ^(when|unless|tap)$
+                                                          - any:
+                                                            - has:
+                                                                stopBy: end
+                                                                kind: variable_name
+                                                                pattern:
+                                                                  context: <?php $V->get();
+                                                                  selector: variable_name
+                                                                not:
+                                                                  inside:
+                                                                    stopBy:
+                                                                      any:
+                                                                      - kind: member_call_expression
+                                                                      - kind: scoped_call_expression
+                                                                      has:
+                                                                        field: name
+                                                                        kind: name
+                                                                        regex: ^(when|unless|tap)$
+                                                                    kind: arguments
+                                                            - inside:
+                                                                stopBy: end
+                                                                kind: assignment_expression
+                                                                has:
+                                                                  field: left
+                                                                  kind: variable_name
+                                                                  pattern:
+                                                                    context: <?php $V->get();
+                                                                    selector: variable_name
+                                                              not:
+                                                                inside:
+                                                                  stopBy:
+                                                                    kind: assignment_expression
+                                                                    has:
+                                                                      field: left
+                                                                      kind: variable_name
+                                                                      pattern:
+                                                                        context: <?php $V->get();
+                                                                        selector: variable_name
+                                                                  kind: arguments
                                   not:
                                     inside:
                                       stopBy: end
