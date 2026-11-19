@@ -1,5 +1,5 @@
 {
-  "ruleset_id": "2026-11-19.a0a4e571",
+  "ruleset_id": "2026-11-19.19131d16",
   "min_engine": "0.45.3",
   "files": [
     {
@@ -416,7 +416,7 @@
     },
     {
       "path": "rules/authz-every-handler/php-laravel.yml",
-      "sha256": "9e4af23f0d35c9501742747ed46e538b219085fea6dd9e718761a8d4ae1b54a3"
+      "sha256": "d96f6023007d9f2eabae49067aea3704fe40526dc84171c75714dde9d0db5479"
     },
     {
       "path": "rules/authz-every-handler/python-django.yml",
@@ -1340,7 +1340,7 @@
     },
     {
       "path": "rules/security-events-logged/java-generic.yml",
-      "sha256": "8fc62120b1c2cac53121b65dcefea40d8a5df8e980ddd8a932b01ee5e6904a98"
+      "sha256": "df0626dcf5ec2ea346c212cdebd090afba0e17040d1444ac4c798440568db1c4"
     },
     {
       "path": "rules/security-events-logged/javascript-generic.yml",
@@ -1352,7 +1352,7 @@
     },
     {
       "path": "rules/security-events-logged/python-generic.yml",
-      "sha256": "b54c778f7da3c369a2ecb7cffac2ccc9396c4f9c8a3118cf5682da882698494f"
+      "sha256": "80af89e1e9dd82293071723c192dd932dc8a6dc60982f09316977aa1d378f15e"
     },
     {
       "path": "rules/security-events-logged/ruby-generic.yml",
@@ -1360,11 +1360,11 @@
     },
     {
       "path": "rules/security-events-logged/tsx-generic.yml",
-      "sha256": "653127eefed49b789f1ec3c8c58023c2671b516577f71a14b87f4b01fc5c2f8f"
+      "sha256": "538986392fc337ad6ec60a75ccbb5fc38f0742a1b1d589de3fd0c74c619dd848"
     },
     {
       "path": "rules/security-events-logged/typescript-generic.yml",
-      "sha256": "64078b917da877b94822ee51ffedf2ff02f5bf3cde4fd3ff9f0229feffb1a91d"
+      "sha256": "f8d81b45f0357271dd4f821c67825da102a14d97d86fa365e4fb999cecc55676"
     },
     {
       "path": "rules/session-cookie-flags/go-generic.yml",

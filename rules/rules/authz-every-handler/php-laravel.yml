@@ -253,7 +253,12 @@ min_engine: 0.39.0
 # $user assignment and the helper evidence; a catch or finally block stays nested, so a plain reassignment there
 # undoes the scope. And since statement order isn't read, a list variable assigned from a model both with the caller
 # where and without it ($q = Patient::where(...caller...); $q = Patient::query(); return $q->get();) is no control,
-# in either order. Known limits: a caller where inside an argument
+# in either order. T29 (P2 C591 N1, lows round 3): a reassignment in a branch whose own chain keeps the caller where
+# ($q = Patient::onlyTrashed()->where(...caller...) in an if) rescopes it, as in a loop. T29 (P2 C591 N3): only an
+# orWhere rooted on the list variable widens it, not another builder's orWhere that names it in an argument, and an
+# orWhere in a whereHas, orWhereHas, whereDoesntHave or orWhereDoesntHave closure stays inside that group.
+# Known limits: a reassignment in a branch from a ternary ($q = $x ? Patient::where(...) : Patient::query()) is not
+# read as a reassignment from a model. A caller where inside an argument
 # (whereIn('id', Note::where(...caller...)->pluck('patient_id'))) is no control (a false hold), and a try nested in
 # another try or a branch is not read as direct. No control: the item holds for a person (authz-every-handler fails on code
 # reading are holds, evaluate.CODE_READ_HOLDS), never a fail alone, never a pass.
@@ -1087,7 +1092,7 @@ control:
                           has:
                             field: name
                             kind: name
-                            regex: ^(where|whereNot)$
+                            regex: ^(where|whereNot|whereHas|orWhereHas|whereDoesntHave|orWhereDoesntHave)$
       - not:
           has:
             stopBy: end
@@ -1200,7 +1205,7 @@ control:
                               has:
                                 field: name
                                 kind: name
-                                regex: ^(where|whereNot)$
+                                regex: ^(where|whereNot|whereHas|orWhereHas|whereDoesntHave|orWhereDoesntHave)$
               - not:
                   kind: member_call_expression
                   regex: '^\\?([A-Za-z_]\w*\\)*Session\s*::'
@@ -1979,9 +1984,15 @@ control:
                                       kind: arguments
                                 not:
                                   inside:
-                                    stopBy: end
+                                    stopBy:
+                                      kind: assignment_expression
+                                      has:
+                                        field: left
+                                        kind: variable_name
+                                        pattern:
+                                          context: <?php $V->get();
+                                          selector: variable_name
                                     any:
-                                    - kind: if_statement
                                     - kind: arrow_function
                                     - kind: anonymous_function
                                     - kind: conditional_expression
@@ -2004,9 +2015,15 @@ control:
                                       kind: arguments
                                 not:
                                   inside:
-                                    stopBy: end
+                                    stopBy:
+                                      kind: assignment_expression
+                                      has:
+                                        field: left
+                                        kind: variable_name
+                                        pattern:
+                                          context: <?php $V->get();
+                                          selector: variable_name
                                     any:
-                                    - kind: if_statement
                                     - kind: arrow_function
                                     - kind: anonymous_function
                                     - kind: conditional_expression
@@ -2041,9 +2058,15 @@ control:
                                           kind: arguments
                                     not:
                                       inside:
-                                        stopBy: end
+                                        stopBy:
+                                          kind: assignment_expression
+                                          has:
+                                            field: left
+                                            kind: variable_name
+                                            pattern:
+                                              context: <?php $V->get();
+                                              selector: variable_name
                                         any:
-                                        - kind: if_statement
                                         - kind: arrow_function
                                         - kind: anonymous_function
                                         - kind: conditional_expression
@@ -2066,9 +2089,15 @@ control:
                                           kind: arguments
                                     not:
                                       inside:
-                                        stopBy: end
+                                        stopBy:
+                                          kind: assignment_expression
+                                          has:
+                                            field: left
+                                            kind: variable_name
+                                            pattern:
+                                              context: <?php $V->get();
+                                              selector: variable_name
                                         any:
-                                        - kind: if_statement
                                         - kind: arrow_function
                                         - kind: anonymous_function
                                         - kind: conditional_expression
@@ -2284,7 +2313,7 @@ control:
                               has:
                                 field: name
                                 kind: name
-                                regex: ^(where|whereNot)$
+                                regex: ^(where|whereNot|whereHas|orWhereHas|whereDoesntHave|orWhereDoesntHave)$
                 - inside:
                     stopBy: end
                     kind: method_declaration
@@ -2295,12 +2324,6 @@ control:
                         stopBy: end
                         kind: expression_statement
                         all:
-                        - has:
-                            stopBy: end
-                            kind: variable_name
-                            pattern:
-                              context: <?php $V->get();
-                              selector: variable_name
                         - has:
                             stopBy: end
                             any:
@@ -2316,6 +2339,23 @@ control:
                                   field: arguments
                                   kind: arguments
                                   regex: ^\(\s*(['\"][\w.]+['\"]\s*,\s*(['\"]=['\"]\s*,\s*)?)?(auth\(\s*\)(\s*->\s*guard\([^)]*\))?\s*->\s*(id|user)\s*\(|\\?(Illuminate\\Support\\Facades\\)?Auth::(guard\([^)]*\)\s*->\s*)?(id|user)\s*\(|\$request\s*->\s*user\s*\(|request\(\s*\)\s*->\s*user\s*\()
+                            - has:
+                                stopBy: end
+                                kind: variable_name
+                                pattern:
+                                  context: <?php $V->get();
+                                  selector: variable_name
+                                not:
+                                  inside:
+                                    stopBy:
+                                      any:
+                                      - kind: member_call_expression
+                                      - kind: scoped_call_expression
+                                      has:
+                                        field: name
+                                        kind: name
+                                        regex: ^orWhere\w*$
+                                    kind: arguments
                             not:
                               inside:
                                 stopBy: end
@@ -2333,7 +2373,7 @@ control:
                                       has:
                                         field: name
                                         kind: name
-                                        regex: ^(where|whereNot)$
+                                        regex: ^(where|whereNot|whereHas|orWhereHas|whereDoesntHave|orWhereDoesntHave)$
   - all:
     - has:
         field: body
@@ -3034,7 +3074,7 @@ control:
                             has:
                               field: name
                               kind: name
-                              regex: ^(where|whereNot)$
+                              regex: ^(where|whereNot|whereHas|orWhereHas|whereDoesntHave|orWhereDoesntHave)$
         - not:
             has:
               stopBy: end
@@ -3147,7 +3187,7 @@ control:
                                 has:
                                   field: name
                                   kind: name
-                                  regex: ^(where|whereNot)$
+                                  regex: ^(where|whereNot|whereHas|orWhereHas|whereDoesntHave|orWhereDoesntHave)$
                 - not:
                     kind: member_call_expression
                     regex: '^\\?([A-Za-z_]\w*\\)*Session\s*::'
@@ -3926,9 +3966,15 @@ control:
                                         kind: arguments
                                   not:
                                     inside:
-                                      stopBy: end
+                                      stopBy:
+                                        kind: assignment_expression
+                                        has:
+                                          field: left
+                                          kind: variable_name
+                                          pattern:
+                                            context: <?php $V->get();
+                                            selector: variable_name
                                       any:
-                                      - kind: if_statement
                                       - kind: arrow_function
                                       - kind: anonymous_function
                                       - kind: conditional_expression
@@ -3951,9 +3997,15 @@ control:
                                         kind: arguments
                                   not:
                                     inside:
-                                      stopBy: end
+                                      stopBy:
+                                        kind: assignment_expression
+                                        has:
+                                          field: left
+                                          kind: variable_name
+                                          pattern:
+                                            context: <?php $V->get();
+                                            selector: variable_name
                                       any:
-                                      - kind: if_statement
                                       - kind: arrow_function
                                       - kind: anonymous_function
                                       - kind: conditional_expression
@@ -3988,9 +4040,15 @@ control:
                                             kind: arguments
                                       not:
                                         inside:
-                                          stopBy: end
+                                          stopBy:
+                                            kind: assignment_expression
+                                            has:
+                                              field: left
+                                              kind: variable_name
+                                              pattern:
+                                                context: <?php $V->get();
+                                                selector: variable_name
                                           any:
-                                          - kind: if_statement
                                           - kind: arrow_function
                                           - kind: anonymous_function
                                           - kind: conditional_expression
@@ -4013,9 +4071,15 @@ control:
                                             kind: arguments
                                       not:
                                         inside:
-                                          stopBy: end
+                                          stopBy:
+                                            kind: assignment_expression
+                                            has:
+                                              field: left
+                                              kind: variable_name
+                                              pattern:
+                                                context: <?php $V->get();
+                                                selector: variable_name
                                           any:
-                                          - kind: if_statement
                                           - kind: arrow_function
                                           - kind: anonymous_function
                                           - kind: conditional_expression
@@ -4231,7 +4295,7 @@ control:
                                 has:
                                   field: name
                                   kind: name
-                                  regex: ^(where|whereNot)$
+                                  regex: ^(where|whereNot|whereHas|orWhereHas|whereDoesntHave|orWhereDoesntHave)$
                   - inside:
                       stopBy: end
                       kind: method_declaration
@@ -4242,12 +4306,6 @@ control:
                           stopBy: end
                           kind: expression_statement
                           all:
-                          - has:
-                              stopBy: end
-                              kind: variable_name
-                              pattern:
-                                context: <?php $V->get();
-                                selector: variable_name
                           - has:
                               stopBy: end
                               any:
@@ -4263,6 +4321,23 @@ control:
                                     field: arguments
                                     kind: arguments
                                     regex: ^\(\s*(['\"][\w.]+['\"]\s*,\s*(['\"]=['\"]\s*,\s*)?)?((auth\(\s*\)(\s*->\s*guard\([^)]*\))?\s*->\s*(id|user)\s*\(|\\?(Illuminate\\Support\\Facades\\)?Auth::(guard\([^)]*\)\s*->\s*)?(id|user)\s*\(|\$request\s*->\s*user\s*\(|request\(\s*\)\s*->\s*user\s*\()|\$(user|authUser|currentUser|me)\s*->)
+                              - has:
+                                  stopBy: end
+                                  kind: variable_name
+                                  pattern:
+                                    context: <?php $V->get();
+                                    selector: variable_name
+                                  not:
+                                    inside:
+                                      stopBy:
+                                        any:
+                                        - kind: member_call_expression
+                                        - kind: scoped_call_expression
+                                        has:
+                                          field: name
+                                          kind: name
+                                          regex: ^orWhere\w*$
+                                      kind: arguments
                               not:
                                 inside:
                                   stopBy: end
@@ -4280,7 +4355,7 @@ control:
                                         has:
                                           field: name
                                           kind: name
-                                          regex: ^(where|whereNot)$
+                                          regex: ^(where|whereNot|whereHas|orWhereHas|whereDoesntHave|orWhereDoesntHave)$
     - has:
         field: body
         kind: compound_statement
@@ -5232,7 +5307,7 @@ rule:
                               has:
                                 field: name
                                 kind: name
-                                regex: ^(where|whereNot)$
+                                regex: ^(where|whereNot|whereHas|orWhereHas|whereDoesntHave|orWhereDoesntHave)$
           - not:
               has:
                 stopBy: end
@@ -5345,7 +5420,7 @@ rule:
                                   has:
                                     field: name
                                     kind: name
-                                    regex: ^(where|whereNot)$
+                                    regex: ^(where|whereNot|whereHas|orWhereHas|whereDoesntHave|orWhereDoesntHave)$
                   - not:
                       kind: member_call_expression
                       regex: '^\\?([A-Za-z_]\w*\\)*Session\s*::'
@@ -6124,9 +6199,15 @@ rule:
                                           kind: arguments
                                     not:
                                       inside:
-                                        stopBy: end
+                                        stopBy:
+                                          kind: assignment_expression
+                                          has:
+                                            field: left
+                                            kind: variable_name
+                                            pattern:
+                                              context: <?php $V->get();
+                                              selector: variable_name
                                         any:
-                                        - kind: if_statement
                                         - kind: arrow_function
                                         - kind: anonymous_function
                                         - kind: conditional_expression
@@ -6149,9 +6230,15 @@ rule:
                                           kind: arguments
                                     not:
                                       inside:
-                                        stopBy: end
+                                        stopBy:
+                                          kind: assignment_expression
+                                          has:
+                                            field: left
+                                            kind: variable_name
+                                            pattern:
+                                              context: <?php $V->get();
+                                              selector: variable_name
                                         any:
-                                        - kind: if_statement
                                         - kind: arrow_function
                                         - kind: anonymous_function
                                         - kind: conditional_expression
@@ -6186,9 +6273,15 @@ rule:
                                               kind: arguments
                                         not:
                                           inside:
-                                            stopBy: end
+                                            stopBy:
+                                              kind: assignment_expression
+                                              has:
+                                                field: left
+                                                kind: variable_name
+                                                pattern:
+                                                  context: <?php $V->get();
+                                                  selector: variable_name
                                             any:
-                                            - kind: if_statement
                                             - kind: arrow_function
                                             - kind: anonymous_function
                                             - kind: conditional_expression
@@ -6211,9 +6304,15 @@ rule:
                                               kind: arguments
                                         not:
                                           inside:
-                                            stopBy: end
+                                            stopBy:
+                                              kind: assignment_expression
+                                              has:
+                                                field: left
+                                                kind: variable_name
+                                                pattern:
+                                                  context: <?php $V->get();
+                                                  selector: variable_name
                                             any:
-                                            - kind: if_statement
                                             - kind: arrow_function
                                             - kind: anonymous_function
                                             - kind: conditional_expression
@@ -6429,7 +6528,7 @@ rule:
                                   has:
                                     field: name
                                     kind: name
-                                    regex: ^(where|whereNot)$
+                                    regex: ^(where|whereNot|whereHas|orWhereHas|whereDoesntHave|orWhereDoesntHave)$
                     - inside:
                         stopBy: end
                         kind: method_declaration
@@ -6440,12 +6539,6 @@ rule:
                             stopBy: end
                             kind: expression_statement
                             all:
-                            - has:
-                                stopBy: end
-                                kind: variable_name
-                                pattern:
-                                  context: <?php $V->get();
-                                  selector: variable_name
                             - has:
                                 stopBy: end
                                 any:
@@ -6461,6 +6554,23 @@ rule:
                                       field: arguments
                                       kind: arguments
                                       regex: ^\(\s*(['\"][\w.]+['\"]\s*,\s*(['\"]=['\"]\s*,\s*)?)?(auth\(\s*\)(\s*->\s*guard\([^)]*\))?\s*->\s*(id|user)\s*\(|\\?(Illuminate\\Support\\Facades\\)?Auth::(guard\([^)]*\)\s*->\s*)?(id|user)\s*\(|\$request\s*->\s*user\s*\(|request\(\s*\)\s*->\s*user\s*\()
+                                - has:
+                                    stopBy: end
+                                    kind: variable_name
+                                    pattern:
+                                      context: <?php $V->get();
+                                      selector: variable_name
+                                    not:
+                                      inside:
+                                        stopBy:
+                                          any:
+                                          - kind: member_call_expression
+                                          - kind: scoped_call_expression
+                                          has:
+                                            field: name
+                                            kind: name
+                                            regex: ^orWhere\w*$
+                                        kind: arguments
                                 not:
                                   inside:
                                     stopBy: end
@@ -6478,7 +6588,7 @@ rule:
                                           has:
                                             field: name
                                             kind: name
-                                            regex: ^(where|whereNot)$
+                                            regex: ^(where|whereNot|whereHas|orWhereHas|whereDoesntHave|orWhereDoesntHave)$
       - all:
         - has:
             field: body
@@ -7179,7 +7289,7 @@ rule:
                                 has:
                                   field: name
                                   kind: name
-                                  regex: ^(where|whereNot)$
+                                  regex: ^(where|whereNot|whereHas|orWhereHas|whereDoesntHave|orWhereDoesntHave)$
             - not:
                 has:
                   stopBy: end
@@ -7292,7 +7402,7 @@ rule:
                                     has:
                                       field: name
                                       kind: name
-                                      regex: ^(where|whereNot)$
+                                      regex: ^(where|whereNot|whereHas|orWhereHas|whereDoesntHave|orWhereDoesntHave)$
                     - not:
                         kind: member_call_expression
                         regex: '^\\?([A-Za-z_]\w*\\)*Session\s*::'
@@ -8071,9 +8181,15 @@ rule:
                                             kind: arguments
                                       not:
                                         inside:
-                                          stopBy: end
+                                          stopBy:
+                                            kind: assignment_expression
+                                            has:
+                                              field: left
+                                              kind: variable_name
+                                              pattern:
+                                                context: <?php $V->get();
+                                                selector: variable_name
                                           any:
-                                          - kind: if_statement
                                           - kind: arrow_function
                                           - kind: anonymous_function
                                           - kind: conditional_expression
@@ -8096,9 +8212,15 @@ rule:
                                             kind: arguments
                                       not:
                                         inside:
-                                          stopBy: end
+                                          stopBy:
+                                            kind: assignment_expression
+                                            has:
+                                              field: left
+                                              kind: variable_name
+                                              pattern:
+                                                context: <?php $V->get();
+                                                selector: variable_name
                                           any:
-                                          - kind: if_statement
                                           - kind: arrow_function
                                           - kind: anonymous_function
                                           - kind: conditional_expression
@@ -8133,9 +8255,15 @@ rule:
                                                 kind: arguments
                                           not:
                                             inside:
-                                              stopBy: end
+                                              stopBy:
+                                                kind: assignment_expression
+                                                has:
+                                                  field: left
+                                                  kind: variable_name
+                                                  pattern:
+                                                    context: <?php $V->get();
+                                                    selector: variable_name
                                               any:
-                                              - kind: if_statement
                                               - kind: arrow_function
                                               - kind: anonymous_function
                                               - kind: conditional_expression
@@ -8158,9 +8286,15 @@ rule:
                                                 kind: arguments
                                           not:
                                             inside:
-                                              stopBy: end
+                                              stopBy:
+                                                kind: assignment_expression
+                                                has:
+                                                  field: left
+                                                  kind: variable_name
+                                                  pattern:
+                                                    context: <?php $V->get();
+                                                    selector: variable_name
                                               any:
-                                              - kind: if_statement
                                               - kind: arrow_function
                                               - kind: anonymous_function
                                               - kind: conditional_expression
@@ -8376,7 +8510,7 @@ rule:
                                     has:
                                       field: name
                                       kind: name
-                                      regex: ^(where|whereNot)$
+                                      regex: ^(where|whereNot|whereHas|orWhereHas|whereDoesntHave|orWhereDoesntHave)$
                       - inside:
                           stopBy: end
                           kind: method_declaration
@@ -8387,12 +8521,6 @@ rule:
                               stopBy: end
                               kind: expression_statement
                               all:
-                              - has:
-                                  stopBy: end
-                                  kind: variable_name
-                                  pattern:
-                                    context: <?php $V->get();
-                                    selector: variable_name
                               - has:
                                   stopBy: end
                                   any:
@@ -8408,6 +8536,23 @@ rule:
                                         field: arguments
                                         kind: arguments
                                         regex: ^\(\s*(['\"][\w.]+['\"]\s*,\s*(['\"]=['\"]\s*,\s*)?)?((auth\(\s*\)(\s*->\s*guard\([^)]*\))?\s*->\s*(id|user)\s*\(|\\?(Illuminate\\Support\\Facades\\)?Auth::(guard\([^)]*\)\s*->\s*)?(id|user)\s*\(|\$request\s*->\s*user\s*\(|request\(\s*\)\s*->\s*user\s*\()|\$(user|authUser|currentUser|me)\s*->)
+                                  - has:
+                                      stopBy: end
+                                      kind: variable_name
+                                      pattern:
+                                        context: <?php $V->get();
+                                        selector: variable_name
+                                      not:
+                                        inside:
+                                          stopBy:
+                                            any:
+                                            - kind: member_call_expression
+                                            - kind: scoped_call_expression
+                                            has:
+                                              field: name
+                                              kind: name
+                                              regex: ^orWhere\w*$
+                                          kind: arguments
                                   not:
                                     inside:
                                       stopBy: end
@@ -8425,7 +8570,7 @@ rule:
                                             has:
                                               field: name
                                               kind: name
-                                              regex: ^(where|whereNot)$
+                                              regex: ^(where|whereNot|whereHas|orWhereHas|whereDoesntHave|orWhereDoesntHave)$
         - has:
             field: body
             kind: compound_statement

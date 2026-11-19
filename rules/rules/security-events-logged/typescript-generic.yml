@@ -618,9 +618,10 @@ control:
             # writes no event, whatever its verb
             - kind: call_expression
               regex: '^(this\.)?[\w.]*(?i)(audit|security_?events?)\w*((counter|metric|gauge|histogram|meter)s?|(_c|(?-i:C))ounts?|(_t|(?-i:T))otals?|(_s|(?-i:S))tats?)\b'
-            # T29 (T29-P1-C470, P2 C587 L5): a called name ending in Report builds a report (auditReportService.createReport), no event
+            # T29 (T29-P1-C470, P2 C587 L5; P2 C591 N2): a report builder, Report in the receiver (auditReportService.createReport)
+            # or a build verb before Report (generateExportReport), writes no event; logReport and emitExportReport still write
             - kind: call_expression
-              regex: '^(this\.)?[\w.]*(?i)reports?\s*\('
+              regex: '^(this\.)?((?i:[\w.]*reports?)(?-i:[A-Z_]\w*)?\.\w+|(\w+\.)*(?i:(create|build|generate|make|render|compile|prepare)\w*reports?))\s*\('
   - precedes:
       kind: decorator
       precedes: *id001
