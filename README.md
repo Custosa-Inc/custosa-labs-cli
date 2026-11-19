@@ -29,8 +29,7 @@ changing anything. Then it:
    entry. Setup never runs SQL itself: you run it, once.
 
 PHI Schema Check is pay per use: $0.003 per work unit, prepaid, with no per-check cap. Only results where a rule
-ran for the project's stack are charged, unknown ones included; a practice with no rule for the stack is not charged.
-New accounts start with
+ran for the stack are charged, unknown ones included. New accounts start with
 $10 of credit at the first sign-in. Top up from $5 or redeem a coupon at https://custosa.com/billing to add to it.
 Then start a session in your project and send:
 

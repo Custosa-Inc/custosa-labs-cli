@@ -279,8 +279,7 @@ test("prices in the descriptions and the README come from shared.json; every res
   assert.doesNotMatch(GUIDANCE_DESCRIPTION, /5 units per started/);
   assert.ok(readme.includes(`New accounts start with $${signupCreditUsd} of credit at the first sign-in`), "states the sign-up credit");
   // T29 C492 decision 7 (contract H 7): charged only where a rule ran for the stack, and the text says so.
-  const charged = "Only results where a rule ran for the project's stack are charged, unknown ones included; a practice "
-    + "with no rule for the stack is not charged.";
+  const charged = "Only results where a rule ran for the stack are charged, unknown ones included.";
   assert.ok(DESCRIPTION.includes(charged));
   assert.ok(readme.includes(charged));
   for (const text of [DESCRIPTION, readme]) assert.doesNotMatch(text, /every result is charged|no-rule-for-the-stack results included/i);
