@@ -1,5 +1,5 @@
 {
-  "ruleset_id": "2026-11-19.c7201b27",
+  "ruleset_id": "2026-11-19.ab7273d1",
   "min_engine": "0.45.3",
   "files": [
     {
@@ -416,7 +416,7 @@
     },
     {
       "path": "rules/authz-every-handler/php-laravel.yml",
-      "sha256": "66eb70d46cace2de776b7cc5c32f36a1b3da444a6ed4c2853905468ffc96021f"
+      "sha256": "45afd922b2919b904c3d4a8a92c2bf1067f04e8418a802be0c51857a2f678ab0"
     },
     {
       "path": "rules/authz-every-handler/python-django.yml",

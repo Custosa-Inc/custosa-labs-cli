@@ -7970,6 +7970,110 @@ control:
                                 pattern:
                                   context: <?php $V->get();
                                   selector: variable_name
+                      - any:
+                        - kind: assignment_expression
+                        - kind: augmented_assignment_expression
+                        not:
+                          inside:
+                            stopBy: end
+                            any:
+                            - kind: arrow_function
+                            - kind: anonymous_function
+                            has:
+                              field: parameters
+                              has:
+                                stopBy: end
+                                kind: variable_name
+                                pattern:
+                                  context: <?php $V->get();
+                                  selector: variable_name
+                        has:
+                          field: right
+                          any:
+                          - kind: variable_name
+                            pattern:
+                              context: <?php $V->get();
+                              selector: variable_name
+                          - any:
+                            - kind: conditional_expression
+                            - kind: match_expression
+                            - kind: binary_expression
+                              pattern:
+                                context: <?php $_ ?? $_;
+                                selector: binary_expression
+                            - kind: parenthesized_expression
+                            has:
+                              stopBy:
+                                not:
+                                  any:
+                                  - kind: conditional_expression
+                                  - kind: match_expression
+                                  - kind: match_block
+                                  - kind: binary_expression
+                                    pattern:
+                                      context: <?php $_ ?? $_;
+                                      selector: binary_expression
+                                  - kind: match_conditional_expression
+                                  - kind: match_default_expression
+                                  - kind: parenthesized_expression
+                                    not:
+                                      inside:
+                                        kind: match_expression
+                              all:
+                              - kind: variable_name
+                                pattern:
+                                  context: <?php $V->get();
+                                  selector: variable_name
+                              - not:
+                                  any:
+                                  - inside:
+                                      kind: conditional_expression
+                                      field: condition
+                                  - inside:
+                                      kind: parenthesized_expression
+                                      inside:
+                                        kind: conditional_expression
+                                        field: condition
+                      - kind: array_element_initializer
+                        not:
+                          inside:
+                            stopBy: end
+                            any:
+                            - kind: arrow_function
+                            - kind: anonymous_function
+                            has:
+                              field: parameters
+                              has:
+                                stopBy: end
+                                kind: variable_name
+                                pattern:
+                                  context: <?php $V->get();
+                                  selector: variable_name
+                        has:
+                          kind: variable_name
+                          pattern:
+                            context: <?php $V->get();
+                            selector: variable_name
+                      - kind: variadic_unpacking
+                        not:
+                          inside:
+                            stopBy: end
+                            any:
+                            - kind: arrow_function
+                            - kind: anonymous_function
+                            has:
+                              field: parameters
+                              has:
+                                stopBy: end
+                                kind: variable_name
+                                pattern:
+                                  context: <?php $V->get();
+                                  selector: variable_name
+                        has:
+                          kind: variable_name
+                          pattern:
+                            context: <?php $V->get();
+                            selector: variable_name
                       - kind: assignment_expression
                         has:
                           field: left
@@ -16192,6 +16296,110 @@ control:
                                   pattern:
                                     context: <?php $V->get();
                                     selector: variable_name
+                        - any:
+                          - kind: assignment_expression
+                          - kind: augmented_assignment_expression
+                          not:
+                            inside:
+                              stopBy: end
+                              any:
+                              - kind: arrow_function
+                              - kind: anonymous_function
+                              has:
+                                field: parameters
+                                has:
+                                  stopBy: end
+                                  kind: variable_name
+                                  pattern:
+                                    context: <?php $V->get();
+                                    selector: variable_name
+                          has:
+                            field: right
+                            any:
+                            - kind: variable_name
+                              pattern:
+                                context: <?php $V->get();
+                                selector: variable_name
+                            - any:
+                              - kind: conditional_expression
+                              - kind: match_expression
+                              - kind: binary_expression
+                                pattern:
+                                  context: <?php $_ ?? $_;
+                                  selector: binary_expression
+                              - kind: parenthesized_expression
+                              has:
+                                stopBy:
+                                  not:
+                                    any:
+                                    - kind: conditional_expression
+                                    - kind: match_expression
+                                    - kind: match_block
+                                    - kind: binary_expression
+                                      pattern:
+                                        context: <?php $_ ?? $_;
+                                        selector: binary_expression
+                                    - kind: match_conditional_expression
+                                    - kind: match_default_expression
+                                    - kind: parenthesized_expression
+                                      not:
+                                        inside:
+                                          kind: match_expression
+                                all:
+                                - kind: variable_name
+                                  pattern:
+                                    context: <?php $V->get();
+                                    selector: variable_name
+                                - not:
+                                    any:
+                                    - inside:
+                                        kind: conditional_expression
+                                        field: condition
+                                    - inside:
+                                        kind: parenthesized_expression
+                                        inside:
+                                          kind: conditional_expression
+                                          field: condition
+                        - kind: array_element_initializer
+                          not:
+                            inside:
+                              stopBy: end
+                              any:
+                              - kind: arrow_function
+                              - kind: anonymous_function
+                              has:
+                                field: parameters
+                                has:
+                                  stopBy: end
+                                  kind: variable_name
+                                  pattern:
+                                    context: <?php $V->get();
+                                    selector: variable_name
+                          has:
+                            kind: variable_name
+                            pattern:
+                              context: <?php $V->get();
+                              selector: variable_name
+                        - kind: variadic_unpacking
+                          not:
+                            inside:
+                              stopBy: end
+                              any:
+                              - kind: arrow_function
+                              - kind: anonymous_function
+                              has:
+                                field: parameters
+                                has:
+                                  stopBy: end
+                                  kind: variable_name
+                                  pattern:
+                                    context: <?php $V->get();
+                                    selector: variable_name
+                          has:
+                            kind: variable_name
+                            pattern:
+                              context: <?php $V->get();
+                              selector: variable_name
                         - kind: assignment_expression
                           has:
                             field: left
@@ -24318,6 +24526,110 @@ rule:
                                     pattern:
                                       context: <?php $V->get();
                                       selector: variable_name
+                          - any:
+                            - kind: assignment_expression
+                            - kind: augmented_assignment_expression
+                            not:
+                              inside:
+                                stopBy: end
+                                any:
+                                - kind: arrow_function
+                                - kind: anonymous_function
+                                has:
+                                  field: parameters
+                                  has:
+                                    stopBy: end
+                                    kind: variable_name
+                                    pattern:
+                                      context: <?php $V->get();
+                                      selector: variable_name
+                            has:
+                              field: right
+                              any:
+                              - kind: variable_name
+                                pattern:
+                                  context: <?php $V->get();
+                                  selector: variable_name
+                              - any:
+                                - kind: conditional_expression
+                                - kind: match_expression
+                                - kind: binary_expression
+                                  pattern:
+                                    context: <?php $_ ?? $_;
+                                    selector: binary_expression
+                                - kind: parenthesized_expression
+                                has:
+                                  stopBy:
+                                    not:
+                                      any:
+                                      - kind: conditional_expression
+                                      - kind: match_expression
+                                      - kind: match_block
+                                      - kind: binary_expression
+                                        pattern:
+                                          context: <?php $_ ?? $_;
+                                          selector: binary_expression
+                                      - kind: match_conditional_expression
+                                      - kind: match_default_expression
+                                      - kind: parenthesized_expression
+                                        not:
+                                          inside:
+                                            kind: match_expression
+                                  all:
+                                  - kind: variable_name
+                                    pattern:
+                                      context: <?php $V->get();
+                                      selector: variable_name
+                                  - not:
+                                      any:
+                                      - inside:
+                                          kind: conditional_expression
+                                          field: condition
+                                      - inside:
+                                          kind: parenthesized_expression
+                                          inside:
+                                            kind: conditional_expression
+                                            field: condition
+                          - kind: array_element_initializer
+                            not:
+                              inside:
+                                stopBy: end
+                                any:
+                                - kind: arrow_function
+                                - kind: anonymous_function
+                                has:
+                                  field: parameters
+                                  has:
+                                    stopBy: end
+                                    kind: variable_name
+                                    pattern:
+                                      context: <?php $V->get();
+                                      selector: variable_name
+                            has:
+                              kind: variable_name
+                              pattern:
+                                context: <?php $V->get();
+                                selector: variable_name
+                          - kind: variadic_unpacking
+                            not:
+                              inside:
+                                stopBy: end
+                                any:
+                                - kind: arrow_function
+                                - kind: anonymous_function
+                                has:
+                                  field: parameters
+                                  has:
+                                    stopBy: end
+                                    kind: variable_name
+                                    pattern:
+                                      context: <?php $V->get();
+                                      selector: variable_name
+                            has:
+                              kind: variable_name
+                              pattern:
+                                context: <?php $V->get();
+                                selector: variable_name
                           - kind: assignment_expression
                             has:
                               field: left
@@ -32540,6 +32852,110 @@ rule:
                                       pattern:
                                         context: <?php $V->get();
                                         selector: variable_name
+                            - any:
+                              - kind: assignment_expression
+                              - kind: augmented_assignment_expression
+                              not:
+                                inside:
+                                  stopBy: end
+                                  any:
+                                  - kind: arrow_function
+                                  - kind: anonymous_function
+                                  has:
+                                    field: parameters
+                                    has:
+                                      stopBy: end
+                                      kind: variable_name
+                                      pattern:
+                                        context: <?php $V->get();
+                                        selector: variable_name
+                              has:
+                                field: right
+                                any:
+                                - kind: variable_name
+                                  pattern:
+                                    context: <?php $V->get();
+                                    selector: variable_name
+                                - any:
+                                  - kind: conditional_expression
+                                  - kind: match_expression
+                                  - kind: binary_expression
+                                    pattern:
+                                      context: <?php $_ ?? $_;
+                                      selector: binary_expression
+                                  - kind: parenthesized_expression
+                                  has:
+                                    stopBy:
+                                      not:
+                                        any:
+                                        - kind: conditional_expression
+                                        - kind: match_expression
+                                        - kind: match_block
+                                        - kind: binary_expression
+                                          pattern:
+                                            context: <?php $_ ?? $_;
+                                            selector: binary_expression
+                                        - kind: match_conditional_expression
+                                        - kind: match_default_expression
+                                        - kind: parenthesized_expression
+                                          not:
+                                            inside:
+                                              kind: match_expression
+                                    all:
+                                    - kind: variable_name
+                                      pattern:
+                                        context: <?php $V->get();
+                                        selector: variable_name
+                                    - not:
+                                        any:
+                                        - inside:
+                                            kind: conditional_expression
+                                            field: condition
+                                        - inside:
+                                            kind: parenthesized_expression
+                                            inside:
+                                              kind: conditional_expression
+                                              field: condition
+                            - kind: array_element_initializer
+                              not:
+                                inside:
+                                  stopBy: end
+                                  any:
+                                  - kind: arrow_function
+                                  - kind: anonymous_function
+                                  has:
+                                    field: parameters
+                                    has:
+                                      stopBy: end
+                                      kind: variable_name
+                                      pattern:
+                                        context: <?php $V->get();
+                                        selector: variable_name
+                              has:
+                                kind: variable_name
+                                pattern:
+                                  context: <?php $V->get();
+                                  selector: variable_name
+                            - kind: variadic_unpacking
+                              not:
+                                inside:
+                                  stopBy: end
+                                  any:
+                                  - kind: arrow_function
+                                  - kind: anonymous_function
+                                  has:
+                                    field: parameters
+                                    has:
+                                      stopBy: end
+                                      kind: variable_name
+                                      pattern:
+                                        context: <?php $V->get();
+                                        selector: variable_name
+                              has:
+                                kind: variable_name
+                                pattern:
+                                  context: <?php $V->get();
+                                  selector: variable_name
                             - kind: assignment_expression
                               has:
                                 field: left
