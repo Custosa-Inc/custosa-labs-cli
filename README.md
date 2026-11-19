@@ -28,8 +28,9 @@ changing anything. Then it:
 4. prints the SQL for the read-only `phisc_ro` role, the Postgres 14 step, the read and write checks and the connection
    entry. Setup never runs SQL itself: you run it, once.
 
-PHI Schema Check is pay per use: $0.003 per work unit, prepaid, with no per-check cap. Every result is
-charged, including unknown results and practices with no rule for the project's stack. New accounts start with
+PHI Schema Check is pay per use: $0.003 per work unit, prepaid, with no per-check cap. Only results where a rule
+ran for the project's stack are charged, unknown ones included; a practice with no rule for the stack is not charged.
+New accounts start with
 $10 of credit at the first sign-in. Top up from $5 or redeem a coupon at https://custosa.com/billing to add to it.
 Then start a session in your project and send:
 
@@ -43,7 +44,7 @@ The inspector offers three MCP tools:
 
 | Tool | Goals | What it sends | Cost |
 | ---- | ----- | ------------- | ---- |
-| `check_schema` | check (which also sends answers to its questions), fix, verify | a fact document built from the project: table and column names, settings, rule results and file locations; never code, rows or secret values | $0.003 per work unit, charged exactly the work units a call used; every result is charged, unknown and no-rule-for-the-stack results included |
+| `check_schema` | check (which also sends answers to its questions), fix, verify | a fact document built from the project: table and column names, settings, rule results and file locations; never code, rows or secret values | $0.003 per work unit, charged exactly the work units a call used; only results where a rule ran for the stack are charged, unknown ones included |
 | `schema_guidance` | plan, pattern, explain | only the advice request: planned table and column names, a stack and need, or a practice id | the advice rate: the same $0.003 per work unit, where a call costs 1 unit per practice check plus 1 unit per started 1,000 characters of content (a guidance answer runs no practice checks), charged exactly the work units it used |
 | `get_result` | a read of a result already returned: one selector its index names, and one part | only the goal, session, selector and part | not charged |
 
