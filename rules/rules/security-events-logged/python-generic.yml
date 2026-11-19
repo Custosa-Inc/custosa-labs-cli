@@ -155,10 +155,14 @@ control:
     has:
       stopBy: end
       kind: call
-      regex: '^(await\s+)?(self\.)?[\w.]*(?i)((audit|security_?events?)([\w.]*[._])?(create|log|emit|record|write|add|save|insert|send|publish|track)|(log|record|emit|write|create|add)_?(audit|security))\w*\s*\('
+      regex: '^(await\s+)?(self\.)?[\w.]*(?i)((audit|security_?events?)([\w.]*[._])?(create|log|emit|record|write|add|save|insert|send|publish|track)\w*|(log|record|emit|write|create|add)_?(audit|security)(_?(log|event|entry|trail|record)s?)?)\s*\('
       # T29 (P2 C535 low): a called name whose last part starts with a read verb (getAuditLogs, get_audit_logs,
       # exportAuditLogs) reads the audit log; "Log" in it is no write verb.
       not:
-        kind: call
-        regex: '^(await\s+)?(self\.)?(\w+\.)*(?i:get|fetch|list|find|read|load|query|search|export|count|select|retrieve|download)\w*\s*\('
+        any:
+        - kind: call
+          regex: '^(await\s+)?(self\.)?(\w+\.)*(?i:get|fetch|list|find|read|load|query|search|export|count|select|retrieve|download)\w*\s*\('
+        # T29 (T29-P1-C467, P2 C574 F7): an audit counter, metric or gauge writes no event, whatever its verb
+        - kind: call
+          regex: '^(await\s+)?(self\.)?[\w.]*(?i)(audit|security_?events?)\w*(counter|metric|gauge|histogram|meter)s?\b'
 min_engine: 0.45.3

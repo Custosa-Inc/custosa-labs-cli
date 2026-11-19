@@ -4867,7 +4867,10 @@ min_engine: 0.39.0
 # auth() gives an object to a signed-out caller too, so a whole auth() result counts only checked on its userId,
 # sessionId or user (if (!session?.userId) throw ...), or bare (if (!session) throw ...) only when the file imports auth
 # from next-auth; and a destructured auth() or getAuth(req) key counts only when it is userId, sessionId or user. A
-# next-auth v5 project's own auth (import { auth } from "@/auth") checked bare is held for a person (a false hold). Any other middleware is
+# next-auth v5 project's own auth (import { auth } from "@/auth") checked bare is held for a person (a false hold).
+# T29 (T29-P1-C467, P2 C574 F2, lows round 1): a middleware with a conditional return of its own (if (...) return ...)
+# never counts, since statement order isn't read and a return before the check lets a caller skip it; one after the
+# check is held for a person too (a false hold). A return inside a callback in the middleware is not its own. Any other middleware is
 # auth-unobserved-upload, a hold for a person. With no middleware the item has no control, and like every authz item
 # without one it ends as an ask (assistant_answer_needed), never a pass. T29 (P2 C542, authz slice 7): only a
 # .middleware() on the route chain itself counts, the last one if it has two (one inside an argument, such as an
@@ -4936,6 +4939,26 @@ control:
             has:
               field: body
               kind: statement_block
+              # T29 (T29-P1-C467, P2 C574 F2): no conditional return of the middleware's own, which could skip the check
+              not:
+                has:
+                  stopBy:
+                    any:
+                    - kind: arrow_function
+                    - kind: function_expression
+                    - kind: function_declaration
+                    - kind: method_definition
+                    - kind: class_declaration
+                  kind: if_statement
+                  has:
+                    stopBy:
+                      any:
+                      - kind: arrow_function
+                      - kind: function_expression
+                      - kind: function_declaration
+                      - kind: method_definition
+                      - kind: class_declaration
+                    kind: return_statement
               any:
               # T29 (T29-P1-C465, F1): a destructured auth() or getAuth(req) key empty for a signed-out caller
               - all:
@@ -5169,6 +5192,26 @@ rule:
                 has:
                   field: body
                   kind: statement_block
+                  # T29 (T29-P1-C467, P2 C574 F2): no conditional return of the middleware's own, which could skip the check
+                  not:
+                    has:
+                      stopBy:
+                        any:
+                        - kind: arrow_function
+                        - kind: function_expression
+                        - kind: function_declaration
+                        - kind: method_definition
+                        - kind: class_declaration
+                      kind: if_statement
+                      has:
+                        stopBy:
+                          any:
+                          - kind: arrow_function
+                          - kind: function_expression
+                          - kind: function_declaration
+                          - kind: method_definition
+                          - kind: class_declaration
+                        kind: return_statement
                   any:
                   # T29 (T29-P1-C465, F1): a destructured auth() or getAuth(req) key empty for a signed-out caller
                   - all:

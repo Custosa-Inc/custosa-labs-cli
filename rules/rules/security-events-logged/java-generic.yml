@@ -84,18 +84,34 @@ rule:
     regex: '@(Get|Post|Request)Mapping\s*\([^)]*"[^"]*\b(?i:export)'
 control:
   any:
+  # T29 (T29-P1-C467, P2 C574 F6): an opt-out annotation (@NotAudited, @SkipAudit, @AuditDisabled) is no audit
   - has:
       kind: modifiers
-      regex: '(?-u)@\w*(?i:audit)\w*\b'
+      has:
+        any:
+        - kind: marker_annotation
+          regex: '(?-u)^@\w*(?i:audit)\w*\b'
+          not:
+            kind: marker_annotation
+            regex: '(?i)^@((not|no|skip|without|disable|exclude|ignore)_?audit|\w*audit\w*(disabled?|skip|ignored?|excluded?)\b)'
+        - kind: annotation
+          regex: '(?-u)^@\w*(?i:audit)\w*\b'
+          not:
+            kind: annotation
+            regex: '(?i)^@((not|no|skip|without|disable|exclude|ignore)_?audit|\w*audit\w*(disabled?|skip|ignored?|excluded?)\b)'
   - has:
       field: body
       has:
         stopBy: end
         kind: method_invocation
-        regex: '^(this\.)?[\w.]*(?i)((audit|security_?events?)([\w.]*[._])?(create|log|emit|record|write|add|save|insert|send|publish|track)|(log|record|emit|write|create|add|publish)_?(audit|security))\w*\s*\('
+        regex: '^(this\.)?[\w.]*(?i)((audit|security_?events?)([\w.]*[._])?(create|log|emit|record|write|add|save|insert|send|publish|track)\w*|(log|record|emit|write|create|add|publish)_?(audit|security)(_?(log|event|entry|trail|record)s?)?)\s*\('
         # T29 (P2 C535 low): a called name whose last part starts with a read verb (getAuditLogs, get_audit_logs,
         # exportAuditLogs) reads the audit log; "Log" in it is no write verb.
         not:
-          kind: method_invocation
-          regex: '^(this\.)?(\w+\.)*(?i:get|fetch|list|find|read|load|query|search|export|count|select|retrieve|download)\w*\s*\('
+          any:
+          - kind: method_invocation
+            regex: '^(this\.)?(\w+\.)*(?i:get|fetch|list|find|read|load|query|search|export|count|select|retrieve|download)\w*\s*\('
+          # T29 (T29-P1-C467, P2 C574 F7): an audit counter, metric or gauge writes no event, whatever its verb
+          - kind: method_invocation
+            regex: '^(this\.)?[\w.]*(?i)(audit|security_?events?)\w*(counter|metric|gauge|histogram|meter)s?\b'
 min_engine: 0.45.3

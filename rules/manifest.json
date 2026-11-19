@@ -1,5 +1,5 @@
 {
-  "ruleset_id": "2026-11-19.965f8823",
+  "ruleset_id": "2026-11-19.ac992646",
   "min_engine": "0.45.3",
   "files": [
     {
@@ -404,7 +404,7 @@
     },
     {
       "path": "rules/authz-every-handler/javascript-nextjs.yml",
-      "sha256": "5d2edda25e230114b8183ec20e38f0cf184892c6de0e841280f3204cd07bb5f6"
+      "sha256": "e54a40cb6e7ce252f882bd2fd2f80d74bb4c657739325730849260576159708e"
     },
     {
       "path": "rules/authz-every-handler/kotlin-spring.yml",
@@ -416,7 +416,7 @@
     },
     {
       "path": "rules/authz-every-handler/php-laravel.yml",
-      "sha256": "04be96e1907b52be1570908b720a447613ca54ce6f7c9cdb67dfd5431d21ecb1"
+      "sha256": "a14b27dfdff630cdf661cf07b8510da6f752a44a9e9516ce90c04e023a7189ad"
     },
     {
       "path": "rules/authz-every-handler/python-django.yml",
@@ -452,7 +452,7 @@
     },
     {
       "path": "rules/authz-every-handler/typescript-nextjs.yml",
-      "sha256": "3fc750ad1b669dc4ccb08d5a713962d31c896c799fedcf4304bec3314d84a2c2"
+      "sha256": "2ab46b2206096993237263e420e62153a3be87b41d9ae7207d0b95c6b10850ad"
     },
     {
       "path": "rules/authz-every-handler/typescript-nuxt.yml",
@@ -1340,7 +1340,7 @@
     },
     {
       "path": "rules/security-events-logged/java-generic.yml",
-      "sha256": "17cf9758855eaf26f67e78c1755bbe68d221f1e838e4595d90368601c593546e"
+      "sha256": "e262c4df178c12324c4e211bd519eded99ffb4a28216e449d212d74faa44c5ab"
     },
     {
       "path": "rules/security-events-logged/javascript-generic.yml",
@@ -1352,7 +1352,7 @@
     },
     {
       "path": "rules/security-events-logged/python-generic.yml",
-      "sha256": "f10bc0ae0a7a672c8aa40224756bedf93c631d93933364650573287120353edd"
+      "sha256": "ae5a9b3fb9ce4bf6983e4476f66d1103f32f51a89c86fdc348bbea8af9353c75"
     },
     {
       "path": "rules/security-events-logged/ruby-generic.yml",
@@ -1360,11 +1360,11 @@
     },
     {
       "path": "rules/security-events-logged/tsx-generic.yml",
-      "sha256": "9477bb2e6aa88d60aba6750394d177e3c042a270e166ec7b033e41b5ddf1ee9e"
+      "sha256": "8cef21bfb878b7dbeb359b23ebccd5cb81890a7e580a3c63e19bb8c0557ead2c"
     },
     {
       "path": "rules/security-events-logged/typescript-generic.yml",
-      "sha256": "1945167fc5fbe18cf60ba160dd2a0c6ae052dcf11e28b630fc0bf785debf300e"
+      "sha256": "d8eea0138e070cc4d49b00b877ca0fd9015ab6ee4d5b2e3a176b12b7f2f262ab"
     },
     {
       "path": "rules/session-cookie-flags/go-generic.yml",

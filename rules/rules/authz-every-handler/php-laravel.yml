@@ -242,7 +242,10 @@ min_engine: 0.39.0
 # the variable that chain starts from (a direct statement $q = Model::where(...), $q->where(...) or
 # $q = $q->where(...)). And every rows chain of the method must be scoped so: a where on another model's query
 # ($c = Clinician::where('user_id', auth()->id())->first(); return Patient::all();), or on a separate count() beside
-# an unscoped get(), is no control. Known limits: statement order isn't read, so a scope later undone by a plain
+# an unscoped get(), is no control. T29 (T29-P1-C467, P2 C574 F5, lows round 1): an orWhere (orWhereX) that doesn't
+# name the caller widens the scope to other people's rows, so it undoes the control: on the rows chain, in a closure
+# on it (->when(..., fn ($q) => $q->orWhere(...))), or in a statement on the list variable. One inside a where(...) or
+# whereNot(...) group closure stays inside the caller's scope and is fine. Known limits: statement order isn't read, so a scope later undone by a plain
 # reassignment ($q = Patient::where(...caller...); $q = Patient::query(); return $q->get();) still counts (a false
 # pass), and a caller where inside an argument (whereIn('id', Note::where(...caller...)->pluck('patient_id'))) is
 # no control (a false hold). No control: the item holds for a person (authz-every-handler fails on code
@@ -746,6 +749,40 @@ control:
                                       - kind: arrow_function
                                       - kind: anonymous_function
                                       - kind: conditional_expression
+          - not:
+              has:
+                stopBy: end
+                any:
+                - kind: member_call_expression
+                - kind: scoped_call_expression
+                all:
+                - has:
+                    field: name
+                    kind: name
+                    regex: ^orWhere\w*$
+                - not:
+                    has:
+                      field: arguments
+                      kind: arguments
+                      regex: ^\(\s*(['\"][\w.]+['\"]\s*,\s*(['\"]=['\"]\s*,\s*)?)?(auth\(\s*\)(\s*->\s*guard\([^)]*\))?\s*->\s*(id|user)\s*\(|\\?(Illuminate\\Support\\Facades\\)?Auth::(guard\([^)]*\)\s*->\s*)?(id|user)\s*\(|\$request\s*->\s*user\s*\(|request\(\s*\)\s*->\s*user\s*\()
+                not:
+                  inside:
+                    stopBy: end
+                    any:
+                    - kind: arrow_function
+                    - kind: anonymous_function
+                    inside:
+                      kind: argument
+                      inside:
+                        kind: arguments
+                        inside:
+                          any:
+                          - kind: member_call_expression
+                          - kind: scoped_call_expression
+                          has:
+                            field: name
+                            kind: name
+                            regex: ^(where|whereNot)$
       - not:
           has:
             stopBy: end
@@ -762,69 +799,103 @@ control:
                   field: name
                   kind: name
                   regex: ^(get|all|paginate|simplePaginate|cursorPaginate)$
-              - not:
-                  has:
-                    stopBy: end
-                    any:
-                    - any:
-                      - kind: member_call_expression
-                      - kind: scoped_call_expression
-                      all:
-                      - has:
-                          field: name
-                          kind: name
-                          regex: ^(where\w*|whereBelongsTo)$
-                      - not:
-                          has:
+              - any:
+                - not:
+                    has:
+                      stopBy: end
+                      any:
+                      - any:
+                        - kind: member_call_expression
+                        - kind: scoped_call_expression
+                        all:
+                        - has:
                             field: name
                             kind: name
-                            regex: ^(whereNot\w*|whereKeyNot|whereNull|whereDoesntHave\w*|whereJsonDoesnt\w*)$
-                      - has:
+                            regex: ^(where\w*|whereBelongsTo)$
+                        - not:
+                            has:
+                              field: name
+                              kind: name
+                              regex: ^(whereNot\w*|whereKeyNot|whereNull|whereDoesntHave\w*|whereJsonDoesnt\w*)$
+                        - has:
+                            field: arguments
+                            kind: arguments
+                            regex: ^\(\s*(['\"][\w.]+['\"]\s*,\s*(['\"]=['\"]\s*,\s*)?)?(auth\(\s*\)(\s*->\s*guard\([^)]*\))?\s*->\s*(id|user)\s*\(|\\?(Illuminate\\Support\\Facades\\)?Auth::(guard\([^)]*\)\s*->\s*)?(id|user)\s*\(|\$request\s*->\s*user\s*\(|request\(\s*\)\s*->\s*user\s*\()
+                        - not:
+                            inside:
+                              stopBy:
+                                kind: member_call_expression
+                                has:
+                                  field: name
+                                  kind: name
+                                  regex: ^(get|all|paginate|simplePaginate|cursorPaginate)$
+                              kind: arguments
+                        not:
+                          inside:
+                            stopBy: end
+                            any:
+                            - kind: if_statement
+                            - kind: arrow_function
+                            - kind: anonymous_function
+                            - kind: conditional_expression
+                      - any:
+                        - kind: member_call_expression
+                        - kind: scoped_call_expression
+                        all:
+                        - has:
+                            field: name
+                            kind: name
+                            regex: ^(forUser|forCurrentUser|ownedBy|ownedByUser|visibleTo|accessibleBy|forTenant|forClinic|forOrganisation|forOrganization|forPractitioner|forClinician|forClient|forPatient|mine)$
+                        - not:
+                            inside:
+                              stopBy:
+                                kind: member_call_expression
+                                has:
+                                  field: name
+                                  kind: name
+                                  regex: ^(get|all|paginate|simplePaginate|cursorPaginate)$
+                              kind: arguments
+                        not:
+                          inside:
+                            stopBy: end
+                            any:
+                            - kind: if_statement
+                            - kind: arrow_function
+                            - kind: anonymous_function
+                            - kind: conditional_expression
+                - has:
+                    stopBy: end
+                    any:
+                    - kind: member_call_expression
+                    - kind: scoped_call_expression
+                    all:
+                    - has:
+                        field: name
+                        kind: name
+                        regex: ^orWhere\w*$
+                    - not:
+                        has:
                           field: arguments
                           kind: arguments
                           regex: ^\(\s*(['\"][\w.]+['\"]\s*,\s*(['\"]=['\"]\s*,\s*)?)?(auth\(\s*\)(\s*->\s*guard\([^)]*\))?\s*->\s*(id|user)\s*\(|\\?(Illuminate\\Support\\Facades\\)?Auth::(guard\([^)]*\)\s*->\s*)?(id|user)\s*\(|\$request\s*->\s*user\s*\(|request\(\s*\)\s*->\s*user\s*\()
-                      - not:
+                    not:
+                      inside:
+                        stopBy: end
+                        any:
+                        - kind: arrow_function
+                        - kind: anonymous_function
+                        inside:
+                          kind: argument
                           inside:
-                            stopBy:
-                              kind: member_call_expression
+                            kind: arguments
+                            inside:
+                              any:
+                              - kind: member_call_expression
+                              - kind: scoped_call_expression
                               has:
                                 field: name
                                 kind: name
-                                regex: ^(get|all|paginate|simplePaginate|cursorPaginate)$
-                            kind: arguments
-                      not:
-                        inside:
-                          stopBy: end
-                          any:
-                          - kind: if_statement
-                          - kind: arrow_function
-                          - kind: anonymous_function
-                          - kind: conditional_expression
-                    - any:
-                      - kind: member_call_expression
-                      - kind: scoped_call_expression
-                      all:
-                      - has:
-                          field: name
-                          kind: name
-                          regex: ^(forUser|forCurrentUser|ownedBy|ownedByUser|visibleTo|accessibleBy|forTenant|forClinic|forOrganisation|forOrganization|forPractitioner|forClinician|forClient|forPatient|mine)$
-                      - not:
-                          inside:
-                            stopBy:
-                              kind: member_call_expression
-                              has:
-                                field: name
-                                kind: name
-                                regex: ^(get|all|paginate|simplePaginate|cursorPaginate)$
-                            kind: arguments
-                      not:
-                        inside:
-                          stopBy: end
-                          any:
-                          - kind: if_statement
-                          - kind: arrow_function
-                          - kind: anonymous_function
-                          - kind: conditional_expression
+                                regex: ^(where|whereNot)$
               - not:
                   kind: member_call_expression
                   regex: '^\\?([A-Za-z_]\w*\\)*Session\s*::'
@@ -1223,6 +1294,113 @@ control:
                                         - kind: arrow_function
                                         - kind: anonymous_function
                                         - kind: conditional_expression
+            - kind: member_call_expression
+              all:
+              - has:
+                  field: name
+                  kind: name
+                  regex: ^(get|all|paginate|simplePaginate|cursorPaginate)$
+              - has:
+                  stopBy: end
+                  kind: variable_name
+                  pattern:
+                    context: <?php $V->get();
+                    selector: variable_name
+                  all:
+                  - not:
+                      kind: variable_name
+                      regex: ^\$(this|request|req)$
+                  - not:
+                      inside:
+                        stopBy:
+                          kind: member_call_expression
+                          has:
+                            field: name
+                            kind: name
+                            regex: ^(get|all|paginate|simplePaginate|cursorPaginate)$
+                        kind: arguments
+              - any:
+                - has:
+                    stopBy: end
+                    any:
+                    - kind: member_call_expression
+                    - kind: scoped_call_expression
+                    all:
+                    - has:
+                        field: name
+                        kind: name
+                        regex: ^orWhere\w*$
+                    - not:
+                        has:
+                          field: arguments
+                          kind: arguments
+                          regex: ^\(\s*(['\"][\w.]+['\"]\s*,\s*(['\"]=['\"]\s*,\s*)?)?(auth\(\s*\)(\s*->\s*guard\([^)]*\))?\s*->\s*(id|user)\s*\(|\\?(Illuminate\\Support\\Facades\\)?Auth::(guard\([^)]*\)\s*->\s*)?(id|user)\s*\(|\$request\s*->\s*user\s*\(|request\(\s*\)\s*->\s*user\s*\()
+                    not:
+                      inside:
+                        stopBy: end
+                        any:
+                        - kind: arrow_function
+                        - kind: anonymous_function
+                        inside:
+                          kind: argument
+                          inside:
+                            kind: arguments
+                            inside:
+                              any:
+                              - kind: member_call_expression
+                              - kind: scoped_call_expression
+                              has:
+                                field: name
+                                kind: name
+                                regex: ^(where|whereNot)$
+                - inside:
+                    stopBy: end
+                    kind: method_declaration
+                    has:
+                      field: body
+                      kind: compound_statement
+                      has:
+                        kind: expression_statement
+                        all:
+                        - has:
+                            stopBy: end
+                            kind: variable_name
+                            pattern:
+                              context: <?php $V->get();
+                              selector: variable_name
+                        - has:
+                            stopBy: end
+                            any:
+                            - kind: member_call_expression
+                            - kind: scoped_call_expression
+                            all:
+                            - has:
+                                field: name
+                                kind: name
+                                regex: ^orWhere\w*$
+                            - not:
+                                has:
+                                  field: arguments
+                                  kind: arguments
+                                  regex: ^\(\s*(['\"][\w.]+['\"]\s*,\s*(['\"]=['\"]\s*,\s*)?)?(auth\(\s*\)(\s*->\s*guard\([^)]*\))?\s*->\s*(id|user)\s*\(|\\?(Illuminate\\Support\\Facades\\)?Auth::(guard\([^)]*\)\s*->\s*)?(id|user)\s*\(|\$request\s*->\s*user\s*\(|request\(\s*\)\s*->\s*user\s*\()
+                            not:
+                              inside:
+                                stopBy: end
+                                any:
+                                - kind: arrow_function
+                                - kind: anonymous_function
+                                inside:
+                                  kind: argument
+                                  inside:
+                                    kind: arguments
+                                    inside:
+                                      any:
+                                      - kind: member_call_expression
+                                      - kind: scoped_call_expression
+                                      has:
+                                        field: name
+                                        kind: name
+                                        regex: ^(where|whereNot)$
   - all:
     - has:
         field: body
@@ -1605,6 +1783,40 @@ control:
                                         - kind: arrow_function
                                         - kind: anonymous_function
                                         - kind: conditional_expression
+            - not:
+                has:
+                  stopBy: end
+                  any:
+                  - kind: member_call_expression
+                  - kind: scoped_call_expression
+                  all:
+                  - has:
+                      field: name
+                      kind: name
+                      regex: ^orWhere\w*$
+                  - not:
+                      has:
+                        field: arguments
+                        kind: arguments
+                        regex: ^\(\s*(['\"][\w.]+['\"]\s*,\s*(['\"]=['\"]\s*,\s*)?)?((auth\(\s*\)(\s*->\s*guard\([^)]*\))?\s*->\s*(id|user)\s*\(|\\?(Illuminate\\Support\\Facades\\)?Auth::(guard\([^)]*\)\s*->\s*)?(id|user)\s*\(|\$request\s*->\s*user\s*\(|request\(\s*\)\s*->\s*user\s*\()|\$(user|authUser|currentUser|me)\s*->)
+                  not:
+                    inside:
+                      stopBy: end
+                      any:
+                      - kind: arrow_function
+                      - kind: anonymous_function
+                      inside:
+                        kind: argument
+                        inside:
+                          kind: arguments
+                          inside:
+                            any:
+                            - kind: member_call_expression
+                            - kind: scoped_call_expression
+                            has:
+                              field: name
+                              kind: name
+                              regex: ^(where|whereNot)$
         - not:
             has:
               stopBy: end
@@ -1621,69 +1833,103 @@ control:
                     field: name
                     kind: name
                     regex: ^(get|all|paginate|simplePaginate|cursorPaginate)$
-                - not:
-                    has:
-                      stopBy: end
-                      any:
-                      - any:
-                        - kind: member_call_expression
-                        - kind: scoped_call_expression
-                        all:
-                        - has:
-                            field: name
-                            kind: name
-                            regex: ^(where\w*|whereBelongsTo)$
-                        - not:
-                            has:
+                - any:
+                  - not:
+                      has:
+                        stopBy: end
+                        any:
+                        - any:
+                          - kind: member_call_expression
+                          - kind: scoped_call_expression
+                          all:
+                          - has:
                               field: name
                               kind: name
-                              regex: ^(whereNot\w*|whereKeyNot|whereNull|whereDoesntHave\w*|whereJsonDoesnt\w*)$
-                        - has:
+                              regex: ^(where\w*|whereBelongsTo)$
+                          - not:
+                              has:
+                                field: name
+                                kind: name
+                                regex: ^(whereNot\w*|whereKeyNot|whereNull|whereDoesntHave\w*|whereJsonDoesnt\w*)$
+                          - has:
+                              field: arguments
+                              kind: arguments
+                              regex: ^\(\s*(['\"][\w.]+['\"]\s*,\s*(['\"]=['\"]\s*,\s*)?)?((auth\(\s*\)(\s*->\s*guard\([^)]*\))?\s*->\s*(id|user)\s*\(|\\?(Illuminate\\Support\\Facades\\)?Auth::(guard\([^)]*\)\s*->\s*)?(id|user)\s*\(|\$request\s*->\s*user\s*\(|request\(\s*\)\s*->\s*user\s*\()|\$(user|authUser|currentUser|me)\s*->)
+                          - not:
+                              inside:
+                                stopBy:
+                                  kind: member_call_expression
+                                  has:
+                                    field: name
+                                    kind: name
+                                    regex: ^(get|all|paginate|simplePaginate|cursorPaginate)$
+                                kind: arguments
+                          not:
+                            inside:
+                              stopBy: end
+                              any:
+                              - kind: if_statement
+                              - kind: arrow_function
+                              - kind: anonymous_function
+                              - kind: conditional_expression
+                        - any:
+                          - kind: member_call_expression
+                          - kind: scoped_call_expression
+                          all:
+                          - has:
+                              field: name
+                              kind: name
+                              regex: ^(forUser|forCurrentUser|ownedBy|ownedByUser|visibleTo|accessibleBy|forTenant|forClinic|forOrganisation|forOrganization|forPractitioner|forClinician|forClient|forPatient|mine)$
+                          - not:
+                              inside:
+                                stopBy:
+                                  kind: member_call_expression
+                                  has:
+                                    field: name
+                                    kind: name
+                                    regex: ^(get|all|paginate|simplePaginate|cursorPaginate)$
+                                kind: arguments
+                          not:
+                            inside:
+                              stopBy: end
+                              any:
+                              - kind: if_statement
+                              - kind: arrow_function
+                              - kind: anonymous_function
+                              - kind: conditional_expression
+                  - has:
+                      stopBy: end
+                      any:
+                      - kind: member_call_expression
+                      - kind: scoped_call_expression
+                      all:
+                      - has:
+                          field: name
+                          kind: name
+                          regex: ^orWhere\w*$
+                      - not:
+                          has:
                             field: arguments
                             kind: arguments
                             regex: ^\(\s*(['\"][\w.]+['\"]\s*,\s*(['\"]=['\"]\s*,\s*)?)?((auth\(\s*\)(\s*->\s*guard\([^)]*\))?\s*->\s*(id|user)\s*\(|\\?(Illuminate\\Support\\Facades\\)?Auth::(guard\([^)]*\)\s*->\s*)?(id|user)\s*\(|\$request\s*->\s*user\s*\(|request\(\s*\)\s*->\s*user\s*\()|\$(user|authUser|currentUser|me)\s*->)
-                        - not:
+                      not:
+                        inside:
+                          stopBy: end
+                          any:
+                          - kind: arrow_function
+                          - kind: anonymous_function
+                          inside:
+                            kind: argument
                             inside:
-                              stopBy:
-                                kind: member_call_expression
+                              kind: arguments
+                              inside:
+                                any:
+                                - kind: member_call_expression
+                                - kind: scoped_call_expression
                                 has:
                                   field: name
                                   kind: name
-                                  regex: ^(get|all|paginate|simplePaginate|cursorPaginate)$
-                              kind: arguments
-                        not:
-                          inside:
-                            stopBy: end
-                            any:
-                            - kind: if_statement
-                            - kind: arrow_function
-                            - kind: anonymous_function
-                            - kind: conditional_expression
-                      - any:
-                        - kind: member_call_expression
-                        - kind: scoped_call_expression
-                        all:
-                        - has:
-                            field: name
-                            kind: name
-                            regex: ^(forUser|forCurrentUser|ownedBy|ownedByUser|visibleTo|accessibleBy|forTenant|forClinic|forOrganisation|forOrganization|forPractitioner|forClinician|forClient|forPatient|mine)$
-                        - not:
-                            inside:
-                              stopBy:
-                                kind: member_call_expression
-                                has:
-                                  field: name
-                                  kind: name
-                                  regex: ^(get|all|paginate|simplePaginate|cursorPaginate)$
-                              kind: arguments
-                        not:
-                          inside:
-                            stopBy: end
-                            any:
-                            - kind: if_statement
-                            - kind: arrow_function
-                            - kind: anonymous_function
-                            - kind: conditional_expression
+                                  regex: ^(where|whereNot)$
                 - not:
                     kind: member_call_expression
                     regex: '^\\?([A-Za-z_]\w*\\)*Session\s*::'
@@ -2082,6 +2328,113 @@ control:
                                           - kind: arrow_function
                                           - kind: anonymous_function
                                           - kind: conditional_expression
+              - kind: member_call_expression
+                all:
+                - has:
+                    field: name
+                    kind: name
+                    regex: ^(get|all|paginate|simplePaginate|cursorPaginate)$
+                - has:
+                    stopBy: end
+                    kind: variable_name
+                    pattern:
+                      context: <?php $V->get();
+                      selector: variable_name
+                    all:
+                    - not:
+                        kind: variable_name
+                        regex: ^\$(this|request|req)$
+                    - not:
+                        inside:
+                          stopBy:
+                            kind: member_call_expression
+                            has:
+                              field: name
+                              kind: name
+                              regex: ^(get|all|paginate|simplePaginate|cursorPaginate)$
+                          kind: arguments
+                - any:
+                  - has:
+                      stopBy: end
+                      any:
+                      - kind: member_call_expression
+                      - kind: scoped_call_expression
+                      all:
+                      - has:
+                          field: name
+                          kind: name
+                          regex: ^orWhere\w*$
+                      - not:
+                          has:
+                            field: arguments
+                            kind: arguments
+                            regex: ^\(\s*(['\"][\w.]+['\"]\s*,\s*(['\"]=['\"]\s*,\s*)?)?((auth\(\s*\)(\s*->\s*guard\([^)]*\))?\s*->\s*(id|user)\s*\(|\\?(Illuminate\\Support\\Facades\\)?Auth::(guard\([^)]*\)\s*->\s*)?(id|user)\s*\(|\$request\s*->\s*user\s*\(|request\(\s*\)\s*->\s*user\s*\()|\$(user|authUser|currentUser|me)\s*->)
+                      not:
+                        inside:
+                          stopBy: end
+                          any:
+                          - kind: arrow_function
+                          - kind: anonymous_function
+                          inside:
+                            kind: argument
+                            inside:
+                              kind: arguments
+                              inside:
+                                any:
+                                - kind: member_call_expression
+                                - kind: scoped_call_expression
+                                has:
+                                  field: name
+                                  kind: name
+                                  regex: ^(where|whereNot)$
+                  - inside:
+                      stopBy: end
+                      kind: method_declaration
+                      has:
+                        field: body
+                        kind: compound_statement
+                        has:
+                          kind: expression_statement
+                          all:
+                          - has:
+                              stopBy: end
+                              kind: variable_name
+                              pattern:
+                                context: <?php $V->get();
+                                selector: variable_name
+                          - has:
+                              stopBy: end
+                              any:
+                              - kind: member_call_expression
+                              - kind: scoped_call_expression
+                              all:
+                              - has:
+                                  field: name
+                                  kind: name
+                                  regex: ^orWhere\w*$
+                              - not:
+                                  has:
+                                    field: arguments
+                                    kind: arguments
+                                    regex: ^\(\s*(['\"][\w.]+['\"]\s*,\s*(['\"]=['\"]\s*,\s*)?)?((auth\(\s*\)(\s*->\s*guard\([^)]*\))?\s*->\s*(id|user)\s*\(|\\?(Illuminate\\Support\\Facades\\)?Auth::(guard\([^)]*\)\s*->\s*)?(id|user)\s*\(|\$request\s*->\s*user\s*\(|request\(\s*\)\s*->\s*user\s*\()|\$(user|authUser|currentUser|me)\s*->)
+                              not:
+                                inside:
+                                  stopBy: end
+                                  any:
+                                  - kind: arrow_function
+                                  - kind: anonymous_function
+                                  inside:
+                                    kind: argument
+                                    inside:
+                                      kind: arguments
+                                      inside:
+                                        any:
+                                        - kind: member_call_expression
+                                        - kind: scoped_call_expression
+                                        has:
+                                          field: name
+                                          kind: name
+                                          regex: ^(where|whereNot)$
     - has:
         field: body
         kind: compound_statement
@@ -2669,6 +3022,40 @@ rule:
                                           - kind: arrow_function
                                           - kind: anonymous_function
                                           - kind: conditional_expression
+              - not:
+                  has:
+                    stopBy: end
+                    any:
+                    - kind: member_call_expression
+                    - kind: scoped_call_expression
+                    all:
+                    - has:
+                        field: name
+                        kind: name
+                        regex: ^orWhere\w*$
+                    - not:
+                        has:
+                          field: arguments
+                          kind: arguments
+                          regex: ^\(\s*(['\"][\w.]+['\"]\s*,\s*(['\"]=['\"]\s*,\s*)?)?(auth\(\s*\)(\s*->\s*guard\([^)]*\))?\s*->\s*(id|user)\s*\(|\\?(Illuminate\\Support\\Facades\\)?Auth::(guard\([^)]*\)\s*->\s*)?(id|user)\s*\(|\$request\s*->\s*user\s*\(|request\(\s*\)\s*->\s*user\s*\()
+                    not:
+                      inside:
+                        stopBy: end
+                        any:
+                        - kind: arrow_function
+                        - kind: anonymous_function
+                        inside:
+                          kind: argument
+                          inside:
+                            kind: arguments
+                            inside:
+                              any:
+                              - kind: member_call_expression
+                              - kind: scoped_call_expression
+                              has:
+                                field: name
+                                kind: name
+                                regex: ^(where|whereNot)$
           - not:
               has:
                 stopBy: end
@@ -2685,69 +3072,103 @@ rule:
                       field: name
                       kind: name
                       regex: ^(get|all|paginate|simplePaginate|cursorPaginate)$
-                  - not:
-                      has:
-                        stopBy: end
-                        any:
-                        - any:
-                          - kind: member_call_expression
-                          - kind: scoped_call_expression
-                          all:
-                          - has:
-                              field: name
-                              kind: name
-                              regex: ^(where\w*|whereBelongsTo)$
-                          - not:
-                              has:
+                  - any:
+                    - not:
+                        has:
+                          stopBy: end
+                          any:
+                          - any:
+                            - kind: member_call_expression
+                            - kind: scoped_call_expression
+                            all:
+                            - has:
                                 field: name
                                 kind: name
-                                regex: ^(whereNot\w*|whereKeyNot|whereNull|whereDoesntHave\w*|whereJsonDoesnt\w*)$
-                          - has:
+                                regex: ^(where\w*|whereBelongsTo)$
+                            - not:
+                                has:
+                                  field: name
+                                  kind: name
+                                  regex: ^(whereNot\w*|whereKeyNot|whereNull|whereDoesntHave\w*|whereJsonDoesnt\w*)$
+                            - has:
+                                field: arguments
+                                kind: arguments
+                                regex: ^\(\s*(['\"][\w.]+['\"]\s*,\s*(['\"]=['\"]\s*,\s*)?)?(auth\(\s*\)(\s*->\s*guard\([^)]*\))?\s*->\s*(id|user)\s*\(|\\?(Illuminate\\Support\\Facades\\)?Auth::(guard\([^)]*\)\s*->\s*)?(id|user)\s*\(|\$request\s*->\s*user\s*\(|request\(\s*\)\s*->\s*user\s*\()
+                            - not:
+                                inside:
+                                  stopBy:
+                                    kind: member_call_expression
+                                    has:
+                                      field: name
+                                      kind: name
+                                      regex: ^(get|all|paginate|simplePaginate|cursorPaginate)$
+                                  kind: arguments
+                            not:
+                              inside:
+                                stopBy: end
+                                any:
+                                - kind: if_statement
+                                - kind: arrow_function
+                                - kind: anonymous_function
+                                - kind: conditional_expression
+                          - any:
+                            - kind: member_call_expression
+                            - kind: scoped_call_expression
+                            all:
+                            - has:
+                                field: name
+                                kind: name
+                                regex: ^(forUser|forCurrentUser|ownedBy|ownedByUser|visibleTo|accessibleBy|forTenant|forClinic|forOrganisation|forOrganization|forPractitioner|forClinician|forClient|forPatient|mine)$
+                            - not:
+                                inside:
+                                  stopBy:
+                                    kind: member_call_expression
+                                    has:
+                                      field: name
+                                      kind: name
+                                      regex: ^(get|all|paginate|simplePaginate|cursorPaginate)$
+                                  kind: arguments
+                            not:
+                              inside:
+                                stopBy: end
+                                any:
+                                - kind: if_statement
+                                - kind: arrow_function
+                                - kind: anonymous_function
+                                - kind: conditional_expression
+                    - has:
+                        stopBy: end
+                        any:
+                        - kind: member_call_expression
+                        - kind: scoped_call_expression
+                        all:
+                        - has:
+                            field: name
+                            kind: name
+                            regex: ^orWhere\w*$
+                        - not:
+                            has:
                               field: arguments
                               kind: arguments
                               regex: ^\(\s*(['\"][\w.]+['\"]\s*,\s*(['\"]=['\"]\s*,\s*)?)?(auth\(\s*\)(\s*->\s*guard\([^)]*\))?\s*->\s*(id|user)\s*\(|\\?(Illuminate\\Support\\Facades\\)?Auth::(guard\([^)]*\)\s*->\s*)?(id|user)\s*\(|\$request\s*->\s*user\s*\(|request\(\s*\)\s*->\s*user\s*\()
-                          - not:
+                        not:
+                          inside:
+                            stopBy: end
+                            any:
+                            - kind: arrow_function
+                            - kind: anonymous_function
+                            inside:
+                              kind: argument
                               inside:
-                                stopBy:
-                                  kind: member_call_expression
+                                kind: arguments
+                                inside:
+                                  any:
+                                  - kind: member_call_expression
+                                  - kind: scoped_call_expression
                                   has:
                                     field: name
                                     kind: name
-                                    regex: ^(get|all|paginate|simplePaginate|cursorPaginate)$
-                                kind: arguments
-                          not:
-                            inside:
-                              stopBy: end
-                              any:
-                              - kind: if_statement
-                              - kind: arrow_function
-                              - kind: anonymous_function
-                              - kind: conditional_expression
-                        - any:
-                          - kind: member_call_expression
-                          - kind: scoped_call_expression
-                          all:
-                          - has:
-                              field: name
-                              kind: name
-                              regex: ^(forUser|forCurrentUser|ownedBy|ownedByUser|visibleTo|accessibleBy|forTenant|forClinic|forOrganisation|forOrganization|forPractitioner|forClinician|forClient|forPatient|mine)$
-                          - not:
-                              inside:
-                                stopBy:
-                                  kind: member_call_expression
-                                  has:
-                                    field: name
-                                    kind: name
-                                    regex: ^(get|all|paginate|simplePaginate|cursorPaginate)$
-                                kind: arguments
-                          not:
-                            inside:
-                              stopBy: end
-                              any:
-                              - kind: if_statement
-                              - kind: arrow_function
-                              - kind: anonymous_function
-                              - kind: conditional_expression
+                                    regex: ^(where|whereNot)$
                   - not:
                       kind: member_call_expression
                       regex: '^\\?([A-Za-z_]\w*\\)*Session\s*::'
@@ -3146,6 +3567,113 @@ rule:
                                             - kind: arrow_function
                                             - kind: anonymous_function
                                             - kind: conditional_expression
+                - kind: member_call_expression
+                  all:
+                  - has:
+                      field: name
+                      kind: name
+                      regex: ^(get|all|paginate|simplePaginate|cursorPaginate)$
+                  - has:
+                      stopBy: end
+                      kind: variable_name
+                      pattern:
+                        context: <?php $V->get();
+                        selector: variable_name
+                      all:
+                      - not:
+                          kind: variable_name
+                          regex: ^\$(this|request|req)$
+                      - not:
+                          inside:
+                            stopBy:
+                              kind: member_call_expression
+                              has:
+                                field: name
+                                kind: name
+                                regex: ^(get|all|paginate|simplePaginate|cursorPaginate)$
+                            kind: arguments
+                  - any:
+                    - has:
+                        stopBy: end
+                        any:
+                        - kind: member_call_expression
+                        - kind: scoped_call_expression
+                        all:
+                        - has:
+                            field: name
+                            kind: name
+                            regex: ^orWhere\w*$
+                        - not:
+                            has:
+                              field: arguments
+                              kind: arguments
+                              regex: ^\(\s*(['\"][\w.]+['\"]\s*,\s*(['\"]=['\"]\s*,\s*)?)?(auth\(\s*\)(\s*->\s*guard\([^)]*\))?\s*->\s*(id|user)\s*\(|\\?(Illuminate\\Support\\Facades\\)?Auth::(guard\([^)]*\)\s*->\s*)?(id|user)\s*\(|\$request\s*->\s*user\s*\(|request\(\s*\)\s*->\s*user\s*\()
+                        not:
+                          inside:
+                            stopBy: end
+                            any:
+                            - kind: arrow_function
+                            - kind: anonymous_function
+                            inside:
+                              kind: argument
+                              inside:
+                                kind: arguments
+                                inside:
+                                  any:
+                                  - kind: member_call_expression
+                                  - kind: scoped_call_expression
+                                  has:
+                                    field: name
+                                    kind: name
+                                    regex: ^(where|whereNot)$
+                    - inside:
+                        stopBy: end
+                        kind: method_declaration
+                        has:
+                          field: body
+                          kind: compound_statement
+                          has:
+                            kind: expression_statement
+                            all:
+                            - has:
+                                stopBy: end
+                                kind: variable_name
+                                pattern:
+                                  context: <?php $V->get();
+                                  selector: variable_name
+                            - has:
+                                stopBy: end
+                                any:
+                                - kind: member_call_expression
+                                - kind: scoped_call_expression
+                                all:
+                                - has:
+                                    field: name
+                                    kind: name
+                                    regex: ^orWhere\w*$
+                                - not:
+                                    has:
+                                      field: arguments
+                                      kind: arguments
+                                      regex: ^\(\s*(['\"][\w.]+['\"]\s*,\s*(['\"]=['\"]\s*,\s*)?)?(auth\(\s*\)(\s*->\s*guard\([^)]*\))?\s*->\s*(id|user)\s*\(|\\?(Illuminate\\Support\\Facades\\)?Auth::(guard\([^)]*\)\s*->\s*)?(id|user)\s*\(|\$request\s*->\s*user\s*\(|request\(\s*\)\s*->\s*user\s*\()
+                                not:
+                                  inside:
+                                    stopBy: end
+                                    any:
+                                    - kind: arrow_function
+                                    - kind: anonymous_function
+                                    inside:
+                                      kind: argument
+                                      inside:
+                                        kind: arguments
+                                        inside:
+                                          any:
+                                          - kind: member_call_expression
+                                          - kind: scoped_call_expression
+                                          has:
+                                            field: name
+                                            kind: name
+                                            regex: ^(where|whereNot)$
       - all:
         - has:
             field: body
@@ -3528,6 +4056,40 @@ rule:
                                             - kind: arrow_function
                                             - kind: anonymous_function
                                             - kind: conditional_expression
+                - not:
+                    has:
+                      stopBy: end
+                      any:
+                      - kind: member_call_expression
+                      - kind: scoped_call_expression
+                      all:
+                      - has:
+                          field: name
+                          kind: name
+                          regex: ^orWhere\w*$
+                      - not:
+                          has:
+                            field: arguments
+                            kind: arguments
+                            regex: ^\(\s*(['\"][\w.]+['\"]\s*,\s*(['\"]=['\"]\s*,\s*)?)?((auth\(\s*\)(\s*->\s*guard\([^)]*\))?\s*->\s*(id|user)\s*\(|\\?(Illuminate\\Support\\Facades\\)?Auth::(guard\([^)]*\)\s*->\s*)?(id|user)\s*\(|\$request\s*->\s*user\s*\(|request\(\s*\)\s*->\s*user\s*\()|\$(user|authUser|currentUser|me)\s*->)
+                      not:
+                        inside:
+                          stopBy: end
+                          any:
+                          - kind: arrow_function
+                          - kind: anonymous_function
+                          inside:
+                            kind: argument
+                            inside:
+                              kind: arguments
+                              inside:
+                                any:
+                                - kind: member_call_expression
+                                - kind: scoped_call_expression
+                                has:
+                                  field: name
+                                  kind: name
+                                  regex: ^(where|whereNot)$
             - not:
                 has:
                   stopBy: end
@@ -3544,69 +4106,103 @@ rule:
                         field: name
                         kind: name
                         regex: ^(get|all|paginate|simplePaginate|cursorPaginate)$
-                    - not:
-                        has:
-                          stopBy: end
-                          any:
-                          - any:
-                            - kind: member_call_expression
-                            - kind: scoped_call_expression
-                            all:
-                            - has:
-                                field: name
-                                kind: name
-                                regex: ^(where\w*|whereBelongsTo)$
-                            - not:
-                                has:
+                    - any:
+                      - not:
+                          has:
+                            stopBy: end
+                            any:
+                            - any:
+                              - kind: member_call_expression
+                              - kind: scoped_call_expression
+                              all:
+                              - has:
                                   field: name
                                   kind: name
-                                  regex: ^(whereNot\w*|whereKeyNot|whereNull|whereDoesntHave\w*|whereJsonDoesnt\w*)$
-                            - has:
+                                  regex: ^(where\w*|whereBelongsTo)$
+                              - not:
+                                  has:
+                                    field: name
+                                    kind: name
+                                    regex: ^(whereNot\w*|whereKeyNot|whereNull|whereDoesntHave\w*|whereJsonDoesnt\w*)$
+                              - has:
+                                  field: arguments
+                                  kind: arguments
+                                  regex: ^\(\s*(['\"][\w.]+['\"]\s*,\s*(['\"]=['\"]\s*,\s*)?)?((auth\(\s*\)(\s*->\s*guard\([^)]*\))?\s*->\s*(id|user)\s*\(|\\?(Illuminate\\Support\\Facades\\)?Auth::(guard\([^)]*\)\s*->\s*)?(id|user)\s*\(|\$request\s*->\s*user\s*\(|request\(\s*\)\s*->\s*user\s*\()|\$(user|authUser|currentUser|me)\s*->)
+                              - not:
+                                  inside:
+                                    stopBy:
+                                      kind: member_call_expression
+                                      has:
+                                        field: name
+                                        kind: name
+                                        regex: ^(get|all|paginate|simplePaginate|cursorPaginate)$
+                                    kind: arguments
+                              not:
+                                inside:
+                                  stopBy: end
+                                  any:
+                                  - kind: if_statement
+                                  - kind: arrow_function
+                                  - kind: anonymous_function
+                                  - kind: conditional_expression
+                            - any:
+                              - kind: member_call_expression
+                              - kind: scoped_call_expression
+                              all:
+                              - has:
+                                  field: name
+                                  kind: name
+                                  regex: ^(forUser|forCurrentUser|ownedBy|ownedByUser|visibleTo|accessibleBy|forTenant|forClinic|forOrganisation|forOrganization|forPractitioner|forClinician|forClient|forPatient|mine)$
+                              - not:
+                                  inside:
+                                    stopBy:
+                                      kind: member_call_expression
+                                      has:
+                                        field: name
+                                        kind: name
+                                        regex: ^(get|all|paginate|simplePaginate|cursorPaginate)$
+                                    kind: arguments
+                              not:
+                                inside:
+                                  stopBy: end
+                                  any:
+                                  - kind: if_statement
+                                  - kind: arrow_function
+                                  - kind: anonymous_function
+                                  - kind: conditional_expression
+                      - has:
+                          stopBy: end
+                          any:
+                          - kind: member_call_expression
+                          - kind: scoped_call_expression
+                          all:
+                          - has:
+                              field: name
+                              kind: name
+                              regex: ^orWhere\w*$
+                          - not:
+                              has:
                                 field: arguments
                                 kind: arguments
                                 regex: ^\(\s*(['\"][\w.]+['\"]\s*,\s*(['\"]=['\"]\s*,\s*)?)?((auth\(\s*\)(\s*->\s*guard\([^)]*\))?\s*->\s*(id|user)\s*\(|\\?(Illuminate\\Support\\Facades\\)?Auth::(guard\([^)]*\)\s*->\s*)?(id|user)\s*\(|\$request\s*->\s*user\s*\(|request\(\s*\)\s*->\s*user\s*\()|\$(user|authUser|currentUser|me)\s*->)
-                            - not:
+                          not:
+                            inside:
+                              stopBy: end
+                              any:
+                              - kind: arrow_function
+                              - kind: anonymous_function
+                              inside:
+                                kind: argument
                                 inside:
-                                  stopBy:
-                                    kind: member_call_expression
+                                  kind: arguments
+                                  inside:
+                                    any:
+                                    - kind: member_call_expression
+                                    - kind: scoped_call_expression
                                     has:
                                       field: name
                                       kind: name
-                                      regex: ^(get|all|paginate|simplePaginate|cursorPaginate)$
-                                  kind: arguments
-                            not:
-                              inside:
-                                stopBy: end
-                                any:
-                                - kind: if_statement
-                                - kind: arrow_function
-                                - kind: anonymous_function
-                                - kind: conditional_expression
-                          - any:
-                            - kind: member_call_expression
-                            - kind: scoped_call_expression
-                            all:
-                            - has:
-                                field: name
-                                kind: name
-                                regex: ^(forUser|forCurrentUser|ownedBy|ownedByUser|visibleTo|accessibleBy|forTenant|forClinic|forOrganisation|forOrganization|forPractitioner|forClinician|forClient|forPatient|mine)$
-                            - not:
-                                inside:
-                                  stopBy:
-                                    kind: member_call_expression
-                                    has:
-                                      field: name
-                                      kind: name
-                                      regex: ^(get|all|paginate|simplePaginate|cursorPaginate)$
-                                  kind: arguments
-                            not:
-                              inside:
-                                stopBy: end
-                                any:
-                                - kind: if_statement
-                                - kind: arrow_function
-                                - kind: anonymous_function
-                                - kind: conditional_expression
+                                      regex: ^(where|whereNot)$
                     - not:
                         kind: member_call_expression
                         regex: '^\\?([A-Za-z_]\w*\\)*Session\s*::'
@@ -4005,6 +4601,113 @@ rule:
                                               - kind: arrow_function
                                               - kind: anonymous_function
                                               - kind: conditional_expression
+                  - kind: member_call_expression
+                    all:
+                    - has:
+                        field: name
+                        kind: name
+                        regex: ^(get|all|paginate|simplePaginate|cursorPaginate)$
+                    - has:
+                        stopBy: end
+                        kind: variable_name
+                        pattern:
+                          context: <?php $V->get();
+                          selector: variable_name
+                        all:
+                        - not:
+                            kind: variable_name
+                            regex: ^\$(this|request|req)$
+                        - not:
+                            inside:
+                              stopBy:
+                                kind: member_call_expression
+                                has:
+                                  field: name
+                                  kind: name
+                                  regex: ^(get|all|paginate|simplePaginate|cursorPaginate)$
+                              kind: arguments
+                    - any:
+                      - has:
+                          stopBy: end
+                          any:
+                          - kind: member_call_expression
+                          - kind: scoped_call_expression
+                          all:
+                          - has:
+                              field: name
+                              kind: name
+                              regex: ^orWhere\w*$
+                          - not:
+                              has:
+                                field: arguments
+                                kind: arguments
+                                regex: ^\(\s*(['\"][\w.]+['\"]\s*,\s*(['\"]=['\"]\s*,\s*)?)?((auth\(\s*\)(\s*->\s*guard\([^)]*\))?\s*->\s*(id|user)\s*\(|\\?(Illuminate\\Support\\Facades\\)?Auth::(guard\([^)]*\)\s*->\s*)?(id|user)\s*\(|\$request\s*->\s*user\s*\(|request\(\s*\)\s*->\s*user\s*\()|\$(user|authUser|currentUser|me)\s*->)
+                          not:
+                            inside:
+                              stopBy: end
+                              any:
+                              - kind: arrow_function
+                              - kind: anonymous_function
+                              inside:
+                                kind: argument
+                                inside:
+                                  kind: arguments
+                                  inside:
+                                    any:
+                                    - kind: member_call_expression
+                                    - kind: scoped_call_expression
+                                    has:
+                                      field: name
+                                      kind: name
+                                      regex: ^(where|whereNot)$
+                      - inside:
+                          stopBy: end
+                          kind: method_declaration
+                          has:
+                            field: body
+                            kind: compound_statement
+                            has:
+                              kind: expression_statement
+                              all:
+                              - has:
+                                  stopBy: end
+                                  kind: variable_name
+                                  pattern:
+                                    context: <?php $V->get();
+                                    selector: variable_name
+                              - has:
+                                  stopBy: end
+                                  any:
+                                  - kind: member_call_expression
+                                  - kind: scoped_call_expression
+                                  all:
+                                  - has:
+                                      field: name
+                                      kind: name
+                                      regex: ^orWhere\w*$
+                                  - not:
+                                      has:
+                                        field: arguments
+                                        kind: arguments
+                                        regex: ^\(\s*(['\"][\w.]+['\"]\s*,\s*(['\"]=['\"]\s*,\s*)?)?((auth\(\s*\)(\s*->\s*guard\([^)]*\))?\s*->\s*(id|user)\s*\(|\\?(Illuminate\\Support\\Facades\\)?Auth::(guard\([^)]*\)\s*->\s*)?(id|user)\s*\(|\$request\s*->\s*user\s*\(|request\(\s*\)\s*->\s*user\s*\()|\$(user|authUser|currentUser|me)\s*->)
+                                  not:
+                                    inside:
+                                      stopBy: end
+                                      any:
+                                      - kind: arrow_function
+                                      - kind: anonymous_function
+                                      inside:
+                                        kind: argument
+                                        inside:
+                                          kind: arguments
+                                          inside:
+                                            any:
+                                            - kind: member_call_expression
+                                            - kind: scoped_call_expression
+                                            has:
+                                              field: name
+                                              kind: name
+                                              regex: ^(where|whereNot)$
         - has:
             field: body
             kind: compound_statement
