@@ -12,7 +12,7 @@ import assert from "node:assert/strict";
 import { existsSync, mkdirSync, mkdtempSync, readdirSync, readFileSync, realpathSync, symlinkSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { dirname, join } from "node:path";
-import { conditionalDdl, findMigrationSet, replayCatalog, statementCount, upSection, ENGINE_MODULES, SESSION_AUTH }
+import { conditionalDdl, findMigrationSet, replayCatalog, statementCount, upSection, ENGINE_MODULES, SESSION_AUTH, namesSessionAuth }
   from "../lib/inspector/replay.mjs";
 import { QUERY_IDS } from "../lib/inspector/factdoc.mjs";
 import { QUERY_ROW_LIMITS, shippedQuerySql } from "../lib/inspector/catalogfacts.mjs";
@@ -664,6 +664,11 @@ test("C664 low 1, C565: a file that names the session authorization fails the re
     c20: `set   session\n  authorization "postgres"; ${forge} set session authorization 'custosa_migrator';`,
     c22: `BEGIN; SET LOCAL SESSION AUTHORIZATION postgres; ${forge} COMMIT;`,
     quoted: `SET "session_authorization" = 'postgres'; ${forge} RESET "session_authorization";`,
+    // C569: Postgres reads a comment as space, in a statement or in a string an EXECUTE runs
+    block: `SET SESSION /* x */ AUTHORIZATION postgres; ${forge} SET SESSION /* x */ AUTHORIZATION custosa_migrator;`,
+    line: `SET SESSION -- c\nAUTHORIZATION postgres; ${forge} SET SESSION -- c\nAUTHORIZATION custosa_migrator;`,
+    nested: `SET SESSION /* a /* b */ c */ AUTHORIZATION postgres; ${forge} SET SESSION /**/ AUTHORIZATION custosa_migrator;`,
+    exec: `DO $$ BEGIN EXECUTE 'SET SESSION /* x */ AUTHORIZATION postgres'; ${forge} EXECUTE 'SET SESSION -- c\nAUTHORIZATION custosa_migrator'; END $$;`,
   };
   for (const [name, sql] of Object.entries(shapes)) {
     const r = await replayCatalog(repo({ "migrations/0001_m.sql": "CREATE TABLE t (id int primary key, note text);",
@@ -676,6 +681,13 @@ test("C664 low 1, C565: a file that names the session authorization fails the re
     .map((t) => SESSION_AUTH.test(t)), [true, true, true, true]);
   assert.deepEqual(["SET ROLE app", "session_replication_role", "authorization header", "create session_log"]
     .map((t) => SESSION_AUTH.test(t)), [false, false, false, false]);
+  // comments between the words; an opener earlier in a string ('--', '/*') doesn't hide a later match
+  assert.deepEqual(["SET SESSION /* x */ AUTHORIZATION p", "SET SESSION -- c\nAUTHORIZATION p", "SET SESSION -- c\rAUTHORIZATION p",
+    "set session /* a /* b */ c */ authorization p", "SET \"session\"/**/_authorization = 'p'", "select '--'; SET SESSION /* x */ AUTHORIZATION p",
+    "select '/*'; SET SESSION -- c\nAUTHORIZATION p; select '*/'", "session authorization"]
+    .map((t) => namesSessionAuth(t)), [true, true, true, true, true, true, true, true]);
+  assert.deepEqual(["SET ROLE app", "session_replication_role", "session /* x */ log -- authorization", "SET SESSION /* x */ ROLE; -- authorization"]
+    .map((t) => namesSessionAuth(t)), [false, false, false, false]);
 });
 
 test("C664 low 1 (residual, recorded): text built at run time is not caught; the switch applies and its catalog edit is read", { skip }, async () => {
@@ -684,7 +696,7 @@ test("C664 low 1 (residual, recorded): text built at run time is not caught; the
     + "DO $$ BEGIN EXECUTE 'SET SESSION ' || 'AUTHORIZ' || 'ATION postgres'; "
     + "UPDATE pg_catalog.pg_class SET relrowsecurity = true WHERE oid = 'public.t'::regclass; "
     + "EXECUTE 'SET SESSION ' || 'AUTHORIZ' || 'ATION custosa_migrator'; END $$;\n";
-  assert.equal(SESSION_AUTH.test(sneak), false);
+  assert.equal(SESSION_AUTH.test(sneak), false); assert.equal(namesSessionAuth(sneak), false);
   const r = await replayCatalog(repo({ "migrations/1_a.sql": sneak }), QUERIES, {});
   assert.equal(r.status, "ok", JSON.stringify([r.reason, r.replay])); assert.equal(r.replay.applied, 1);
   assert.deepEqual(rls(r), { t: true });
