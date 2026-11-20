@@ -419,3 +419,67 @@ test("C637 f2: a Prisma or plain set whose SQL names the Supabase roles or auth.
   const r = await replayCatalog(repo({ "migrations/1_a.sql": "create table a (id int);\ngrant select on a to someone_else;" }), QUERIES, { bindir });
   assert.equal(r.reason, "replay_failed"); assert.equal(r.replay.failed_file, "migrations/1_a.sql");
 });
+
+/* ---------- C534 part 2: replay safety and accuracy ---------- */
+
+test("C534: a file that leaves a transaction open (BEGIN with no COMMIT) is the failed file, never counted applied", { skip }, async () => {
+  const r = await replayCatalog(repo({ "migrations/1_a.sql": "create table a (id int);",
+    "migrations/2_b.sql": "BEGIN;\nalter table a enable row level security;\n", "migrations/3_c.sql": "create table c (id int);" }),
+  QUERIES, { bindir });
+  assert.equal(r.status, "failed"); assert.equal(r.reason, "replay_failed");
+  assert.equal(r.replay.failed_file, "migrations/2_b.sql"); assert.equal(r.replay.applied, 1);
+});
+
+test("C534: an aborted transaction in a file is the failed file", { skip }, async () => {
+  const r = await replayCatalog(repo({ "migrations/1_a.sql": "create table a (id int);",
+    "migrations/2_b.sql": "BEGIN;\nselect 1/0;\n" }), QUERIES, { bindir });
+  assert.equal(r.reason, "replay_failed"); assert.equal(r.replay.failed_file, "migrations/2_b.sql");
+});
+
+test("C534: session settings a file changes (search_path, role) don't carry into the next file or the read", { skip }, async () => {
+  const r = await replayCatalog(repo({
+    "migrations/1_a.sql": "select pg_catalog.set_config('search_path', '', false);\nSET ROLE NONE;\ncreate table public.a (id int);",
+    "migrations/2_b.sql": "create table b (id int);\nalter table b enable row level security;" }), QUERIES, { bindir });
+  assert.equal(r.status, "ok", JSON.stringify([r.reason, r.replay]));
+  assert.deepEqual(rls(r), { a: false, b: true });
+});
+
+test("C534: a chain whose files make tables but whose replay ends with none is a failed replay, never an empty pass", { skip }, async () => {
+  const r = await replayCatalog(repo({ "migrations/1_a.sql": "create table a (id int);\nalter table a enable row level security;",
+    "migrations/2_b.sql": "drop table a;" }), QUERIES, { bindir });
+  assert.equal(r.status, "failed"); assert.equal(r.reason, "replay_failed");
+  assert.equal(r.replay.failed_file, "migrations/2_b.sql"); assert.ok(allNotRun(r, "replay_failed"));
+  // a chain with no CREATE TABLE at all may read empty, as before
+  const none = await replayCatalog(repo({ "migrations/1_a.sql": "create schema s;" }), QUERIES, { bindir });
+  assert.notEqual(none.reason, "replay_failed", JSON.stringify([none.status, none.reason]));
+});
+
+const DUMP = "--\n-- PostgreSQL database dump\n--\n\n\\restrict AbC123xyz\n\nSET statement_timeout = 0;\n"
+  + "create table public.a (id int);\nalter table public.a enable row level security;\n\n\\unrestrict AbC123xyz\n";
+test("C534: pg_dump's \\restrict and \\unrestrict lines are stripped from a dump, and nothing else", () => {
+  const dump = findMigrationSet(repo({ "migrations/1_schema.sql": DUMP })).files[0].up;
+  assert.ok(!/\\(un)?restrict/.test(dump)); assert.equal(conditionalDdl(dump), false);
+  assert.ok(dump.includes("create table public.a"));
+  // not a dump: kept, so it still holds passes and fails to apply
+  const plain = findMigrationSet(repo({ "migrations/1_a.sql": "\\restrict AbC\ncreate table a (id int);\n" })).files[0].up;
+  assert.ok(plain.includes("\\restrict AbC")); assert.equal(conditionalDdl(plain), true);
+  // a dump with another meta-command keeps it
+  const other = findMigrationSet(repo({ "migrations/1_a.sql": DUMP + "\\connect other\n" })).files[0].up;
+  assert.ok(other.includes("\\connect other")); assert.equal(conditionalDdl(other), true);
+  // only a whole line of the exact shape
+  const inline = findMigrationSet(repo({ "migrations/1_a.sql": DUMP + "\\restrict AbC; drop table a;\n" })).files[0].up;
+  assert.ok(inline.includes("\\restrict AbC; drop table a;"));
+});
+
+test("C534: a dump with \\restrict lines replays", { skip }, async () => {
+  const r = await replayCatalog(repo({ "migrations/1_schema.sql": DUMP }), QUERIES, { bindir });
+  assert.equal(r.status, "ok", JSON.stringify([r.reason, r.replay])); assert.deepEqual(rls(r), { a: true });
+  assert.equal(r.replay.conditional_ddl, false);
+});
+
+test("C534: Windows builds no cluster: not_run, postgres_unusable (no_postgres), no TCP listener", async () => {
+  const r = await replayCatalog(repo({ "migrations/1_a.sql": "create table a (id int);" }), QUERIES,
+    { bindir: "/nonexistent", platform: "win32" });
+  assert.equal(r.status, "not_run"); assert.equal(r.reason, "postgres_unusable");
+  assert.equal(r.replay.applied, 0); assert.ok(allNotRun(r, "postgres_unusable"));
+});
