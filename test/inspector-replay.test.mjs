@@ -276,3 +276,77 @@ test("the cluster listens on no TCP address and takes no setting from the enviro
   } finally { await c.stop(); }
   assert.equal(existsSync(c.dir), false); assert.equal(existsSync(c.socketDir), false);
 });
+
+/* ---------- the fact document (contract 2.8), through inspect --document ---------- */
+
+import { execFile } from "node:child_process";
+import { fileURLToPath } from "node:url";
+import { validateFactDocument } from "../lib/inspector/schema.mjs";
+import { replayFact } from "../lib/inspector/factdoc.mjs";
+
+const BIN = fileURLToPath(new URL("../bin/custosa.mjs", import.meta.url));
+// The package's own bundle: its shipped catalog queries are what a replay reads (the fixture bundle ships none).
+const inspect = (root, env = {}) => new Promise((ok) => {
+  const base = { ...process.env };
+  delete base.CUSTOSA_BUNDLE_DIR;
+  execFile(process.execPath, [BIN, "inspect", "--document", root], {
+    env: { ...base, PGSERVICEFILE: join(temp("g2-nopg-"), "none.conf"), CUSTOSA_CONFIG_DIR: temp("g2-cfg-"),
+      CUSTOSA_EVALUATOR_URL: "http://127.0.0.1:9", ...env }, maxBuffer: 50e6 },
+  (error, stdout, stderr) => ok({ code: error ? error.code : 0, stdout, stderr }));
+});
+const catalogEntry = (doc) => doc.collection.find((c) => c.collector === "catalog");
+
+test("with no [phisc] entry, a repo's migrations are replayed: a valid document with source migrations", { skip }, async () => {
+  const out = await inspect(repo({ "supabase/migrations/20240101000000_init.sql": OWNED, "package.json": "{}" }));
+  assert.equal(out.code, 0, out.stderr);
+  const { document } = JSON.parse(out.stdout);
+  assert.equal(validateFactDocument(document), null);
+  assert.equal(document.catalog.source, "migrations");
+  assert.deepEqual(document.catalog.replay, { kind: "supabase", files: 1, applied: 1, conditional_ddl: false, outcome: "applied", failed_file: null });
+  assert.equal(document.catalog.preflight.passed, true);
+  assert.ok(document.catalog.queries.find((q) => q.query_id === "rls_policies").rows.length >= 1);
+  assert.equal(document.tenancy.source, "answer"); // never observed from a throwaway database
+});
+
+test("R9 in the document: a migration that fails reads failed, migrations_not_applied, with the file named and no rows", { skip }, async () => {
+  const out = await inspect(repo({ "migrations/1_a.sql": "create table a (id int);", "migrations/2_b.sql": "alter table nope add x int;" }));
+  assert.equal(out.code, 0, out.stderr);
+  const { document } = JSON.parse(out.stdout);
+  assert.equal(validateFactDocument(document), null);
+  assert.deepEqual(catalogEntry(document), { collector: "catalog", status: "failed", count: 0, reason: "migrations_not_applied" });
+  assert.deepEqual(document.catalog.replay, { kind: "plain", files: 2, applied: 1, conditional_ddl: false, outcome: "not_applied", failed_file: "migrations/2_b.sql" });
+  assert.equal(document.catalog.preflight.passed, false);
+  assert.ok(document.catalog.queries.every((q) => q.status === "not_run" && q.rows.length === 0));
+  assert.deepEqual(document.columns, []);
+});
+
+test("R13 in the document: no migration set sends exactly the no-database catalog, with no source", async () => {
+  const out = await inspect(repo({ "src/a.ts": "export const a = 1;\n" }));
+  assert.equal(out.code, 0, out.stderr);
+  const { document } = JSON.parse(out.stdout);
+  assert.equal(validateFactDocument(document), null);
+  assert.equal("source" in document.catalog, false); assert.equal("replay" in document.catalog, false);
+  assert.deepEqual(catalogEntry(document), { collector: "catalog", status: "not_run", count: 0, reason: "not_configured" });
+});
+
+test("no Postgres on PATH: source migrations, outcome no_postgres, not_run, nothing read", async () => {
+  const out = await inspect(repo({ "supabase/migrations/1_a.sql": "create table t ();" }), { PATH: temp("g2-nopath-") });
+  assert.equal(out.code, 0, out.stderr);
+  const { document } = JSON.parse(out.stdout);
+  assert.equal(validateFactDocument(document), null);
+  assert.equal(document.catalog.replay.outcome, "no_postgres");
+  assert.equal(catalogEntry(document).status, "not_run");
+  assert.ok(document.catalog.queries.every((q) => q.status === "not_run"));
+});
+
+test("replayFact: a replay result of a shape the contract can't carry is refused, never sent as live", () => {
+  const ok = { source: "migrations", status: "ok", reason: null, replay: { kind: "plain", files: 2, applied: 2, conditional_ddl: false, failed_file: null } };
+  assert.equal(replayFact(ok, "k").outcome, "applied");
+  assert.equal(replayFact({ ...ok, source: undefined }, "k"), null);
+  for (const replay of [{ ...ok.replay, kind: "flyway" }, { ...ok.replay, files: 0 }, { ...ok.replay, applied: 3 }, { ...ok.replay, applied: 1 }, null]) {
+    assert.deepEqual(replayFact({ ...ok, replay }, "k"), { bad: true }, JSON.stringify(replay));
+  }
+  assert.deepEqual(replayFact({ ...ok, status: "failed", reason: "replay_failed", replay: { ...ok.replay, applied: 1 } }, "k"), { bad: true }); // no file named
+  assert.equal(replayFact({ ...ok, reason: "replay_failed", replay: { ...ok.replay, applied: 1, failed_file: "migrations/2_b.sql" } }, "k").failed_file, "migrations/2_b.sql");
+  assert.equal(replayFact({ ...ok, replay: { ...ok.replay, conditional_ddl: undefined } }, "k").conditional_ddl, true); // unknown reads as conditional
+});
