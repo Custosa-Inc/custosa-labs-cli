@@ -12,7 +12,7 @@ import assert from "node:assert/strict";
 import { existsSync, mkdirSync, mkdtempSync, readdirSync, readFileSync, realpathSync, symlinkSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { dirname, join } from "node:path";
-import { conditionalDdl, findMigrationSet, replayCatalog, statementCount, upSection, ENGINE_MODULES }
+import { conditionalDdl, findMigrationSet, replayCatalog, statementCount, upSection, ENGINE_MODULES, SESSION_AUTH }
   from "../lib/inspector/replay.mjs";
 import { QUERY_IDS } from "../lib/inspector/factdoc.mjs";
 import { QUERY_ROW_LIMITS, shippedQuerySql } from "../lib/inspector/catalogfacts.mjs";
@@ -654,16 +654,40 @@ test("C664 low 3: the shipped worker runs the engine with no hooks; a testSetupS
   assert.equal(r.status, "ok", JSON.stringify([r.reason, r.replay])); assert.equal(r.replay.applied, 1);
 });
 
-test("C664 low 1 (weak spot, recorded): the session's user is the engine's superuser, so a file can switch to it and back", { skip }, async () => {
-  // PGlite runs one single-user backend as its bootstrap superuser, which can't be demoted; the migrator is a role.
-  // This pins today's behavior: such a file applies, and its catalog edit is read. Core holds every replayed pass.
-  const sneak = "create table public.t (id int primary key);\n"
-    + "set session authorization postgres;\n"
-    + "update pg_catalog.pg_class set relrowsecurity = true where oid = 'public.t'::regclass;\n"
-    + "set session authorization custosa_migrator;\n";
+test("C664 low 1, C565: a file that names the session authorization fails the replay, the file named, the files before it applied", { skip }, async () => {
+  // the engine's session user is its superuser (PGlite's single-user backend), so these could act as it and switch back
+  const forge = "UPDATE pg_catalog.pg_class SET relrowsecurity = true, relforcerowsecurity = true WHERE relname = 't';";
+  const shapes = {
+    c02: `SET SESSION AUTHORIZATION postgres; ${forge} SET SESSION AUTHORIZATION custosa_migrator;`,
+    c17: `DO $$ BEGIN EXECUTE 'SET SESSION AUTHORIZATION postgres'; ${forge} EXECUTE 'SET SESSION AUTHORIZATION custosa_migrator'; END $$;`,
+    c18: `SELECT set_config('session_authorization', 'postgres', false); ${forge} SELECT set_config('session_authorization', 'custosa_migrator', false);`,
+    c20: `set   session\n  authorization "postgres"; ${forge} set session authorization 'custosa_migrator';`,
+    c22: `BEGIN; SET LOCAL SESSION AUTHORIZATION postgres; ${forge} COMMIT;`,
+    quoted: `SET "session_authorization" = 'postgres'; ${forge} RESET "session_authorization";`,
+  };
+  for (const [name, sql] of Object.entries(shapes)) {
+    const r = await replayCatalog(repo({ "migrations/0001_m.sql": "CREATE TABLE t (id int primary key, note text);",
+      "migrations/0002_m.sql": sql, "migrations/0003_m.sql": "CREATE TABLE u (id int);" }), QUERIES, { timeMs: 60_000 });
+    assert.equal(r.status, "failed", name); assert.equal(r.reason, "replay_failed", name);
+    assert.equal(r.replay.failed_file, "migrations/0002_m.sql", name); assert.equal(r.replay.applied, 1, name);
+    assert.ok(allNotRun(r, "replay_failed"), name);
+  }
+  assert.deepEqual(["session authorization", "SESSION_AUTHORIZATION", 'session"_"authorization', "Session\n\tAuthorization"]
+    .map((t) => SESSION_AUTH.test(t)), [true, true, true, true]);
+  assert.deepEqual(["SET ROLE app", "session_replication_role", "authorization header", "create session_log"]
+    .map((t) => SESSION_AUTH.test(t)), [false, false, false, false]);
+});
+
+test("C664 low 1 (residual, recorded): text built at run time is not caught; the switch applies and its catalog edit is read", { skip }, async () => {
+  // Pins today's limit so a change to it shows. Core holds every replayed pass, so the cost is a held line.
+  const sneak = "CREATE TABLE public.t (id int primary key);\n"
+    + "DO $$ BEGIN EXECUTE 'SET SESSION ' || 'AUTHORIZ' || 'ATION postgres'; "
+    + "UPDATE pg_catalog.pg_class SET relrowsecurity = true WHERE oid = 'public.t'::regclass; "
+    + "EXECUTE 'SET SESSION ' || 'AUTHORIZ' || 'ATION custosa_migrator'; END $$;\n";
+  assert.equal(SESSION_AUTH.test(sneak), false);
   const r = await replayCatalog(repo({ "migrations/1_a.sql": sneak }), QUERIES, {});
   assert.equal(r.status, "ok", JSON.stringify([r.reason, r.replay])); assert.equal(r.replay.applied, 1);
-  assert.deepEqual(rls(r), { t: true }); // a file that stays the superuser fails: the C562 test above
+  assert.deepEqual(rls(r), { t: true });
 });
 
 test("C664 low 2: the lock marks no direct dependency peer, so npm ci --omit=peer still installs pg", () => {
