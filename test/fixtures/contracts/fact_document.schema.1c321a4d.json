@@ -2090,6 +2090,69 @@
               "maxContains": 1
             }
           ]
+        },
+        "source": {
+          "description": "Contract 2.8 (T29 gap 2): where this catalog was read. live (absent means live): the database phisc_ro reaches. migrations: a throwaway database the inspector built on this machine by applying the repo's own migration set in its tool's order, then read as phisc_ro with the same preflight and queries. A migrations catalog shows what the repo's migrations build, never what is deployed: core takes only enums.REPLAY_QUERY_IDS from it, for enums.REPLAY_PRACTICES only, and grades a pass on it custosa_on_migrations (E3).",
+          "type": "string",
+          "enum": [
+            "live",
+            "migrations"
+          ]
+        },
+        "replay": {
+          "description": "Contract 2.8: present exactly when source is migrations. kind: the migration set read (supabase: supabase/migrations; prisma: prisma/migrations; plain: a SQL migrations folder). files: how many files the set holds; applied: how many applied before the replay stopped. conditional_ddl: some file in the set holds SQL whose effect can differ in production (a DO block, dynamic EXECUTE, DDL inside a function body, a psql meta-command); core then holds every pass on this catalog. outcome: applied (every file applied, then the catalog was read), not_applied (a file failed or the time cap hit; failed_file names it), no_postgres (no Postgres 16 or later on the machine), refused (the order or the set couldn't be told, a symlink, or a size cap). Only applied carries catalog rows.",
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "kind",
+            "files",
+            "applied",
+            "conditional_ddl",
+            "outcome",
+            "failed_file"
+          ],
+          "properties": {
+            "kind": {
+              "type": "string",
+              "enum": [
+                "supabase",
+                "prisma",
+                "plain"
+              ]
+            },
+            "files": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 2000
+            },
+            "applied": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 2000
+            },
+            "conditional_ddl": {
+              "type": "boolean"
+            },
+            "outcome": {
+              "type": "string",
+              "enum": [
+                "applied",
+                "not_applied",
+                "no_postgres",
+                "refused"
+              ]
+            },
+            "failed_file": {
+              "oneOf": [
+                {
+                  "type": "null"
+                },
+                {
+                  "$ref": "#/$defs/path"
+                }
+              ]
+            }
+          }
         }
       },
       "allOf": [
@@ -2118,6 +2181,40 @@
                     }
                   }
                 }
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "required": [
+              "source"
+            ],
+            "properties": {
+              "source": {
+                "const": "migrations"
+              }
+            }
+          },
+          "then": {
+            "required": [
+              "replay"
+            ]
+          }
+        },
+        {
+          "if": {
+            "required": [
+              "replay"
+            ]
+          },
+          "then": {
+            "required": [
+              "source"
+            ],
+            "properties": {
+              "source": {
+                "const": "migrations"
               }
             }
           }
@@ -3954,11 +4051,12 @@
         "bad_input",
         "unreadable",
         "match_cut_at_window",
-        "nothing_read"
+        "nothing_read",
+        "migrations_not_applied"
       ]
     },
     "collection_entry": {
-      "description": "One collector's outcome. count: files walked (files), tracked files read (git), rules run (rules), queries that returned rows or none (catalog), settings read (platform), secrets found (secrets). reason is null for ok and empty and required otherwise. parse_failed is never a collector's reason (supabase.edge_functions only); the A5 reasons (enums.SECRETS_TRUNCATED_REASONS: scan_error, joined_view_budget, bad_input, unreadable, match_cut_at_window) only the secrets collector's, while truncated: a file the secret scan didn't read in full. nothing_read (enums.RULES_ONLY_REASONS) only the rules collector's, while truncated: the rule engine read none of the files it had rules for (each is in files.not_analyzed), so the matches can't be read as found nothing.",
+      "description": "One collector's outcome. count: files walked (files), tracked files read (git), rules run (rules), queries that returned rows or none (catalog), settings read (platform), secrets found (secrets). reason is null for ok and empty and required otherwise. parse_failed is never a collector's reason (supabase.edge_functions only); the A5 reasons (enums.SECRETS_TRUNCATED_REASONS: scan_error, joined_view_budget, bad_input, unreadable, match_cut_at_window) only the secrets collector's, while truncated: a file the secret scan didn't read in full. nothing_read (enums.RULES_ONLY_REASONS) only the rules collector's, while truncated: the rule engine read none of the files it had rules for (each is in files.not_analyzed), so the matches can't be read as found nothing. migrations_not_applied (enums.CATALOG_ONLY_REASONS, contract 2.8) only the catalog collector's, while failed: a migration of the repo's own set failed to apply in the inspector's throwaway database.",
       "type": "object",
       "additionalProperties": false,
       "required": [
@@ -4091,6 +4189,30 @@
               },
               "status": {
                 "const": "truncated"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "required": [
+              "reason"
+            ],
+            "properties": {
+              "reason": {
+                "enum": [
+                  "migrations_not_applied"
+                ]
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "collector": {
+                "const": "catalog"
+              },
+              "status": {
+                "const": "failed"
               }
             }
           }

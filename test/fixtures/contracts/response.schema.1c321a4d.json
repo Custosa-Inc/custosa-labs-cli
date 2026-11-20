@@ -208,7 +208,8 @@
             "person_decided",
             "person_decided_committed",
             "open",
-            "custosa_on_cited_facts"
+            "custosa_on_cited_facts",
+            "custosa_on_migrations"
           ]
         },
         "facts_needed": {
@@ -728,6 +729,38 @@
             "properties": {
               "state": {
                 "const": "pass"
+              },
+              "grade": {
+                "enum": [
+                  "E3"
+                ]
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "required": [
+              "assurance"
+            ],
+            "properties": {
+              "assurance": {
+                "const": "custosa_on_migrations"
+              }
+            }
+          },
+          "then": {
+            "not": {
+              "required": [
+                "settled_by"
+              ]
+            },
+            "properties": {
+              "state": {
+                "enum": [
+                  "pass",
+                  "not_applicable"
+                ]
               },
               "grade": {
                 "enum": [
@@ -1307,6 +1340,7 @@
             "unknown",
             "error",
             "custosa_on_cited_facts",
+            "custosa_on_migrations",
             "assistant_decided",
             "person_decided"
           ],
@@ -1346,6 +1380,11 @@
               "minimum": 0,
               "maximum": 1000000
             },
+            "custosa_on_migrations": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 1000000
+            },
             "assistant_decided": {
               "type": "integer",
               "minimum": 0,
@@ -1380,6 +1419,7 @@
                 "unknown",
                 "error",
                 "custosa_on_cited_facts",
+                "custosa_on_migrations",
                 "assistant_decided",
                 "person_decided",
                 "concern_open"
@@ -1416,6 +1456,11 @@
                   "maximum": 1000000
                 },
                 "custosa_on_cited_facts": {
+                  "type": "integer",
+                  "minimum": 0,
+                  "maximum": 1000000
+                },
+                "custosa_on_migrations": {
                   "type": "integer",
                   "minimum": 0,
                   "maximum": 1000000
@@ -1449,6 +1494,7 @@
                 "unknown",
                 "error",
                 "custosa_on_cited_facts",
+                "custosa_on_migrations",
                 "assistant_decided",
                 "person_decided",
                 "concern_open"
@@ -1485,6 +1531,11 @@
                   "maximum": 1000000
                 },
                 "custosa_on_cited_facts": {
+                  "type": "integer",
+                  "minimum": 0,
+                  "maximum": 1000000
+                },
+                "custosa_on_migrations": {
                   "type": "integer",
                   "minimum": 0,
                   "maximum": 1000000
@@ -1518,6 +1569,7 @@
                 "unknown",
                 "error",
                 "custosa_on_cited_facts",
+                "custosa_on_migrations",
                 "assistant_decided",
                 "person_decided",
                 "concern_open"
@@ -1554,6 +1606,11 @@
                   "maximum": 1000000
                 },
                 "custosa_on_cited_facts": {
+                  "type": "integer",
+                  "minimum": 0,
+                  "maximum": 1000000
+                },
+                "custosa_on_migrations": {
                   "type": "integer",
                   "minimum": 0,
                   "maximum": 1000000
@@ -1587,6 +1644,7 @@
                 "unknown",
                 "error",
                 "custosa_on_cited_facts",
+                "custosa_on_migrations",
                 "assistant_decided",
                 "person_decided",
                 "concern_open"
@@ -1623,6 +1681,11 @@
                   "maximum": 1000000
                 },
                 "custosa_on_cited_facts": {
+                  "type": "integer",
+                  "minimum": 0,
+                  "maximum": 1000000
+                },
+                "custosa_on_migrations": {
                   "type": "integer",
                   "minimum": 0,
                   "maximum": 1000000
@@ -1697,6 +1760,7 @@
           "required": [
             "custosa",
             "custosa_on_cited_facts",
+            "custosa_on_migrations",
             "person_decided",
             "assistant_decided"
           ],
@@ -1707,6 +1771,11 @@
               "maximum": 1000000
             },
             "custosa_on_cited_facts": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 1000000
+            },
+            "custosa_on_migrations": {
               "type": "integer",
               "minimum": 0,
               "maximum": 1000000
@@ -2835,6 +2904,7 @@
             "unknown",
             "error",
             "custosa_on_cited_facts",
+            "custosa_on_migrations",
             "assistant_decided",
             "person_decided"
           ],
@@ -2882,6 +2952,13 @@
               }
             },
             "custosa_on_cited_facts": {
+              "type": "array",
+              "maxItems": 20000,
+              "items": {
+                "$ref": "https://custosa.com/schemas/fact-document/2#/$defs/object_id"
+              }
+            },
+            "custosa_on_migrations": {
               "type": "array",
               "maxItems": 20000,
               "items": {
@@ -5154,6 +5231,7 @@
                 "enum": [
                   "custosa",
                   "custosa_on_cited_facts",
+                  "custosa_on_migrations",
                   "person_decided",
                   "assistant_decided"
                 ]
