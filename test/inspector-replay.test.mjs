@@ -483,3 +483,118 @@ test("C534: Windows builds no cluster: not_run, postgres_unusable (no_postgres),
   assert.equal(r.status, "not_run"); assert.equal(r.reason, "postgres_unusable");
   assert.equal(r.replay.applied, 0); assert.ok(allNotRun(r, "postgres_unusable"));
 });
+
+/* ---------- C534 part 1: sets the repo's own tool config anchors ---------- */
+
+const rels = (root) => { const s = findMigrationSet(root); return s.status === "found" ? s.files.map((f) => f.rel) : s; };
+
+test("C534: Prisma, a postgresql schema.prisma anywhere (a monorepo package) with migrations beside it", () => {
+  const root = repo({ "packages/db/prisma/schema.prisma": 'datasource db {\n  provider = "postgresql"\n  url = env("X")\n}\n',
+    "packages/db/prisma/migrations/20240201_b/migration.sql": "", "packages/db/prisma/migrations/20240101_a/migration.sql": "" });
+  assert.deepEqual(rels(root), ["packages/db/prisma/migrations/20240101_a/migration.sql", "packages/db/prisma/migrations/20240201_b/migration.sql"]);
+  // a mysql schema with no lock file: no set, provider_not_postgres
+  const my = repo({ "backend/prisma/schema.prisma": 'datasource db {\n  provider = "mysql"\n}\n', "backend/prisma/migrations/1_a/migration.sql": "" });
+  assert.deepEqual(findMigrationSet(my), { status: "none", reason: "provider_not_postgres" });
+});
+
+test("C534: Prisma, the schema path package.json names (prisma.schema)", () => {
+  const root = repo({ "server/package.json": JSON.stringify({ prisma: { schema: "db/app.prisma" } }),
+    "server/db/app.prisma": 'datasource db {\n  provider = "postgresql"\n}\n', "server/db/migrations/1_a/migration.sql": "" });
+  assert.deepEqual(rels(root), ["server/db/migrations/1_a/migration.sql"]);
+});
+
+test("C534: Supabase, supabase/migrations under any folder that holds supabase/config.toml", () => {
+  const root = repo({ "apps/api/supabase/config.toml": "project_id = 'x'", "apps/api/supabase/migrations/2_b.sql": "",
+    "apps/api/supabase/migrations/10_c.sql": "", "apps/api/supabase/seed.sql": "" });
+  assert.deepEqual(rels(root), ["apps/api/supabase/migrations/2_b.sql", "apps/api/supabase/migrations/10_c.sql"]);
+  // the root rule and its own config are one set, not two
+  const one = repo({ "supabase/config.toml": "", "supabase/migrations/1_a.sql": "" });
+  assert.deepEqual(rels(one), ["supabase/migrations/1_a.sql"]);
+});
+
+test("C534 R4: Drizzle, the journal's order, not the file names' order", () => {
+  const root = repo({ "drizzle.config.ts": 'export default { dialect: "postgresql", out: "./db/out", schema: "./s.ts" };',
+    "db/out/meta/_journal.json": JSON.stringify({ entries: [{ idx: 1, tag: "0000_b" }, { idx: 0, tag: "0001_a" }] }),
+    "db/out/0000_b.sql": "", "db/out/0001_a.sql": "" });
+  assert.deepEqual(rels(root), ["db/out/0001_a.sql", "db/out/0000_b.sql"]);
+  // a journal naming a file that isn't there, or a duplicate idx, can't be ordered
+  const gone = repo({ "drizzle.config.ts": 'export default { dialect: "postgresql", out: "./d" };',
+    "d/meta/_journal.json": JSON.stringify({ entries: [{ idx: 0, tag: "0000_a" }] }) });
+  assert.deepEqual(findMigrationSet(gone), { status: "refused", reason: "order_unknown" });
+  // a MySQL Drizzle config is not a set
+  const my = repo({ "drizzle.config.ts": 'export default { dialect: "mysql", out: "./d" };', "d/meta/_journal.json": "{}" });
+  assert.deepEqual(findMigrationSet(my), { status: "none", reason: "no_migrations" });
+});
+
+test("C534 R4 twin: Drizzle v1, no journal, timestamped folders with migration.sql in folder-name order", () => {
+  const root = repo({ "packages/db/drizzle.config.ts": "export default defineConfig({ dialect: 'postgresql', out: './drizzle' })",
+    "packages/db/drizzle/20250102000000_b/migration.sql": "", "packages/db/drizzle/20250101000000_a/migration.sql": "",
+    "packages/db/drizzle/20250101000000_a/snapshot.json": "{}" });
+  assert.deepEqual(rels(root), ["packages/db/drizzle/20250101000000_a/migration.sql", "packages/db/drizzle/20250102000000_b/migration.sql"]);
+  // loose .sql files with no journal can't be ordered
+  const loose = repo({ "drizzle.config.ts": "export default { dialect: 'postgresql', out: './drizzle' }", "drizzle/0000_a.sql": "" });
+  assert.deepEqual(findMigrationSet(loose), { status: "refused", reason: "order_unknown" });
+});
+
+test("C534: a compose file that mounts a folder on /docker-entrypoint-initdb.d: its .sql files in name order; a script there holds", () => {
+  const compose = "services:\n  db:\n    image: postgres:16\n    volumes:\n      - ./postgres/init:/docker-entrypoint-initdb.d:ro\n      - pgdata:/var/lib/postgresql/data\nvolumes:\n  pgdata: {}\n";
+  const root = repo({ "docker/docker-compose.yml": compose, "docker/postgres/init/02_rls.sql": "", "docker/postgres/init/01_schema.sql": "" });
+  const s = findMigrationSet(root);
+  assert.deepEqual(s.files.map((f) => f.rel), ["docker/postgres/init/01_schema.sql", "docker/postgres/init/02_rls.sql"]);
+  assert.equal(s.hold, undefined);
+  for (const extra of ["03_more.sh", "04_data.sql.gz"]) {
+    const held = findMigrationSet(repo({ "docker/docker-compose.yml": compose, "docker/postgres/init/01_schema.sql": "", [`docker/postgres/init/${extra}`]: "" }));
+    assert.equal(held.hold, true, extra);
+  }
+  // not a Postgres image, a named volume, or a path out of the repo: no set
+  for (const c of [compose.replace("postgres:16", "mysql:8"), compose.replace("./postgres/init", "initvol"),
+    compose.replace("./postgres/init", "../../etc")]) assert.equal(findMigrationSet(repo({ "docker/docker-compose.yml": c, "docker/postgres/init/01.sql": "" })).status, "none", c);
+});
+
+test("C534: runner configs name the folder: Flyway locations, a sqitch plan, dbmate and node-pg-migrate", () => {
+  assert.deepEqual(rels(repo({ "db/flyway.conf": "flyway.url=x\nflyway.locations=filesystem:sql/schema\n",
+    "db/sql/schema/V2__b.sql": "", "db/sql/schema/V10__c.sql": "", "db/sql/schema/V1__a.sql": "" })),
+  ["db/sql/schema/V1__a.sql", "db/sql/schema/V2__b.sql", "db/sql/schema/V10__c.sql"]);
+  assert.deepEqual(rels(repo({ "sqitch.plan": "%syntax-version=1.0.0\n%project=x\n\nusers 2024-01-01T00:00:00Z a <a@b> # u\nrls [users] 2024-01-02T00:00:00Z a <a@b>\n@v1 2024-01-03T00:00:00Z a <a@b>\n",
+    "deploy/rls.sql": "", "deploy/users.sql": "", "revert/users.sql": "" })), ["deploy/users.sql", "deploy/rls.sql"]);
+  assert.deepEqual(rels(repo({ "package.json": JSON.stringify({ scripts: { migrate: "dbmate --migrations-dir ./src/database/migrations up" } }),
+    "src/database/migrations/20240101_a.sql": "" })), ["src/database/migrations/20240101_a.sql"]);
+  assert.deepEqual(rels(repo({ "api/package.json": JSON.stringify({ scripts: { m: "node-pg-migrate -m db/sql up" } }),
+    "api/db/sql/1700000000000_a.sql": "" })), ["api/db/sql/1700000000000_a.sql"]);
+  assert.deepEqual(rels(repo({ ".env": "DBMATE_MIGRATIONS_DIR=./server/database/migrations\n", "server/database/migrations/1_a.sql": "" })),
+    ["server/database/migrations/1_a.sql"]);
+  // node-pg-migrate with code migrations: no set
+  assert.equal(findMigrationSet(repo({ "package.json": JSON.stringify({ scripts: { m: "node-pg-migrate -m migs up" } }),
+    "migs/1_a.js": "", "migs/2_b.sql": "" })).status, "none");
+});
+
+test("C534 R7: SQL in a folder no config anchors is ignored; docs, examples and tests are never walked", () => {
+  assert.deepEqual(findMigrationSet(repo({ "src/db/migrations/1_a.sql": "create policy p on t using (true);",
+    "src/infrastructure/database/migrations/1_a.sql": "" })), { status: "none", reason: "no_migrations" });
+  assert.deepEqual(findMigrationSet(repo({ "examples/app/supabase/config.toml": "", "examples/app/supabase/migrations/1_a.sql": "",
+    "docs/prisma/schema.prisma": 'datasource db {\n provider = "postgresql"\n}', "docs/prisma/migrations/1_a/migration.sql": "" })),
+  { status: "none", reason: "no_migrations" });
+});
+
+test("C534 R10: two anchored sets in one repo are refused; a symlinked anchor is refused", () => {
+  assert.deepEqual(findMigrationSet(repo({ "a/supabase/config.toml": "", "a/supabase/migrations/1_a.sql": "",
+    "b/prisma/schema.prisma": 'datasource db {\n provider = "postgresql"\n}', "b/prisma/migrations/1_a/migration.sql": "" })),
+  { status: "refused", reason: "migration_sets_ambiguous" });
+  const root = repo({ "real/1_a.sql": "", "drizzle.config.ts": "export default { dialect: 'postgresql', out: './linked' }" });
+  symlinkSync(join(root, "real"), join(root, "linked"));
+  assert.deepEqual(findMigrationSet(root), { status: "refused", reason: "symlink" });
+});
+
+test("C534: an anchored monorepo set replays end to end", { skip }, async () => {
+  const r = await replayCatalog(repo({ "apps/api/supabase/config.toml": "", "apps/api/supabase/migrations/20240101000000_init.sql": OWNED }),
+    QUERIES, { bindir });
+  assert.equal(r.status, "ok", JSON.stringify([r.reason, r.replay]));
+  assert.deepEqual(policies(r), ["notes.own:scoped"]);
+});
+
+test("C534: a held compose set (a script beside the .sql) replays with conditional_ddl true, so core holds its passes", { skip }, async () => {
+  const r = await replayCatalog(repo({ "docker-compose.yml": "services:\n  db:\n    image: postgres:16\n    volumes:\n      - ./init:/docker-entrypoint-initdb.d\n",
+    "init/01.sql": "create table a (id int);\nalter table a enable row level security;", "init/02.sh": "psql -c 'alter table a disable row level security'" }),
+  QUERIES, { bindir });
+  assert.equal(r.status, "ok", JSON.stringify([r.reason, r.replay])); assert.equal(r.replay.conditional_ddl, true);
+});
