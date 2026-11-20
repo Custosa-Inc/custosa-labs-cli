@@ -657,6 +657,7 @@ test("C664 low 3: the shipped worker runs the engine with no hooks; a testSetupS
 test("C664 low 1, C565: a file that names the session authorization fails the replay, the file named, the files before it applied", { skip }, async () => {
   // the engine's session user is its superuser (PGlite's single-user backend), so these could act as it and switch back
   const forge = "UPDATE pg_catalog.pg_class SET relrowsecurity = true, relforcerowsecurity = true WHERE relname = 't';";
+  const B = String.fromCharCode(92); // one backslash
   const shapes = {
     c02: `SET SESSION AUTHORIZATION postgres; ${forge} SET SESSION AUTHORIZATION custosa_migrator;`,
     c17: `DO $$ BEGIN EXECUTE 'SET SESSION AUTHORIZATION postgres'; ${forge} EXECUTE 'SET SESSION AUTHORIZATION custosa_migrator'; END $$;`,
@@ -669,6 +670,9 @@ test("C664 low 1, C565: a file that names the session authorization fails the re
     line: `SET SESSION -- c\nAUTHORIZATION postgres; ${forge} SET SESSION -- c\nAUTHORIZATION custosa_migrator;`,
     nested: `SET SESSION /* a /* b */ c */ AUTHORIZATION postgres; ${forge} SET SESSION /**/ AUTHORIZATION custosa_migrator;`,
     exec: `DO $$ BEGIN EXECUTE 'SET SESSION /* x */ AUTHORIZATION postgres'; ${forge} EXECUTE 'SET SESSION -- c\nAUTHORIZATION custosa_migrator'; END $$;`,
+    // C667: escapes are static text too (a U& identifier, an E'' string an EXECUTE runs)
+    uamp: `SET U&"session${B}005fauthorization" TO postgres; ${forge} SET U&"session${B}005fauthorization" TO custosa_migrator;`,
+    estring: `DO $$ BEGIN EXECUTE E'SET SESSION AUTHORIZ${B}x41TION postgres'; ${forge} EXECUTE E'SET SESSION AUTHORIZ${B}x41TION custosa_migrator'; END $$;`,
   };
   for (const [name, sql] of Object.entries(shapes)) {
     const r = await replayCatalog(repo({ "migrations/0001_m.sql": "CREATE TABLE t (id int primary key, note text);",
@@ -688,6 +692,14 @@ test("C664 low 1, C565: a file that names the session authorization fails the re
     .map((t) => namesSessionAuth(t)), [true, true, true, true, true, true, true, true]);
   assert.deepEqual(["SET ROLE app", "session_replication_role", "session /* x */ log -- authorization", "SET SESSION /* x */ ROLE; -- authorization"]
     .map((t) => namesSessionAuth(t)), [false, false, false, false]);
+  // escapes: E'' (hex, octal, 4 and 8 hex digits, any other character), U& (4 and 6 digits), nested, UESCAPE outright
+  assert.deepEqual([`E'SET SESSION AUTHORIZ${B}x41TION'`, `E'SET SESSION AUTHORIZ${B}101TION'`, `E'session${B}u0020authorization'`,
+    `E'session${B}U00000020authorization'`, `E'SET SESSION AUTHORIZ${B}ATION'`, `E'session${B}nauthorization'`,
+    `U&"session${B}005fauthorization"`, `U&'session${B}+000020authorization'`,
+    `EXECUTE E'EXECUTE E''SET SESSION AUTHORIZ${B}${B}x41TION p'''`, `U&"d!0061t" UESCAPE '!'`]
+    .map((t) => namesSessionAuth(t)), Array(10).fill(true));
+  assert.deepEqual([`E'a${B}nb' -- session log`, `SELECT E'${B}x41'; create table session_log (id int)`, `U&"d${B}0061t"`]
+    .map((t) => namesSessionAuth(t)), [false, false, false]);
 });
 
 test("C664 low 1 (residual, recorded): text built at run time is not caught; the switch applies and its catalog edit is read", { skip }, async () => {
