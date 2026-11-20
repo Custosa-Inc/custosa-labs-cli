@@ -354,3 +354,68 @@ test("replayFact: a replay result of a shape the contract can't carry is refused
   assert.equal(replayFact({ ...ok, reason: "replay_failed", replay: { ...ok.replay, applied: 1, failed_file: "migrations/2_b.sql" } }, "k").failed_file, "migrations/2_b.sql");
   assert.equal(replayFact({ ...ok, replay: { ...ok.replay, conditional_ddl: undefined } }, "k").conditional_ddl, true); // unknown reads as conditional
 });
+
+/* ---------- C637 (P3's gap 2 confirm): findings 1 to 3 ---------- */
+
+test("C637 f3: a Prisma set whose lock file names a provider other than postgresql is no set, provider_not_postgres", () => {
+  const files = { "prisma/migrations/20240101_a/migration.sql": "CREATE TABLE `t` (`id` INT);" };
+  for (const provider of ["mysql", "sqlite", "sqlserver", "mongodb", "cockroachdb"]) {
+    const root = repo({ ...files, "prisma/migrations/migration_lock.toml": `# comment\nprovider = "${provider}"\n` });
+    assert.deepEqual(findMigrationSet(root), { status: "none", reason: "provider_not_postgres" }, provider);
+  }
+  for (const lock of ['provider = "postgresql"\n', "provider = 'postgres'\n", ""]) {
+    const root = repo({ ...files, "prisma/migrations/migration_lock.toml": lock });
+    assert.equal(findMigrationSet(root).status, "found", lock);
+  }
+  assert.equal(findMigrationSet(repo(files)).status, "found"); // no lock file: taken as today
+});
+
+test("C637 f3: provider_not_postgres reads as no database (not_configured) and the replay builds no cluster", async () => {
+  const { catalogReason } = await import("../lib/inspector/catalogfacts.mjs");
+  assert.equal(catalogReason("provider_not_postgres"), "not_configured");
+  const root = repo({ "prisma/migrations/20240101_a/migration.sql": "x", "prisma/migrations/migration_lock.toml": 'provider = "mysql"' });
+  const r = await replayCatalog(root, QUERIES, { bindir: "/nonexistent" });
+  assert.equal(r.status, "not_run"); assert.equal(r.reason, "provider_not_postgres"); assert.equal(r.replay, null);
+});
+
+test("C637 f1: a stub extension the machine lacks is skipped; the replay applies, and a file that needs it is the failed file", { skip }, async () => {
+  const ok = await replayCatalog(repo({ "supabase/migrations/20240101000000_init.sql": OWNED }), QUERIES,
+    { bindir, stubExtensions: ["custosa_no_such_extension", "pgcrypto"] });
+  assert.equal(ok.status, "ok", JSON.stringify([ok.reason, ok.replay]));
+  assert.equal(ok.replay.applied, 1);
+  const bad = await replayCatalog(repo({ "supabase/migrations/1_a.sql": "create table a (id int);",
+    "supabase/migrations/2_b.sql": "create table b (id uuid default extensions.custosa_missing_fn());" }), QUERIES,
+    { bindir, stubExtensions: ["custosa_no_such_extension"] });
+  assert.equal(bad.status, "failed"); assert.equal(bad.reason, "replay_failed");
+  assert.equal(bad.replay.failed_file, "supabase/migrations/2_b.sql"); assert.equal(bad.replay.applied, 1);
+});
+
+test("C637 f1: a sandbox setup that fails before any file is postgres_unusable (no Postgres here), never a nameless replay_failed", { skip }, async () => {
+  const r = await replayCatalog(repo({ "supabase/migrations/1_a.sql": "create table a (id int);" }), QUERIES,
+    { bindir, setupFault: true });
+  assert.equal(r.status, "not_run"); assert.equal(r.reason, "postgres_unusable");
+  assert.equal(r.replay.applied, 0); assert.equal(r.replay.failed_file, null);
+  assert.ok(allNotRun(r, "postgres_unusable"));
+  const { catalogReason } = await import("../lib/inspector/catalogfacts.mjs");
+  assert.equal(catalogReason("postgres_unusable"), "not_configured");
+  const { replayFact } = await import("../lib/inspector/factdoc.mjs");
+  assert.equal(replayFact(r, null).outcome, "no_postgres");
+});
+
+test("C637 f2: a Prisma or plain set whose SQL names the Supabase roles or auth.uid() gets the Supabase stubs, default grants included", { skip }, async () => {
+  const sql = "create table public.notes (id uuid primary key, owner uuid, body text);\n"
+    + "alter table public.notes enable row level security;\n"
+    + "create policy own on public.notes for select to authenticated using (auth.uid() = owner);\n";
+  for (const files of [{ "prisma/migrations/20240101_init/migration.sql": sql }, { "migrations/1_init.sql": sql }]) {
+    const r = await replayCatalog(repo(files), QUERIES, { bindir });
+    assert.equal(r.status, "ok", JSON.stringify([r.reason, r.replay]));
+    assert.deepEqual(policies(r), ["notes.own:scoped"]);
+    // Supabase's default grants reach the table, as on a Supabase host: a grant to anon is never hidden
+    const notes = rowsOf(r, "table_grants").find((g) => g.table_name === "notes");
+    assert.deepEqual(notes.api_roles_with_privileges, ["anon", "authenticated"]);
+    assert.equal(notes.api_table_select, true);
+  }
+  // a plain set that names none of them gets no stubs: the role is unknown and the file fails, as before
+  const r = await replayCatalog(repo({ "migrations/1_a.sql": "create table a (id int);\ngrant select on a to someone_else;" }), QUERIES, { bindir });
+  assert.equal(r.reason, "replay_failed"); assert.equal(r.replay.failed_file, "migrations/1_a.sql");
+});
