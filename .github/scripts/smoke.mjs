@@ -9,6 +9,8 @@
  *   2. `custosa inspect --stdio` answers initialize and tools/list over stdio, listing check_schema;
  *   3. a check_schema call on a tiny fixture project, in local-only mode, builds its fact document;
  *   4. `custosa inspect --document <fixture>` builds the same project's document from the command line.
+ * Both documents must show the fixture's migrations replayed in the bundled engine: catalog.source "migrations", and
+ * every file applied (T29-P1-C564), so each OS leg shows the replay works there.
  * With CUSTOSA_SMOKE_STRICT=1 (set in CI) the rules collector must also finish and analyse the fixture's code.
  *
  * Nothing reaches the network evaluator: every child gets CUSTOSA_INSPECT_LOCAL_ONLY=1, an empty config folder (no
@@ -180,12 +182,19 @@ function documentOk(what, doc) {
   if (doc.inspector_version !== pkg.version) problems.push(`inspector_version ${doc.inspector_version}`);
   if (status("files") !== "ok") problems.push(`files collector ${status("files")}`);
   if (status("rules") === "failed" || status("rules") === "missing") problems.push(`rules collector ${status("rules")}`);
+  // T29-P1-C564: on every leg, the fixture's migrations/ replays in the bundled engine, so a platform where it can't
+  // start or apply shows here (the fixture's root migrations/ is a plain set; no config is needed for a root folder)
+  const replay = doc.catalog?.replay;
+  if (doc.catalog?.source !== "migrations") problems.push(`catalog.source ${doc.catalog?.source}`);
+  if (!(replay?.files >= 1) || replay?.applied !== replay?.files || replay?.outcome !== "applied") {
+    problems.push(`catalog.replay ${JSON.stringify(replay ?? null)}`);
+  }
   if (STRICT) {
     if (status("rules") !== "ok") problems.push(`rules collector ${status("rules")} (strict)`);
     if (!(doc.files?.analyzed >= 1)) problems.push(`files.analyzed ${doc.files?.analyzed} (strict)`);
   }
   if (problems.length) fail(`${what}: ${problems.join("; ")}`);
-  else ok(`${what}: built the fixture's fact document locally (files ${status("files")}, rules ${status("rules")}, analyzed ${doc.files?.analyzed})`);
+  else ok(`${what}: built the fixture's fact document locally (files ${status("files")}, rules ${status("rules")}, analyzed ${doc.files?.analyzed}, replay ${replay.applied} of ${replay.files} applied)`);
 }
 
 try {
