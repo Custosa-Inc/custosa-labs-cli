@@ -216,8 +216,12 @@ test("R9: migration 3 of 5 errors: failed, replay_failed, the file named, every 
 
 test("R14: a migration past the time cap is a failed replay, and the cluster is gone after", { skip }, async () => {
   const before = new Set(readdirSync(tmpdir()));
-  const r = await replayCatalog(repo({ "migrations/1_a.sql": "create table a (id int);", "migrations/2_slow.sql": "select pg_sleep(30);" }),
-    QUERIES, { bindir, timeMs: 6000 });
+  // 15 s: room for the cluster to start and file 1 to apply on a loaded machine; pg_sleep(60) outlasts the cap (and the
+  // role's 20 s statement_timeout), so the cap is what stops it
+  const started = Date.now();
+  const r = await replayCatalog(repo({ "migrations/1_a.sql": "create table a (id int);", "migrations/2_slow.sql": "select pg_sleep(60);" }),
+    QUERIES, { bindir, timeMs: 15000 });
+  assert.ok(Date.now() - started < 45_000, "the cap ends the replay");
   assert.equal(r.status, "failed"); assert.equal(r.reason, "replay_failed"); assert.equal(r.replay.failed_file, "migrations/2_slow.sql");
   const left = readdirSync(tmpdir()).filter((n) => !before.has(n) && /^(custosa-replay-|cr-)/.test(n) && !n.startsWith("custosa-replay-repo-"));
   assert.deepEqual(left, []);
