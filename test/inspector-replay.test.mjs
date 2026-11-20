@@ -9,7 +9,7 @@
  *   outside the allow list), R21 no row value in the result, and no database setting taken from the environment. */
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { existsSync, mkdirSync, mkdtempSync, readdirSync, realpathSync, symlinkSync, writeFileSync } from "node:fs";
+import { existsSync, mkdirSync, mkdtempSync, readdirSync, readFileSync, realpathSync, symlinkSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { dirname, join } from "node:path";
 import { conditionalDdl, findMigrationSet, replayCatalog, statementCount, upSection, ENGINE_MODULES }
@@ -20,6 +20,12 @@ import { QUERY_ROW_LIMITS, shippedQuerySql } from "../lib/inspector/catalogfacts
 const QUERIES = QUERY_IDS.map((query_id) => ({ query_id, sql: shippedQuerySql(query_id),
   ...(QUERY_ROW_LIMITS[query_id] ? { row_limit: QUERY_ROW_LIMITS[query_id] } : {}) }));
 const temp = (prefix) => realpathSync(mkdtempSync(join(tmpdir(), prefix)));
+/* A test's own worker (T29-P3-C664 low 3): the shipped engine with setup SQL run as its superuser before the files.
+ * The shipped worker passes no hooks, so this is the only way in. */
+const ENGINE_URL = new URL("../lib/inspector/replay-engine.mjs", import.meta.url).href;
+const setupWorker = (sql) => new URL("data:text/javascript," + encodeURIComponent(
+  `import { parentPort, workerData } from "node:worker_threads"; import { runReplay } from ${JSON.stringify(ENGINE_URL)};
+runReplay(workerData, (m) => parentPort.postMessage(m), { setupSql: ${JSON.stringify(sql)} });`));
 function repo(files) {
   const root = temp("custosa-replay-repo-");
   for (const [rel, text] of Object.entries(files)) {
@@ -244,7 +250,7 @@ grant select on public.fp to custosa_migrator;`;
     [{ "migrations/1_a.sql": "create table a (id int);", "migrations/2_b.sql": fdw.replace("grant select on public.fp to custosa_migrator;", "select * from public.fp;") }, {}, "migrations/2_b.sql"],
     // the same table made by the setup as the superuser (tests only), read by a migration alone in its file
     [{ "migrations/1_a.sql": "create table a (id int);", "migrations/2_b.sql": "select * from public.fp" },
-      { engineModules: [...ENGINE_MODULES, "file_fdw"], testSetupSql: fdw }, "migrations/2_b.sql"],
+      { engineModules: [...ENGINE_MODULES, "file_fdw"], workerUrl: setupWorker(fdw) }, "migrations/2_b.sql"],
     // unbounded recursion: a server reports stack depth; this engine's session dies
     [{ "migrations/1_a.sql": "create function public.f(n int) returns int language plpgsql as $f$ begin return public.f(n + 1); end $f$;",
       "migrations/2_b.sql": "select public.f(1)", "migrations/3_c.sql": "create table c (id int);" }, {}, "migrations/2_b.sql"],
@@ -312,7 +318,7 @@ test("C562 point 5: the engine's files are in memory only, and it takes no setti
   if current_setting('data_directory') not like '/pglite/%' then raise exception 'host data directory'; end if;
   if exists (select 1 from pg_ls_dir('/') d where d in ('Users', 'etc', 'var', 'private')) then raise exception 'host root'; end if;
 end $p$;`;
-    const r = await replayCatalog(repo({ "supabase/migrations/1_init.sql": OWNED }), QUERIES, { testSetupSql: probe });
+    const r = await replayCatalog(repo({ "supabase/migrations/1_init.sql": OWNED }), QUERIES, { workerUrl: setupWorker(probe) });
     assert.equal(r.status, "ok", JSON.stringify([r.reason, r.replay]));
     assert.deepEqual(rls(r), { notes: true });
   } finally {
@@ -431,7 +437,7 @@ test("C637 f1: a stub extension the machine lacks is skipped; the replay applies
 
 test("C637 f1: a sandbox setup that fails before any file is postgres_unusable (no Postgres here), never a nameless replay_failed", { skip }, async () => {
   const r = await replayCatalog(repo({ "supabase/migrations/1_a.sql": "create table a (id int);" }), QUERIES,
-    { testSetupSql: "select custosa_test_setup_fault()" });
+    { workerUrl: setupWorker("select custosa_test_setup_fault()") });
   assert.equal(r.status, "not_run"); assert.equal(r.reason, "postgres_unusable");
   assert.equal(r.replay.applied, 0); assert.equal(r.replay.failed_file, null);
   assert.ok(allNotRun(r, "postgres_unusable"));
@@ -636,4 +642,35 @@ test("C534: a held compose set (a script beside the .sql) replays with condition
     "init/01.sql": "create table a (id int);\nalter table a enable row level security;", "init/02.sh": "psql -c 'alter table a disable row level security'" }),
   QUERIES, {});
   assert.equal(r.status, "ok", JSON.stringify([r.reason, r.replay])); assert.equal(r.replay.conditional_ddl, true);
+});
+
+test("C664 low 3: the shipped worker runs the engine with no hooks; a testSetupSql option or data field reaches nothing", { skip }, async () => {
+  const worker = readFileSync(new URL("../lib/inspector/replay-worker.mjs", import.meta.url), "utf8");
+  assert.deepEqual(worker.match(/runReplay\(.*\)/g), ["runReplay(workerData, (m) => parentPort.postMessage(m))"]);
+  assert.ok(!/testSetupSql|setupSql/.test(readFileSync(new URL("../lib/inspector/replay.mjs", import.meta.url), "utf8")));
+  // the setup that makes an engine unusable through a test's worker is ignored as an option
+  const r = await replayCatalog(repo({ "supabase/migrations/1_a.sql": "create table a (id int);" }), QUERIES,
+    { testSetupSql: "select custosa_test_setup_fault()", setupSql: "select custosa_test_setup_fault()" });
+  assert.equal(r.status, "ok", JSON.stringify([r.reason, r.replay])); assert.equal(r.replay.applied, 1);
+});
+
+test("C664 low 1 (weak spot, recorded): the session's user is the engine's superuser, so a file can switch to it and back", { skip }, async () => {
+  // PGlite runs one single-user backend as its bootstrap superuser, which can't be demoted; the migrator is a role.
+  // This pins today's behavior: such a file applies, and its catalog edit is read. Core holds every replayed pass.
+  const sneak = "create table public.t (id int primary key);\n"
+    + "set session authorization postgres;\n"
+    + "update pg_catalog.pg_class set relrowsecurity = true where oid = 'public.t'::regclass;\n"
+    + "set session authorization custosa_migrator;\n";
+  const r = await replayCatalog(repo({ "migrations/1_a.sql": sneak }), QUERIES, {});
+  assert.equal(r.status, "ok", JSON.stringify([r.reason, r.replay])); assert.equal(r.replay.applied, 1);
+  assert.deepEqual(rls(r), { t: true }); // a file that stays the superuser fails: the C562 test above
+});
+
+test("C664 low 2: the lock marks no direct dependency peer, so npm ci --omit=peer still installs pg", () => {
+  const pkg = JSON.parse(readFileSync(new URL("../package.json", import.meta.url), "utf8"));
+  const lock = JSON.parse(readFileSync(new URL("../npm-shrinkwrap.json", import.meta.url), "utf8"));
+  for (const name of Object.keys(pkg.dependencies)) {
+    assert.ok(lock.packages[`node_modules/${name}`], name);
+    assert.notEqual(lock.packages[`node_modules/${name}`].peer, true, `${name} is flagged peer (npm 11 writes it when a dependency also names it as a peer; drop the flag)`);
+  }
 });
