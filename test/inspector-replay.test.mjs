@@ -702,6 +702,28 @@ test("C664 low 1, C565: a file that names the session authorization fails the re
     .map((t) => namesSessionAuth(t)), [false, false, false]);
 });
 
+test("C668: the session authorization check is linear; a 1 MB file of unclosed comments after session fails within the clock", { skip }, async () => {
+  // from each "session" the skip used to scan an unclosed comment to the end: 316 s for this file on 8ba81a8, on the
+  // parent's thread before the worker, so the replay clock didn't bound it. The skips now share one budget; past it the
+  // file counts as naming it (fail closed).
+  for (const unit of ["session/*", "session--"]) {
+    const text = "SELECT 1; " + unit.repeat(Math.floor(999_000 / unit.length));
+    const t0 = Date.now();
+    assert.equal(namesSessionAuth(text), true, unit);
+    assert.ok(Date.now() - t0 < 5_000, `${unit}: ${Date.now() - t0} ms`);
+  }
+  for (const unit of ["session ", "session /* x */ "]) { // closed or no comments, no "authorization": linear and false
+    const text = "SELECT 1; " + unit.repeat(Math.floor(999_000 / unit.length));
+    const t1 = Date.now(); assert.equal(namesSessionAuth(text), false, unit); assert.ok(Date.now() - t1 < 5_000, unit);
+  }
+  const t2 = Date.now();
+  const r = await replayCatalog(repo({ "migrations/0001_m.sql": "CREATE TABLE t (id int primary key, note text);",
+    "migrations/0002_m.sql": "SELECT 1; " + "session/*".repeat(111_000) }), QUERIES, { timeMs: 60_000 });
+  assert.ok(Date.now() - t2 < 60_000, `${Date.now() - t2} ms`);
+  assert.equal(r.status, "failed"); assert.equal(r.reason, "replay_failed");
+  assert.equal(r.replay.failed_file, "migrations/0002_m.sql"); assert.equal(r.replay.applied, 1);
+});
+
 test("C664 low 1 (residual, recorded): text built at run time is not caught; the switch applies and its catalog edit is read", { skip }, async () => {
   // Pins today's limit so a change to it shows. Core holds every replayed pass, so the cost is a held line.
   const sneak = "CREATE TABLE public.t (id int primary key);\n"
