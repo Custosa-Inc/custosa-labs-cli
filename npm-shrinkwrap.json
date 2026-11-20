@@ -18,6 +18,7 @@
         "@ast-grep/lang-ruby": "0.0.7",
         "@ast-grep/lang-yaml": "0.0.6",
         "@ast-grep/napi": "0.45.3",
+        "@electric-sql/pglite": "0.5.17",
         "@modelcontextprotocol/server": "2.3.1",
         "ajv": "8.20.0",
         "pg": "8.23.1",
@@ -347,6 +348,12 @@
       "resolved": "https://registry.npmjs.org/@ast-grep/setup-lang/-/setup-lang-0.0.6.tgz",
       "integrity": "sha512-aSYZNF5nGQMxnwiA3Lcc8zi0AtpGlug47ADgqCgP/2n7p922FbnW7vo1rbW4kKjW72B/3mDdN7uvYidv8JnPnw==",
       "license": "ISC"
+    },
+    "node_modules/@electric-sql/pglite": {
+      "version": "0.5.17",
+      "resolved": "https://registry.npmjs.org/@electric-sql/pglite/-/pglite-0.5.17.tgz",
+      "integrity": "sha512-8SvKjiUjaU+0O0dbxjOfN+jXz14TEqDWbwDkYOW1aQ11y/ph2JvFVI27ABBo5nfw+ZfSqy4hKCNlbnbB1TDE+g==",
+      "license": "Apache-2.0"
     },
     "node_modules/@modelcontextprotocol/client": {
       "version": "2.3.1",
@@ -1060,6 +1067,7 @@
       "resolved": "https://registry.npmjs.org/pg/-/pg-8.23.1.tgz",
       "integrity": "sha512-aL96AHANtWjPLDOLqnhx+ngp9+UK7ETEU8VJrDCGvsSSi/mGLcWYsS6Herg7lmaBJe4uwrfqsa7gTEFaSizDoQ==",
       "license": "MIT",
+      "peer": true,
       "dependencies": {
         "pg-connection-string": "^2.14.1",
         "pg-pool": "^3.14.0",
