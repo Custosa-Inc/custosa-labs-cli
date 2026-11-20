@@ -1103,7 +1103,9 @@ test("Every shipped catalog query runs as phisc_ro after the preflight, on the v
   await cluster.admin.query(V2_SETUP);
   try {
     const all = SHIPPED_QUERY_IDS.map((id) => ({ query_id: id, sql: shippedQuerySql(id), row_limit: 20000 }));
-    const r = await collectCatalog(cluster.ro, all);
+    // This test asks that every query runs, not how fast: the 10 s product cap timed out `views` once (11 s) on a CI
+    // runner busy with the in-process replay tests (T29 C562). The timeout itself is tested above with 300 ms.
+    const r = await collectCatalog(cluster.ro, all, { statementTimeoutMs: 60000 });
     assert.equal(r.preflight.passed, true, JSON.stringify(r.preflight.failed));
     const got = Object.fromEntries(r.queries.map((q) => [q.query_id, [q.status, q.reason]]));
     // This server has no Supabase Storage, so storage_buckets doesn't run (platform_mismatch; the storage tests below
