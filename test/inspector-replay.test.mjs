@@ -1,8 +1,9 @@
-/* T29 gap 2 (T29-P1-C529, design lab/T29/gap-rls-sql): migration replay. With no database, the inspector builds a
- * throwaway cluster from the repo's own migrations and reads its catalog with collectCatalog as phisc_ro.
+/* T29 gap 2 (T29-P1-C529, design lab/T29/gap-rls-sql; rebuilt in process by T29-P1-C562): migration replay. With no
+ * database, the inspector replays the repo's own migrations into an in-process Postgres (PGlite, in a worker thread)
+ * and reads its catalog with the same collector as phisc_ro.
  *
- * The finder and the conditional-DDL scan run everywhere. The replay cases need initdb, pg_ctl and postgres 16+ on
- * PATH; without them they are skipped with the reason. Red rows from the C529 TASK and the design note:
+ * Every case runs everywhere: the engine ships in the package, and no Postgres on the machine is needed or used. Red
+ * rows from the C529 TASK, the design note and C562:
  *   R2 a policy dropped by a later migration, R3 RLS disabled later, R6 conditional DDL, R9 a migration that errors,
  *   R13 a repo with no migrations, R14 the time cap, R20 the sandbox (COPY ... PROGRAM, lo_import, dblink, an extension
  *   outside the allow list), R21 no row value in the result, and no database setting taken from the environment. */
@@ -11,8 +12,7 @@ import assert from "node:assert/strict";
 import { existsSync, mkdirSync, mkdtempSync, readdirSync, realpathSync, symlinkSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { dirname, join } from "node:path";
-import pg from "pg";
-import { childEnv, conditionalDdl, findMigrationSet, findPostgres, replayCatalog, startCluster, upSection, BOOT }
+import { conditionalDdl, findMigrationSet, replayCatalog, statementCount, upSection, ENGINE_MODULES }
   from "../lib/inspector/replay.mjs";
 import { QUERY_IDS } from "../lib/inspector/factdoc.mjs";
 import { QUERY_ROW_LIMITS, shippedQuerySql } from "../lib/inspector/catalogfacts.mjs";
@@ -38,7 +38,7 @@ const allNotRun = (r, reason) => r.queries.every((q) => q.status === "not_run" &
 test("R13: a repo with no migration set is not_run, no_migrations, and nothing is replayed", async () => {
   const root = repo({ "src/app.ts": "", "docs/example.sql": "create policy p on t using (true);" });
   assert.deepEqual(findMigrationSet(root), { status: "none", reason: "no_migrations" });
-  const r = await replayCatalog(root, QUERIES, { bindir: "/nonexistent" });
+  const r = await replayCatalog(root, QUERIES, {});
   assert.equal(r.status, "not_run"); assert.equal(r.reason, "no_migrations"); assert.equal(r.source, "migrations");
   assert.equal(r.replay, null); assert.ok(allNotRun(r, "no_migrations"));
 });
@@ -138,30 +138,28 @@ test("R6: DO blocks, dynamic EXECUTE and DDL in a function body are conditional;
   for (const s of no) assert.equal(conditionalDdl(s), false, s);
 });
 
-test("the children's environment carries no PG* variable and no DATABASE_URL", () => {
-  const env = childEnv({ PATH: "/bin", PGHOST: "prod.example", PGOPTIONS: "-c search_path=evil", PGPASSWORD: "x",
-    PGSERVICE: "phisc", PGSERVICEFILE: "/x", DATABASE_URL: "postgres://prod", PGDATA: "/var/lib/pg", HOME: "/home/u" });
-  assert.deepEqual(Object.keys(env).sort(), ["LANG", "LC_ALL", "PATH", "TZ"]);
+test("C562: the statement count matches the engine's: comments, literals and dollar bodies hold no statement", () => {
+  assert.equal(statementCount(""), 0);
+  assert.equal(statementCount("-- only a comment\n/* and ; another */"), 0);
+  assert.equal(statementCount("create table a (id int);\n\n;;\ncreate table b (id int)"), 2);
+  assert.equal(statementCount("insert into a values ('x;y');\ncreate function f() returns int language sql as $f$ select 1; select 2 $f$;"), 2);
+  assert.equal(statementCount("select 1; -- trailing; comment\n"), 1);
 });
 
-test("no Postgres programs: not_run, postgres_not_found, with the set described", async () => {
-  const root = repo({ "supabase/migrations/1_a.sql": "create table t ();" });
-  const r = await replayCatalog(root, QUERIES, { env: { PATH: "" } });
-  assert.equal(r.status, "not_run"); assert.equal(r.reason, "postgres_not_found");
-  assert.deepEqual(r.replay, { kind: "supabase", files: 1, applied: 0, conditional_ddl: false, failed_file: null });
-  assert.ok(allNotRun(r, "postgres_not_found"));
+test("C562: the registered extensions are the allow list's, in PGlite's module names; file_fdw and dblink are not", () => {
+  assert.ok(ENGINE_MODULES.includes("uuid_ossp") && ENGINE_MODULES.includes("pgcrypto"));
+  for (const m of ["file_fdw", "dblink", "postgres_fdw", "vector", "plpgsql"]) assert.ok(!ENGINE_MODULES.includes(m), m);
 });
 
-/* ---------- the replay, on a real cluster ---------- */
+/* ---------- the replay, in the in-process engine ---------- */
 
-const bindir = findPostgres();
-const skip = bindir ? false : "initdb, pg_ctl and postgres are not on PATH, so no replay cluster can be made";
+const skip = false; // the engine is in the package: every replay case runs, with no Postgres on the machine
 const OWNED = "create table public.notes (id uuid primary key, owner uuid references auth.users(id), body text);\n"
   + "alter table public.notes enable row level security;\n"
   + "create policy own on public.notes for select using (auth.uid() = owner);\n";
 
 test("a Supabase repo replays: the catalog reads as on a live database, from source migrations", { skip }, async () => {
-  const r = await replayCatalog(repo({ "supabase/migrations/20240101000000_init.sql": OWNED }), QUERIES, { bindir });
+  const r = await replayCatalog(repo({ "supabase/migrations/20240101000000_init.sql": OWNED }), QUERIES, {});
   assert.equal(r.status, "ok", JSON.stringify([r.reason, r.replay]));
   assert.equal(r.source, "migrations"); assert.equal(r.preflight.passed, true);
   assert.deepEqual(r.replay, { kind: "supabase", files: 1, applied: 1, conditional_ddl: false, failed_file: null });
@@ -173,7 +171,7 @@ test("R2: a policy dropped by a later migration and replaced with USING (true) r
   const r = await replayCatalog(repo({
     "supabase/migrations/20240101000000_init.sql": OWNED,
     "supabase/migrations/20240701000000_open.sql": "drop policy own on public.notes;\ncreate policy open_all on public.notes for select using (true);\n",
-  }), QUERIES, { bindir });
+  }), QUERIES, {});
   assert.equal(r.status, "ok"); assert.deepEqual(policies(r), ["notes.open_all:open"]);
 });
 
@@ -182,14 +180,14 @@ test("R3: RLS enabled in 001 and disabled in a later migration reads disabled", 
     "migrations/001_init.sql": "create table notes (id int primary key, owner text);\nalter table notes enable row level security;\n"
       + "create policy own on notes using (owner = current_user);\n",
     "migrations/005_off.sql": "alter table notes disable row level security;\n",
-  }), QUERIES, { bindir });
+  }), QUERIES, {});
   assert.equal(r.status, "ok", JSON.stringify([r.reason, r.replay])); assert.deepEqual(rls(r), { notes: false });
 });
 
 test("R8 end to end: a dbmate down section that opens the table is never applied", { skip }, async () => {
   const r = await replayCatalog(repo({ "db/migrations/20240101_init.sql": "-- migrate:up\n" + OWNED.replace(/auth\.uid\(\)/, "current_user::text::uuid")
     .replace(" references auth.users(id)", "") + "-- migrate:down\ndrop policy own on public.notes;\ncreate policy open_all on public.notes using (true);\n" }),
-  QUERIES, { bindir });
+  QUERIES, {});
   assert.equal(r.status, "ok", JSON.stringify([r.reason, r.replay])); assert.deepEqual(policies(r), ["notes.own:scoped"]);
 });
 
@@ -198,7 +196,7 @@ test("R6 end to end: a DO block anywhere in the chain is recorded; the catalog i
     "supabase/migrations/1_init.sql": OWNED,
     "supabase/migrations/2_env.sql": "DO $$ BEGIN IF current_setting('app.env', true) = 'prod' THEN "
       + "CREATE POLICY open_all ON public.notes USING (true); END IF; END $$;\n",
-  }), QUERIES, { bindir });
+  }), QUERIES, {});
   assert.equal(r.status, "ok"); assert.equal(r.replay.conditional_ddl, true);
   assert.deepEqual(policies(r), ["notes.own:scoped"]); // the branch prod may take was not; core holds every pass
 });
@@ -208,23 +206,62 @@ test("R9: migration 3 of 5 errors: failed, replay_failed, the file named, every 
     "migrations/1_a.sql": "create table a (id int);", "migrations/2_b.sql": "alter table a enable row level security;",
     "migrations/3_c.sql": "alter table nope add column x int;", "migrations/4_d.sql": "create table d (id int);",
     "migrations/5_e.sql": "create table e (id int);",
-  }), QUERIES, { bindir });
+  }), QUERIES, {});
   assert.equal(r.status, "failed"); assert.equal(r.reason, "replay_failed");
   assert.equal(r.replay.failed_file, "migrations/3_c.sql"); assert.equal(r.replay.applied, 2);
   assert.ok(allNotRun(r, "replay_failed")); assert.equal(r.preflight, null);
 });
 
-test("R14: a migration past the time cap is a failed replay, and the cluster is gone after", { skip }, async () => {
-  const before = new Set(readdirSync(tmpdir()));
-  // 15 s: room for the cluster to start and file 1 to apply on a loaded machine; pg_sleep(60) outlasts the cap (and the
-  // role's 20 s statement_timeout), so the cap is what stops it
-  const started = Date.now();
-  const r = await replayCatalog(repo({ "migrations/1_a.sql": "create table a (id int);", "migrations/2_slow.sql": "select pg_sleep(60);" }),
-    QUERIES, { bindir, timeMs: 15000 });
-  assert.ok(Date.now() - started < 45_000, "the cap ends the replay");
-  assert.equal(r.status, "failed"); assert.equal(r.reason, "replay_failed"); assert.equal(r.replay.failed_file, "migrations/2_slow.sql");
-  const left = readdirSync(tmpdir()).filter((n) => !before.has(n) && /^(custosa-replay-|cr-)/.test(n) && !n.startsWith("custosa-replay-repo-"));
-  assert.deepEqual(left, []);
+test("R14, C562 point 4: the parent's clock ends a runaway statement; statement_timeout is no cap here", { skip }, async () => {
+  // 15 s: room for the engine to start and file 1 to apply on a loaded machine. Each shape runs for ever (the engine
+  // enforces no statement_timeout, even one the file sets), so only the parent's timer can end it.
+  for (const slow of ["select pg_sleep(600);", "do $l$ begin loop end loop; end $l$;",
+    "set statement_timeout = '100ms';\nwith recursive r(n) as (select 1 union all select n + 1 from r) select count(*) from r;"]) {
+    const before = new Set(readdirSync(tmpdir()));
+    const started = Date.now();
+    const r = await replayCatalog(repo({ "migrations/1_a.sql": "create table a (id int);", "migrations/2_slow.sql": slow }),
+      QUERIES, { timeMs: 15000 });
+    assert.ok(Date.now() - started < 25_000, `the cap ends the replay: ${slow}`);
+    assert.equal(r.status, "failed", slow); assert.equal(r.reason, "replay_failed", slow);
+    assert.equal(r.replay.failed_file, "migrations/2_slow.sql", slow); assert.equal(r.replay.applied, 1, slow);
+    assert.ok(allNotRun(r, "replay_failed"), slow);
+    const left = readdirSync(tmpdir()).filter((n) => !before.has(n) && !n.startsWith("custosa-replay-repo-"));
+    assert.deepEqual(left, [], "the engine writes nothing to the host's temp folder");
+  }
+});
+
+test("C562 point 3: the three silent session deaths each end as a failed replay naming the file, never an empty catalog", { skip }, async () => {
+  const marker = join(temp("custosa-replay-marker-"), "touched");
+  const fdw = `create extension file_fdw; create server fs foreign data wrapper file_fdw;
+create foreign table public.fp (a text) server fs options (program 'touch ${marker}; echo x');
+grant select on public.fp to custosa_migrator;`;
+  const cases = [
+    // COPY ... PROGRAM: exec returns one empty result for the file, and the session is dead
+    [{ "migrations/1_a.sql": "create table a (id int);", "migrations/2_b.sql": `create table b (id int); copy (select 1) to program 'touch ${marker}'; create table c (id int);` }, {}, "migrations/2_b.sql"],
+    // the same statement alone in its file: the count matches (1 of 1), the canary catches it
+    [{ "migrations/1_a.sql": "create table a (id int);", "migrations/2_b.sql": `copy a from program 'touch ${marker}; echo 1'` }, {}, "migrations/2_b.sql"],
+    // a file_fdw program table: not registered, so its CREATE EXTENSION fails
+    [{ "migrations/1_a.sql": "create table a (id int);", "migrations/2_b.sql": fdw.replace("grant select on public.fp to custosa_migrator;", "select * from public.fp;") }, {}, "migrations/2_b.sql"],
+    // the same table made by the setup as the superuser (tests only), read by a migration alone in its file
+    [{ "migrations/1_a.sql": "create table a (id int);", "migrations/2_b.sql": "select * from public.fp" },
+      { engineModules: [...ENGINE_MODULES, "file_fdw"], testSetupSql: fdw }, "migrations/2_b.sql"],
+    // unbounded recursion: a server reports stack depth; this engine's session dies
+    [{ "migrations/1_a.sql": "create function public.f(n int) returns int language plpgsql as $f$ begin return public.f(n + 1); end $f$;",
+      "migrations/2_b.sql": "select public.f(1)", "migrations/3_c.sql": "create table c (id int);" }, {}, "migrations/2_b.sql"],
+  ];
+  for (const [files, opts, failed] of cases) {
+    const r = await replayCatalog(repo(files), QUERIES, { timeMs: 60_000, ...opts });
+    const what = JSON.stringify(files);
+    assert.equal(r.status, "failed", what); assert.equal(r.reason, "replay_failed", what);
+    assert.equal(r.replay.failed_file, failed, what);
+    assert.ok(allNotRun(r, "replay_failed"), what);
+  }
+  assert.equal(existsSync(marker), false, "no program ran on the host");
+});
+
+test("C562: a file that changes the session's user is the failed file", { skip }, async () => {
+  const r = await replayCatalog(repo({ "migrations/1_a.sql": "create table a (id int);\nset session authorization postgres;" }), QUERIES, {});
+  assert.equal(r.status, "failed"); assert.equal(r.replay.failed_file, "migrations/1_a.sql");
 });
 
 test("R20: COPY ... PROGRAM, server lo_import, dblink and an extension outside the allow list all fail to apply", { skip }, async () => {
@@ -242,7 +279,7 @@ test("R20: COPY ... PROGRAM, server lo_import, dblink and an extension outside t
     "grant pg_execute_server_program to custosa_migrator;",
     "set session_replication_role = replica;",
   ]) {
-    const r = await replayCatalog(repo({ "migrations/1_a.sql": sql }), QUERIES, { bindir });
+    const r = await replayCatalog(repo({ "migrations/1_a.sql": sql }), QUERIES, {});
     assert.equal(r.status, "failed", sql); assert.equal(r.reason, "replay_failed", sql);
     assert.equal(r.replay.failed_file, "migrations/1_a.sql", sql);
   }
@@ -251,7 +288,7 @@ test("R20: COPY ... PROGRAM, server lo_import, dblink and an extension outside t
 
 test("allowed extensions install: uuid-ossp and pgcrypto", { skip }, async () => {
   const r = await replayCatalog(repo({ "migrations/1_a.sql": "create extension if not exists \"uuid-ossp\";\ncreate extension if not exists pgcrypto;\n"
-    + "create table t (id uuid default uuid_generate_v4(), h text default encode(digest('x', 'sha256'), 'hex'));" }), QUERIES, { bindir });
+    + "create table t (id uuid default uuid_generate_v4(), h text default encode(digest('x', 'sha256'), 'hex'));" }), QUERIES, {});
   assert.equal(r.status === "ok" || r.status === "empty", true, JSON.stringify([r.status, r.reason, r.replay]));
 });
 
@@ -259,26 +296,29 @@ test("R21: rows a migration inserts never reach the result", { skip }, async () 
   const r = await replayCatalog(repo({ "supabase/migrations/1_init.sql": OWNED
     + "insert into auth.users (id, email) values ('00000000-0000-0000-0000-000000000001', 'patient-ssn-078051120@example.com');\n"
     + "insert into public.notes values ('00000000-0000-0000-0000-000000000002', '00000000-0000-0000-0000-000000000001', 'DIAGNOSIS-VALUE');\n" }),
-  QUERIES, { bindir });
+  QUERIES, {});
   assert.equal(r.status, "ok");
   const text = JSON.stringify(r);
   for (const v of ["078051120", "DIAGNOSIS-VALUE", "00000000-0000-0000-0000-000000000002"]) assert.ok(!text.includes(v), v);
 });
 
-test("the cluster listens on no TCP address and takes no setting from the environment", { skip }, async () => {
-  const env = { ...process.env, PGOPTIONS: "-c search_path=evil", PGHOST: "192.0.2.1", PGPORT: "1", PGDATABASE: "prod",
-    DATABASE_URL: "postgres://u:p@192.0.2.1/prod" };
-  const c = await startCluster({ bindir, env, deadline: Date.now() + 60_000 });
-  assert.equal(c.error, undefined);
+test("C562 point 5: the engine's files are in memory only, and it takes no setting from the environment", { skip }, async () => {
+  const saved = { ...process.env };
+  Object.assign(process.env, { PGOPTIONS: "-c search_path=evil", PGHOST: "192.0.2.1", PGPORT: "1", PGDATABASE: "prod",
+    DATABASE_URL: "postgres://u:p@192.0.2.1/prod" });
   try {
-    const client = new pg.Client({ host: c.socketDir, port: c.port, user: BOOT, database: "postgres", password: () => c.bootPw, ssl: false });
-    await client.connect();
-    try {
-      const { rows } = await client.query("select current_setting('listen_addresses') la, current_setting('search_path') sp");
-      assert.deepEqual(rows, [{ la: "", sp: '"$user", public' }]);
-    } finally { await client.end(); }
-  } finally { await c.stop(); }
-  assert.equal(existsSync(c.dir), false); assert.equal(existsSync(c.socketDir), false);
+    // the setup (tests only) raises unless the data directory is the engine's virtual one and no host folder is listed
+    const probe = `do $p$ begin
+  if current_setting('data_directory') not like '/pglite/%' then raise exception 'host data directory'; end if;
+  if exists (select 1 from pg_ls_dir('/') d where d in ('Users', 'etc', 'var', 'private')) then raise exception 'host root'; end if;
+end $p$;`;
+    const r = await replayCatalog(repo({ "supabase/migrations/1_init.sql": OWNED }), QUERIES, { testSetupSql: probe });
+    assert.equal(r.status, "ok", JSON.stringify([r.reason, r.replay]));
+    assert.deepEqual(rls(r), { notes: true });
+  } finally {
+    for (const k of Object.keys(process.env)) if (!(k in saved)) delete process.env[k];
+    Object.assign(process.env, saved);
+  }
 });
 
 /* ---------- the fact document (contract 2.8), through inspect --document ---------- */
@@ -333,14 +373,13 @@ test("R13 in the document: no migration set sends exactly the no-database catalo
   assert.deepEqual(catalogEntry(document), { collector: "catalog", status: "not_run", count: 0, reason: "not_configured" });
 });
 
-test("no Postgres on PATH: source migrations, outcome no_postgres, not_run, nothing read", async () => {
-  const out = await inspect(repo({ "supabase/migrations/1_a.sql": "create table t ();" }), { PATH: temp("g2-nopath-") });
+test("C562 point 2: no Postgres on PATH: the replay still applies and the catalog is read", async () => {
+  const out = await inspect(repo({ "supabase/migrations/1_a.sql": OWNED }), { PATH: temp("g2-nopath-") });
   assert.equal(out.code, 0, out.stderr);
   const { document } = JSON.parse(out.stdout);
   assert.equal(validateFactDocument(document), null);
-  assert.equal(document.catalog.replay.outcome, "no_postgres");
-  assert.equal(catalogEntry(document).status, "not_run");
-  assert.ok(document.catalog.queries.every((q) => q.status === "not_run"));
+  assert.equal(document.catalog.replay.outcome, "applied");
+  assert.ok(document.catalog.queries.find((q) => q.query_id === "rls_policies").rows.length >= 1);
 });
 
 test("replayFact: a replay result of a shape the contract can't carry is refused, never sent as live", () => {
@@ -374,25 +413,25 @@ test("C637 f3: provider_not_postgres reads as no database (not_configured) and t
   const { catalogReason } = await import("../lib/inspector/catalogfacts.mjs");
   assert.equal(catalogReason("provider_not_postgres"), "not_configured");
   const root = repo({ "prisma/migrations/20240101_a/migration.sql": "x", "prisma/migrations/migration_lock.toml": 'provider = "mysql"' });
-  const r = await replayCatalog(root, QUERIES, { bindir: "/nonexistent" });
+  const r = await replayCatalog(root, QUERIES, {});
   assert.equal(r.status, "not_run"); assert.equal(r.reason, "provider_not_postgres"); assert.equal(r.replay, null);
 });
 
 test("C637 f1: a stub extension the machine lacks is skipped; the replay applies, and a file that needs it is the failed file", { skip }, async () => {
   const ok = await replayCatalog(repo({ "supabase/migrations/20240101000000_init.sql": OWNED }), QUERIES,
-    { bindir, stubExtensions: ["custosa_no_such_extension", "pgcrypto"] });
+    { stubExtensions: ["custosa_no_such_extension", "pgcrypto"] });
   assert.equal(ok.status, "ok", JSON.stringify([ok.reason, ok.replay]));
   assert.equal(ok.replay.applied, 1);
   const bad = await replayCatalog(repo({ "supabase/migrations/1_a.sql": "create table a (id int);",
     "supabase/migrations/2_b.sql": "create table b (id uuid default extensions.custosa_missing_fn());" }), QUERIES,
-    { bindir, stubExtensions: ["custosa_no_such_extension"] });
+    { stubExtensions: ["custosa_no_such_extension"] });
   assert.equal(bad.status, "failed"); assert.equal(bad.reason, "replay_failed");
   assert.equal(bad.replay.failed_file, "supabase/migrations/2_b.sql"); assert.equal(bad.replay.applied, 1);
 });
 
 test("C637 f1: a sandbox setup that fails before any file is postgres_unusable (no Postgres here), never a nameless replay_failed", { skip }, async () => {
   const r = await replayCatalog(repo({ "supabase/migrations/1_a.sql": "create table a (id int);" }), QUERIES,
-    { bindir, setupFault: true });
+    { testSetupSql: "select custosa_test_setup_fault()" });
   assert.equal(r.status, "not_run"); assert.equal(r.reason, "postgres_unusable");
   assert.equal(r.replay.applied, 0); assert.equal(r.replay.failed_file, null);
   assert.ok(allNotRun(r, "postgres_unusable"));
@@ -407,7 +446,7 @@ test("C637 f2: a Prisma or plain set whose SQL names the Supabase roles or auth.
     + "alter table public.notes enable row level security;\n"
     + "create policy own on public.notes for select to authenticated using (auth.uid() = owner);\n";
   for (const files of [{ "prisma/migrations/20240101_init/migration.sql": sql }, { "migrations/1_init.sql": sql }]) {
-    const r = await replayCatalog(repo(files), QUERIES, { bindir });
+    const r = await replayCatalog(repo(files), QUERIES, {});
     assert.equal(r.status, "ok", JSON.stringify([r.reason, r.replay]));
     assert.deepEqual(policies(r), ["notes.own:scoped"]);
     // Supabase's default grants reach the table, as on a Supabase host: a grant to anon is never hidden
@@ -416,7 +455,7 @@ test("C637 f2: a Prisma or plain set whose SQL names the Supabase roles or auth.
     assert.equal(notes.api_table_select, true);
   }
   // a plain set that names none of them gets no stubs: the role is unknown and the file fails, as before
-  const r = await replayCatalog(repo({ "migrations/1_a.sql": "create table a (id int);\ngrant select on a to someone_else;" }), QUERIES, { bindir });
+  const r = await replayCatalog(repo({ "migrations/1_a.sql": "create table a (id int);\ngrant select on a to someone_else;" }), QUERIES, {});
   assert.equal(r.reason, "replay_failed"); assert.equal(r.replay.failed_file, "migrations/1_a.sql");
 });
 
@@ -425,32 +464,32 @@ test("C637 f2: a Prisma or plain set whose SQL names the Supabase roles or auth.
 test("C534: a file that leaves a transaction open (BEGIN with no COMMIT) is the failed file, never counted applied", { skip }, async () => {
   const r = await replayCatalog(repo({ "migrations/1_a.sql": "create table a (id int);",
     "migrations/2_b.sql": "BEGIN;\nalter table a enable row level security;\n", "migrations/3_c.sql": "create table c (id int);" }),
-  QUERIES, { bindir });
+  QUERIES, {});
   assert.equal(r.status, "failed"); assert.equal(r.reason, "replay_failed");
   assert.equal(r.replay.failed_file, "migrations/2_b.sql"); assert.equal(r.replay.applied, 1);
 });
 
 test("C534: an aborted transaction in a file is the failed file", { skip }, async () => {
   const r = await replayCatalog(repo({ "migrations/1_a.sql": "create table a (id int);",
-    "migrations/2_b.sql": "BEGIN;\nselect 1/0;\n" }), QUERIES, { bindir });
+    "migrations/2_b.sql": "BEGIN;\nselect 1/0;\n" }), QUERIES, {});
   assert.equal(r.reason, "replay_failed"); assert.equal(r.replay.failed_file, "migrations/2_b.sql");
 });
 
 test("C534: session settings a file changes (search_path, role) don't carry into the next file or the read", { skip }, async () => {
   const r = await replayCatalog(repo({
     "migrations/1_a.sql": "select pg_catalog.set_config('search_path', '', false);\nSET ROLE NONE;\ncreate table public.a (id int);",
-    "migrations/2_b.sql": "create table b (id int);\nalter table b enable row level security;" }), QUERIES, { bindir });
+    "migrations/2_b.sql": "create table b (id int);\nalter table b enable row level security;" }), QUERIES, {});
   assert.equal(r.status, "ok", JSON.stringify([r.reason, r.replay]));
   assert.deepEqual(rls(r), { a: false, b: true });
 });
 
 test("C534: a chain whose files make tables but whose replay ends with none is a failed replay, never an empty pass", { skip }, async () => {
   const r = await replayCatalog(repo({ "migrations/1_a.sql": "create table a (id int);\nalter table a enable row level security;",
-    "migrations/2_b.sql": "drop table a;" }), QUERIES, { bindir });
+    "migrations/2_b.sql": "drop table a;" }), QUERIES, {});
   assert.equal(r.status, "failed"); assert.equal(r.reason, "replay_failed");
   assert.equal(r.replay.failed_file, "migrations/2_b.sql"); assert.ok(allNotRun(r, "replay_failed"));
   // a chain with no CREATE TABLE at all may read empty, as before
-  const none = await replayCatalog(repo({ "migrations/1_a.sql": "create schema s;" }), QUERIES, { bindir });
+  const none = await replayCatalog(repo({ "migrations/1_a.sql": "create schema s;" }), QUERIES, {});
   assert.notEqual(none.reason, "replay_failed", JSON.stringify([none.status, none.reason]));
 });
 
@@ -472,14 +511,14 @@ test("C534: pg_dump's \\restrict and \\unrestrict lines are stripped from a dump
 });
 
 test("C534: a dump with \\restrict lines replays", { skip }, async () => {
-  const r = await replayCatalog(repo({ "migrations/1_schema.sql": DUMP }), QUERIES, { bindir });
+  const r = await replayCatalog(repo({ "migrations/1_schema.sql": DUMP }), QUERIES, {});
   assert.equal(r.status, "ok", JSON.stringify([r.reason, r.replay])); assert.deepEqual(rls(r), { a: true });
   assert.equal(r.replay.conditional_ddl, false);
 });
 
-test("C534: Windows builds no cluster: not_run, postgres_unusable (no_postgres), no TCP listener", async () => {
+test("C562: an engine that can't start is postgres_unusable (no_postgres), nothing applied", async () => {
   const r = await replayCatalog(repo({ "migrations/1_a.sql": "create table a (id int);" }), QUERIES,
-    { bindir: "/nonexistent", platform: "win32" });
+    { workerUrl: new URL("data:text/javascript,throw new Error('no engine')") });
   assert.equal(r.status, "not_run"); assert.equal(r.reason, "postgres_unusable");
   assert.equal(r.replay.applied, 0); assert.ok(allNotRun(r, "postgres_unusable"));
 });
@@ -587,7 +626,7 @@ test("C534 R10: two anchored sets in one repo are refused; a symlinked anchor is
 
 test("C534: an anchored monorepo set replays end to end", { skip }, async () => {
   const r = await replayCatalog(repo({ "apps/api/supabase/config.toml": "", "apps/api/supabase/migrations/20240101000000_init.sql": OWNED }),
-    QUERIES, { bindir });
+    QUERIES, {});
   assert.equal(r.status, "ok", JSON.stringify([r.reason, r.replay]));
   assert.deepEqual(policies(r), ["notes.own:scoped"]);
 });
@@ -595,6 +634,6 @@ test("C534: an anchored monorepo set replays end to end", { skip }, async () => 
 test("C534: a held compose set (a script beside the .sql) replays with conditional_ddl true, so core holds its passes", { skip }, async () => {
   const r = await replayCatalog(repo({ "docker-compose.yml": "services:\n  db:\n    image: postgres:16\n    volumes:\n      - ./init:/docker-entrypoint-initdb.d\n",
     "init/01.sql": "create table a (id int);\nalter table a enable row level security;", "init/02.sh": "psql -c 'alter table a disable row level security'" }),
-  QUERIES, { bindir });
+  QUERIES, {});
   assert.equal(r.status, "ok", JSON.stringify([r.reason, r.replay])); assert.equal(r.replay.conditional_ddl, true);
 });
