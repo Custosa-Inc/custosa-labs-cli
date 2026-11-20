@@ -46,6 +46,7 @@ lib/inspector/platform.mjs
 lib/inspector/policyexpr.mjs
 lib/inspector/prefilter.mjs
 lib/inspector/projectroot.mjs
+lib/inspector/replay-worker.mjs
 lib/inspector/replay.mjs
 lib/inspector/rules-worker.mjs
 lib/inspector/rules.mjs
