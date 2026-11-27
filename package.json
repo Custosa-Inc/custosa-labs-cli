@@ -60,7 +60,7 @@
     "@ast-grep/lang-yaml": "0.0.6",
     "@ast-grep/napi": "0.45.3",
     "@electric-sql/pglite": "0.5.17",
-    "@modelcontextprotocol/server": "2.3.1",
+    "@modelcontextprotocol/server": "2.4.0",
     "ajv": "8.20.0",
     "pg": "8.23.1",
     "yaml": "2.9.1"
